@@ -122,70 +122,120 @@ Notation "'TEST' e ''THEN' c1 'ELSE' c2 " := (ite e c1 c2)
 (*don't need the annoying parens around each arg*)
 (***)
 
-(*memory syntax*)
-(*memory locations defined above warvars*)
-
 (*setting up equality type for locations*)
+
 (*should the memory map check to see if the expression is actually
  a natural somehow
  i'd have to add some details keeping track of the return type
  of the binary operations*)
+(*what is the difference between sub_sort and subType?*)
 
-Print sum.
 
+(*do i need to use fixpoint here or is there another
+ keyword for things that aren't recursive..i tried to use
+ definition but it didn't let me use proof tactics*)
 
-(*there must be an easier way of doing this involving ssreflect*)
-Check subType.
-Check is_true.
+(*all the strings are the eqtype strings now*)
 
-Check Sub.
+Fixpoint getstringsv1 (x: smallvar): option string :=
+  match val x with
+    Var s => Some s
+  | _ => None
+  end. 
 
-Lemma whatissmallvar: forall(s: string), (is_true (smallvarpred (Var s))).
+Theorem sv1notnone: forall (x: smallvar), getstringsv1 x <> None.
 Proof.
-  intros. reflexivity.
+  intros.
+  destruct x as [value proof].
+    destruct (value) as [s| | |];
+  try (simpl in proof; discriminate proof).
+  intros contra. discriminate contra.
 Qed.
 
-Check (whatissmallvar "f").
+Lemma forall(x y: smallvar)
 
-Check valP (Sub (Var "f") (whatissmallvar "f")).
+(*fix this lol*)
+Theorem stupid: (None: option string) = (None: option string).
+Proof.
+  reflexivity.
+Qed.
 
-(*what is the difference between sub_sort and subType?
-...I think sub_sort is the thing where the actual values
-are?
-but then what's the point of the subType function?
- *)
+Fixpoint getstringsv (x: smallvar): string :=
+  (match (getstringsv1 x) as out return (out <> None -> string) with
+    Some s => fun _ => s
+   | None => fun H => match
+                H stupid
+              with end
+   end) (sv1notnone x).
 
-(*Lemma whatisnotsv: forall(e: exp)(not (is_true (match e )))*)
+  (*destruct x as [value proof].
+  destruct (value) as [s| | |];
+  try (simpl in proof; discriminate proof); return s.*)
 
-(*this is hacky but idk what to do abt it*)
-Check insub. (*NICE*)
-Check insub.
-Definition getstring (x: smallvar) :=
-   match val x with
-    Var sx => sx
-  | _  => "problem"%string
-              end.
+
+Fixpoi nt getstringsarr (a:array): string :=
+  match a with
+    Array s _ => s
+  (*destruct (a) as [s ]. exact s. *)
+end.
+
 
 Definition eqb_loc (l1: loc) (l2: loc) :=
   match l1, l2 with
     inl _, inr _ => false
   | inr _, inl _ => false
-  | inl x, inl y =>
-    (*bassically I want to do inversion here
-      and then intros S
-     *)
-    eqb_string (getstring x) (getstring y)
-  | inr x, inr y => true
+  | inl x, inl y => (getstringsv x)==(getstringsv y)
+  | inr x, inr y => (getstringsarr x)==(getstringsarr y)
   end.
+
+(*do I even need that eqb_loc is equality?
+cuz it's becoming a pain to prove
+I say table this part till Thursday cuz it's not the
+most essential thing you could be doing
+ *)
+
+(*the subtypes are making things a lot
+ more difficult actually because if you didn't have the subtypes
+ then you wouldn't have to worry about the match case and
+ could prove the equality relation*)
+
+
+
+
+Lemma eqb_loc_true_iff : forall x y : loc,
+    eqb_loc x y = true <-> x = y.
+Proof.
+  intros.
+  destruct x. destruct y.
+  - unfold eqb_loc. split.
+    + intros. destruct s as [svalue sproof] eqn:seq.
+      unfold getstringsv in H.
+      apply (sv1notnone s) in H.
+   destruct (string_dec x y) as [H |Hs].
+   - subst. split. reflexivity. reflexivity.
+   - split.
+     + intros contra. discriminate contra.
+     + intros H. rewrite H in Hs *. destruct Hs. reflexivity.
+Qed.
+
 
 Lemma eqloc: Equality.axiom eqb_loc.
 Proof.
   unfold Equality.axiom. intros.
-  destruct (eqb_string x y) eqn:beq.
+  destruct x. destruct y. repeat simpl.
+  -
+  destruct (eqb_loc x y) eqn:beq.
   - constructor. apply eqb_string_true_iff in beq. assumption.
   -  constructor. intros contra. apply eqb_string_true_iff in contra.
      rewrite contra in beq. discriminate beq.
 Qed.
+
+(***)
+
+(*memory syntax*)
+
+(*memory locations defined above warvars*)
+
 Canonical string_eqMixin := EqMixin eqstring.
 Canonical string_eqtype := Eval hnf in EqType string string_eqMixin.
 
