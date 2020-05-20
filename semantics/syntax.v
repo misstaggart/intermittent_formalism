@@ -48,16 +48,16 @@ Canonical string_eqtype := Eval hnf in EqType string string_eqMixin.
 (***)
 
 (*Now, to business! Below is syntax*)
-Inductive val :=
+Inductive value :=
   Nat (n: nat)
 | Yes
 | No
 | Error
 .
-
-Definition map (A: eqType):= A -> val.
+(*val was already taken by a subtype method*)
+Definition map (A: eqType):= A -> value.
 Definition emptymap {A: eqType} :map A := (fun _ => Error).
-Definition updatemap {A: eqType} (m: map A) (i: A) (v: val) : map A := (fun j =>
+Definition updatemap {A: eqType} (m: map A) (i: A) (v: value) : map A := (fun j =>
                                                                if (j == i) then v
                                                                else (m j)).
 Close Scope string_scope.
@@ -73,18 +73,23 @@ Inductive array :=
 Open Scope type_scope.
 Inductive exp :=
   Var (s: string) (*variable*)
-| Val (v: val)
+| Val (v: value)
 | Bop (e1: exp) (e2: exp)
 | El (a: array) (e: exp).    (*variable*)
 
 Notation "a '[[' e ']]'" := (El (a) (e))
                             (at level 100, right associativity).
 
-Definition smallvar := {x: exp| match x with
+
+Definition smallvarpred := (fun x=> match x with
                                         Var s => true
                                         | _ => false
-                                 end
-                       }.
+                                 end).
+
+(*Definition smallvar := subType smallvarpred.*)
+Notation smallvar := {x: exp | smallvarpred x}.
+
+Check smallvar.
 (*how does this work??*)
 Definition el := {x: exp|  exists(a: array) (e: exp), x = (a[[e]])}.
 (*annoying parens here but it complained when I made the level
@@ -128,9 +133,38 @@ Notation "'TEST' e ''THEN' c1 'ELSE' c2 " := (ite e c1 c2)
 
 Print sum.
 
-Lemma contra forall(l1)
 
 (*there must be an easier way of doing this involving ssreflect*)
+Check subType.
+Check is_true.
+
+Check Sub.
+
+Lemma whatissmallvar: forall(s: string), (is_true (smallvarpred (Var s))).
+Proof.
+  intros. reflexivity.
+Qed.
+
+Check (whatissmallvar "f").
+
+Check valP (Sub (Var "f") (whatissmallvar "f")).
+
+(*what is the difference between sub_sort and subType?
+...I think sub_sort is the thing where the actual values
+are?
+but then what's the point of the subType function?
+ *)
+
+(*Lemma whatisnotsv: forall(e: exp)(not (is_true (match e )))*)
+
+(*this is hacky but idk what to do abt it*)
+Check insub. (*NICE*)
+Check insub.
+Definition getstring (x: smallvar) :=
+   match val x with
+    Var sx => sx
+  | _  => "problem"%string
+              end.
 
 Definition eqb_loc (l1: loc) (l2: loc) :=
   match l1, l2 with
@@ -140,10 +174,7 @@ Definition eqb_loc (l1: loc) (l2: loc) :=
     (*bassically I want to do inversion here
       and then intros S
      *)
-    (match x, y with
-       exist (Var sx) pf, exist (Var sy) pff => eqb_string sx sy
-        _, _ => match contra with end.
-    end)
+    eqb_string (getstring x) (getstring y)
   | inr x, inr y => true
   end.
 
