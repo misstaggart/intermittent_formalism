@@ -55,16 +55,15 @@ Inductive value :=
 | Error
 .
 (*val was already taken by a subtype method*)
-Definition map (A: eqType):= A -> value.
-Definition emptymap {A: eqType} :map A := (fun _ => Error).
-Definition updatemap {A: eqType} (m: map A) (i: A) (v: value) : map A := (fun j =>
-                                                               if (j == i) then v
+(*just have map take the equality function in as an argument*)
+Definition map (A: Type) (eqba: A -> A -> bool):= A -> value.
+Definition emptymap {A} {eqba} :(map A eqba) := (fun _ => Error).
+Definition updatemap {A} {eqba} (m: map A eqba) (i: A) (v: value) : map A eqba := (fun j =>
+                                                               if (eqba j i) then v
                                                                else (m j)).
 Close Scope string_scope.
-(*map nat will be for arrays and map string will be for memory*)
-(*except you don't actually need to get stuff out of the
- arrays but I'll leave the equality types for now just in case*)
-(*also memory maps locations to values so....*)
+ (*I'll leave the equality types for now just in case*)
+(*only other map necessary is for tasks at first inspection*)
 (****)
 
 Inductive array :=
@@ -88,8 +87,6 @@ Definition smallvarpred := (fun x=> match x with
 
 (*Definition smallvar := subType smallvarpred.*)
 Notation smallvar := {x: exp | smallvarpred x}.
-
-Check smallvar.
 (*how does this work??*)
 Definition el := {x: exp|  exists(a: array) (e: exp), x = (a[[e]])}.
 (*annoying parens here but it complained when I made the level
@@ -104,9 +101,10 @@ Inductive instruction :=
                       pretty sure I'm not allowed to write it like that
                       in here
                      *)
-| checkpoint (omega: warvars)
-| reboot.
-
+| incheckpoint (omega: warvars)
+| inreboot.
+(*added the in prefixes to distinguish from the observation reboots
+ and checkpoints*)
 
 Inductive command :=
   Instruct (l: instruction)
@@ -152,8 +150,6 @@ Proof.
   intros contra. discriminate contra.
 Qed.
 
-Lemma forall(x y: smallvar)
-
 (*fix this lol*)
 Theorem stupid: (None: option string) = (None: option string).
 Proof.
@@ -173,7 +169,7 @@ Fixpoint getstringsv (x: smallvar): string :=
   try (simpl in proof; discriminate proof); return s.*)
 
 
-Fixpoi nt getstringsarr (a:array): string :=
+Fixpoint getstringsarr (a:array): string :=
   match a with
     Array s _ => s
   (*destruct (a) as [s ]. exact s. *)
@@ -192,6 +188,7 @@ Definition eqb_loc (l1: loc) (l2: loc) :=
 cuz it's becoming a pain to prove
 I say table this part till Thursday cuz it's not the
 most essential thing you could be doing
+Could always set it up later
  *)
 
 (*the subtypes are making things a lot
@@ -199,45 +196,42 @@ most essential thing you could be doing
  then you wouldn't have to worry about the match case and
  could prove the equality relation*)
 
-
-
-
-Lemma eqb_loc_true_iff : forall x y : loc,
-    eqb_loc x y = true <-> x = y.
-Proof.
-  intros.
-  destruct x. destruct y.
-  - unfold eqb_loc. split.
-    + intros. destruct s as [svalue sproof] eqn:seq.
-      unfold getstringsv in H.
-      apply (sv1notnone s) in H.
-   destruct (string_dec x y) as [H |Hs].
-   - subst. split. reflexivity. reflexivity.
-   - split.
-     + intros contra. discriminate contra.
-     + intros H. rewrite H in Hs *. destruct Hs. reflexivity.
-Qed.
-
-
-Lemma eqloc: Equality.axiom eqb_loc.
-Proof.
-  unfold Equality.axiom. intros.
-  destruct x. destruct y. repeat simpl.
-  -
-  destruct (eqb_loc x y) eqn:beq.
-  - constructor. apply eqb_string_true_iff in beq. assumption.
-  -  constructor. intros contra. apply eqb_string_true_iff in contra.
-     rewrite contra in beq. discriminate beq.
-Qed.
-
 (***)
 
 (*memory syntax*)
 
 (*memory locations defined above warvars*)
-
-Canonical string_eqMixin := EqMixin eqstring.
-Canonical string_eqtype := Eval hnf in EqType string string_eqMixin.
-
+Notation mem := (map loc eqb_loc). (*memory mapping*)
+Inductive nvmem := (*nonvolatile memory*)
+  Nonvolatile (m : mem).
+Inductive vmem := (*volatile memory*)
+  Volatile (m : mem).
+Inductive cconf := (*continuous configuration*)
+  ContinuousConf (triple: nvmem * vmem * command).
+Inductive context :=
+  Con (triple: nvmem * vmem * command).
+(*do you distinction between context and continuous configuration?
+I put one
+ *)
+Inductive iconf := (*intermittent configuration*)
+  IntermittentConf (qple: context * nvmem * vmem * command).
+Inductive readobs := (*read observation*)
+  rd (l: loc) (v: value)
+| Seqrd (r1: readobs) (r2: readobs).
+(*I made the checkpoint and reboots different than those
+ for instructions but I could make them the same with a subtype*)
+Inductive obs := (*observation*)
+  Empty
+| Obs (r: readobs)
+| reboot
+| checkpoint.
+Notation obsseq := (list obs). (*observation sequence*)
+(***)
+(*technically I could do subtypes here for obs vs readobs but I don't think it's
+ necessary*)
+(*continuously powered operational semantics*)
+Reserved Notation "N ',' V '|-' e '==>_'r v" (at level 90, left associativity).
+Inductive cceval (N: nvmem) (V : vmem) (e: exp) (r: readobs) v :=
+  VAL: N ',' V '|-' e '==>_'r v
 
 Close Scope type_scope.
