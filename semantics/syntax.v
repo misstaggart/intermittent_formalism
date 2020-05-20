@@ -1,6 +1,6 @@
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
-     Init.Datatypes Lists.List Strings.String Program.Subset.
+     Init.Datatypes Lists.List Strings.String.
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
 Import ListNotations.
@@ -45,7 +45,6 @@ Proof.
 Qed.
 Canonical string_eqMixin := EqMixin eqstring.
 Canonical string_eqtype := Eval hnf in EqType string string_eqMixin.
-Check string_eqtype.
 (***)
 
 (*Now, to business! Below is syntax*)
@@ -65,6 +64,7 @@ Close Scope string_scope.
 (*map nat will be for arrays and map string will be for memory*)
 (*except you don't actually need to get stuff out of the
  arrays but I'll leave the equality types for now just in case*)
+(*also memory maps locations to values so....*)
 (****)
 
 Inductive array :=
@@ -80,12 +80,17 @@ Inductive exp :=
 Notation "a '[[' e ']]'" := (El (a) (e))
                             (at level 100, right associativity).
 
-Definition smallvar := {x: exp|  exists(s: string), x = Var s}.
+Definition smallvar := {x: exp| match x with
+                                        Var s => true
+                                        | _ => false
+                                 end
+                       }.
+(*how does this work??*)
 Definition el := {x: exp|  exists(a: array) (e: exp), x = (a[[e]])}.
 (*annoying parens here but it complained when I made the level
  higher *)
-Definition warvar := smallvar + array.
-Definition warvars := list warvar.
+Definition loc := smallvar + array.
+Definition warvars := list loc.
 
 Inductive instruction :=
   skip
@@ -103,16 +108,55 @@ Inductive command :=
 | Seq (l: instruction) (c: command)
 | ite (e: exp) (c1: command) (c2: command).
 
-
 Notation "l ';;' c" := (Seq (l) (c))
                          (at level 100).
 
 Notation "'TEST' e ''THEN' c1 'ELSE' c2 " := (ite e c1 c2)
-                                               (at level 100).
+                                                (at level 100).
 
 (*don't need the annoying parens around each arg*)
 (***)
 
-(***)
+(*memory syntax*)
+(*memory locations defined above warvars*)
+
+(*setting up equality type for locations*)
+(*should the memory map check to see if the expression is actually
+ a natural somehow
+ i'd have to add some details keeping track of the return type
+ of the binary operations*)
+
+Print sum.
+
+Lemma contra forall(l1)
+
+(*there must be an easier way of doing this involving ssreflect*)
+
+Definition eqb_loc (l1: loc) (l2: loc) :=
+  match l1, l2 with
+    inl _, inr _ => false
+  | inr _, inl _ => false
+  | inl x, inl y =>
+    (*bassically I want to do inversion here
+      and then intros S
+     *)
+    (match x, y with
+       exist (Var sx) pf, exist (Var sy) pff => eqb_string sx sy
+        _, _ => match contra with end.
+    end)
+  | inr x, inr y => true
+  end.
+
+Lemma eqloc: Equality.axiom eqb_loc.
+Proof.
+  unfold Equality.axiom. intros.
+  destruct (eqb_string x y) eqn:beq.
+  - constructor. apply eqb_string_true_iff in beq. assumption.
+  -  constructor. intros contra. apply eqb_string_true_iff in contra.
+     rewrite contra in beq. discriminate beq.
+Qed.
+Canonical string_eqMixin := EqMixin eqstring.
+Canonical string_eqtype := Eval hnf in EqType string string_eqMixin.
+
 
 Close Scope type_scope.
