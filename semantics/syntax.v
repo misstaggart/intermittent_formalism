@@ -1,6 +1,6 @@
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
-     Init.Datatypes Lists.List Strings.String.
+     Init.Datatypes Lists.List Strings.String Program.Subset.
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
 Import ListNotations.
@@ -16,6 +16,7 @@ Qed.
 Canonical nat_eqMixin := EqMixin eqnat.
 Canonical nat_eqtype := Eval hnf in EqType nat nat_eqMixin.
 (*---*)
+
 (*setting up strings equality type*)
 (* eqb_string and
 eqb_string_true_iff taken from software foundations*)
@@ -45,9 +46,9 @@ Qed.
 Canonical string_eqMixin := EqMixin eqstring.
 Canonical string_eqtype := Eval hnf in EqType string string_eqMixin.
 Check string_eqtype.
-
 (***)
-(*syntax *)
+
+(*Now, to business! Below is syntax*)
 Inductive val :=
   Nat (n: nat)
 | Yes
@@ -56,55 +57,62 @@ Inductive val :=
 .
 
 Definition map (A: eqType):= A -> val.
-(*A need always be an equality type*)
 Definition emptymap {A: eqType} :map A := (fun _ => Error).
-
 Definition updatemap {A: eqType} (m: map A) (i: A) (v: val) : map A := (fun j =>
                                                                if (j == i) then v
                                                                else (m j)).
+Close Scope string_scope.
+(*map nat will be for arrays and map string will be for memory*)
+(*except you don't actually need to get stuff out of the
+ arrays but I'll leave the equality types for now just in case*)
+(****)
+
 Inductive array :=
   Array (s: string) (l: nat).
-(*I don't think you actually need to get stuff out of the arrays lol*)
-(*map nat will be for arrays and map string will be for memory*)
-Close Scope string_scope.
 
 Open Scope type_scope.
-
-(*what I really want is subtypes*)
-
-Inductive smallvar :=
-  SmallVar (s: string).
-
-Inductive el :=
-  Elem (a: array) (e: exp).
-
-(*Check nat + nat.
-Definition stupid := (nat + nat).*)
-(*consider replacing smallvar with arrays of length 1*)
-Definition warvar := (smallvar + array).
-
-Close Scope type_scope.
-
 Inductive exp :=
-  Var (v: smallvar) (*variable*)
-(*it's kind of gross that I have 3 nested constructors here*)
+  Var (s: string) (*variable*)
 | Val (v: val)
 | Bop (e1: exp) (e2: exp)
-| El (e: el).    (*variable*)
+| El (a: array) (e: exp).    (*variable*)
 
-Notation "L '[' e ']'" := El(Elem (L) (e))
-         (at level 100, right associativity).
+Notation "a '[[' e ']]'" := (El (a) (e))
+                            (at level 100, right associativity).
 
+Definition smallvar := {x: exp|  exists(s: string), x = Var s}.
+Definition el := {x: exp|  exists(a: array) (e: exp), x = (a[[e]])}.
+(*annoying parens here but it complained when I made the level
+ higher *)
+Definition warvar := smallvar + array.
 Definition warvars := list warvar.
 
-Inductive instructions :=
+Inductive instruction :=
   skip
- | Asgn ()
+| asgn_sv (x: smallvar) (e: exp)
+| asgn_ar (y : el) (e': exp) (*where y has the form a[[e]],
+                      pretty sure I'm not allowed to write it like that
+                      in here
+                     *)
+| checkpoint (omega: warvars)
+| reboot.
 
- (*the ... mean empty yes?*)
 
-(*can't make e a Nat cuz it could be a bop*)
-(*is there a method to change the nth element of a list
-actually would be easier to do arrays as states as well
-because updating is easier
- *)
+Inductive command :=
+  Instruct (l: instruction)
+| Seq (l: instruction) (c: command)
+| ite (e: exp) (c1: command) (c2: command).
+
+
+Notation "l ';;' c" := (Seq (l) (c))
+                         (at level 100).
+
+Notation "'TEST' e ''THEN' c1 'ELSE' c2 " := (ite e c1 c2)
+                                               (at level 100).
+
+(*don't need the annoying parens around each arg*)
+(***)
+
+(***)
+
+Close Scope type_scope.
