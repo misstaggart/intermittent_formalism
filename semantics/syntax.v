@@ -34,7 +34,7 @@ Proof.
      + intros contra. discriminate contra.
      + intros H. rewrite H in Hs *. destruct Hs. reflexivity.
 Qed.
-(*what the hell is the star*)
+(*what is the star*)
 Lemma eqstring: Equality.axiom eqb_string.
 Proof.
   unfold Equality.axiom. intros.
@@ -55,6 +55,7 @@ Inductive value :=
 | Bool (b: bool)
 | vBop (v1: value) (v2: value).
 Coercion Bool : bool >-> value.
+Notation "'{{' v1 '**' v2 '}}'" := (vBop v1 v2) (at level 100).
 
 Inductive value1 :=
   Nat1 (n: nat)
@@ -79,48 +80,48 @@ Definition eq_valueop (x y : option value) :=
   end.
 (*as you can see, the vBop case is fake*)
 
-(*I don't think I NEED to show that it's
- an equality relation but I could*)
-
+(*memory maps*)
 Definition map (A: Type) (eqba: A -> A -> bool):= A -> (option value).
 Definition emptymap {A} {eqba} :(map A eqba) := (fun _ => None).
 Definition updatemap {A} {eqba} (m: map A eqba) (i: A) (v: value) : map A eqba := (fun j =>
                                                                if (eqba j i) then Some v
                                                                else (m j)).
 
-Definition updatemaps {A} {eqba} (m1: map A eqba) (m2: map A eqba): map A eqba :=
+Definition unionmaps {A} {eqba} (m1: map A eqba) (m2: map A eqba): map A eqba :=
   (fun j =>
      match m1 j with
        Some out => Some out
      | None => m2 j
      end
   ).
+Notation "m1 'U' m2" := (unionmaps m1 m2) (at level 100).
 
 Definition indomain {A} {eqba} (m: map A eqba) (x: A) :=
   match m x with
     Some _ => True
   | None => False
   end.
-
 Close Scope string_scope.
- (*I'll leave the equality types for now just in case*)
-(*only other map necessary is for tasks at first inspection*)
-(****)
+(******************************************************************************************)
 
+(*******************************more syntax**********************************************)
 Inductive array :=
   Array (s: string) (l: nat).
 
 Open Scope type_scope.
 Inductive exp :=
-  Var (s: string) (*variable*)
+  Var (s: string) 
 | Val (v: value)
 | Bop (e1: exp) (e2: exp)
-| El (a: array) (e: exp).    (*variable*)
-
+| El (a: array) (e: exp).
+Coercion Val : value >-> exp.
 Notation "a '[[' e ']]'" := (El (a) (e))
                             (at level 100, right associativity).
 
-
+Notation "e1 '**' e2" := (Bop e1 e2) (at level 100).
+(*used subtypes to enforce the fact that only some expressions are
+ memory locations*)
+(*also made the write after read type easier*)
 Definition smallvarpred := (fun x=> match x with
                                         Var _ => true
                                         | _ => false
@@ -130,21 +131,20 @@ Definition elpred  := (fun x=> match x with
                                         | _ => false
                                  end).
 
-(*Definition smallvar := subType smallvarpred.*)
 Notation smallvar := {x: exp | smallvarpred x}.
 (*how does this work??*)
 Notation el := {x: exp| elpred x}.
-(*annoying parens here but it complained when I made the level
- higher *)
-Definition loc := smallvar + el.
-Definition warvar := smallvar + array.
+Definition loc := smallvar + el. (*memory location type*)
+
+Definition warvar := smallvar + array. (*write after read variable type*)
 Definition warvars := list warvar.
 (*Coercion (inl smallvar el): smallvar >-> loc.*)
 (*Coercion inl: smallvar >-> loc.*)
 
-Definition isarrayindex (e: el) (a: array) (ve: value) :=
+Definition isarrayindex (e: el) (a: array) (i: value) := (*transitions from el type
+                                                          to a[i] representation*)
   match (val e) with
-    El a ve  => True
+    El a i  => True
   | _ => False
   end.
 
@@ -159,31 +159,18 @@ Inductive instruction :=
 
 Inductive command :=
   Instruct (l: instruction)
-| Seqcom (l: instruction) (c: command)
+| Seqcom (l: instruction) (c: command) (*added suffix to distinguish from Seq ceval
+                                         constructor*)
 | ite (e: exp) (c1: command) (c2: command).
 
-Notation "l ';;' c" := (Seqcom (l) (c))
+Notation "l ';;' c" := (Seqcom l c)
                          (at level 100).
 
 Notation "'TEST' e 'THEN' c1 'ELSE' c2 " := (ite e c1 c2)
                                                 (at level 100).
+(*******************************************************************)
 
-(*don't need the annoying parens around each arg*)
-(***)
-
-(*should the memory map check to see if the expression is actually
- a natural somehow
- i'd have to add some details keeping track of the return type
- of the binary operations*)
-(*what is the difference between sub_sort and subType?*)
-
-
-(*do i need to use fixpoint here or is there another
- keyword for things that aren't recursive..i tried to use
- definition but it didn't let me use proof tactics*)
-
-(*all the strings are the eqtype strings now*)
-
+(******setting up location equality relation for memory maps******************)
 Fixpoint getstringsv1 (x: smallvar): option string :=
   match val x with
     Var s => Some s
@@ -199,7 +186,7 @@ Proof.
   intros contra. discriminate contra.
 Qed.
 
-(*fix this lol*)
+(*fix this using the program module*)
 Theorem stupid: (None: option string) = (None: option string).
 Proof.
   reflexivity.
@@ -213,9 +200,6 @@ Fixpoint getstringsv (x: smallvar): string :=
               with end
    end) (sv1notnone x).
 
-  (*destruct x as [value proof].
-  destruct (value) as [s| | |];
-  try (simpl in proof; discriminate proof); return s.*)
 
 Fixpoint getstringel1 (x: el): option string :=
   match val x with
@@ -234,7 +218,7 @@ Proof.
     discriminate contra.
 Qed.
 
-(*fix this lol*)
+(*fix this using the program module*)
 Theorem stupid1: (None: option string) = (None: option string).
 Proof.
   reflexivity.
@@ -257,119 +241,89 @@ Definition eqb_loc (l1: loc) (l2: loc) :=
   | inl x, inl y => (getstringsv x)==(getstringsv y)
   | inr x, inr y => (getstringel x)==(getstringel y)
   end.
+(****************************************************************)
 
-(*do I even need that eqb_loc is equality?
-cuz it's becoming a pain to prove
-I say table this part till Thursday cuz it's not the
-most essential thing you could be doing
-Could always set it up later
- *)
-
-(*the subtypes are making things a lot
- more difficult actually because if you didn't have the subtypes
- then you wouldn't have to worry about the match case and
- could prove the equality relation*)
-
-(***)
-
-(*memory syntax*)
+(****************************memory syntax*************************************)
 
 (*memory locations defined above warvars*)
 Notation mem := (map loc eqb_loc). (*memory mapping*)
+
 Inductive nvmem := (*nonvolatile memory*)
   NonVol (m : mem).
+
 Inductive vmem := (*volatile memory*)
   Vol (m : mem).
+
 Inductive cconf := (*continuous configuration*)
   ContinuousConf (triple: nvmem * vmem * command).
+
 Inductive context :=
   Con (triple: nvmem * vmem * command).
-(*do you distinction between context and continuous configuration?
-I put one
- *)
+
 Inductive iconf := (*intermittent configuration*)
   IntermittentConf (qple: context * nvmem * vmem * command).
+
 Inductive readobs := (*read observation*)
-  NoObs
+  NoObs (*moved the empty observation here to make eeval easier*)
 | rd (l: loc) (v: value)
 | Seqrd (r1: readobs) (r2: readobs).
-(*I made the checkpoint and reboots different than those
- for instructions but I could make them the same with a subtype*)
+
 Inductive obs := (*observation*)
   Obs (r: readobs)
 | reboot
 | checkpoint.
 Coercion Obs : readobs >-> obs.
+
 Notation obsseq := (list obs). (*observation sequence*)
-(*technically I could do subtypes here for obs vs readobs but I don't think it's
- necessary
-as we never use the readobs type outside of the obs wrapper
- *)
-(*the above is conditional on her being ok with me moving NoObs
- into the readobs type
- otherwise I'll have to do subtypes*)
-(***)
+(***************************************************************)
 
-(*continuously powered operational semantics*)
+(****************continuous operational semantics***********************)
 
-Reserved Notation "N';;' V '=[' e ']=>_'r'_' v" (at level 40).
-(*don't put the args in front cuz then they;ll be
- indexes not paramaters or whichever way*)
-(*Inductive eeval (N: nvmem) (V : vmem) (e: exp) (r: obs) v :=*)
-Coercion Val : value >-> exp.
 (**why don't these work?**)
 (*would be really nice if I could have these so the constructors
- for eeval
- could have consistent arguments wrt nvmem vs mem and similar*)
+ for eeval could have consistent arguments wrt nvmem vs mem and similar*)
 Coercion NonVol : mem >-> nvmem.
 Coercion Vol : mem >-> vmem.
 (****)
+
 Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
 VAL: forall(N: nvmem) (V: vmem) (v: value), 
     eeval N V v NoObs v
-| BINOP: forall(N: nvmem) (V: vmem) (e1: exp) (e2: exp) (r1: readobs)
-      (r2: readobs) (v1: value) (v2: value),
+| BINOP: forall(N: nvmem) (V: vmem)
+          (e1: exp) (e2: exp)
+          (r1: readobs) (r2: readobs)
+          (v1: value) (v2: value),
     eeval N V e1 r1 v1 ->
     eeval N V e2 r2 v2 ->
-    eeval N V (Bop e1 e2) (Seqrd r1 r2) (vBop v1 v2)
-| RD_VAR: forall(mapN: mem)
-           (mapV: mem) (e: smallvar) (v: value),
-    eq_valueop ((updatemaps mapN mapV) (inl e)) (Some v) ->
-    eeval (NonVol mapN) (Vol mapV) (val e) (rd (inl e) v) v
-| RD_ARR: forall(a: array)
-           (element: el)
-           (mapN: mem)
-           (mapV: mem)
+    eeval N V (e1 ** e2) (Seqrd r1 r2) (vBop v1 v2)
+    (*eeval N V (e1 ** e2) (Seqrd r1 r2) {{ v1 ** v2 }}*)
+| RD_VAR: forall(mapN: mem) (mapV: mem) (x: smallvar) (v: value),
+    eq_valueop ((mapN U mapV) (inl x)) (Some v) ->
+    eeval (NonVol mapN) (Vol mapV) (val x) (rd (inl x) v) v
+| RD_ARR: forall(mapN: mem) (mapV: mem)
+           (a: array)
            (index: exp)
            (rindex: readobs)
            (vindex: value)
+           (element: el)
            (v: value),
     eeval (NonVol mapN) (Vol mapV) (index) rindex vindex ->
-    eq_valueop ((updatemaps mapN mapV) (inr element)) (Some v) ->
-    (isarrayindex element a vindex) -> (*extra premise to check that inr element is actually a[ve] *)
+    eq_valueop ((mapN U mapV) (inr element)) (Some v) ->
+    (isarrayindex element a vindex) -> (*extra premise to check that inr element is actually a[vindex] *)
     eeval (NonVol mapN) (Vol mapV) (a[[index]]) (Seqrd rindex (rd (inr element) v) ) v
- (*would be easier to take in an element of loc or just take in evidence that the index that you have is right*)
 .
-(*would be nice to have a coercion to get the Nonvolatile volatile
- wrapper off*)
- (*need a coercion for the sum type loc*)
-(*add notation for infix bop*)
 
-(*
-maybe it's cuz ;; was already defined...try this again
-ask him why this notation doesn't work
-Inductive eeval: nvmem -> vmem -> exp -> obs -> value -> Prop :=
+(*ask Arthur why this notation doesn't work *)
+
+Reserved Notation "'{'N V'}=[' e ']=> <'r'>' v" (at level 40).
+Inductive eevaltest: nvmem -> vmem -> exp -> obs -> value -> Prop :=
   VAL: forall(N: nvmem) (V: vmem) (v: value), 
-    N;; V =[ v ]=>_reboot_ v
-  where "N;; V =[ e ]=>_r_ v" := (eeval N V e r v).
-*)
+    {N V} =[ v ]=> <reboot> v
+  where "{N V}=[ e ]=> <r> v" := (eevaltest N V e r v).
 
-(***)
+(****************************************************************************)
 
-(*continuous execution semantics*)
-
-(*Not clear where the m|w notation is used*)
-(*add notations for the maps on top of page 2*)
+(**********continuous execution semantics*************************)
 
 Coercion Instruct : instruction >-> command.
 Inductive cceval: nvmem -> vmem -> command -> obs -> nvmem -> vmem -> command -> Prop :=
@@ -381,16 +335,15 @@ Inductive cceval: nvmem -> vmem -> command -> obs -> nvmem -> vmem -> command ->
     indomain mapV (inl x) ->
     eeval N (Vol mapV) e r v ->
     cceval N (Vol mapV) (asgn_sv x e) r N (Vol (updatemap mapV (inl x) v)) skip
-| Assign_Arr: forall(a: array)
-               (element: el)
-               (mapN: mem)
-               (V: vmem)
+| Assign_Arr: forall (mapN: mem) (V: vmem)
+               (a: array)
                (ei: exp)
                (ri: readobs)
                (vi: value)
                (e: exp)
                (r: readobs)
-               (v: value),
+               (v: value)
+               (element: el),
     eeval (NonVol mapN) (V) (ei) ri vi ->
     eeval (NonVol mapN) (V) (e) r v ->
     (isarrayindex element a vi) -> (*extra premise to check that element is actually a[vi] *)
@@ -431,5 +384,9 @@ Inductive cceval: nvmem -> vmem -> command -> obs -> nvmem -> vmem -> command ->
          (c2: command),
     eeval N V e r false ->
     cceval N V (TEST e THEN c1 ELSE c2) r N V c2.
-        
+(*add updatemap notation*)
+(*if you can't
+get the coercisons to work make two functions to update the nonvol and vol maps
+instead of typing the
+ constructors every time*)
 Close Scope type_scope.
