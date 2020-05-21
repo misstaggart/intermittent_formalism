@@ -188,20 +188,19 @@ Proof.
   intros contra. discriminate contra.
 Qed.
 
-(*fix this using the program module*)
-Theorem stupid: (None: option string) = (None: option string).
-Proof.
-  reflexivity.
+Program Definition getstringsv (x: smallvar): string :=
+  match (getstringsv1 x) with 
+    Some s => s
+   | None => !
+   end. 
+Next Obligation. apply (sv1notnone (exist
+       (fun
+        x : exp
+        =>
+        smallvarpred
+        x) x
+       H)). symmetry. apply Heq_anonymous.
 Qed.
-
-Fixpoint getstringsv (x: smallvar): string :=
-  (match (getstringsv1 x) as out return (out <> None -> string) with
-    Some s => fun _ => s
-   | None => fun H => match
-                H stupid
-              with end
-   end) (sv1notnone x).
-
 
 Fixpoint getstringel1 (x: el): option string :=
   match val x with
