@@ -49,15 +49,38 @@ Canonical string_eqtype := Eval hnf in EqType string string_eqMixin.
 
 
 (*Now, to business! Below is syntax*)
+
 Inductive value :=
-  Nat (n: nat)
-| Yes
-| No
-| vBop (v1: value) (v2: value)
+    Nat (n: nat)
+| Bool (b: bool)
+| vBop (v1: value) (v2: value).
+
+
+Inductive value1 :=
+  Nat1 (n: nat)
+| Bool1 (b: bool)
+| vBop1 (v1: value) (v2: value) (out: nat + bool)
 .
+
 (*val was already taken by a subtype method*)
 (*setting up equality type for value*)
 
+Definition eqb_valueop (x y : option value) : bool :=
+  match x, y with
+    None, None => true
+  | Some x1, Some y1 =>
+    (match x1, y1 with
+    Nat nx, Nat ny => nx == ny
+  | Bool bx, Bool byy => eqb bx byy
+  | vBop _ _, vBop _ _ => true
+  | _, _ => false
+  end)
+  | _, _ => false
+  end.
+(*as you can see, the vBop case is fake*)
+
+(*I don't think I NEED to show that it's
+ an equality relation but I could*)
 
 Definition map (A: Type) (eqba: A -> A -> bool):= A -> (option value).
 Definition emptymap {A} {eqba} :(map A eqba) := (fun _ => None).
@@ -297,8 +320,16 @@ VAL: forall(N: nvmem) (V: vmem) (v: value),
     cceval N V (Bop e1 e2) (Seqrd r1 r2) (vBop v1 v2)
 | RD_VAR: forall(mapN: mem)
            (mapV: mem) (e: smallvar) (v: value),
-    (updatemaps mapN mapV) (inl e) == v ->
-    cceval (NonVol mapN) (Vol mapV) (val e) (rd e) v
+    is_true(eqb_valueop ((updatemaps mapN mapV) (inl e)) (Some v)) ->
+    cceval (NonVol mapN) (Vol mapV) (val e) (rd (inl e) v) v
+| RD_ARR: forall(mapN: mem)
+           (mapV: mem) (e: el) (r: readobs) (re: readobs)  (v: value) (ve: value),
+    cceval N V (val e) re ve ->
+    is_true(eqb_valueop ((updatemaps mapN mapV) (inr (a[ve]))) (Some v)) ->
+    cceval (NonVol mapN) (Vol mapV) (a[ve]) (rd (inr e) v) v
+ (*would be easier to take in an element of loc and then make a function to
+get the index out 
+  *)
  .
 (*would be nice to have a coercion to get the Nonvolatile volatile
  wrapper off*)
