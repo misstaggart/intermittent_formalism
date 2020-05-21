@@ -47,20 +47,32 @@ Canonical string_eqMixin := EqMixin eqstring.
 Canonical string_eqtype := Eval hnf in EqType string string_eqMixin.
 (***)
 
+
 (*Now, to business! Below is syntax*)
 Inductive value :=
   Nat (n: nat)
 | Yes
 | No
-| Error
+| vBop (v1: value) (v2: value)
 .
 (*val was already taken by a subtype method*)
-(*just have map take the equality function in as an argument*)
-Definition map (A: Type) (eqba: A -> A -> bool):= A -> value.
-Definition emptymap {A} {eqba} :(map A eqba) := (fun _ => Error).
+(*setting up equality type for value*)
+
+
+Definition map (A: Type) (eqba: A -> A -> bool):= A -> (option value).
+Definition emptymap {A} {eqba} :(map A eqba) := (fun _ => None).
 Definition updatemap {A} {eqba} (m: map A eqba) (i: A) (v: value) : map A eqba := (fun j =>
-                                                               if (eqba j i) then v
+                                                               if (eqba j i) then Some v
                                                                else (m j)).
+
+Definition updatemaps {A} {eqba} (m1: map A eqba) (m2: map A eqba): map A eqba :=
+  (fun j =>
+     match m1 j with
+       Some out => Some out
+     | None => m2 j
+     end
+  ).
+
 Close Scope string_scope.
  (*I'll leave the equality types for now just in case*)
 (*only other map necessary is for tasks at first inspection*)
@@ -81,18 +93,25 @@ Notation "a '[[' e ']]'" := (El (a) (e))
 
 
 Definition smallvarpred := (fun x=> match x with
-                                        Var s => true
+                                        Var _ => true
+                                        | _ => false
+                                 end).
+Definition elpred  := (fun x=> match x with
+                                        El _ _ => true
                                         | _ => false
                                  end).
 
 (*Definition smallvar := subType smallvarpred.*)
 Notation smallvar := {x: exp | smallvarpred x}.
 (*how does this work??*)
-Definition el := {x: exp|  exists(a: array) (e: exp), x = (a[[e]])}.
+Notation el := {x: exp| elpred x}.
 (*annoying parens here but it complained when I made the level
  higher *)
-Definition loc := smallvar + array.
+Definition loc := smallvar + el.
 Definition warvars := list loc.
+Print sum.
+(*Coercion (inl smallvar el): smallvar >-> loc.*)
+(*Coercion inl: smallvar >-> loc.*)
 
 Inductive instruction :=
   skip
@@ -168,12 +187,37 @@ Fixpoint getstringsv (x: smallvar): string :=
   destruct (value) as [s| | |];
   try (simpl in proof; discriminate proof); return s.*)
 
+Fixpoint getstringel1 (x: el): option string :=
+  match val x with
+    El (Array s _) _ => Some s
+  | _ => None
+  end. 
 
-Fixpoint getstringsarr (a:array): string :=
-  match a with
-    Array s _ => s
-  (*destruct (a) as [s ]. exact s. *)
-end.
+Theorem el1notnone: forall (x: el), getstringel1 x <> None.
+Proof.
+  intros.
+  destruct x as [value proof].
+    destruct (value) as [s| | |];
+  try (simpl in proof; discriminate proof).
+    intros contra. simpl in contra.
+    destruct a eqn: H.
+    discriminate contra.
+Qed.
+
+(*fix this lol*)
+Theorem stupid1: (None: option string) = (None: option string).
+Proof.
+  reflexivity.
+Qed.
+
+
+Fixpoint getstringel (x: el): string :=
+  (match (getstringel1 x) as out return (out <> None -> string) with
+    Some s => fun _ => s
+   | None => fun H => match
+                H stupid1
+              with end
+   end) (el1notnone x).
 
 
 Definition eqb_loc (l1: loc) (l2: loc) :=
@@ -181,7 +225,7 @@ Definition eqb_loc (l1: loc) (l2: loc) :=
     inl _, inr _ => false
   | inr _, inl _ => false
   | inl x, inl y => (getstringsv x)==(getstringsv y)
-  | inr x, inr y => (getstringsarr x)==(getstringsarr y)
+  | inr x, inr y => (getstringel x)==(getstringel y)
   end.
 
 (*do I even need that eqb_loc is equality?
@@ -203,9 +247,9 @@ Could always set it up later
 (*memory locations defined above warvars*)
 Notation mem := (map loc eqb_loc). (*memory mapping*)
 Inductive nvmem := (*nonvolatile memory*)
-  Nonvolatile (m : mem).
+  NonVol (m : mem).
 Inductive vmem := (*volatile memory*)
-  Volatile (m : mem).
+  Vol (m : mem).
 Inductive cconf := (*continuous configuration*)
   ContinuousConf (triple: nvmem * vmem * command).
 Inductive context :=
@@ -216,22 +260,58 @@ I put one
 Inductive iconf := (*intermittent configuration*)
   IntermittentConf (qple: context * nvmem * vmem * command).
 Inductive readobs := (*read observation*)
-  rd (l: loc) (v: value)
+  NoObs
+| rd (l: loc) (v: value)
 | Seqrd (r1: readobs) (r2: readobs).
 (*I made the checkpoint and reboots different than those
  for instructions but I could make them the same with a subtype*)
 Inductive obs := (*observation*)
-  Empty
-| Obs (r: readobs)
+  Obs (r: readobs)
 | reboot
 | checkpoint.
 Notation obsseq := (list obs). (*observation sequence*)
-(***)
 (*technically I could do subtypes here for obs vs readobs but I don't think it's
- necessary*)
+ necessary
+as we never use the readobs type outside of the obs wrapper
+ *)
+(*the above is conditional on her being ok with me moving NoObs
+ into the readobs type
+ otherwise I'll have to do subtypes*)
+(***)
+
 (*continuously powered operational semantics*)
-Reserved Notation "N ',' V '|-' e '==>_'r v" (at level 90, left associativity).
-Inductive cceval (N: nvmem) (V : vmem) (e: exp) (r: readobs) v :=
-  VAL: N ',' V '|-' e '==>_'r v
+
+Reserved Notation "N';;' V '=[' e ']=>_'r'_' v" (at level 0).
+(*don't put the args in front cuz then they;ll be
+ indexes not paramaters or whichever way*)
+(*Inductive cceval (N: nvmem) (V : vmem) (e: exp) (r: obs) v :=*)
+Coercion Val : value >-> exp.
+
+Inductive cceval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
+VAL: forall(N: nvmem) (V: vmem) (v: value), 
+    cceval N V v NoObs v
+| BOP: forall(N: nvmem) (V: vmem) (e1: exp) (e2: exp) (r1: readobs)
+      (r2: readobs) (v1: value) (v2: value),
+    cceval N V e1 r1 v1 ->
+    cceval N V e2 r2 v2 ->
+    cceval N V (Bop e1 e2) (Seqrd r1 r2) (vBop v1 v2)
+| RD_VAR: forall(mapN: mem)
+           (mapV: mem) (e: smallvar) (v: value),
+    (updatemaps mapN mapV) (inl e) == v ->
+    cceval (NonVol mapN) (Vol mapV) (val e) (rd e) v
+ .
+(*would be nice to have a coercion to get the Nonvolatile volatile
+ wrapper off*)
+ (*need a coercion for the sum type loc*)
+(*add notation for infix bop*)
+
+(*
+ask him why this notation doesn't work
+Inductive cceval: nvmem -> vmem -> exp -> obs -> value -> Prop :=
+  VAL: forall(N: nvmem) (V: vmem) (v: value), 
+    N;; V =[ v ]=>_reboot_ v
+  where "N;; V =[ e ]=>_r_ v" := (cceval N V e r v).
+*)
+
 
 Close Scope type_scope.
