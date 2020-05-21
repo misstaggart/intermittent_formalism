@@ -65,17 +65,17 @@ Inductive value1 :=
 (*val was already taken by a subtype method*)
 (*setting up equality type for value*)
 
-Definition eqb_valueop (x y : option value) : bool :=
+Definition eq_valueop (x y : option value) :=
   match x, y with
-    None, None => true
+    None, None => True
   | Some x1, Some y1 =>
     (match x1, y1 with
-    Nat nx, Nat ny => nx == ny
-  | Bool bx, Bool byy => eqb bx byy
-  | vBop _ _, vBop _ _ => true
-  | _, _ => false
+    Nat nx, Nat ny => is_true(nx == ny)
+  | Bool bx, Bool byy => is_true(eqb bx byy)
+  | vBop _ _, vBop _ _ => True
+  | _, _ => False
   end)
-  | _, _ => false
+  | _, _ => False
   end.
 (*as you can see, the vBop case is fake*)
 
@@ -120,7 +120,7 @@ Definition smallvarpred := (fun x=> match x with
                                         | _ => false
                                  end).
 Definition elpred  := (fun x=> match x with
-                                        El _ _ => true
+                                        El _ (Val _) => true
                                         | _ => false
                                  end).
 
@@ -136,7 +136,11 @@ Print sum.
 (*Coercion (inl smallvar el): smallvar >-> loc.*)
 (*Coercion inl: smallvar >-> loc.*)
 
-
+Definition isarrayindex (e: el) (a: array) (ve: value) :=
+  match (val e) with
+    El a ve  => True
+  | _ => False
+  end.
 
 Inductive instruction :=
   skip
@@ -304,32 +308,38 @@ as we never use the readobs type outside of the obs wrapper
 
 (*continuously powered operational semantics*)
 
-Reserved Notation "N';;' V '=[' e ']=>_'r'_' v" (at level 0).
+Reserved Notation "N';;' V '=[' e ']=>_'r'_' v" (at level 40).
 (*don't put the args in front cuz then they;ll be
  indexes not paramaters or whichever way*)
-(*Inductive cceval (N: nvmem) (V : vmem) (e: exp) (r: obs) v :=*)
+(*Inductive eeval (N: nvmem) (V : vmem) (e: exp) (r: obs) v :=*)
 Coercion Val : value >-> exp.
-
-Inductive cceval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
+(**why don't these work?**)
+(*would be really nice if I could have these so the constructors
+ for eeval
+ could have consistent arguments wrt nvmem vs mem and similar*)
+Coercion NonVol : mem >-> nvmem.
+Coercion Vol : mem >-> vmem.
+(****)
+Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
 VAL: forall(N: nvmem) (V: vmem) (v: value), 
-    cceval N V v NoObs v
-| BOP: forall(N: nvmem) (V: vmem) (e1: exp) (e2: exp) (r1: readobs)
+    eeval N V v NoObs v
+| BINOP: forall(N: nvmem) (V: vmem) (e1: exp) (e2: exp) (r1: readobs)
       (r2: readobs) (v1: value) (v2: value),
-    cceval N V e1 r1 v1 ->
-    cceval N V e2 r2 v2 ->
-    cceval N V (Bop e1 e2) (Seqrd r1 r2) (vBop v1 v2)
+    eeval N V e1 r1 v1 ->
+    eeval N V e2 r2 v2 ->
+    eeval N V (Bop e1 e2) (Seqrd r1 r2) (vBop v1 v2)
 | RD_VAR: forall(mapN: mem)
            (mapV: mem) (e: smallvar) (v: value),
-    is_true(eqb_valueop ((updatemaps mapN mapV) (inl e)) (Some v)) ->
-    cceval (NonVol mapN) (Vol mapV) (val e) (rd (inl e) v) v
-| RD_ARR: forall(mapN: mem)
+    eq_valueop ((updatemaps mapN mapV) (inl e)) (Some v) ->
+    eeval (NonVol mapN) (Vol mapV) (val e) (rd (inl e) v) v
+| RD_ARR: forall(a: array) (mapN: mem)
            (mapV: mem) (e: el) (r: readobs) (re: readobs)  (v: value) (ve: value),
-    cceval N V (val e) re ve ->
-    is_true(eqb_valueop ((updatemaps mapN mapV) (inr (a[ve]))) (Some v)) ->
-    is_true(isindex e)
-    cceval (NonVol mapN) (Vol mapV) (a[ve]) (rd (inr e) v) v
+    eeval (NonVol mapN) (Vol mapV) (val e) re ve ->
+    eq_valueop ((updatemaps mapN mapV) (inr e)) (Some v) ->
+    (isarrayindex e a ve) -> (*extra premise to check that el is actually a[ve] *)
+    eeval (NonVol mapN) (Vol mapV) (a[[ve]]) (rd (inr e) v) v
  (*would be easier to take in an element of loc or just take in evidence that the index that you have is right*)
- .
+.
 (*would be nice to have a coercion to get the Nonvolatile volatile
  wrapper off*)
  (*need a coercion for the sum type loc*)
@@ -337,11 +347,14 @@ VAL: forall(N: nvmem) (V: vmem) (v: value),
 
 (*
 ask him why this notation doesn't work
-Inductive cceval: nvmem -> vmem -> exp -> obs -> value -> Prop :=
+Inductive eeval: nvmem -> vmem -> exp -> obs -> value -> Prop :=
   VAL: forall(N: nvmem) (V: vmem) (v: value), 
     N;; V =[ v ]=>_reboot_ v
-  where "N;; V =[ e ]=>_r_ v" := (cceval N V e r v).
+  where "N;; V =[ e ]=>_r_ v" := (eeval N V e r v).
 *)
 
+(***)
+
+(*sequential execution semantics*)
 
 Close Scope type_scope.
