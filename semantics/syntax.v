@@ -95,6 +95,8 @@ Definition unionmaps {A} {eqba} (m1: map A eqba) (m2: map A eqba): map A eqba :=
      end
   ).
 Notation "m1 'U' m2" := (unionmaps m1 m2) (at level 100).
+Notation "i '|->' v ';' m" := (updatemap m i v)
+  (at level 100, v at next level, right associativity).
 
 Definition indomain {A} {eqba} (m: map A eqba) (x: A) :=
   match m x with
@@ -315,11 +317,11 @@ VAL: forall(N: nvmem) (V: vmem) (v: value),
 
 (*ask Arthur why this notation doesn't work *)
 
-Reserved Notation "'{'N V'}=[' e ']=> <'r'>' v" (at level 40).
+(*Reserved Notation "'{'N V'}=[' e ']=> <'r'>' v" (at level 40).
 Inductive eevaltest: nvmem -> vmem -> exp -> obs -> value -> Prop :=
   VAL: forall(N: nvmem) (V: vmem) (v: value), 
     {N V} =[ v ]=> <reboot> v
-  where "{N V}=[ e ]=> <r> v" := (eevaltest N V e r v).
+  where "{N V}=[ e ]=> <r> v" := (eevaltest N V e r v).*)
 
 (****************************************************************************)
 
@@ -330,11 +332,11 @@ Inductive cceval: nvmem -> vmem -> command -> obs -> nvmem -> vmem -> command ->
   NV_Assign: forall(x: smallvar) (mapN: mem) (V: vmem) (e: exp) (r: readobs) (v: value),
     indomain mapN (inl x) ->
     eeval (NonVol mapN) V e r v ->
-    cceval (NonVol mapN) V (asgn_sv x e) r (NonVol (updatemap mapN (inl x) v)) V skip
+    cceval (NonVol mapN) V (asgn_sv x e) r (NonVol ( (inl x) |-> v ; mapN)) V skip
 | V_Assign: forall(x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
     indomain mapV (inl x) ->
     eeval N (Vol mapV) e r v ->
-    cceval N (Vol mapV) (asgn_sv x e) r N (Vol (updatemap mapV (inl x) v)) skip
+    cceval N (Vol mapV) (asgn_sv x e) r N (Vol ((inl x) |-> v ; mapV)) skip
 | Assign_Arr: forall (mapN: mem) (V: vmem)
                (a: array)
                (ei: exp)
@@ -348,7 +350,7 @@ Inductive cceval: nvmem -> vmem -> command -> obs -> nvmem -> vmem -> command ->
     eeval (NonVol mapN) (V) (e) r v ->
     (isarrayindex element a vi) -> (*extra premise to check that element is actually a[vi] *)
     cceval (NonVol mapN) (V) (asgn_ar a ei e) (Seqrd ri r)
-           (NonVol (updatemap mapN (inr element) v)) V skip
+           (NonVol ( (inr element)|-> v; mapN)) V skip
 | CheckPoint: forall(N: nvmem)
                (V: vmem)
                (c: command)
@@ -384,7 +386,6 @@ Inductive cceval: nvmem -> vmem -> command -> obs -> nvmem -> vmem -> command ->
          (c2: command),
     eeval N V e r false ->
     cceval N V (TEST e THEN c1 ELSE c2) r N V c2.
-(*add updatemap notation*)
 (*if you can't
 get the coercisons to work make two functions to update the nonvol and vol maps
 instead of typing the
