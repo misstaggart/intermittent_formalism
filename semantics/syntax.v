@@ -54,7 +54,7 @@ Inductive value :=
     Nat (n: nat)
 | Bool (b: bool)
 | vBop (v1: value) (v2: value).
-
+Coercion Bool : bool >-> value.
 
 Inductive value1 :=
   Nat1 (n: nat)
@@ -96,6 +96,12 @@ Definition updatemaps {A} {eqba} (m1: map A eqba) (m2: map A eqba): map A eqba :
      end
   ).
 
+Definition indomain {A} {eqba} (m: map A eqba) (x: A) :=
+  match m x with
+    Some _ => True
+  | None => False
+  end.
+
 Close Scope string_scope.
  (*I'll leave the equality types for now just in case*)
 (*only other map necessary is for tasks at first inspection*)
@@ -131,8 +137,8 @@ Notation el := {x: exp| elpred x}.
 (*annoying parens here but it complained when I made the level
  higher *)
 Definition loc := smallvar + el.
-Definition warvars := list loc.
-Print sum.
+Definition warvar := smallvar + array.
+Definition warvars := list warvar.
 (*Coercion (inl smallvar el): smallvar >-> loc.*)
 (*Coercion inl: smallvar >-> loc.*)
 
@@ -145,24 +151,21 @@ Definition isarrayindex (e: el) (a: array) (ve: value) :=
 Inductive instruction :=
   skip
 | asgn_sv (x: smallvar) (e: exp)
-| asgn_ar (y : el) (e': exp) (*where y has the form a[[e]],
-                      pretty sure I'm not allowed to write it like that
-                      in here
-                     *)
-| incheckpoint (omega: warvars)
+| asgn_ar (a: array) (i: exp) (e: exp) (*i is index, e is new value of a[i]*)
+| incheckpoint (w: warvars)
 | inreboot.
 (*added the in prefixes to distinguish from the observation reboots
  and checkpoints*)
 
 Inductive command :=
   Instruct (l: instruction)
-| Seq (l: instruction) (c: command)
+| Seqcom (l: instruction) (c: command)
 | ite (e: exp) (c1: command) (c2: command).
 
-Notation "l ';;' c" := (Seq (l) (c))
+Notation "l ';;' c" := (Seqcom (l) (c))
                          (at level 100).
 
-Notation "'TEST' e ''THEN' c1 'ELSE' c2 " := (ite e c1 c2)
+Notation "'TEST' e 'THEN' c1 'ELSE' c2 " := (ite e c1 c2)
                                                 (at level 100).
 
 (*don't need the annoying parens around each arg*)
@@ -296,6 +299,7 @@ Inductive obs := (*observation*)
   Obs (r: readobs)
 | reboot
 | checkpoint.
+Coercion Obs : readobs >-> obs.
 Notation obsseq := (list obs). (*observation sequence*)
 (*technically I could do subtypes here for obs vs readobs but I don't think it's
  necessary
@@ -332,12 +336,18 @@ VAL: forall(N: nvmem) (V: vmem) (v: value),
            (mapV: mem) (e: smallvar) (v: value),
     eq_valueop ((updatemaps mapN mapV) (inl e)) (Some v) ->
     eeval (NonVol mapN) (Vol mapV) (val e) (rd (inl e) v) v
-| RD_ARR: forall(a: array) (mapN: mem)
-           (mapV: mem) (e: el) (r: readobs) (re: readobs)  (v: value) (ve: value),
-    eeval (NonVol mapN) (Vol mapV) (val e) re ve ->
-    eq_valueop ((updatemaps mapN mapV) (inr e)) (Some v) ->
-    (isarrayindex e a ve) -> (*extra premise to check that el is actually a[ve] *)
-    eeval (NonVol mapN) (Vol mapV) (a[[ve]]) (rd (inr e) v) v
+| RD_ARR: forall(a: array)
+           (element: el)
+           (mapN: mem)
+           (mapV: mem)
+           (index: exp)
+           (rindex: readobs)
+           (vindex: value)
+           (v: value),
+    eeval (NonVol mapN) (Vol mapV) (index) rindex vindex ->
+    eq_valueop ((updatemaps mapN mapV) (inr element)) (Some v) ->
+    (isarrayindex element a vindex) -> (*extra premise to check that inr element is actually a[ve] *)
+    eeval (NonVol mapN) (Vol mapV) (a[[index]]) (Seqrd rindex (rd (inr element) v) ) v
  (*would be easier to take in an element of loc or just take in evidence that the index that you have is right*)
 .
 (*would be nice to have a coercion to get the Nonvolatile volatile
@@ -346,6 +356,7 @@ VAL: forall(N: nvmem) (V: vmem) (v: value),
 (*add notation for infix bop*)
 
 (*
+maybe it's cuz ;; was already defined...try this again
 ask him why this notation doesn't work
 Inductive eeval: nvmem -> vmem -> exp -> obs -> value -> Prop :=
   VAL: forall(N: nvmem) (V: vmem) (v: value), 
@@ -355,6 +366,70 @@ Inductive eeval: nvmem -> vmem -> exp -> obs -> value -> Prop :=
 
 (***)
 
-(*sequential execution semantics*)
+(*continuous execution semantics*)
 
+(*Not clear where the m|w notation is used*)
+(*add notations for the maps on top of page 2*)
+
+Coercion Instruct : instruction >-> command.
+Inductive cceval: nvmem -> vmem -> command -> obs -> nvmem -> vmem -> command -> Prop :=
+  NV_Assign: forall(x: smallvar) (mapN: mem) (V: vmem) (e: exp) (r: readobs) (v: value),
+    indomain mapN (inl x) ->
+    eeval (NonVol mapN) V e r v ->
+    cceval (NonVol mapN) V (asgn_sv x e) r (NonVol (updatemap mapN (inl x) v)) V skip
+| V_Assign: forall(x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
+    indomain mapV (inl x) ->
+    eeval N (Vol mapV) e r v ->
+    cceval N (Vol mapV) (asgn_sv x e) r N (Vol (updatemap mapV (inl x) v)) skip
+| Assign_Arr: forall(a: array)
+               (element: el)
+               (mapN: mem)
+               (V: vmem)
+               (ei: exp)
+               (ri: readobs)
+               (vi: value)
+               (e: exp)
+               (r: readobs)
+               (v: value),
+    eeval (NonVol mapN) (V) (ei) ri vi ->
+    eeval (NonVol mapN) (V) (e) r v ->
+    (isarrayindex element a vi) -> (*extra premise to check that element is actually a[vi] *)
+    cceval (NonVol mapN) (V) (asgn_ar a ei e) (Seqrd ri r)
+           (NonVol (updatemap mapN (inr element) v)) V skip
+| CheckPoint: forall(N: nvmem)
+               (V: vmem)
+               (c: command)
+               (w: warvars),
+               cceval N V ((incheckpoint w);; c) checkpoint
+               N V c
+| Skip: forall(N: nvmem)
+         (V: vmem)
+         (c: command),
+    cceval N V (skip;;c) NoObs N V c
+| Seq: forall (N: nvmem)
+         (N': nvmem)
+         (V: vmem)
+         (V': vmem)
+         (l: instruction)
+         (c: command)
+         (o: obs),
+    cceval N V l o N' V' skip ->
+    cceval N V (l;;c) o N' V' c
+| If_T: forall(N: nvmem)
+         (V: vmem)
+         (e: exp)
+         (r: readobs)
+         (c1: command)
+         (c2: command),
+    eeval N V e r true ->
+    cceval N V (TEST e THEN c1 ELSE c2) r N V c1
+| If_F: forall(N: nvmem)
+         (V: vmem)
+         (e: exp)
+         (r: readobs)
+         (c1: command)
+         (c2: command),
+    eeval N V e r false ->
+    cceval N V (TEST e THEN c1 ELSE c2) r N V c2.
+        
 Close Scope type_scope.
