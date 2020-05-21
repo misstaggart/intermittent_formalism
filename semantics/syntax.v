@@ -136,6 +136,8 @@ Print sum.
 (*Coercion (inl smallvar el): smallvar >-> loc.*)
 (*Coercion inl: smallvar >-> loc.*)
 
+
+
 Inductive instruction :=
   skip
 | asgn_sv (x: smallvar) (e: exp)
@@ -161,8 +163,6 @@ Notation "'TEST' e ''THEN' c1 'ELSE' c2 " := (ite e c1 c2)
 
 (*don't need the annoying parens around each arg*)
 (***)
-
-(*setting up equality type for locations*)
 
 (*should the memory map check to see if the expression is actually
  a natural somehow
@@ -326,10 +326,9 @@ VAL: forall(N: nvmem) (V: vmem) (v: value),
            (mapV: mem) (e: el) (r: readobs) (re: readobs)  (v: value) (ve: value),
     cceval N V (val e) re ve ->
     is_true(eqb_valueop ((updatemaps mapN mapV) (inr (a[ve]))) (Some v)) ->
+    is_true(isindex e)
     cceval (NonVol mapN) (Vol mapV) (a[ve]) (rd (inr e) v) v
- (*would be easier to take in an element of loc and then make a function to
-get the index out 
-  *)
+ (*would be easier to take in an element of loc or just take in evidence that the index that you have is right*)
  .
 (*would be nice to have a coercion to get the Nonvolatile volatile
  wrapper off*)
