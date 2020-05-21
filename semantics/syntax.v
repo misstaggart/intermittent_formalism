@@ -66,19 +66,23 @@ Inductive value1 :=
 (*val was already taken by a subtype method*)
 (*setting up equality type for value*)
 
+Definition eqb_value (x y: value) :=
+  match x, y with
+    Nat nx, Nat ny => nx == ny
+  | Bool bx, Bool byy => eqb bx byy
+  | vBop _ _, vBop _ _ => true
+  | _, _ => false
+  end.
+
+Definition eq_value (x y: value) := is_true(eqb_value x y).
+(*as you can see, the vBop case is fake*)
+
 Definition eq_valueop (x y : option value) :=
   match x, y with
     None, None => True
-  | Some x1, Some y1 =>
-    (match x1, y1 with
-    Nat nx, Nat ny => is_true(nx == ny)
-  | Bool bx, Bool byy => is_true(eqb bx byy)
-  | vBop _ _, vBop _ _ => True
-  | _, _ => False
-  end)
+  | Some x1, Some y1 => eq_value x1 y1
   | _, _ => False
   end.
-(*as you can see, the vBop case is fake*)
 
 (*memory maps*)
 Definition map (A: Type) (eqba: A -> A -> bool):= A -> (option value).
@@ -173,75 +177,48 @@ Notation "'TEST' e 'THEN' c1 'ELSE' c2 " := (ite e c1 c2)
 (*******************************************************************)
 
 (******setting up location equality relation for memory maps******************)
-Fixpoint getstringsv1 (x: smallvar): option string :=
-  match val x with
-    Var s => Some s
-  | _ => None
-  end. 
-
-Theorem sv1notnone: forall (x: smallvar), getstringsv1 x <> None.
-Proof.
-  intros.
-  destruct x as [value proof].
-    destruct (value) as [s| | |];
-  try (simpl in proof; discriminate proof).
-  intros contra. discriminate contra.
-Qed.
-
 Program Definition getstringsv (x: smallvar): string :=
-  match (getstringsv1 x) with 
-    Some s => s
-   | None => !
-   end. 
-Next Obligation. apply (sv1notnone (exist
-       (fun
-        x : exp
-        =>
-        smallvarpred
-        x) x
-       H)). symmetry. apply Heq_anonymous.
-Qed.
-
-Fixpoint getstringel1 (x: el): option string :=
   match val x with
-    El (Array s _) _ => Some s
-  | _ => None
+    Var s => s
+  | _ => !
   end. 
-
-Theorem el1notnone: forall (x: el), getstringel1 x <> None.
-Proof.
-  intros.
-  destruct x as [value proof].
-    destruct (value) as [s| | |];
-  try (simpl in proof; discriminate proof).
-    intros contra. simpl in contra.
-    destruct a eqn: H.
-    discriminate contra.
+Next Obligation.
+    destruct x as [s| | |];
+      try (simpl in H0; discriminate H0). apply (H s). reflexivity.
 Qed.
 
-(*fix this using the program module*)
-Theorem stupid1: (None: option string) = (None: option string).
-Proof.
-  reflexivity.
+Program Definition getarrayel (x: el): string :=
+  match val x with
+    El (Array s _) _ => s
+  | _ => !
+  end.
+Next Obligation. destruct (x) as [s| | |];
+                 try (simpl in H0; discriminate H0).
+    destruct a eqn: adestruct. apply (H s l e). reflexivity.
 Qed.
 
 
-Fixpoint getstringel (x: el): string :=
-  (match (getstringel1 x) as out return (out <> None -> string) with
-    Some s => fun _ => s
-   | None => fun H => match
-                H stupid1
-              with end
-   end) (el1notnone x).
-
+Program Definition getindexel (x: el): value  :=
+  match val x with
+    El _ (Val v) => v
+  | _ => !
+  end.
+Next Obligation. destruct (x) as [s| | |];
+                 try (simpl in H0; discriminate H0).
+                 destruct a eqn: adestruct.
+                 destruct e;
+                 try (simpl in H0; discriminate H0).
+                 apply (H a v). subst. reflexivity.
+Qed.
 
 Definition eqb_loc (l1: loc) (l2: loc) :=
   match l1, l2 with
     inl _, inr _ => false
   | inr _, inl _ => false
   | inl x, inl y => (getstringsv x)==(getstringsv y)
-  | inr x, inr y => (getstringel x)==(getstringel y)
-  end.
+  | inr x, inr y => andb ((getarrayel x)==(getarrayel y))
+                       (eqb_value (getindexel x) (getindexel y))
+  end. (*might be nice to have values as an equality type here*)
 (****************************************************************)
 
 (****************************memory syntax*************************************)
