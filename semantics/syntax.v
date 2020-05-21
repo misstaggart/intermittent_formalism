@@ -1,6 +1,6 @@
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
-     Init.Datatypes Lists.List Strings.String.
+     Init.Datatypes Lists.List Strings.String Program.
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
 Import ListNotations.
@@ -390,4 +390,62 @@ Inductive cceval: nvmem -> vmem -> command -> obs -> nvmem -> vmem -> command ->
 get the coercisons to work make two functions to update the nonvol and vol maps
 instead of typing the
  constructors every time*)
+(*Inductive iceval: context-> nvmem -> vmem -> command -> obs -> context -> nvmem -> vmem -> command -> Prop :=
+  NV_Assign: forall(x: smallvar) (mapN: mem) (V: vmem) (e: exp) (r: readobs) (v: value),
+    indomain mapN (inl x) ->
+    eeval (NonVol mapN) V e r v ->
+    cceval (NonVol mapN) V (asgn_sv x e) r (NonVol ( (inl x) |-> v ; mapN)) V skip
+| V_Assign: forall(x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
+    indomain mapV (inl x) ->
+    eeval N (Vol mapV) e r v ->
+    cceval N (Vol mapV) (asgn_sv x e) r N (Vol ((inl x) |-> v ; mapV)) skip
+| Assign_Arr: forall (mapN: mem) (V: vmem)
+               (a: array)
+               (ei: exp)
+               (ri: readobs)
+               (vi: value)
+               (e: exp)
+               (r: readobs)
+               (v: value)
+               (element: el),
+    eeval (NonVol mapN) (V) (ei) ri vi ->
+    eeval (NonVol mapN) (V) (e) r v ->
+    (isarrayindex element a vi) -> (*extra premise to check that element is actually a[vi] *)
+    cceval (NonVol mapN) (V) (asgn_ar a ei e) (Seqrd ri r)
+           (NonVol ( (inr element)|-> v; mapN)) V skip
+| CheckPoint: forall(N: nvmem)
+               (V: vmem)
+               (c: command)
+               (w: warvars),
+               cceval N V ((incheckpoint w);; c) checkpoint
+               N V c
+| Skip: forall(N: nvmem)
+         (V: vmem)
+         (c: command),
+    cceval N V (skip;;c) NoObs N V c
+| Seq: forall (N: nvmem)
+         (N': nvmem)
+         (V: vmem)
+         (V': vmem)
+         (l: instruction)
+         (c: command)
+         (o: obs),
+    cceval N V l o N' V' skip ->
+    cceval N V (l;;c) o N' V' c
+| If_T: forall(N: nvmem)
+         (V: vmem)
+         (e: exp)
+         (r: readobs)
+         (c1: command)
+         (c2: command),
+    eeval N V e r true ->
+    cceval N V (TEST e THEN c1 ELSE c2) r N V c1
+| If_F: forall(N: nvmem)
+         (V: vmem)
+         (e: exp)
+         (r: readobs)
+         (c1: command)
+         (c2: command),
+    eeval N V e r false ->
+    cceval N V (TEST e THEN c1 ELSE c2) r N V c2. *)
 Close Scope type_scope.
