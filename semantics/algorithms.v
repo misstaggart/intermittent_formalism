@@ -9,33 +9,23 @@ Open Scope list_scope.
 (*relation determining what variables are read when evaluating exp e
  *)
 (*N, V are dummy values*)
-Inductive rd: exp -> readobs -> Prop :=
+Inductive rd: exp -> warvars -> Prop :=
     RD (e: exp) (N: nvmem) (V: vmem) (rs: readobs) (v: value):
-    eeval N V e rs v -> rd e rs.
+      eeval N V e rs v -> rd e (readobs_warvars rs).
 
-Check samearray_b.
-
-(*checks if w was recorded as read in R*)
-Fixpoint isread_b (w: warvar) (R: readobs):=
-  match R with
+(*checks if w was recorded as read/written to in warvar list W*)
+Fixpoint isin_wv_b (w: warvar) (W: warvars):=
+  match W with
    nil => false
-  | (r::rs) => (match r with
-               (location, _) => (*get the location r has recorded reading from*)
-               (match w with
-                 inl xw => (*w is a smallvar*)
-                 (
-                   orb (eqb_loc (inl xw) location (*w can thus be treated as location*)) (isread_b w rs)
-                 )
-               | inr a => (*w is an array*)
-                     (match location with
-                       inr el => orb (samearray_b el a) (isread_b w rs)
-                     (*r is a memory location in an array; check if it is same array as w*)
-                     | inl _ => (isread_b w rs) (*r is not a memory loc in an array*)
-                    end)
-                 end) end)
-  end.
+  | (r::rs) => match w, r with
+               inl wx, inl rx => orb (eqb_loc (inl wx) (inl rx)) (isin_wv_b w rs)
+             | inr wa, inr ra => orb (eqarray_b wa ra) (isin_wv_b w rs)
+             | _, _ => isin_wv_b w rs
+             end
+end.
 
-Definition isread (w: warvar) (R: readobs) := is_true( isread_b w R).
+
+Definition isin_wv (w: warvar) (W: warvars) := is_true(isin_wv_b w W).
 
 Inductive warcheck: nvmem -> warvars -> warvars -> instruction -> warvars -> warvars -> Prop := 
   WAR_Skip: forall(N: nvmem) (W: warvars) (R: warvars),
@@ -44,8 +34,39 @@ Inductive warcheck: nvmem -> warvars -> warvars -> instruction -> warvars -> war
              (x: smallvar) (e: exp)
              (Re: warvars),
              (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
-             not(isread x (R ++ Re)) (*define me!*)
-             -> warcheck N W R (asgn_sv x e) ((inl x)::W) R.
+             not(isin_wv (inl x) (R ++ Re)) 
+             -> warcheck N W R (asgn_sv x e) ((inl x)::W) (R ++ Re)
+| WAR_Checkpointed: forall(mapN: mem) (W: warvars) (R: warvars)
+             (x: smallvar) (e: exp)
+             (Re: warvars),
+             (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
+             isin_wv (inl x) (R ++ Re) ->
+             not(isin_wv (inl x) W) ->
+             (indomain mapN (inl x)) ->
+             warcheck (NonVol mapN) W R (asgn_sv x e) ((inl x)::W) (R ++ Re)
+| WAR_WT: forall(N: nvmem) (W: warvars) (R: warvars)
+             (x: smallvar) (e: exp)
+             (Re: warvars),
+             (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
+             isin_wv (inl x) (R ++ Re) ->
+             (isin_wv (inl x) W) ->
+             warcheck N W R (asgn_sv x e) W (R ++ Re)
+| WAR_NoRd_Arr: forall(N: nvmem) (W: warvars) (R: warvars)
+                 (a: array) (index: exp) (Rindex: warvars)
+                 (e: exp) (Re: warvars),
+    (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
+    (rd index Rindex) -> (*extra premise checking that Rindex is the list of values read when index is evaluated*)
+    not(isin_wv (inr a) (R ++ Re ++ Rindex)) ->
+    warcheck N W R (asgn_arr a index e) ((inr a)::W) (R ++ Re ++ Rindex)
+| WAR_Checkpointed_Arr: forall(mapN: mem) (W: warvars) (R: warvars)
+                 (a: array) (index: exp) (Rindex: warvars)
+                 (e: exp) (Re: warvars),
+    (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
+    (rd index Rindex) -> (*extra premise checking that Rindex is the list of values read when index is evaluated*)
+    (isin_wv (inr a) (R ++ Re ++ Rindex)) ->
+    (indomain_arr mapN a) ->
+    warcheck (NonVol mapN) W R (asgn_arr a index e) ((inr a)::W) (R ++ Re ++ Rindex)
+.
 
 
     (N: nvmem) (W: list loc) (R: list loc) (l: instruction) (W': loc_set) (R': loc_set):=

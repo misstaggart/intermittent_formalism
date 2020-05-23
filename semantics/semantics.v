@@ -278,7 +278,7 @@ Definition samevolatility_b (x y: smallvar) := (*used for defining equality of m
 Inductive instruction :=
   skip
 | asgn_sv (x: smallvar) (e: exp) (*could distinguish between NV and V assignments as well here*)
-| asgn_ar (a: array) (i: exp) (e: exp) (*i is index, e is new value of a[i]*)
+| asgn_arr (a: array) (i: exp) (e: exp) (*i is index, e is new value of a[i]*)
 | incheckpoint (w: warvars)
 | inreboot.
 (*added the in prefixes to distinguish from the observation reboots
@@ -309,15 +309,21 @@ Next Obligation.
       try (simpl in H0; discriminate H0). apply (H s q). reflexivity.
 Qed.
 
-Program Definition getarrayel (x: el): string :=
+Program Definition getarray (x: el): array :=
   match val x with
-    El (Array s _) _ => s
+    El (arr) _ => arr
   | _ => !
   end.
 Next Obligation. destruct (x) as [s| | |];
                  try (simpl in H0; discriminate H0).
-    destruct a eqn: adestruct. apply (H s l e). reflexivity.
+     apply (H a e). reflexivity.
 Qed.
+
+
+Definition getarrayel (x: el): string :=
+  match (getarray x) with
+    Array s _ => s
+  end.
 
 
 Program Definition getindexel (x: el): value  :=
@@ -353,7 +359,7 @@ Inductive nvmem := (*nonvolatile memory*)
 Inductive vmem := (*volatile memory*)
   Vol (m : mem).
 
-(*helpers for the memory maps*)
+(**************************helpers for the memory maps*********************************************)
 Definition reset (V: vmem) := Vol (emptymap loc eqb_loc).
 
 (*checks if a location input has been stored as a WAR location in w*)
@@ -375,7 +381,11 @@ Definition restrict (m: mem) (w: warvars): mem :=
 Notation "N '|!' w" := (restrict N w) 
   (at level 40, left associativity).
 
-(********)
+(*prop determining if every location in array a is in the domain of m*)
+Program Fixpoint indomain_arr (m: mem) (a: array) :=
+  match a with Array _ length => forall(i: {n: nat | n <? length}),
+      indomain m (inr(El a (Val (Nat i)))) end.
+(********************************************)
 Inductive cconf := (*continuous configuration*)
   ContinuousConf (triple: nvmem * vmem * command).
 
@@ -396,7 +406,23 @@ Inductive obs := (*observation*)
 Coercion Obs : readobs >-> obs.
 
 Notation obsseq := (list obs). (*observation sequence*)
+Close Scope type_scope.
 
+Open Scope list_scope.
+(*converts from list of read locations to list of
+WAR variables
+ *)
+Fixpoint readobs_warvars (R: readobs) : warvars := 
+  match R with
+    nil => nil
+| (r::rs) => match r with
+              (location, _) => (*get the location r has recorded reading from*)
+              (match location with
+                inl x => (inl x)::(readobs_warvars rs) (*location is a smallvar*)
+              | inr el => (inr (getarray el))::(readobs_warvars rs)
+              end)
+           end
+ end.
 (**why don't these coercions work?**)
 (*would be really nice if I could have these so the constructors
  for eeval could have consistent arguments wrt nvmem vs mem and similar*)
@@ -489,7 +515,7 @@ Inductive cceval: nvmem -> vmem -> command -> obsseq -> nvmem -> vmem -> command
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    cceval (NonVol mapN) (V) (asgn_ar a ei e) [Obs (ri++r)]
+    cceval (NonVol mapN) (V) (asgn_arr a ei e) [Obs (ri++r)]
            (NonVol ( (inr element)|-> v; mapN)) V skip
     (*valuability and inboundedness of vindex are checked in sameindex*)
 | CheckPoint: forall(N: nvmem)
@@ -582,7 +608,7 @@ Inductive iceval: context-> nvmem -> vmem -> command -> obsseq -> context -> nvm
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    iceval k (NonVol mapN) (V) (asgn_ar a ei e)
+    iceval k (NonVol mapN) (V) (asgn_arr a ei e)
            [Obs (ri++r)]
            k (NonVol ( (inr element)|-> v; mapN)) V skip
     (*valuability and inboundedness of vindex are checked in sameindex*)
@@ -615,4 +641,4 @@ Inductive iceval: context-> nvmem -> vmem -> command -> obsseq -> context -> nvm
 (*CP_Reboot: I took out the equals premise and instead built it
 into the types because I didn't want to define a context equality function*)
 
-Close Scope type_scope.
+Close Scope list_scope.
