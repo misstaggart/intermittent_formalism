@@ -45,37 +45,135 @@ Proof.
 Qed.
 Canonical string_eqMixin := EqMixin eqstring.
 Canonical string_eqtype := Eval hnf in EqType string string_eqMixin.
+Close Scope string_scope.
 (***)
 
 
 (*Now, to business! Below is syntax*)
+Open Scope type_scope.
+
+Inductive boptype :=
+  Plus
+| Sub
+| Mult
+| Div
+| Mod
+| Or
+| And.
+End ModuleName.
+
 
 Inductive value :=
     Nat (n: nat)
 | Bool (b: bool)
-| vBop (v1: value) (v2: value).
+| Plus (v1: value) (v2: value)
+| Sub (v1: value) (v2: value)
+| Mult (v1: value) (v2: value)
+| Div (v1: value) (v2: value)
+| Mod (v1: value) (v2: value)
+| Or (v1: value) (v2: value)
+| And (v1: value) (v2: value).
 Coercion Bool : bool >-> value.
-Notation "'{{' v1 '**' v2 '}}'" := (vBop v1 v2) (at level 100).
+Coercion Nat : nat >-> value.
+(*Notation "'{{' v1 '**' v2 '}}'" := (vBop v1 v2) (at level 100).*)
 
-Inductive value1 :=
-  Nat1 (n: nat)
-| Bool1 (b: bool)
-| vBop1 (v1: value) (v2: value) (out: nat + bool)
+(*evaluation rules for values to be used in eeval, ceval below*)
+
+(*if you use the function one and the relation one
+ you'd have to prove them equivalent..
+ it's best if you pick*)
+Inductive veval_r: value -> value -> Prop :=
+  Nateval: forall(n : nat), veval_r n n
+| Booleval: forall(b: bool), veval_r b b
+| Pluseval: forall(n1 n2: nat),
+    veval_r (Plus n1 n2) (add n1 n2)
+| Subeval: forall(n1 n2: nat), veval_r (Sub n1 n2) (n1 - n2)
+| Multeval: forall(n1 n2: nat), veval_r (Mult n1 n2) (mul n1 n2)
+| Diveval_r: forall(n1 n2: nat), veval_r (Div n1 (S n2)) (n1 / S(n2))
+| Modeval: forall(n1 n2: nat), veval_r (Mod n1 (S n2)) (n1 mod S(n2))
+| Oreval: forall(b1 b2: bool), veval_r (Or b1 b2) (orb b1 b2)
+| Andeval: forall(b1 b2: bool), veval_r (Or b1 b2) (andb b1 b2)
 .
+
+(*
+why doesn't this work!
+Coercion Some : (Sum nat bool) >-> option (nat + bool).*)
+Fixpoint veval_f (v:value): (option (nat + bool)) :=
+  match v with
+    Nat n => Some (inl n)
+  | Bool (b) => Some (inr b)
+  | Plus (v1) (v2) => 
+    (
+      match (veval_f v1), (veval_f v2) with
+        Some (inl n1), Some (inl n2) => Some ( inl (add n1 n2))
+        | _, _ => None
+        end
+    )
+| Sub (v1) (v2) => 
+    (
+      match (veval_f v1), (veval_f v2) with
+        Some (inl n1), Some (inl n2) => Some ( inl (n1 - n2))
+        | _, _ => None
+        end
+    )
+| Mult (v1) (v2) => 
+    (
+      match (veval_f v1), (veval_f v2) with
+        Some (inl n1), Some (inl n2) => Some ( inl (mul n1 n2))
+        | _, _ => None
+        end
+    )
+| Div (v1) (v2) =>
+    (
+      match (veval_f v1), (veval_f v2) with
+        Some (inl n1), Some (inl n2) =>
+                    ( if (n2 == 0) then None
+                      else Some ( inl (n1 / n2)))
+        | _, _ => None
+        end
+    )
+| Mod (v1) (v2) =>
+    (
+      match (veval_f v1), (veval_f v2) with
+        Some (inl n1), Some (inl n2) =>
+                    ( if (n2 == 0) then None
+                      else Some ( inl (n1 mod n2)))
+        | _, _ => None
+        end
+    )
+| Or (v1) (v2) =>
+  (
+      match (veval_f v1), (veval_f v2) with
+        Some (inr b1), Some (inr b2) => Some ( inr (orb b1 b2))
+        | _, _ => None
+        end
+    )
+| And (v1) (v2) =>
+  (
+      match (veval_f v1), (veval_f v2) with
+        Some (inr b1), Some (inr b2) => Some ( inr (andb b1 b2))
+        | _, _ => None
+        end
+    )
+end.
 
 (*val was already taken by a subtype method*)
 (*setting up equality type for value*)
 
 Definition eqb_value (x y: value) :=
-  match x, y with
-    Nat nx, Nat ny => nx == ny
-  | Bool bx, Bool byy => eqb bx byy
-  | vBop _ _, vBop _ _ => true
-  | _, _ => false
-  end.
+  match (veval_f x) with
+  Some (inl nx) => (match (veval_f y ) with
+                   | Some (inl ny) => (nx == ny)
+                   | _ => false
+                     end)
+  | Some (inr bx) => (match (veval_f y ) with
+                   | Some (inr bby) => (bx == bby)
+                   | _ => false
+                     end)
+  | _ => false
+end.
 
 Definition eq_value (x y: value) := is_true(eqb_value x y).
-(*as you can see, the vBop case is fake*)
 
 Definition eq_valueop (x y : option value) :=
   match x, y with
@@ -86,7 +184,7 @@ Definition eq_valueop (x y : option value) :=
 
 (*memory maps*)
 Definition map (A: Type) (eqba: A -> A -> bool):= A -> (option value).
-Definition emptymap {A} {eqba} :(map A eqba) := (fun _ => None).
+Definition emptymap A eqba :(map A eqba) := (fun _ => None).
 Definition updatemap {A} {eqba} (m: map A eqba) (i: A) (v: value) : map A eqba := (fun j =>
                                                                if (eqba j i) then Some v
                                                                else (m j)).
@@ -107,16 +205,19 @@ Definition indomain {A} {eqba} (m: map A eqba) (x: A) :=
     Some _ => True
   | None => False
   end.
-Close Scope string_scope.
 (******************************************************************************************)
 
 (*******************************more syntax**********************************************)
 Inductive array :=
   Array (s: string) (l: nat).
 
-Open Scope type_scope.
+
+Inductive location :=
+  nonvol
+ | vol.
+
 Inductive exp :=
-  Var (s: string) 
+  Var (s: string) (l: location) 
 | Val (v: value)
 | Bop (e1: exp) (e2: exp)
 | El (a: array) (e: exp).
@@ -129,7 +230,7 @@ Notation "e1 '**' e2" := (Bop e1 e2) (at level 100).
  memory locations*)
 (*also made the write after read type easier*)
 Definition smallvarpred := (fun x=> match x with
-                                        Var _ => true
+                                        Var _ _ => true
                                         | _ => false
                                  end).
 Definition elpred  := (fun x=> match x with
@@ -147,12 +248,37 @@ Definition warvars := list warvar.
 (*Coercion (inl smallvar el): smallvar >-> loc.*)
 (*Coercion inl: smallvar >-> loc.*)
 
+(**helper functions for expressions*)
 Definition isarrayindex (e: el) (a: array) (i: value) := (*transitions from el type
                                                           to a[i] representation*)
   match (val e) with
     El a i  => True
   | _ => False
   end.
+
+Definition isNV_b (x: smallvar) :=
+  match (val x) with
+    Var _ nonvol => true
+  | _ => false
+  end.
+
+Definition isV_b (x: smallvar) :=
+  match (val x) with
+    Var _ vol => true
+  | _ => false
+  end.
+
+Definition isNV x := is_true(isNV_b x).
+
+Definition isV x := is_true(isV_b x).
+
+Definition sameloc_b (x y: smallvar) :=
+  match isNV_b(x), isNV_b(y) with
+    true, true => true
+  | false, false => true
+  | _ => false.
+
+(*****)
 
 Inductive instruction :=
   skip
@@ -179,12 +305,12 @@ Notation "'TEST' e 'THEN' c1 'ELSE' c2 " := (ite e c1 c2)
 (******setting up location equality relation for memory maps******************)
 Program Definition getstringsv (x: smallvar): string :=
   match val x with
-    Var s => s
+    Var s _ => s
   | _ => !
   end. 
 Next Obligation.
     destruct x as [s| | |];
-      try (simpl in H0; discriminate H0). apply (H s). reflexivity.
+      try (simpl in H0; discriminate H0). apply (H s l). reflexivity.
 Qed.
 
 Program Definition getarrayel (x: el): string :=
@@ -215,7 +341,7 @@ Definition eqb_loc (l1: loc) (l2: loc) :=
   match l1, l2 with
     inl _, inr _ => false
   | inr _, inl _ => false
-  | inl x, inl y => (getstringsv x)==(getstringsv y)
+  | inl x, inl y => andb ((getstringsv x)==(getstringsv y)) (sameloc_b x y)
   | inr x, inr y => andb ((getarrayel x)==(getarrayel y))
                        (eqb_value (getindexel x) (getindexel y))
   end. (*might be nice to have values as an equality type here*)
@@ -232,6 +358,9 @@ Inductive nvmem := (*nonvolatile memory*)
 Inductive vmem := (*volatile memory*)
   Vol (m : mem).
 
+
+Definition reset (V: vmem) := Vol (emptymap loc eqb_loc).
+
 Inductive cconf := (*continuous configuration*)
   ContinuousConf (triple: nvmem * vmem * command).
 
@@ -241,10 +370,10 @@ Inductive context :=
 Inductive iconf := (*intermittent configuration*)
   IntermittentConf (qple: context * nvmem * vmem * command).
 
-Inductive readobs := (*read observation*)
-  NoObs (*moved the empty observation here to make eeval easier*)
-| rd (l: loc) (v: value)
-| Seqrd (r1: readobs) (r2: readobs).
+Definition ro := loc * value. (*read observation*)
+Definition readobs := list ro.
+
+Notation NoObs := ([]: readobs).
 
 Inductive obs := (*observation*)
   Obs (r: readobs)
@@ -260,6 +389,11 @@ Notation obsseq := (list obs). (*observation sequence*)
 (**why don't these work?**)
 (*would be really nice if I could have these so the constructors
  for eeval could have consistent arguments wrt nvmem vs mem and similar*)
+
+
+(*I could change these to enforce that they only take in smallvars
+ of the correct type but it's already checked in my evaluation rules*)
+
 Coercion NonVol : mem >-> nvmem.
 Coercion Vol : mem >-> vmem.
 (****)
@@ -273,11 +407,16 @@ VAL: forall(N: nvmem) (V: vmem) (v: value),
           (v1: value) (v2: value),
     eeval N V e1 r1 v1 ->
     eeval N V e2 r2 v2 ->
-    eeval N V (e1 ** e2) (Seqrd r1 r2) (vBop v1 v2)
+    eeval N V (e1 ** e2) (r1++ r2) (vBop v1 v2)
     (*eeval N V (e1 ** e2) (Seqrd r1 r2) {{ v1 ** v2 }}*)
-| RD_VAR: forall(mapN: mem) (mapV: mem) (x: smallvar) (v: value),
-    eq_valueop ((mapN U mapV) (inl x)) (Some v) ->
-    eeval (NonVol mapN) (Vol mapV) (val x) (rd (inl x) v) v
+| RD_VAR_NV: forall(mapN: mem) (mapV: mem) (x: smallvar) (v: value),
+    eq_valueop (mapN (inl x)) (Some v) ->
+    isNV(x) -> (*extra premise to make sure x is correct type for NV memory*)
+    eeval (NonVol mapN) (Vol mapV) (val x) [((inl x), v)] v
+| RD_VAR_V: forall(mapN: mem) (mapV: mem) (x: smallvar) (v: value),
+    eq_valueop (mapV (inl x)) (Some v) ->
+    isV(x) -> (*extra premise to make sure x is correct type for V memory*)
+    eeval (NonVol mapN) (Vol mapV) (val x) [((inl x), v)] v
 | RD_ARR: forall(mapN: mem) (mapV: mem)
            (a: array)
            (index: exp)
@@ -288,9 +427,8 @@ VAL: forall(N: nvmem) (V: vmem) (v: value),
     eeval (NonVol mapN) (Vol mapV) (index) rindex vindex ->
     eq_valueop ((mapN U mapV) (inr element)) (Some v) ->
     (isarrayindex element a vindex) -> (*extra premise to check that inr element is actually a[vindex] *)
-    eeval (NonVol mapN) (Vol mapV) (a[[index]]) (Seqrd rindex (rd (inr element) v) ) v
+    eeval (NonVol mapN) (Vol mapV) (a[[index]]) (rindex++[((inr element), v)]) v
 .
-
 (*ask Arthur why this notation doesn't work *)
 
 (*Reserved Notation "'{'N V'}=[' e ']=> <'r'>' v" (at level 40).
@@ -304,8 +442,78 @@ Inductive eevaltest: nvmem -> vmem -> exp -> obs -> value -> Prop :=
 (**********continuous execution semantics*************************)
 
 Coercion Instruct : instruction >-> command.
-Inductive cceval: nvmem -> vmem -> command -> obs -> nvmem -> vmem -> command -> Prop :=
+
+Inductive cceval: nvmem -> vmem -> command -> obsseq -> nvmem -> vmem -> command -> Prop :=
   NV_Assign: forall(x: smallvar) (mapN: mem) (V: vmem) (e: exp) (r: readobs) (v: value),
+    indomain mapN (inl x) ->
+    eeval (NonVol mapN) V e r v ->
+    isNV(x) -> (*extra premise to make sure x is correct type for NV memory*)
+    cceval (NonVol mapN) V (asgn_sv x e) [Obs r] (NonVol ( (inl x) |-> v ; mapN)) V skip
+| V_Assign: forall(x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
+    indomain mapV (inl x) ->
+    eeval N (Vol mapV) e r v ->
+    isV(x) -> (*extra premise to make sure x is correct type for V memory*)
+    cceval N (Vol mapV) (asgn_sv x e) [Obs r] N (Vol ((inl x) |-> v ; mapV)) skip
+| Assign_Arr: forall (mapN: mem) (V: vmem)
+               (a: array)
+               (ei: exp)
+               (ri: readobs)
+               (vi: value)
+               (e: exp)
+               (r: readobs)
+               (v: value)
+               (element: el),
+    eeval (NonVol mapN) (V) (ei) ri vi ->
+    eeval (NonVol mapN) (V) (e) r v ->
+    (isarrayindex element a vi) -> (*extra premise to check that element is actually a[vi] *)
+    cceval (NonVol mapN) (V) (asgn_ar a ei e) [Obs (ri++r)] (*why doesn't this coercion work*)
+           (NonVol ( (inr element)|-> v; mapN)) V skip
+| CheckPoint: forall(N: nvmem)
+               (V: vmem)
+               (c: command)
+               (w: warvars),
+               cceval N V ((incheckpoint w);; c) [checkpoint]
+               N V c
+| Skip: forall(N: nvmem)
+         (V: vmem)
+         (c: command),
+    cceval N V (skip;;c) [Obs NoObs] N V c
+| Seq: forall (N: nvmem)
+         (N': nvmem)
+         (V: vmem)
+         (V': vmem)
+         (l: instruction)
+         (c: command)
+         (o: obs),
+    cceval N V l [o] N' V' skip ->
+    cceval N V (l;;c) [o] N' V' c
+| If_T: forall(N: nvmem)
+         (V: vmem)
+         (e: exp)
+         (r: readobs)
+         (c1: command)
+         (c2: command),
+    eeval N V e r true ->
+    cceval N V (TEST e THEN c1 ELSE c2) [Obs r] N V c1
+| If_F: forall(N: nvmem)
+         (V: vmem)
+         (e: exp)
+         (r: readobs)
+         (c1: command)
+         (c2: command),
+    eeval N V e r false ->
+    cceval N V (TEST e THEN c1 ELSE c2) [Obs r] N V c2.
+(*if you can't
+get the coercisons to work make two functions to update the nonvol and vol maps
+instead of typing the
+ constructors every time*)
+
+Inductive iceval: context-> nvmem -> vmem -> command -> obs -> context -> nvmem -> vmem -> command -> Prop :=
+  CP-PowerFail: forall(k: context) (N: nvmem) (V: vmem) (c: command)
+                 iceval k N V c
+                        NoObs
+                        k N (*empty map*) inreboot
+|  NV_Assign: forall(x: smallvar) (mapN: mem) (V: vmem) (e: exp) (r: readobs) (v: value),
     indomain mapN (inl x) ->
     eeval (NonVol mapN) V e r v ->
     cceval (NonVol mapN) V (asgn_sv x e) r (NonVol ( (inl x) |-> v ; mapN)) V skip
@@ -362,10 +570,4 @@ Inductive cceval: nvmem -> vmem -> command -> obs -> nvmem -> vmem -> command ->
          (c2: command),
     eeval N V e r false ->
     cceval N V (TEST e THEN c1 ELSE c2) r N V c2.
-(*if you can't
-get the coercisons to work make two functions to update the nonvol and vol maps
-instead of typing the
- constructors every time*)
-
-(*Inductive iceval: context-> nvmem -> vmem -> command -> obs -> context -> nvmem -> vmem -> command -> Prop*)
 Close Scope type_scope.
