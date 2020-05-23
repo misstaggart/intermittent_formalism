@@ -61,11 +61,12 @@ Inductive boptype :=
 | Or
 | And.
 
-
+(*shortcut!*)
 Inductive value :=
     Nat (n: nat)
   | Bool (b: bool)
-  | vBop (bop: boptype) (v1: value) (v2: value).
+  | vBop (bop: boptype) (v1: value) (v2: value)
+  | Error.
 Coercion Bool : bool >-> value.
 Coercion Nat : nat >-> value.
 (*Notation "'{{' v1 '**' v2 '}}'" := (vBop v1 v2) (at level 100).*)
@@ -75,79 +76,91 @@ Coercion Nat : nat >-> value.
 (*
 why doesn't this work
 Coercion Some : (Sum nat bool) >-> option (nat + bool).*)
-Fixpoint veval_f (v:value): (option (nat + bool)) :=
+(*hack to get my coercion*)
+Inductive optionvalue :=
+  none
+ | some (v: value).
+Coercion some : value >-> optionvalue.
+
+Fixpoint veval_f (v:value): (optionvalue) :=
   match v with
-    Nat n => Some (inl n)
-  | Bool b => Some (inr b)
-  | vBop bop v1 v2 =>
+  vBop bop v1 v2 =>
   (  match bop with
    Plus => 
     (
       match (veval_f v1), (veval_f v2) with
-        Some (inl n1), Some (inl n2) => Some ( inl (add n1 n2))
-        | _, _ => None
+        (Nat n1), (Nat n2) => Nat (add n1 n2)
+        | _, _ => none
         end
     )
   | Sub => 
     (
       match (veval_f v1), (veval_f v2) with
-        Some (inl n1), Some (inl n2) => Some ( inl (n1 - n2))
-        | _, _ => None
+       (Nat n1), (Nat n2) => Nat (n1 - n2)
+        | _, _ => none
         end
     )
   | Mult => 
     (
       match (veval_f v1), (veval_f v2) with
-        Some (inl n1), Some (inl n2) => Some ( inl (mul n1 n2))
-        | _, _ => None
+       (Nat n1), (Nat n2) => Nat (mul n1 n2)
+        | _, _ => none
         end
     )
   | Div =>
     (
       match (veval_f v1), (veval_f v2) with
-        Some (inl n1), Some (inl n2) =>
-                    ( if (n2 == 0) then None
-                      else Some ( inl (n1 / n2)))
-        | _, _ => None
+       (Nat n1), (Nat n2) =>
+                    ( if (n2 == 0) then none
+                      else Nat (n1 / n2))
+        | _, _ => none
         end
     )
   | Mod =>
     (
       match (veval_f v1), (veval_f v2) with
-        Some (inl n1), Some (inl n2) =>
-                    ( if (n2 == 0) then None
-                      else Some ( inl (n1 mod n2)))
-        | _, _ => None
+       (Nat n1), (Nat n2) =>
+                    ( if (n2 == 0) then none
+                     else Nat (n1 mod n2))
+        | _, _ => none
         end
     )
   | Or =>
   (
       match (veval_f v1), (veval_f v2) with
-        Some (inr b1), Some (inr b2) => Some ( inr (orb b1 b2))
-        | _, _ => None
+        (Bool b1), (Bool b2) => Bool (orb b1 b2)
+        | _, _ => none
         end
     )
   | And =>
   (
       match (veval_f v1), (veval_f v2) with
-        Some (inr b1), Some (inr b2) => Some ( inr (andb b1 b2))
-        | _, _ => None
+        (Bool b1), (Bool b2) => Bool (andb b1 b2)
+        | _, _ => none
         end
   )
   end
-)
-end.
+  )
+  | Nat n => v
+  | Bool b => v
+  end.
+
+Definition isval(v: value) :=
+  match (veval_f v) with
+    none => False
+  | some _ => True
+   end.
 
 (*setting up equality type for value*)
-
+(*whether or not things are valuable is actually covered in eqb_value*)
 Definition eqb_value (x y: value) :=
   match (veval_f x) with
-  Some (inl nx) => (match (veval_f y ) with
-                   | Some (inl ny) => (nx == ny)
+  Nat nx => (match (veval_f y ) with
+                   | Nat ny => (nx == ny)
                    | _ => false
                      end)
-  | Some (inr bx) => (match (veval_f y ) with
-                   | Some (inr bby) => (bx == bby)
+  | Bool bx => (match (veval_f y ) with
+                   | Bool bby => (bx == bby)
                    | _ => false
                      end)
   | _ => false
@@ -256,7 +269,8 @@ Definition sameloc_b (x y: smallvar) :=
   match isNV_b(x), isNV_b(y) with
     true, true => true
   | false, false => true
-  | _ => false.
+  | _, _ => false
+  end.
 
 (*****)
 
@@ -377,17 +391,19 @@ Notation obsseq := (list obs). (*observation sequence*)
 Coercion NonVol : mem >-> nvmem.
 Coercion Vol : mem >-> vmem.
 (****)
-
+(*veval should return one of the primitive values*)
 Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
 VAL: forall(N: nvmem) (V: vmem) (v: value), 
-    eeval N V v NoObs v
+    isval(v) -> (*extra premise to check if v is valuable*)
+    eeval N V v NoObs (nop veval_f v)
 | BINOP: forall(N: nvmem) (V: vmem)
           (e1: exp) (e2: exp)
           (r1: readobs) (r2: readobs)
           (v1: value) (v2: value) (bop: boptype),
     eeval N V e1 r1 v1 ->
     eeval N V e2 r2 v2 -> 
-    eeval N V (e1 ** e2) (r1++ r2) (vBop bop v1 v2)
+    isval(bop v1 v2) (*define me!*) -> 
+    eeval N V (Bop bop e1 e2) (r1++ r2) (vBop bop v1 v2)
     (*eeval N V (e1 ** e2) (Seqrd r1 r2) {{ v1 ** v2 }}*)
 | RD_VAR_NV: forall(mapN: mem) (mapV: mem) (x: smallvar) (v: value),
     eq_valueop (mapN (inl x)) (Some v) ->
