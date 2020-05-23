@@ -65,7 +65,7 @@ Inductive boptype :=
 Inductive value :=
     Nat (n: nat)
   | Bool (b: bool)
-  | none.
+  | error. (*error term is IN the value type...don't like that*)
 Coercion Bool : bool >-> value.
 Coercion Nat : nat >-> value.
 
@@ -77,53 +77,53 @@ Fixpoint bopeval (bop: boptype) (v1 v2 :value): (value) :=
     (
       match v1, v2 with
         (Nat n1), (Nat n2) => Nat (add n1 n2)
-        | _, _ => none
+        | _, _ => error
         end
     )
   | Sub => 
     (
       match v1, v2 with
        (Nat n1), (Nat n2) => Nat (n1 - n2)
-        | _, _ => none
+        | _, _ => error
         end
     )
   | Mult => 
     (
       match v1, v2 with
        (Nat n1), (Nat n2) => Nat (mul n1 n2)
-        | _, _ => none
+        | _, _ => error
         end
     )
   | Div =>
     (
       match v1, v2 with
        (Nat n1), (Nat n2) =>
-                    ( if (n2 == 0) then none
+                    ( if (n2 == 0) then error
                       else Nat (n1 / n2))
-        | _, _ => none
+        | _, _ => error
         end
     )
   | Mod =>
     (
       match v1, v2 with
        (Nat n1), (Nat n2) =>
-                    ( if (n2 == 0) then none
+                    ( if (n2 == 0) then error
                      else Nat (n1 mod n2))
-        | _, _ => none
+        | _, _ => error
         end
     )
   | Or =>
   (
       match v1, v2 with
         (Bool b1), (Bool b2) => Bool (orb b1 b2)
-        | _, _ => none
+        | _, _ => error
         end
     )
   | And =>
   (
       match v1, v2 with
         (Bool b1), (Bool b2) => Bool (andb b1 b2)
-        | _, _ => none
+        | _, _ => error
         end
   )
   end.
@@ -131,7 +131,7 @@ Fixpoint bopeval (bop: boptype) (v1 v2 :value): (value) :=
 
 Definition isval (bop: boptype) (v1 v2 : value) :=
   match (bopeval bop v1 v2) with
-    none => False
+    error => False
   | _ => True
    end.
 
@@ -147,23 +147,23 @@ Definition eq_value (x y: value) := is_true(eqb_value x y).
 
 Definition eq_valueop (x y : option value) :=
   match x, y with
-    None, None => True
+    Error, None => True
   | Some x1, Some y1 => eq_value x1 y1
   | _, _ => False
   end.
 
 (*memory maps*)
-Definition map (A: Type) (eqba: A -> A -> bool):= A -> (option value).
-Definition emptymap A eqba :(map A eqba) := (fun _ => None).
+Definition map (A: Type) (eqba: A -> A -> bool):= A -> value.
+Definition emptymap A eqba :(map A eqba) := (fun _ => error).
 Definition updatemap {A} {eqba} (m: map A eqba) (i: A) (v: value) : map A eqba := (fun j =>
-                                                               if (eqba j i) then Some v
+                                                               if (eqba j i) then v
                                                                else (m j)).
 
 Definition unionmaps {A} {eqba} (m1: map A eqba) (m2: map A eqba): map A eqba :=
   (fun j =>
      match m1 j with
-       Some out => Some out
-     | None => m2 j
+     error => m2 j
+     | _ => m1 j
      end
   ).
 Notation "m1 'U' m2" := (unionmaps m1 m2) (at level 100).
@@ -172,8 +172,8 @@ Notation "i '|->' v ';' m" := (updatemap m i v)
 
 Definition indomain {A} {eqba} (m: map A eqba) (x: A) :=
   match m x with
-    Some _ => True
-  | None => False
+    error => False
+  | _ => True
   end.
 (******************************************************************************************)
 
