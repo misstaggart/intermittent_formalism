@@ -165,14 +165,15 @@ Definition updatemap {A} {eqba} (m: map A eqba) (i: A) (v: value) : map A eqba :
                                                                if (eqba j i) then v
                                                                else (m j)).
 
-Definition unionmaps {A} {eqba} (m1: map A eqba) (m2: map A eqba): map A eqba :=
+Definition updatemaps {A} {eqba} (m1: map A eqba) (m2: map A eqba): map A eqba :=
   (fun j =>
      match m1 j with
      error => m2 j
      | _ => m1 j
      end
   ).
-Notation "m1 'U' m2" := (unionmaps m1 m2) (at level 100).
+Notation "m1 'U!' m2" := (updatemaps m1 m2) (at level 100).
+(*m1 is checked first, then m2*)
 Notation "i '|->' v ';' m" := (updatemap m i v)
   (at level 100, v at next level, right associativity).
 
@@ -438,7 +439,7 @@ Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
            (element: el)
            (v: value),
     eeval (NonVol mapN) (Vol mapV) (index) rindex vindex ->
-    eq_value ((mapN U mapV) (inr element)) v ->
+    eq_value ((mapN U! mapV) (inr element)) v ->
     (sameindex element a vindex) -> (*extra premise to check that inr element
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
@@ -544,16 +545,29 @@ Inductive iceval: context-> nvmem -> vmem -> command -> obsseq -> context -> nvm
                  iceval k (NonVol mapN) V ((incheckpoint w);;c)
                         [checkpoint]
                         ((NonVol (mapN |! w)), V, c) (NonVol mapN) V c
-                        (*start here*)
-|  NV_Assign: forall(x: smallvar) (mapN: mem) (V: vmem) (e: exp) (r: readobs) (v: value),
+ | CP_Reboot: forall(mapN: mem) (mapN': mem)(*see below*)
+               (V: vmem) (V': vmem)
+               (c: command), 
+     iceval ((NonVol mapN), V, c) (NonVol mapN') V' inreboot
+            [reboot]
+            ((NonVol mapN), V, c) (NonVol (mapN U! mapN')) V c
+ | CP_NV_Assign: forall(k: context) (x: smallvar) (mapN: mem) (V: vmem) (e: exp) (r: readobs) (v: value),
     indomain mapN (inl x) ->
     eeval (NonVol mapN) V e r v ->
-    cceval (NonVol mapN) V (asgn_sv x e) r (NonVol ( (inl x) |-> v ; mapN)) V skip
-| V_Assign: forall(x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
+    isNV(x) -> (*extra premise to make sure x is correct type for NV memory*)
+    (isvaluable v) -> (*extra premise to check if v is valuable*)
+    iceval k (NonVol mapN) V (asgn_sv x e)
+           [Obs r]
+           k (NonVol ( (inl x) |-> v; mapN)) V skip
+| CP_V_Assign: forall(k: context) (x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
     indomain mapV (inl x) ->
     eeval N (Vol mapV) e r v ->
-    cceval N (Vol mapV) (asgn_sv x e) r N (Vol ((inl x) |-> v ; mapV)) skip
-| Assign_Arr: forall (mapN: mem) (V: vmem)
+    isV(x) -> (*extra premise to make sure x is correct type for V memory*)
+    (isvaluable v) -> (*extra premise to check if v is valuable*)
+    iceval k N (Vol mapV) (asgn_sv x e)
+           [Obs r]
+           k N (Vol ((inl x) |-> v ; mapV)) skip
+|CP_Assign_Arr: forall (k: context) (mapN: mem) (V: vmem)
                (a: array)
                (ei: exp)
                (ri: readobs)
@@ -564,36 +578,41 @@ Inductive iceval: context-> nvmem -> vmem -> command -> obsseq -> context -> nvm
                (element: el),
     eeval (NonVol mapN) (V) (ei) ri vi ->
     eeval (NonVol mapN) (V) (e) r v ->
-    (sameindex element a vi) -> (*extra premise to check that element is actually a[vi] *)
-    cceval (NonVol mapN) (V) (asgn_ar a ei e) (Seqrd ri r)
-           (NonVol ( (inr element)|-> v; mapN)) V skip
-| Skip: forall(N: nvmem)
+    (sameindex element a vi) -> (*extra premise to check that inr element
+                                        is actually a[vindex] *)
+(*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
+    (isvaluable v) -> (*extra premise to check if v is valuable*)
+    iceval k (NonVol mapN) (V) (asgn_ar a ei e)
+           [Obs (ri++r)]
+           k (NonVol ( (inr element)|-> v; mapN)) V skip
+    (*valuability and inboundedness of vindex are checked in sameindex*)
+|CP_Skip: forall(k: context) (N: nvmem)
          (V: vmem)
          (c: command),
-    cceval N V (skip;;c) NoObs N V c
-| Seq: forall (N: nvmem)
-         (N': nvmem)
-         (V: vmem)
-         (V': vmem)
+    iceval k N V (skip;;c) [Obs NoObs] k N V c
+|CP_Seq: forall (k: context)
+         (N: nvmem) (N': nvmem)
+         (V: vmem) (V': vmem)
          (l: instruction)
          (c: command)
          (o: obs),
-    cceval N V l o N' V' skip ->
-    cceval N V (l;;c) o N' V' c
-| If_T: forall(N: nvmem)
-         (V: vmem)
+    iceval k N V l [o] k N' V' skip ->
+    iceval k N V (l;;c) [o] k N' V' c
+|CP_If_T: forall(k: context) (N: nvmem) (V: vmem)
          (e: exp)
          (r: readobs)
          (c1: command)
          (c2: command),
-    eeval N V e r true ->
-    cceval N V (TEST e THEN c1 ELSE c2) r N V c1
-| If_F: forall(N: nvmem)
-         (V: vmem)
+    eeval N V e r true -> 
+    iceval k N V (TEST e THEN c1 ELSE c2) [Obs r] k N V c1
+|CP_If_F: forall(k: context) (N: nvmem) (V: vmem)
          (e: exp)
          (r: readobs)
          (c1: command)
          (c2: command),
     eeval N V e r false ->
-    cceval N V (TEST e THEN c1 ELSE c2) r N V c2.
+    iceval k N V (TEST e THEN c1 ELSE c2) [Obs r] k N V c2.
+(*CP_Reboot: I took out the equals premise and instead built it
+into the types because I didn't want to define a context equality function*)
+
 Close Scope type_scope.
