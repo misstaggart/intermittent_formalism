@@ -60,70 +60,49 @@ Inductive boptype :=
 | Mod
 | Or
 | And.
-End ModuleName.
 
 
 Inductive value :=
     Nat (n: nat)
-| Bool (b: bool)
-| Plus (v1: value) (v2: value)
-| Sub (v1: value) (v2: value)
-| Mult (v1: value) (v2: value)
-| Div (v1: value) (v2: value)
-| Mod (v1: value) (v2: value)
-| Or (v1: value) (v2: value)
-| And (v1: value) (v2: value).
+  | Bool (b: bool)
+  | vBop (bop: boptype) (v1: value) (v2: value).
 Coercion Bool : bool >-> value.
 Coercion Nat : nat >-> value.
 (*Notation "'{{' v1 '**' v2 '}}'" := (vBop v1 v2) (at level 100).*)
 
 (*evaluation rules for values to be used in eeval, ceval below*)
 
-(*if you use the function one and the relation one
- you'd have to prove them equivalent..
- it's best if you pick*)
-Inductive veval_r: value -> value -> Prop :=
-  Nateval: forall(n : nat), veval_r n n
-| Booleval: forall(b: bool), veval_r b b
-| Pluseval: forall(n1 n2: nat),
-    veval_r (Plus n1 n2) (add n1 n2)
-| Subeval: forall(n1 n2: nat), veval_r (Sub n1 n2) (n1 - n2)
-| Multeval: forall(n1 n2: nat), veval_r (Mult n1 n2) (mul n1 n2)
-| Diveval_r: forall(n1 n2: nat), veval_r (Div n1 (S n2)) (n1 / S(n2))
-| Modeval: forall(n1 n2: nat), veval_r (Mod n1 (S n2)) (n1 mod S(n2))
-| Oreval: forall(b1 b2: bool), veval_r (Or b1 b2) (orb b1 b2)
-| Andeval: forall(b1 b2: bool), veval_r (Or b1 b2) (andb b1 b2)
-.
-
 (*
-why doesn't this work!
+why doesn't this work
 Coercion Some : (Sum nat bool) >-> option (nat + bool).*)
 Fixpoint veval_f (v:value): (option (nat + bool)) :=
   match v with
     Nat n => Some (inl n)
-  | Bool (b) => Some (inr b)
-  | Plus (v1) (v2) => 
+  | Bool b => Some (inr b)
+  | vBop bop v1 v2 =>
+  (  match bop with
+   Plus => 
     (
       match (veval_f v1), (veval_f v2) with
         Some (inl n1), Some (inl n2) => Some ( inl (add n1 n2))
         | _, _ => None
         end
     )
-| Sub (v1) (v2) => 
+  | Sub => 
     (
       match (veval_f v1), (veval_f v2) with
         Some (inl n1), Some (inl n2) => Some ( inl (n1 - n2))
         | _, _ => None
         end
     )
-| Mult (v1) (v2) => 
+  | Mult => 
     (
       match (veval_f v1), (veval_f v2) with
         Some (inl n1), Some (inl n2) => Some ( inl (mul n1 n2))
         | _, _ => None
         end
     )
-| Div (v1) (v2) =>
+  | Div =>
     (
       match (veval_f v1), (veval_f v2) with
         Some (inl n1), Some (inl n2) =>
@@ -132,7 +111,7 @@ Fixpoint veval_f (v:value): (option (nat + bool)) :=
         | _, _ => None
         end
     )
-| Mod (v1) (v2) =>
+  | Mod =>
     (
       match (veval_f v1), (veval_f v2) with
         Some (inl n1), Some (inl n2) =>
@@ -141,23 +120,24 @@ Fixpoint veval_f (v:value): (option (nat + bool)) :=
         | _, _ => None
         end
     )
-| Or (v1) (v2) =>
+  | Or =>
   (
       match (veval_f v1), (veval_f v2) with
         Some (inr b1), Some (inr b2) => Some ( inr (orb b1 b2))
         | _, _ => None
         end
     )
-| And (v1) (v2) =>
+  | And =>
   (
       match (veval_f v1), (veval_f v2) with
         Some (inr b1), Some (inr b2) => Some ( inr (andb b1 b2))
         | _, _ => None
         end
-    )
+  )
+  end
+)
 end.
 
-(*val was already taken by a subtype method*)
 (*setting up equality type for value*)
 
 Definition eqb_value (x y: value) :=
@@ -219,7 +199,7 @@ Inductive location :=
 Inductive exp :=
   Var (s: string) (l: location) 
 | Val (v: value)
-| Bop (e1: exp) (e2: exp)
+| Bop (e1: exp) (e2: exp) (bop: boptype)
 | El (a: array) (e: exp).
 Coercion Val : value >-> exp.
 Notation "a '[[' e ']]'" := (El (a) (e))
@@ -404,10 +384,10 @@ VAL: forall(N: nvmem) (V: vmem) (v: value),
 | BINOP: forall(N: nvmem) (V: vmem)
           (e1: exp) (e2: exp)
           (r1: readobs) (r2: readobs)
-          (v1: value) (v2: value),
+          (v1: value) (v2: value) (bop: boptype),
     eeval N V e1 r1 v1 ->
-    eeval N V e2 r2 v2 ->
-    eeval N V (e1 ** e2) (r1++ r2) (vBop v1 v2)
+    eeval N V e2 r2 v2 -> 
+    eeval N V (e1 ** e2) (r1++ r2) (vBop bop v1 v2)
     (*eeval N V (e1 ** e2) (Seqrd r1 r2) {{ v1 ** v2 }}*)
 | RD_VAR_NV: forall(mapN: mem) (mapV: mem) (x: smallvar) (v: value),
     eq_valueop (mapN (inl x)) (Some v) ->
