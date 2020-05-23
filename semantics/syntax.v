@@ -65,7 +65,6 @@ Inductive boptype :=
 Inductive value :=
     Nat (n: nat)
   | Bool (b: bool)
-  | vBop (bop: boptype) (v1: value) (v2: value)
   | none.
 Coercion Bool : bool >-> value.
 Coercion Nat : nat >-> value.
@@ -77,34 +76,32 @@ Coercion Nat : nat >-> value.
 why doesn't this work
 Coercion Some : (Sum nat bool) >-> option (nat + bool).*)
 
-Fixpoint veval_f (v:value): (value) :=
-  match v with
-  vBop bop v1 v2 =>
-  (  match bop with
+Fixpoint bopeval (v1 v2 :value) (bop: boptype): (value) :=
+  match bop with
    Plus => 
     (
-      match (veval_f v1), (veval_f v2) with
+      match v1, v2 with
         (Nat n1), (Nat n2) => Nat (add n1 n2)
         | _, _ => none
         end
     )
   | Sub => 
     (
-      match (veval_f v1), (veval_f v2) with
+      match v1, v2 with
        (Nat n1), (Nat n2) => Nat (n1 - n2)
         | _, _ => none
         end
     )
   | Mult => 
     (
-      match (veval_f v1), (veval_f v2) with
+      match v1, v2 with
        (Nat n1), (Nat n2) => Nat (mul n1 n2)
         | _, _ => none
         end
     )
   | Div =>
     (
-      match (veval_f v1), (veval_f v2) with
+      match v1, v2 with
        (Nat n1), (Nat n2) =>
                     ( if (n2 == 0) then none
                       else Nat (n1 / n2))
@@ -113,7 +110,7 @@ Fixpoint veval_f (v:value): (value) :=
     )
   | Mod =>
     (
-      match (veval_f v1), (veval_f v2) with
+      match v1, v2 with
        (Nat n1), (Nat n2) =>
                     ( if (n2 == 0) then none
                      else Nat (n1 mod n2))
@@ -122,40 +119,30 @@ Fixpoint veval_f (v:value): (value) :=
     )
   | Or =>
   (
-      match (veval_f v1), (veval_f v2) with
+      match v1, v2 with
         (Bool b1), (Bool b2) => Bool (orb b1 b2)
         | _, _ => none
         end
     )
   | And =>
   (
-      match (veval_f v1), (veval_f v2) with
+      match v1, v2 with
         (Bool b1), (Bool b2) => Bool (andb b1 b2)
         | _, _ => none
         end
   )
-  end
-  )
-  | Nat n => v
-  | Bool b => v
-  | none => none
   end.
 
-Definition isval(v: value) :=
-  match (veval_f v) with
-    none => False
-  | _ => True
-   end.
 
 (*setting up equality type for value*)
 (*whether or not things are valuable is actually covered in eqb_value*)
 Definition eqb_value (x y: value) :=
-  match (veval_f x) with
-  Nat nx => (match (veval_f y ) with
+  match (bopeval x) with
+  Nat nx => (match (bopeval y ) with
                    | Nat ny => (nx == ny)
                    | _ => false
                      end)
-  | Bool bx => (match (veval_f y ) with
+  | Bool bx => (match (bopeval y ) with
                    | Bool bby => (bx == bby)
                    | _ => false
                      end)
@@ -215,6 +202,13 @@ Notation "a '[[' e ']]'" := (El (a) (e))
                             (at level 100, right associativity).
 
 Notation "e1 '**' e2" := (Bop e1 e2) (at level 100).
+
+Definition isval4bop (bop: boptype) (v1 v2 : value) :=
+  match (bopeval bop v1 v2) with
+    none => False
+  | _ => True
+   end.
+
 (*used subtypes to enforce the fact that only some expressions are
  memory locations*)
 (*also made the write after read type easier*)
@@ -240,7 +234,7 @@ Definition warvars := list warvar.
 (**helper functions for expressions*)
 Definition isarrayindex (e: el) (a: array) (vindex: value) := (*transitions from el type
                                                           to a[i] representation*)
-  match (veval_f vindex) with
+  match (bopeval vindex) with
     Nat i =>
   (match (val e) with
      El a (Nat i)  =>
@@ -396,7 +390,7 @@ Coercion Vol : mem >-> vmem.
 Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
 VAL: forall(N: nvmem) (V: vmem) (v: value), 
     isval(v) -> (*extra premise to check if v is valuable*)
-    eeval N V v NoObs (veval_f v)
+    eeval N V v NoObs (bopeval v)
 | BINOP: forall(N: nvmem) (V: vmem)
           (e1: exp) (e2: exp)
           (r1: readobs) (r2: readobs)
@@ -404,17 +398,17 @@ VAL: forall(N: nvmem) (V: vmem) (v: value),
     eeval N V e1 r1 v1 ->
     eeval N V e2 r2 v2 -> 
     isval(vBop bop v1 v2) -> (*extra premise to check if v1, v2, bop v1 v2 valuable*) 
-    eeval N V (Bop bop e1 e2) (r1++ r2) (veval_f (vBop bop v1 v2))
+    eeval N V (Bop bop e1 e2) (r1++ r2) (bopeval (vBop bop v1 v2))
 | RD_VAR_NV: forall(mapN: mem) (mapV: mem) (x: smallvar) (v: value),
     eq_valueop (mapN (inl x)) (Some v) ->
     isNV(x) -> (*extra premise to make sure x is correct type for NV memory*)
     isval(v) -> (*extra premise to check if v is valuable*) 
-    eeval (NonVol mapN) (Vol mapV) (val x) [((inl x), v)] (veval_f v)
+    eeval (NonVol mapN) (Vol mapV) (val x) [((inl x), v)] (bopeval v)
 | RD_VAR_V: forall(mapN: mem) (mapV: mem) (x: smallvar) (v: value),
     eq_valueop (mapV (inl x)) (Some v) ->
     isV(x) -> (*extra premise to make sure x is correct type for V memory*)
     isval(v) -> (*extra premise to check if v is valuable*) 
-    eeval (NonVol mapN) (Vol mapV) (val x) [((inl x), v)] (veval_f v)
+    eeval (NonVol mapN) (Vol mapV) (val x) [((inl x), v)] (bopeval v)
 | RD_ARR: forall(mapN: mem) (mapV: mem)
            (a: array)
            (index: exp)
@@ -425,10 +419,10 @@ VAL: forall(N: nvmem) (V: vmem) (v: value),
     eeval (NonVol mapN) (Vol mapV) (index) rindex vindex ->
     eq_valueop ((mapN U mapV) (inr element)) (Some v) ->
     (isarrayindex element a vindex) -> (*extra premise to check that inr element
-                                        is actually a[veval_f vindex] *)
+                                        is actually a[bopeval vindex] *)
     isval(v) -> (*extra premise to check if v is valuable*) 
 (*valuability and inboundedness of vindex are checked in isarrayindex*)
-    eeval (NonVol mapN) (Vol mapV) (a[[index]]) (rindex++[((inr element), v)]) (veval_f v)
+    eeval (NonVol mapN) (Vol mapV) (a[[index]]) (rindex++[((inr element), v)]) (bopeval v)
 .
 (*ask Arthur why this notation doesn't work *)
 
@@ -451,13 +445,13 @@ Inductive cceval: nvmem -> vmem -> command -> obsseq -> nvmem -> vmem -> command
     isNV(x) -> (*extra premise to make sure x is correct type for NV memory*)
     isval(v) -> (*extra premise to check if v is valuable*)
     cceval (NonVol mapN) V (asgn_sv x e) [Obs r]
-           (NonVol ( (inl x) |-> (veval_f v) ; mapN)) V skip
+           (NonVol ( (inl x) |-> (bopeval v) ; mapN)) V skip
 | V_Assign: forall(x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
     indomain mapV (inl x) ->
     eeval N (Vol mapV) e r v ->
     isV(x) -> (*extra premise to make sure x is correct type for V memory*)
     isval(v) -> (*extra premise to check if v is valuable*)
-    cceval N (Vol mapV) (asgn_sv x e) [Obs r] N (Vol ((inl x) |-> (veval_f v) ; mapV)) skip
+    cceval N (Vol mapV) (asgn_sv x e) [Obs r] N (Vol ((inl x) |-> (bopeval v) ; mapV)) skip
 | Assign_Arr: forall (mapN: mem) (V: vmem)
                (a: array)
                (ei: exp)
@@ -470,10 +464,10 @@ Inductive cceval: nvmem -> vmem -> command -> obsseq -> nvmem -> vmem -> command
     eeval (NonVol mapN) (V) (ei) ri vi ->
     eeval (NonVol mapN) (V) (e) r v ->
     (isarrayindex element a vi) -> (*extra premise to check that inr element
-                                        is actually a[veval_f vindex] *)
+                                        is actually a[bopeval vindex] *)
     isval(v) -> (*extra premise to check if v is valuable*)
     cceval (NonVol mapN) (V) (asgn_ar a ei e) [Obs (ri++r)] (*why doesn't this coercion work*)
-           (NonVol ( (inr element)|-> (veval_f v); mapN)) V skip
+           (NonVol ( (inr element)|-> (bopeval v); mapN)) V skip
     (*valuability and inboundedness of vindex are checked in isarrayindex*)
 | CheckPoint: forall(N: nvmem)
                (V: vmem)
