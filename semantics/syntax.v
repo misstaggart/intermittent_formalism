@@ -68,13 +68,8 @@ Inductive value :=
   | none.
 Coercion Bool : bool >-> value.
 Coercion Nat : nat >-> value.
-(*Notation "'{{' v1 '**' v2 '}}'" := (vBop v1 v2) (at level 100).*)
 
-(*evaluation rules for values to be used in eeval, ceval below*)
-
-(*
-why doesn't this work
-Coercion Some : (Sum nat bool) >-> option (nat + bool).*)
+(*evaluation rules for binary operations*)
 
 Fixpoint bopeval (bop: boptype) (v1 v2 :value): (value) :=
   match bop with
