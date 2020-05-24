@@ -165,14 +165,6 @@ Definition updatemap {A} {eqba} (m: map A eqba) (i: A) (v: value) : map A eqba :
                                                                if (eqba j i) then v
                                                                else (m j)).
 
-Definition updatemaps {A} {eqba} (m1: map A eqba) (m2: map A eqba): map A eqba :=
-  (fun j =>
-     match m1 j with
-     error => m2 j
-     | _ => m1 j
-     end
-  ).
-Notation "m1 'U!' m2" := (updatemaps m1 m2) (at level 100).
 (*m1 is checked first, then m2*)
 Notation "i '|->' v ';' m" := (updatemap m i v)
   (at level 100, v at next level, right associativity).
@@ -188,7 +180,7 @@ Definition indomain {A} {eqba} (m: map A eqba) (x: A) :=
 Inductive array :=
   Array (s: string) (l: nat).
 
-Definition eqarray_b(a1 a2: array) :=
+Definition eqb_array (a1 a2: array) :=
   match a1, a2 with
     Array s1 l1, Array s2 l2 => andb (s1 == s2) (l1 == l2)
     end.
@@ -244,7 +236,7 @@ Definition sameindex (e: el) (a: array) (vindex: value) := (*transitions from el
 Definition samearray_b (element: el) (a: array) := (*checks if el indexes into a*)
   match (val element) with
     El element_arr _ =>
-    eqarray_b element_arr a (*know that el's index is within bounds of a by elpred*)
+    eqb_array element_arr a (*know that el's index is within bounds of a by elpred*)
   | _ => false
   end.
 
@@ -309,6 +301,10 @@ Next Obligation.
       try (simpl in H0; discriminate H0). apply (H s q). reflexivity.
 Qed.
 
+Definition eqb_smallvar (x y: smallvar): bool :=
+  andb ((getstringsv x)==(getstringsv y)) (samevolatility_b x y).
+
+
 Program Definition getarray (x: el): array :=
   match val x with
     El (arr) _ => arr
@@ -318,13 +314,6 @@ Next Obligation. destruct (x) as [s| | |];
                  try (simpl in H0; discriminate H0).
      apply (H a e). reflexivity.
 Qed.
-
-
-Definition getarrayel (x: el): string :=
-  match (getarray x) with
-    Array s _ => s
-  end.
-
 
 Program Definition getindexel (x: el): value  :=
   match val x with
@@ -341,11 +330,20 @@ Qed.
 
 Definition eqb_loc (l1: loc) (l2: loc) :=
   match l1, l2 with
-   inl x, inl y => andb ((getstringsv x)==(getstringsv y)) (samevolatility_b x y)
-  | inr x, inr y => andb ((getarrayel x)==(getarrayel y))
+    inl x, inl y => eqb_smallvar x y
+  | inr x, inr y => andb (eqb_array (getarray x) (getarray y))
                         (eqb_value (getindexel x) (getindexel y))
   | _, _ => false 
   end. (*might be nice to have values as an equality type here*)
+
+(*move me to a logical location*)
+(*start here*)
+(*convert loc to warvar*)
+Fixpoint loc_warvars (l: loc) : warvar := 
+  match l with
+    inl x => inl x
+  | inr el => inr (getarray el)
+  end.
 (****************************************************************)
 
 (****************************memory*************************************)
@@ -354,46 +352,78 @@ Definition eqb_loc (l1: loc) (l2: loc) :=
 Notation mem := (map loc eqb_loc). (*memory mapping*)
 
 Inductive nvmem := (*nonvolatile memory*)
-  NonVol (m : mem).
+  NonVol (m : mem) (D: warvars). (*extra argument to keep track of domain because
+                                  I reuse this type for checkpoint map*)
 
 Inductive vmem := (*volatile memory*)
   Vol (m : mem).
 
+(**why don't these coercions work?**)
+(*would be really nice if I could have these so the constructors
+ for eeval could have consistent arguments wrt nvmem vs mem and similar*)
+(*I could change these to enforce that they only take in smallvars
+ of the correct type but it's already checked in my evaluation rules*)
+Coercion Vol : mem >-> vmem.
 (**************************helpers for the memory maps*********************************************)
+  Definition getvalue (N: nvmem) (i: loc) :=
+  match N with NonVol m D => m i end.
+  Notation "v '<-' N" := (getvalue N v)
+    (at level 40).
+
+  (*updates domain and mapping function*)
+Definition updateNV (N: nvmem) (i: loc) (v: value) :=
+  match N with NonVol m D =>
+               NonVol (updatemap m i v) (
+                        match i with 
+                          inl x => ((inl x) :: D) (*i is a smallvar*)
+                         | inr el => ((inr (getarray el))::D) (*i is an array element*)
+                        end
+                      )
+  end.
+
+(*used to update NV memory with checkpoint*)
+Definition updatemaps (N: nvmem) (N': nvmem): nvmem :=
+  match N, N' with
+    NonVol m D, NonVol m' D' => NonVol
+  (fun j =>
+     match m j with
+     error => m' j
+     | _ => m j
+     end
+  )
+  (D' ++ D) (*shocking inclusion of duplicates*)
+  end.
+Notation "m1 'U!' m2" := (updatemaps m1 m2) (at level 100).
 Definition reset (V: vmem) := Vol (emptymap loc eqb_loc).
 
-(*checks if a location input has been stored as a WAR location in w*)
-Fixpoint memberwv (input: loc) (w: warvars) := 
+Fixpoint memberwv_wv (input: warvar) (w: warvars) :=
   match w with
     [] => false
   | wv::wvs => match input, wv with
-               inl x, inl y => orb (eqb_loc input (inl y)) (memberwv input wvs)
-             | inr x, inr y => orb (samearray_b x y) (memberwv input wvs)
-             | _, _ => memberwv input wvs                          
+               inl x, inl y => orb (eqb_smallvar x y) (memberwv_wv input wvs) 
+             | inr x, inr y => orb (eqb_array x y) (memberwv_wv input wvs)
+             | _, _ => memberwv_wv input wvs                          
              end
-  end.
+end.
+(*checks if a location input has been stored as a WAR location in w*)
+Definition memberloc_wv (input: loc) (w: warvars) :=
+  memberwv_wv (loc_warvars input) w.
 
 (*restricts memory map m to domain w*)
 (*doesn't actually clean the unnecessary variables out of m*)
-Definition restrict (m: mem) (w: warvars): mem :=
-  fun input => if (memberwv input w) then m input else error.
+Definition restrict (N: nvmem) (w: warvars): nvmem :=
+  match N with NonVol m D => NonVol
+    (fun input => if (memberloc_wv input w) then m input else error) w (*in predicate for lists
+                                                                 wouldn't work bc warvar                                                                  is not an equality type...unless you want it to be*)
+  end.
 
 Notation "N '|!' w" := (restrict N w) 
   (at level 40, left associativity).
 
 (*prop determining if every location in array a is in the domain of m*)
-Program Fixpoint indomain_arr (m: mem) (a: array) :=
-  match a with Array _ length => forall(i: {n: nat | n <? length}),
-      indomain m (inr(El a (Val (Nat i)))) end.
+Definition indomain_nvm (N: nvmem) (w: warvar) :=
+  match N with NonVol m D => memberwv_wv w D end.
 
-Fixpoint indomain_wvs (m: mem) (w: warvars) :=
-  match w with
-    nil => True
-  | (w::ws) => (match w with
-               inl x => (indomain m (inl x)) /\ (indomain_wvs m ws) (*w is a smallvar*)
-             | inr a =>  (indomain_arr m a) /\ (indomain_wvs m ws) (*w is an array*)
-             end)
-end.
 (********************************************)
 Inductive cconf := (*continuous configuration*)
   ContinuousConf (triple: nvmem * vmem * command).
@@ -431,15 +461,7 @@ Fixpoint readobs_warvars (R: readobs) : warvars :=
               | inr el => (inr (getarray el))::(readobs_warvars rs)
               end)
            end
- end.
-(**why don't these coercions work?**)
-(*would be really nice if I could have these so the constructors
- for eeval could have consistent arguments wrt nvmem vs mem and similar*)
-(*I could change these to enforce that they only take in smallvars
- of the correct type but it's already checked in my evaluation rules*)
-Coercion NonVol : mem >-> nvmem.
-Coercion Vol : mem >-> vmem.
-
+  end.
 (***************************************************************)
 
 (****************continuous operational semantics***********************)
@@ -456,30 +478,30 @@ Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
     eeval N V e2 r2 v2 -> 
     (isvalidbop bop v1 v2) -> (*extra premise to check if v1, v2, bop v1 v2 valuable*)
     eeval N V (Bop bop e1 e2) (r1++ r2) (bopeval bop v1 v2)
-| RD_VAR_NV: forall(mapN: mem) (mapV: mem) (x: smallvar) (v: value),
-    eq_value (mapN (inl x)) v ->
+| RD_VAR_NV: forall(N: nvmem) (mapV: vmem) (x: smallvar) (v: value),
+    eq_value ((inl x) <-N) v ->
     isNV(x) -> (*extra premise to make sure x is correct type for NV memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    eeval (NonVol mapN) (Vol mapV) (val x) [((inl x), v)] v
-| RD_VAR_V: forall(mapN: mem) (mapV: mem) (x: smallvar) (v: value),
+    eeval N mapV (val x) [((inl x), v)] v
+| RD_VAR_V: forall(N: nvmem) (mapV: mem) (x: smallvar) (v: value),
     eq_value (mapV (inl x)) v ->
     isV(x) -> (*extra premise to make sure x is correct type for V memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    eeval (NonVol mapN) (Vol mapV) (val x) [((inl x), v)] v
-| RD_ARR: forall(mapN: mem) (mapV: mem)
+    eeval N (Vol mapV) (val x) [((inl x), v)] v
+| RD_ARR: forall(N: nvmem) (V: vmem)
            (a: array)
            (index: exp)
            (rindex: readobs)
            (vindex: value)
            (element: el)
            (v: value),
-    eeval (NonVol mapN) (Vol mapV) (index) rindex vindex ->
-    eq_value ((mapN U! mapV) (inr element)) v ->
+    eeval N V (index) rindex vindex ->
+    eq_value ((inr element) <-N) v ->
     (sameindex element a vindex) -> (*extra premise to check that inr element
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    eeval (NonVol mapN) (Vol mapV) (a[[index]]) (rindex++[((inr element), v)]) v
+    eeval N V (a[[index]]) (rindex++[((inr element), v)]) v
 .
 (*ask Arthur why this notation doesn't work *)
 
@@ -495,21 +517,20 @@ Inductive eevaltest: nvmem -> vmem -> exp -> obs -> value -> Prop :=
 
 
 (*evaluation relation for commands*)
+(*UPDATE DOMAIN WHEN YOU WRITE*)
 Inductive cceval: nvmem -> vmem -> command -> obsseq -> nvmem -> vmem -> command -> Prop :=
-  NV_Assign: forall(x: smallvar) (mapN: mem) (V: vmem) (e: exp) (r: readobs) (v: value),
-    indomain mapN (inl x) ->
-    eeval (NonVol mapN) V e r v ->
-    isNV(x) -> (*extra premise to make sure x is correct type for NV memory*)
+  NV_Assign: forall(x: smallvar) (N: nvmem) (V: vmem) (e: exp) (r: readobs) (v: value),
+    eeval N V e r v ->
+    isNV(x) -> (*checks x is correct type for NV memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    cceval (NonVol mapN) V (asgn_sv x e) [Obs r]
-           (NonVol ( (inl x) |-> v; mapN)) V skip
+    cceval N V (asgn_sv x e) [Obs r]
+           (updateNV N (inl x) v) V skip
 | V_Assign: forall(x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
-    indomain mapV (inl x) ->
     eeval N (Vol mapV) e r v ->
-    isV(x) -> (*extra premise to make sure x is correct type for V memory*)
+    isV(x) -> (*checks x is correct type for V memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     cceval N (Vol mapV) (asgn_sv x e) [Obs r] N (Vol ((inl x) |-> v ; mapV)) skip
-| Assign_Arr: forall (mapN: mem) (V: vmem)
+| Assign_Arr: forall (N: nvmem) (V: vmem)
                (a: array)
                (ei: exp)
                (ri: readobs)
@@ -518,14 +539,14 @@ Inductive cceval: nvmem -> vmem -> command -> obsseq -> nvmem -> vmem -> command
                (r: readobs)
                (v: value)
                (element: el),
-    eeval (NonVol mapN) (V) (ei) ri vi ->
-    eeval (NonVol mapN) (V) (e) r v ->
+    eeval N V ei ri vi ->
+    eeval N V e r v ->
     (sameindex element a vi) -> (*extra premise to check that inr element
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    cceval (NonVol mapN) (V) (asgn_arr a ei e) [Obs (ri++r)]
-           (NonVol ( (inr element)|-> v; mapN)) V skip
+    cceval N V (asgn_arr a ei e) [Obs (ri++r)]
+           (updateNV N (inr element) v) V skip
     (*valuability and inboundedness of vindex are checked in sameindex*)
 | CheckPoint: forall(N: nvmem)
                (V: vmem)
@@ -576,33 +597,31 @@ Inductive iceval: context-> nvmem -> vmem -> command -> obsseq -> context -> nvm
                  iceval k N V c
                         [Obs NoObs]
                         k N (reset V) inreboot
- | CP_CheckPoint: forall(k: context) (mapN: mem) (V: vmem) (c: command) (w: warvars),
-                 iceval k (NonVol mapN) V ((incheckpoint w);;c)
+ | CP_CheckPoint: forall(k: context) (N: nvmem) (V: vmem) (c: command) (w: warvars),
+                 iceval k N V ((incheckpoint w);;c)
                         [checkpoint]
-                        ((NonVol (mapN |! w)), V, c) (NonVol mapN) V c
- | CP_Reboot: forall(mapN: mem) (mapN': mem)(*see below*)
+                        ((N |! w), V, c) N V c (*where presumably N |! w is checkpoint*)
+ | CP_Reboot: forall(N: nvmem) (N': nvmem)(*see below*) (*N is the checkpointed one*)
                (V: vmem) (V': vmem)
                (c: command), 
-     iceval ((NonVol mapN), V, c) (NonVol mapN') V' inreboot
+     iceval (N, V, c) N' V' inreboot
             [reboot]
-            ((NonVol mapN), V, c) (NonVol (mapN U! mapN')) V c
- | CP_NV_Assign: forall(k: context) (x: smallvar) (mapN: mem) (V: vmem) (e: exp) (r: readobs) (v: value),
-    indomain mapN (inl x) ->
-    eeval (NonVol mapN) V e r v ->
-    isNV(x) -> (*extra premise to make sure x is correct type for NV memory*)
+            (N, V, c) (N U! N') V c
+ | CP_NV_Assign: forall(k: context) (x: smallvar) (N: nvmem) (V: vmem) (e: exp) (r: readobs) (v: value),
+    eeval N V e r v ->
+    isNV(x) -> (*checks x is correct type for NV memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    iceval k (NonVol mapN) V (asgn_sv x e)
+    iceval k N V (asgn_sv x e)
            [Obs r]
-           k (NonVol ( (inl x) |-> v; mapN)) V skip
+           k (updateNV N (inl x) v) V skip
 | CP_V_Assign: forall(k: context) (x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
-    indomain mapV (inl x) ->
     eeval N (Vol mapV) e r v ->
-    isV(x) -> (*extra premise to make sure x is correct type for V memory*)
+    isV(x) -> (*checks x is correct type for V memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     iceval k N (Vol mapV) (asgn_sv x e)
            [Obs r]
            k N (Vol ((inl x) |-> v ; mapV)) skip
-|CP_Assign_Arr: forall (k: context) (mapN: mem) (V: vmem)
+| CP_Assign_Arr: forall (k: context) (N: nvmem) (V: vmem)
                (a: array)
                (ei: exp)
                (ri: readobs)
@@ -611,17 +630,16 @@ Inductive iceval: context-> nvmem -> vmem -> command -> obsseq -> context -> nvm
                (r: readobs)
                (v: value)
                (element: el),
-    eeval (NonVol mapN) (V) (ei) ri vi ->
-    eeval (NonVol mapN) (V) (e) r v ->
+    eeval N V ei ri vi ->
+    eeval N V e r v ->
     (sameindex element a vi) -> (*extra premise to check that inr element
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    iceval k (NonVol mapN) (V) (asgn_arr a ei e)
+    iceval k N V (asgn_arr a ei e)
            [Obs (ri++r)]
-           k (NonVol ( (inr element)|-> v; mapN)) V skip
-    (*valuability and inboundedness of vindex are checked in sameindex*)
-|CP_Skip: forall(k: context) (N: nvmem)
+           k (updateNV N (inr element) v) V skip
+| CP_Skip: forall(k: context) (N: nvmem)
          (V: vmem)
          (c: command),
     iceval k N V (skip;;c) [Obs NoObs] k N V c
