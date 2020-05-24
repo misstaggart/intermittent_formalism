@@ -383,10 +383,18 @@ Inductive vmem := (*volatile memory*)
  of the correct type but it's already checked in my evaluation rules*)
 Coercion Vol : mem >-> vmem.
 (**************************helpers for the memory maps*********************************************)
-  Definition getvalue (N: nvmem) (i: loc) :=
-  match N with NonVol m D => m i end.
+
+Definition getmap (N: nvmem) :=
+  match N with NonVol m _ => m end.
+
+Definition getdomain (N: nvmem) :=
+  match N with NonVol _ D => D end.
+
+Definition getvalue (N: nvmem) (i: loc) :=
+  (getmap N) i.
   Notation "v '<-' N" := (getvalue N v)
-    (at level 40).
+                           (at level 40).
+
 
   (*updates domain and mapping function*)
 Definition updateNV (N: nvmem) (i: loc) (v: value) :=
@@ -406,12 +414,14 @@ Definition updatemaps (N: nvmem) (N': nvmem): nvmem :=
   (fun j =>
      match m j with
      error => m' j
-     | _ => m j
+     | x => x
      end
   )
-  (D' ++ D) (*shocking inclusion of duplicates*)
+  (D ++ D') (*shocking inclusion of duplicates*)
   end.
 Notation "m1 'U!' m2" := (updatemaps m1 m2) (at level 100).
+
+Notation emptyNV := (NonVol (emptymap loc eqb_loc) nil).
 Definition reset (V: vmem) := Vol (emptymap loc eqb_loc).
 
 (*restricts memory map m to domain w*)
@@ -427,10 +437,10 @@ Notation "N '|!' w" := (restrict N w)
 
 (*prop determining if every location in array a is in the domain of m*)
 Definition indomain_nvm (N: nvmem) (w: warvar) :=
-  match N with NonVol m D => memberwv_wv_b w D end.
+  memberwv_wv_b w (getdomain N).
 
 Definition isdomain_nvm (N: nvmem) (w: warvars) := (*no zip library function?*)
-  match N with NonVol m D => eq_lists D w eq_warvar end.
+   eq_lists (getdomain N) w eq_warvar.
 
 (********************************************)
 Inductive cconf := (*continuous configuration*)
