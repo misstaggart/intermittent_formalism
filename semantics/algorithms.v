@@ -13,20 +13,6 @@ Inductive rd: exp -> warvars -> Prop :=
     RD (e: exp) (N: nvmem) (V: vmem) (rs: readobs) (v: value):
       eeval N V e rs v -> rd e (readobs_warvars rs).
 
-(*checks if w was recorded as read/written to in warvar list W*)
-Fixpoint isin_wv_b (w: warvar) (W: warvars):=
-  match W with
-   nil => false
-  | (r::rs) => match w, r with
-               inl wx, inl rx => orb (eqb_loc (inl wx) (inl rx)) (isin_wv_b w rs)
-             | inr wa, inr ra => orb (eqarray_b wa ra) (isin_wv_b w rs)
-             | _, _ => isin_wv_b w rs
-             end
-end.
-
-
-Definition isin_wv (w: warvar) (W: warvars) := is_true(isin_wv_b w W).
-
 Inductive warcheck: nvmem -> warvars -> warvars -> instruction -> warvars -> warvars -> Prop := 
   WAR_Skip: forall(N: nvmem) (W: warvars) (R: warvars),
     warcheck N W R skip W R
@@ -34,48 +20,62 @@ Inductive warcheck: nvmem -> warvars -> warvars -> instruction -> warvars -> war
              (x: smallvar) (e: exp)
              (Re: warvars),
              (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
-             not(isin_wv (inl x) (R ++ Re)) 
+             not(memberwv_wv (inl x) (R ++ Re)) 
              -> warcheck N W R (asgn_sv x e) ((inl x)::W) (R ++ Re)
-| WAR_Checkpointed: forall(mapN: mem) (W: warvars) (R: warvars)
+| WAR_Checkpointed: forall(N: nvmem) (W: warvars) (R: warvars)
              (x: smallvar) (e: exp)
              (Re: warvars),
              (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
-             isin_wv (inl x) (R ++ Re) ->
-             not(isin_wv (inl x) W) ->
-             (indomain mapN (inl x)) ->
-             warcheck (NonVol mapN) W R (asgn_sv x e) ((inl x)::W) (R ++ Re)
+             memberwv_wv (inl x) (R ++ Re) ->
+             not(memberwv_wv (inl x) W) ->
+             (indomain_nvm N (inl x)) ->
+             warcheck N W R (asgn_sv x e) ((inl x)::W) (R ++ Re)
 | WAR_WT: forall(N: nvmem) (W: warvars) (R: warvars)
              (x: smallvar) (e: exp)
              (Re: warvars),
              (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
-             isin_wv (inl x) (R ++ Re) ->
-             (isin_wv (inl x) W) ->
+             memberwv_wv (inl x) (R ++ Re) ->
+             (memberwv_wv (inl x) W) ->
              warcheck N W R (asgn_sv x e) W (R ++ Re)
 | WAR_NoRd_Arr: forall(N: nvmem) (W: warvars) (R: warvars)
                  (a: array) (index: exp) (Rindex: warvars)
                  (e: exp) (Re: warvars),
     (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
     (rd index Rindex) -> (*extra premise checking that Rindex is the list of values read when index is evaluated*)
-    not(isin_wv (inr a) (R ++ Re ++ Rindex)) ->
+    not(memberwv_wv (inr a) (R ++ Re ++ Rindex)) ->
     warcheck N W R (asgn_arr a index e) ((inr a)::W) (R ++ Re ++ Rindex)
-| WAR_Checkpointed_Arr: forall(mapN: mem) (W: warvars) (R: warvars)
+| WAR_Checkpointed_Arr: forall(N: nvmem) (W: warvars) (R: warvars)
                  (a: array) (index: exp) (Rindex: warvars)
                  (e: exp) (Re: warvars),
     (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
     (rd index Rindex) -> (*extra premise checking that Rindex is the list of values read when index is evaluated*)
-    (isin_wv (inr a) (R ++ Re ++ Rindex)) ->
-    (indomain_arr mapN a) ->
-    warcheck (NonVol mapN) W R (asgn_arr a index e) ((inr a)::W) (R ++ Re ++ Rindex)
+    (memberwv_wv (inr a) (R ++ Re ++ Rindex)) ->
+    (indomain_nvm N (inr a)) ->
+    warcheck N W R (asgn_arr a index e) ((inr a)::W) (R ++ Re ++ Rindex)
 .
 (*Inductive warcheck: nvmem -> warvars -> warvars -> instruction -> warvars -> warvars -> Prop := *)
 Inductive WARok: nvmem -> warvars -> warvars -> command -> Prop:=
   WAR_I: forall(N: nvmem) (W: warvars) (R: warvars) (l: instruction)
           (W': warvars) (R': warvars),
     warcheck N W R l W' R' -> WARok N W R l
- | WAR-CP: forall(w: warvars) (c: command)
-            (N: mem) (N': mem) (*N' is the checkpoint memory map*)
+ | WAR_CP: forall(w: warvars) (c: command)
+            (N N': nvmem) (*N' is the checkpoint memory map*)
             (W: warvars) (R: warvars),
-     (indomain_wvs N w) (*extra premise checking that N' does map *)
-
+     (isdomain_nvm N' w) -> (*extra premise checking that N' does map exactly the things in w*)
+       WARok N' nil nil c ->
+       WARok N W R ((incheckpoint w);;c)
+ | WAR_Seq: forall(N: nvmem) (W W' R R': warvars)
+             (l: instruction) (c: command),
+             warcheck N W R l W' R' ->
+             WARok N W' R' c ->
+             WARok N W R (l;;c)
+ | WAR_If: forall(N: nvmem)
+            (W R Re: warvars)
+            (e: exp)
+            (c1 c2: command),
+     (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
+     WARok N W (R ++ Re) c1 ->
+     WARok N W (R ++ Re) c2 ->
+     WARok N W R (TEST e THEN c1 ELSE c2)
 .
 

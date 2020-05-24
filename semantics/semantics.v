@@ -396,18 +396,27 @@ Definition updatemaps (N: nvmem) (N': nvmem): nvmem :=
 Notation "m1 'U!' m2" := (updatemaps m1 m2) (at level 100).
 Definition reset (V: vmem) := Vol (emptymap loc eqb_loc).
 
-Fixpoint memberwv_wv (input: warvar) (w: warvars) :=
+Definition eqb_warvar (w1 w2: warvar) :=
+  match w1, w2 with
+               inl x, inl y => eqb_smallvar x y
+             | inr x, inr y => eqb_array x y
+             | _, _ => false
+  end.
+
+Definition eq_warvar (w1 w2: warvar) :=
+  is_true (eqb_warvar w1 w2).
+
+(*checks if w was recorded as read/written to in warvar list W*)
+Fixpoint memberwv_wv_b (input: warvar) (w: warvars) :=
   match w with
     [] => false
-  | wv::wvs => match input, wv with
-               inl x, inl y => orb (eqb_smallvar x y) (memberwv_wv input wvs) 
-             | inr x, inr y => orb (eqb_array x y) (memberwv_wv input wvs)
-             | _, _ => memberwv_wv input wvs                          
-             end
+  | wv::wvs => orb (eqb_warvar input wv) (memberwv_wv_b input wvs) 
 end.
+Definition memberwv_wv (w: warvar) (W: warvars) := is_true(memberwv_wv_b w W).
+
 (*checks if a location input has been stored as a WAR location in w*)
 Definition memberloc_wv (input: loc) (w: warvars) :=
-  memberwv_wv (loc_warvars input) w.
+  memberwv_wv_b (loc_warvars input) w.
 
 (*restricts memory map m to domain w*)
 (*doesn't actually clean the unnecessary variables out of m*)
@@ -422,7 +431,17 @@ Notation "N '|!' w" := (restrict N w)
 
 (*prop determining if every location in array a is in the domain of m*)
 Definition indomain_nvm (N: nvmem) (w: warvar) :=
-  match N with NonVol m D => memberwv_wv w D end.
+  match N with NonVol m D => memberwv_wv_b w D end.
+
+(*start here put me somewhere reasonable*)
+Fixpoint eq_lists {A: Type} (L1: list A) (L2: list A) (eq: A -> A -> Prop) :=
+        match L1, L2 with
+          nil, nil => True
+        | (w::ws), (d::ds) => (eq w d) /\ (eq_lists ws ds eq)
+        | _ , _ => False end.
+
+Definition isdomain_nvm (N: nvmem) (w: warvars) := (*no zip library function?*)
+  match N with NonVol m D => eq_lists D w eq_warvar end.
 
 (********************************************)
 Inductive cconf := (*continuous configuration*)
