@@ -5,7 +5,12 @@ Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
 Import ListNotations.
 Open Scope string_scope.
-(*setting up naturals equality type*)
+(*setting up*)
+Fixpoint eq_lists {A: Type} (L1: list A) (L2: list A) (eq: A -> A -> Prop) :=
+        match L1, L2 with
+          nil, nil => True
+        | (w::ws), (d::ds) => (eq w d) /\ (eq_lists ws ds eq)
+        | _ , _ => False end.
 Lemma eqnat: Equality.axiom Init.Nat.eqb.
 Proof.
   unfold Equality.axiom. intros.
@@ -220,28 +225,44 @@ Definition warvars := list warvar.
 (*Coercion (inl smallvar el): smallvar >-> loc.*)
 (*Coercion inl: smallvar >-> loc.*)
 
-(**smallvar, el, and warvar helper functions*)
+(**location and warvar helper functions*)
 (**no need to work directly with the subtypes or sumtypes, just use these**)
 
-Definition sameindex (e: el) (a: array) (vindex: value) := (*transitions from el type
-                                                          to a[i] representation*)
-  match (vindex) with
-    Nat i =>
-  (match (val e) with
-     El a (Nat i)  => True
-   | _ => False end) (*know that i is within the bounds by elpred*)
-  | _ => False
+(*array and el functions*)
+
+Program Definition getarray (x: el): array :=
+  match val x with
+    El (arr) _ => arr
+  | _ => !
   end.
+Next Obligation. destruct (x) as [s| | |];
+                 try (simpl in H0; discriminate H0).
+     apply (H a e). reflexivity.
+Qed.
+
+Program Definition getindexel (x: el): value  :=
+  match val x with
+    El _ (Val v) => v
+  | _ => !
+  end.
+Next Obligation. destruct (x) as [s| | |];
+                 try (simpl in H0; discriminate H0).
+                 destruct a eqn: adestruct.
+                 destruct e;
+                 try (simpl in H0; discriminate H0).
+                 apply (H a v). subst. reflexivity.
+Qed.
 
 Definition samearray_b (element: el) (a: array) := (*checks if el indexes into a*)
-  match (val element) with
-    El element_arr _ =>
-    eqb_array element_arr a (*know that el's index is within bounds of a by elpred*)
-  | _ => false
-  end.
+  eqb_array (getarray element) a.
 
 Definition samearray (element: el) (a: array) := is_true(samearray_b element a).
 
+Definition el_arrayind_eq (e: el) (a: array) (vindex: value) := (*transitions from el type
+                                                          to a[i] representation*)
+  (samearray e a) /\ ((getindexel e) = vindex).
+
+(*smallvar functions*)
 Definition isNV_b (x: smallvar) := (*checks if x is stored in nonvolatile memory*)
   match (val x) with
     Var _ nonvol => true
@@ -265,7 +286,57 @@ Definition samevolatility_b (x y: smallvar) := (*used for defining equality of m
   | _, _ => false
   end.
 
-(*****)
+Program Definition getstringsv (x: smallvar): string :=
+  match val x with
+    Var s _ => s
+  | _ => !
+  end. 
+Next Obligation.
+    destruct x as [s| | |];
+      try (simpl in H0; discriminate H0). apply (H s q). reflexivity.
+Qed.
+
+Definition eqb_smallvar (x y: smallvar): bool :=
+  andb ((getstringsv x)==(getstringsv y)) (samevolatility_b x y).
+
+(*loc and warvar functions*)
+Definition eqb_warvar (w1 w2: warvar) :=
+  match w1, w2 with
+               inl x, inl y => eqb_smallvar x y
+             | inr x, inr y => eqb_array x y
+             | _, _ => false
+  end.
+
+Definition eq_warvar (w1 w2: warvar) :=
+  is_true (eqb_warvar w1 w2).
+
+(*checks if w was recorded as read/written to in warvar list W*)
+Fixpoint memberwv_wv_b (input: warvar) (w: warvars) :=
+  match w with
+    [] => false
+  | wv::wvs => orb (eqb_warvar input wv) (memberwv_wv_b input wvs) 
+end.
+Definition memberwv_wv (w: warvar) (W: warvars) := is_true(memberwv_wv_b w W).
+
+Definition eqb_loc (l1: loc) (l2: loc) :=
+  match l1, l2 with
+    inl x, inl y => eqb_smallvar x y
+  | inr x, inr y => andb (eqb_array (getarray x) (getarray y))
+                        (eqb_value (getindexel x) (getindexel y))
+  | _, _ => false 
+  end. (*might be nice to have values as an equality type here*)
+
+Fixpoint loc_warvar (l: loc) : warvar := 
+  match l with
+    inl x => inl x
+  | inr el => inr (getarray el)
+  end.
+
+(*checks if a location input has been stored as a WAR location in w*)
+Definition memberloc_wvs_b (input: loc) (w: warvars) :=
+  memberwv_wv_b (loc_warvar input) w.
+(*end of helper functions*)
+(*******************************************************************)
 
 Inductive instruction :=
   skip
@@ -291,59 +362,6 @@ Coercion Instruct : instruction >-> command.
 (*******************************************************************)
 
 (******setting up location equality relation for memory maps******************)
-Program Definition getstringsv (x: smallvar): string :=
-  match val x with
-    Var s _ => s
-  | _ => !
-  end. 
-Next Obligation.
-    destruct x as [s| | |];
-      try (simpl in H0; discriminate H0). apply (H s q). reflexivity.
-Qed.
-
-Definition eqb_smallvar (x y: smallvar): bool :=
-  andb ((getstringsv x)==(getstringsv y)) (samevolatility_b x y).
-
-
-Program Definition getarray (x: el): array :=
-  match val x with
-    El (arr) _ => arr
-  | _ => !
-  end.
-Next Obligation. destruct (x) as [s| | |];
-                 try (simpl in H0; discriminate H0).
-     apply (H a e). reflexivity.
-Qed.
-
-Program Definition getindexel (x: el): value  :=
-  match val x with
-    El _ (Val v) => v
-  | _ => !
-  end.
-Next Obligation. destruct (x) as [s| | |];
-                 try (simpl in H0; discriminate H0).
-                 destruct a eqn: adestruct.
-                 destruct e;
-                 try (simpl in H0; discriminate H0).
-                 apply (H a v). subst. reflexivity.
-Qed.
-
-Definition eqb_loc (l1: loc) (l2: loc) :=
-  match l1, l2 with
-    inl x, inl y => eqb_smallvar x y
-  | inr x, inr y => andb (eqb_array (getarray x) (getarray y))
-                        (eqb_value (getindexel x) (getindexel y))
-  | _, _ => false 
-  end. (*might be nice to have values as an equality type here*)
-
-(*move me to a logical location*)
-(*start here*)
-(*convert loc to warvar*)
-Fixpoint loc_warvars (l: loc) : warvar := 
-  match l with
-    inl x => inl x
-  | inr el => inr (getarray el)
-  end.
 (****************************************************************)
 
 (****************************memory*************************************)
@@ -396,33 +414,11 @@ Definition updatemaps (N: nvmem) (N': nvmem): nvmem :=
 Notation "m1 'U!' m2" := (updatemaps m1 m2) (at level 100).
 Definition reset (V: vmem) := Vol (emptymap loc eqb_loc).
 
-Definition eqb_warvar (w1 w2: warvar) :=
-  match w1, w2 with
-               inl x, inl y => eqb_smallvar x y
-             | inr x, inr y => eqb_array x y
-             | _, _ => false
-  end.
-
-Definition eq_warvar (w1 w2: warvar) :=
-  is_true (eqb_warvar w1 w2).
-
-(*checks if w was recorded as read/written to in warvar list W*)
-Fixpoint memberwv_wv_b (input: warvar) (w: warvars) :=
-  match w with
-    [] => false
-  | wv::wvs => orb (eqb_warvar input wv) (memberwv_wv_b input wvs) 
-end.
-Definition memberwv_wv (w: warvar) (W: warvars) := is_true(memberwv_wv_b w W).
-
-(*checks if a location input has been stored as a WAR location in w*)
-Definition memberloc_wv (input: loc) (w: warvars) :=
-  memberwv_wv_b (loc_warvars input) w.
-
 (*restricts memory map m to domain w*)
 (*doesn't actually clean the unnecessary variables out of m*)
 Definition restrict (N: nvmem) (w: warvars): nvmem :=
   match N with NonVol m D => NonVol
-    (fun input => if (memberloc_wv input w) then m input else error) w (*in predicate for lists
+    (fun input => if (memberloc_wvs_b input w) then m input else error) w (*in predicate for lists
                                                                  wouldn't work bc warvar                                                                  is not an equality type...unless you want it to be*)
   end.
 
@@ -432,13 +428,6 @@ Notation "N '|!' w" := (restrict N w)
 (*prop determining if every location in array a is in the domain of m*)
 Definition indomain_nvm (N: nvmem) (w: warvar) :=
   match N with NonVol m D => memberwv_wv_b w D end.
-
-(*start here put me somewhere reasonable*)
-Fixpoint eq_lists {A: Type} (L1: list A) (L2: list A) (eq: A -> A -> Prop) :=
-        match L1, L2 with
-          nil, nil => True
-        | (w::ws), (d::ds) => (eq w d) /\ (eq_lists ws ds eq)
-        | _ , _ => False end.
 
 Definition isdomain_nvm (N: nvmem) (w: warvars) := (*no zip library function?*)
   match N with NonVol m D => eq_lists D w eq_warvar end.
@@ -516,7 +505,7 @@ Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
            (v: value),
     eeval N V (index) rindex vindex ->
     eq_value ((inr element) <-N) v ->
-    (sameindex element a vindex) -> (*extra premise to check that inr element
+    (el_arrayind_eq element a vindex) -> (*extra premise to check that inr element
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
@@ -560,7 +549,7 @@ Inductive cceval: nvmem -> vmem -> command -> obsseq -> nvmem -> vmem -> command
                (element: el),
     eeval N V ei ri vi ->
     eeval N V e r v ->
-    (sameindex element a vi) -> (*extra premise to check that inr element
+    (el_arrayind_eq element a vi) -> (*extra premise to check that inr element
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
@@ -651,7 +640,7 @@ Inductive iceval: context-> nvmem -> vmem -> command -> obsseq -> context -> nvm
                (element: el),
     eeval N V ei ri vi ->
     eeval N V e r v ->
-    (sameindex element a vi) -> (*extra premise to check that inr element
+    (el_arrayind_eq element a vi) -> (*extra premise to check that inr element
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)

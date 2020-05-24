@@ -1,0 +1,7 @@
+isvaluable: value -> prop
+
+eqb_value: value -> value -> bool
+
+eq_value: value -> value -> prop
+
+eq_valueop: option value -> option value -> prop
