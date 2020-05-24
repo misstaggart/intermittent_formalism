@@ -67,7 +67,15 @@ Inductive warcheck: nvmem -> warvars -> warvars -> instruction -> warvars -> war
     (indomain_arr mapN a) ->
     warcheck (NonVol mapN) W R (asgn_arr a index e) ((inr a)::W) (R ++ Re ++ Rindex)
 .
+(*Inductive warcheck: nvmem -> warvars -> warvars -> instruction -> warvars -> warvars -> Prop := *)
+Inductive WARok: nvmem -> warvars -> warvars -> command -> Prop:=
+  WAR_I: forall(N: nvmem) (W: warvars) (R: warvars) (l: instruction)
+          (W': warvars) (R': warvars),
+    warcheck N W R l W' R' -> WARok N W R l
+ | WAR-CP: forall(w: warvars) (c: command)
+            (N: mem) (N': mem) (*N' is the checkpoint memory map*)
+            (W: warvars) (R: warvars),
+     (indomain_wvs N w) (*extra premise checking that N' does map *)
 
-
-    (N: nvmem) (W: list loc) (R: list loc) (l: instruction) (W': loc_set) (R': loc_set):=
+.
 

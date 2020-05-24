@@ -385,6 +385,15 @@ Notation "N '|!' w" := (restrict N w)
 Program Fixpoint indomain_arr (m: mem) (a: array) :=
   match a with Array _ length => forall(i: {n: nat | n <? length}),
       indomain m (inr(El a (Val (Nat i)))) end.
+
+Fixpoint indomain_wvs (m: mem) (w: warvars) :=
+  match w with
+    nil => True
+  | (w::ws) => (match w with
+               inl x => (indomain m (inl x)) /\ (indomain_wvs m ws) (*w is a smallvar*)
+             | inr a =>  (indomain_arr m a) /\ (indomain_wvs m ws) (*w is an array*)
+             end)
+end.
 (********************************************)
 Inductive cconf := (*continuous configuration*)
   ContinuousConf (triple: nvmem * vmem * command).
