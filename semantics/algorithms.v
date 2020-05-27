@@ -12,43 +12,36 @@ Open Scope list_scope.
 Inductive rd: exp -> warvars -> Prop :=
     RD (e: exp) (N: nvmem) (V: vmem) (rs: readobs) (v: value):
       eeval N V e rs v -> rd e (readobs_warvars rs).
-(*for D_WAR_CP: could define a new eeval w/o read or just take in the read observation
-second one is easier for right now but if it messes up the proofs I can change it
- *)
 Inductive WAR_ins: nvmem -> warvars -> warvars -> instruction -> warvars -> warvars -> Prop := 
-  WAR_Skip: forall(N: nvmem) (W: warvars) (R: warvars),
+  WAR_Skip: forall(N: nvmem) (W R: warvars),
     WAR_ins N W R skip W R
-| WAR_NoRd: forall(N: nvmem) (W: warvars) (R: warvars)
-             (x: smallvar) (e: exp)
-             (Re: warvars),
+| WAR_NoRd: forall(N: nvmem) (W R Re: warvars)
+             (x: smallvar) (e: exp),
              (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
              not(memberwv_wv (inl x) (R ++ Re)) 
              -> WAR_ins N W R (asgn_sv x e) ((inl x)::W) (R ++ Re)
-| WAR_Checkpointed: forall(N: nvmem) (W: warvars) (R: warvars)
-             (x: smallvar) (e: exp)
-             (Re: warvars),
+| WAR_Checkpointed: forall(N: nvmem) (W R Re: warvars)
+             (x: smallvar) (e: exp),
              (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
              memberwv_wv (inl x) (R ++ Re) ->
              not(memberwv_wv (inl x) W) ->
              (indomain_nvm N (inl x)) ->
              WAR_ins N W R (asgn_sv x e) ((inl x)::W) (R ++ Re)
-| WAR_WT: forall(N: nvmem) (W: warvars) (R: warvars)
-             (x: smallvar) (e: exp)
-             (Re: warvars),
+| WAR_WT: forall(N: nvmem) (W R Re: warvars)
+             (x: smallvar) (e: exp),
              (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
              memberwv_wv (inl x) (R ++ Re) ->
              (memberwv_wv (inl x) W) ->
              WAR_ins N W R (asgn_sv x e) W (R ++ Re)
-| WAR_NoRd_Arr: forall(N: nvmem) (W: warvars) (R: warvars)
-                 (a: array) (index: exp) (Rindex: warvars)
-                 (e: exp) (Re: warvars),
+| WAR_NoRd_Arr: forall(N: nvmem) (W R Re Rindex: warvars)
+                 (a: array) (e index: exp)
+                 (e: exp),
     (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
     (rd index Rindex) -> (*extra premise checking that Rindex is the list of values read when index is evaluated*)
     not(memberwv_wv (inr a) (R ++ Re ++ Rindex)) ->
     WAR_ins N W R (asgn_arr a index e) ((inr a)::W) (R ++ Re ++ Rindex)
-| WAR_Checkpointed_Arr: forall(N: nvmem) (W: warvars) (R: warvars)
-                 (a: array) (index: exp) (Rindex: warvars)
-                 (e: exp) (Re: warvars),
+| WAR_Checkpointed_Arr: forall(N: nvmem) (W R Re Rindex: warvars)
+                 (a: array) (e index: exp),
     (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
     (rd index Rindex) -> (*extra premise checking that Rindex is the list of values read when index is evaluated*)
     (memberwv_wv (inr a) (R ++ Re ++ Rindex)) ->
@@ -57,13 +50,12 @@ Inductive WAR_ins: nvmem -> warvars -> warvars -> instruction -> warvars -> warv
 .
 
 Inductive WARok: nvmem -> warvars -> warvars -> command -> Prop:=
-  WAR_I: forall(N: nvmem) (W: warvars) (R: warvars) (l: instruction)
-          (W': warvars) (R': warvars),
+  WAR_I: forall(N: nvmem) (W R W' R': warvars) (l: instruction),
     WAR_ins N W R l W' R' -> WARok N W R l
  | WAR_CP: forall(w: warvars) (c: command)
             (N N': nvmem) (*N' is the checkpoint memory map*)
             (W: warvars) (R: warvars),
-     (isdomain_nvm N' w) -> (*extra premise checking that N' does map exactly the things in w*)
+     (isdomain_nvm N' w) -> (*extra premise checking that N' does map exactly the things in w*) (*see WAR_CP below*)
        WARok N' nil nil c ->
        WARok N W R ((incheckpoint w);;c)
  | WAR_Seq: forall(N: nvmem) (W W' R R': warvars)
@@ -90,17 +82,17 @@ Inductive DINO_ins: nvmem -> warvars -> warvars -> instruction
              (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
              not(memberwv_wv (inl x) (R ++ Re)) 
              -> DINO_ins N W R (asgn_sv x e) N ((inl x)::W) (R ++ Re)
-| D_WAR_CP_Asgn: forall(N: nvmem) (W R: warvars)
-             (x: smallvar) (e: exp)
-            (V: vmem) (re: readobs) (v: value)(*see below*),
+| D_WAR_CP_Asgn: forall(N: nvmem) (V: vmem) (*Changed name to avoid duplication w D_WAR_CP below*)
+                  (W R: warvars)
+                  (x: smallvar) (e: exp) (re: readobs) (v: value)(*see below*),
     cceval N V (asgn_sv x e) [Obs re] (updateNV N (inl x) v) V skip ->
-    (* ^^ extra premise checking that v is correct value to update N with,
+    (* ^^ extra premise checking that (x, v) is correct (location, value) to update N with,
                                   and that re is read sequence for evaluating e
                                   and that x stored in NV memory *)
              memberwv_wv (inl x) (R ++ (readobs_warvars re)) ->
              not(memberwv_wv (inl x) W) ->
              DINO_ins N W R (asgn_sv x e)
-                  (updateNV N (inl x) v) (*N U x with x's new value v*) ((inl x)::W) (R ++ (readobs_warvars re))
+                  (updateNV N (inl x) v) (*N U x with x mapped to v*) ((inl x)::W) (R ++ (readobs_warvars re))
 | D_WAR_WtDom: forall(N: nvmem) (W R Re: warvars) 
              (x: smallvar) (e: exp),
              (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
@@ -121,7 +113,8 @@ Inductive DINO_ins: nvmem -> warvars -> warvars -> instruction
     (* ^^ extra premise checking that (el, ve) is correct loc/value pair to update N with,
                                   and that rdarray is read sequence for evaluating e, index *)
     memberwv_wv (inr a) (R ++ (readobs_warvars rdarray)) -> (*order of original, exp, index is not preserved*)
-    DINO_ins N W R (asgn_arr a index e) (updateNV N (inr element) ve) ((inr a)::W) (R ++ (readobs_warvars rdarray))
+    DINO_ins N W R (asgn_arr a index e)
+             (updateNV N (inr element) ve) ((inr a)::W) (R ++ (readobs_warvars rdarray))
 .
 
 Inductive DINO: nvmem -> warvars -> warvars -> command
@@ -133,21 +126,32 @@ Inductive DINO: nvmem -> warvars -> warvars -> command
               (l: instruction) (c c': command),
     DINO_ins N W R l N' W' R' ->
     DINO N' W' R' c c' N''  ->
-    DINO N W R (l;;c) (l;;c') N''
+    DINO N W R (l;;c) (l;;c') N'' (*I removed the W'' and R'' so that the relation would typecheck;
+                                    it may be preferable to change the type of the DINO relation*)
 | D_WAR_If: forall(N N1 N2: nvmem) (W R Re: warvars) (c1 c1' c2 c2': command) (e: exp),
              (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
      DINO N W (R ++ Re) c1 c1' N1 ->
      DINO N W (R ++ Re) c2 c2' N2 ->
      DINO N W R (TEST e THEN c1 ELSE c2) (TEST e THEN c1' ELSE c2') (N1 U! N2)
-| D_WAR_CP: forall(N N': nvmem) (W R: warvars)(c c': command),
+| D_WAR_CP: forall(N N': nvmem) (W R: warvars) (c c': command),
     DINO emptyNV nil nil c c' N' ->
-    DINO N W R ((incheckpoint nil);;c) ((incheckpoint (getdomain N'));;c') N
-         Open Scope list_scope.
+    DINO N W R ((incheckpoint nil);;c) ((incheckpoint (getdomain N'));;c') N.
+ Close Scope list_scope.
 (*see below:
 Whenever the checkpoint memory map needs to be updated, I need to calculate the value
 that the new checkpointed location must map to.
+By construction, my checkpoint maps map locations to values, not locations to expressions,
+so in order to, for example, store x in N as in D_WAR_CP_Asgn, I need first compute what
+x evaluates so.
 To do this, I need a volatile memory and one of the cceval/eeval/iceval relations, so I include
-the arguments.
+the arguments. I used cceval (even though it is for continuous executions) because it doesn't require
+a context argument. I could change this to iceval without much trouble (by adding a context argument)
+but since the rules are very similar, I don't think it's necessary.
  *)
+(*WAR_CP:
+Because I am representing the checkpoint map with the same type as the NV memory
+maps, I interpretted the WAR_CP rule as
+"if (a checkpoint map with domain w) (empty list) (empty list) c is okay,
+then N W R (checkpoint(w); c) is okay.
 .
 

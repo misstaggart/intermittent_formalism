@@ -133,6 +133,7 @@ Fixpoint bopeval (bop: boptype) (v1 v2 :value): (value) :=
   )
   end.
 
+(*value helper functions*)
 Definition isvaluable (v: value) :=
   match v with
     error => False
@@ -145,8 +146,6 @@ Definition isvalidbop (bop: boptype) (v1 v2 : value) :=
   | _ => True
    end.
 
-(*setting up equality type for value*)
-(*whether or not things are valuable is actually covered in eqb_value*)
 Definition eqb_value (x y: value) :=
   match x, y with
     Nat nx, Nat ny => nx == ny
@@ -155,7 +154,6 @@ Definition eqb_value (x y: value) :=
   end.
 Definition eq_value (x y: value) := is_true(eqb_value x y).
 
-(*shouldn't need this*)
 Definition eq_valueop (x y : option value) :=
   match x, y with
     Error, None => True
@@ -163,32 +161,38 @@ Definition eq_valueop (x y : option value) :=
   | _, _ => False
   end.
 
-(*memory maps*)
+(*memory maps...used for both memories and checkpoints*)
 Definition map (A: Type) (eqba: A -> A -> bool):= A -> value.
+
+(*memory helpers*)
 Definition emptymap A eqba :(map A eqba) := (fun _ => error).
 Definition updatemap {A} {eqba} (m: map A eqba) (i: A) (v: value) : map A eqba := (fun j =>
                                                                if (eqba j i) then v
                                                                else (m j)).
-
-(*m1 is checked first, then m2*)
 Notation "i '|->' v ';' m" := (updatemap m i v)
   (at level 100, v at next level, right associativity).
+(*in (m1 U! m2), m1 is checked first, then m2*)
 
 Definition indomain {A} {eqba} (m: map A eqba) (x: A) :=
   match m x with
     error => False
   | _ => True
   end.
+(*this function is NOT used to check the domain of checkpoint maps.
+ In particular, because an entire array can be checkpointed even if only
+ one element has been assigned to (while the other elements may, in theory, still be unassigned),
+(in particular, I refer to D-WAR-CP-Arr)
+this function would return that assigned array elements are in the domain of N, while the unassigned array
+elements are not, even though both have been checkpointed.
+ I resolved this problem by defining indomain_nvm, used for checkpoint maps in algorithms.v, which
+checks if a warvar is in the domain, rather than checking a location.
+ *)
 (******************************************************************************************)
 
 (*******************************more syntax**********************************************)
 Inductive array :=
   Array (s: string) (l: nat).
 
-Definition eqb_array (a1 a2: array) :=
-  match a1, a2 with
-    Array s1 l1, Array s2 l2 => andb (s1 == s2) (l1 == l2)
-    end.
 
 Inductive volatility :=
   nonvol
@@ -202,7 +206,6 @@ Inductive exp :=
 Coercion Val : value >-> exp.
 Notation "a '[[' e ']]'" := (El (a) (e))
                             (at level 100, right associativity).
-
 (*used subtypes to enforce the fact that only some expressions are
  memory locations*)
 (*also made the write after read type easier*)
@@ -216,7 +219,6 @@ Definition elpred  := (fun x=> match x with
                                  end).
 (*note elpred checks if index is a natural in bounds*)
 Notation smallvar := {x: exp | smallvarpred x}.
-(*how does this work??*)
 Notation el := {x: exp| elpred x}.
 Definition loc := smallvar + el. (*memory location type*)
 
@@ -230,6 +232,11 @@ Definition warvars := list warvar.
 
 (*array and el functions*)
 
+(*checks name and length*)
+Definition eqb_array (a1 a2: array) :=
+  match a1, a2 with
+    Array s1 l1, Array s2 l2 => andb (s1 == s2) (l1 == l2)
+    end.
 Program Definition getarray (x: el): array :=
   match val x with
     El (arr) _ => arr
@@ -253,14 +260,14 @@ Next Obligation. destruct (x) as [s| | |];
                  apply (H a v). subst. reflexivity.
 Qed.
 
-Definition samearray_b (element: el) (a: array) := (*checks if el indexes into a*)
+Definition samearray_b (element: el) (a: array) := (*checks if element indexes into a*)
   eqb_array (getarray element) a.
 
 Definition samearray (element: el) (a: array) := is_true(samearray_b element a).
 
 Definition el_arrayind_eq (e: el) (a: array) (vindex: value) := (*transitions from el type
                                                           to a[i] representation*)
-  (samearray e a) /\ ((getindexel e) = vindex).
+  (samearray e a) /\ (eq_value (getindexel e) vindex).
 
 (*smallvar functions*)
 Definition isNV_b (x: smallvar) := (*checks if x is stored in nonvolatile memory*)
@@ -326,6 +333,7 @@ Definition eqb_loc (l1: loc) (l2: loc) :=
   | _, _ => false 
   end. (*might be nice to have values as an equality type here*)
 
+(*converts a location to a warvar*)
 Fixpoint loc_warvar (l: loc) : warvar := 
   match l with
     inl x => inl x
@@ -335,9 +343,9 @@ Fixpoint loc_warvar (l: loc) : warvar :=
 (*checks if a location input has been stored as a WAR location in w*)
 Definition memberloc_wvs_b (input: loc) (w: warvars) :=
   memberwv_wv_b (loc_warvar input) w.
-(*end of helper functions*)
 (*******************************************************************)
 
+(*more syntax*)
 Inductive instruction :=
   skip
 | asgn_sv (x: smallvar) (e: exp) (*could distinguish between NV and V assignments as well here*)
@@ -370,18 +378,15 @@ Coercion Instruct : instruction >-> command.
 Notation mem := (map loc eqb_loc). (*memory mapping*)
 
 Inductive nvmem := (*nonvolatile memory*)
-  NonVol (m : mem) (D: warvars). (*extra argument to keep track of domain because
+  NonVol (m : mem) (D: warvars). (*extra argument to keep track of checkpointed warvars because
                                   I reuse this type for checkpoint map*)
 
 Inductive vmem := (*volatile memory*)
   Vol (m : mem).
 
-(**why don't these coercions work?**)
-(*would be really nice if I could have these so the constructors
- for eeval could have consistent arguments wrt nvmem vs mem and similar*)
-(*I could change these to enforce that they only take in smallvars
+(*I could change nvmem and vmem to enforce that they only take in smallvars
  of the correct type but it's already checked in my evaluation rules*)
-Coercion Vol : mem >-> vmem.
+
 (**************************helpers for the memory maps*********************************************)
 
 Definition getmap (N: nvmem) :=
@@ -402,12 +407,15 @@ Definition updateNV (N: nvmem) (i: loc) (v: value) :=
                NonVol (updatemap m i v) (
                         match i with 
                           inl x => ((inl x) :: D) (*i is a smallvar*)
-                         | inr el => ((inr (getarray el))::D) (*i is an array element*)
+                        | inr el => ((inr (getarray el))::D) (*i is an array element*)
+                                     (*here I add the entire array to the domain
+                                      even though only one element has been assigned to*)
                         end
                       )
   end.
 
 (*used to update NV memory with checkpoint*)
+(*checks N first, then N'*)
 Definition updatemaps (N: nvmem) (N': nvmem): nvmem :=
   match N, N' with
     NonVol m D, NonVol m' D' => NonVol
@@ -417,7 +425,7 @@ Definition updatemaps (N: nvmem) (N': nvmem): nvmem :=
      | x => x
      end
   )
-  (D ++ D') (*shocking inclusion of duplicates*)
+  (D ++ D') (*inclusion of duplicates*)
   end.
 Notation "m1 'U!' m2" := (updatemaps m1 m2) (at level 100).
 
@@ -428,9 +436,7 @@ Definition reset (V: vmem) := Vol (emptymap loc eqb_loc).
 (*doesn't actually clean the unnecessary variables out of m*)
 Definition restrict (N: nvmem) (w: warvars): nvmem :=
   match N with NonVol m D => NonVol
-    (fun input => if (memberloc_wvs_b input w) then m input else error) w (*in predicate for lists
-                                                                 wouldn't work bc warvar                                                                  is not an equality type...unless you want it to be*)
-  end.
+    (fun input => if (memberloc_wvs_b input w) then m input else error) w  end.
 
 Notation "N '|!' w" := (restrict N w) 
   (at level 40, left associativity).
@@ -439,8 +445,8 @@ Notation "N '|!' w" := (restrict N w)
 Definition indomain_nvm (N: nvmem) (w: warvar) :=
   memberwv_wv_b w (getdomain N).
 
-Definition isdomain_nvm (N: nvmem) (w: warvars) := (*no zip library function?*)
-   eq_lists (getdomain N) w eq_warvar.
+Definition isdomain_nvm (N: nvmem) (w: warvars) :=
+  eq_lists (getdomain N) w eq_warvar.
 
 (********************************************)
 Inductive cconf := (*continuous configuration*)
@@ -466,6 +472,7 @@ Notation obsseq := (list obs). (*observation sequence*)
 Close Scope type_scope.
 
 Open Scope list_scope.
+
 (*converts from list of read locations to list of
 WAR variables
  *)
@@ -476,7 +483,8 @@ Fixpoint readobs_warvars (R: readobs) : warvars :=
               (location, _) => (*get the location r has recorded reading from*)
               (match location with
                 inl x => (inl x)::(readobs_warvars rs) (*location is a smallvar*)
-              | inr el => (inr (getarray el))::(readobs_warvars rs)
+              | inr el => (inr (getarray el))::(readobs_warvars rs) (*location is an array element
+                                                                   records entire array in warvars*)
               end)
            end
   end.
@@ -535,7 +543,6 @@ Inductive eevaltest: nvmem -> vmem -> exp -> obs -> value -> Prop :=
 
 
 (*evaluation relation for commands*)
-(*UPDATE DOMAIN WHEN YOU WRITE*)
 Inductive cceval: nvmem -> vmem -> command -> obsseq -> nvmem -> vmem -> command -> Prop :=
   NV_Assign: forall(x: smallvar) (N: nvmem) (V: vmem) (e: exp) (r: readobs) (v: value),
     eeval N V e r v ->
@@ -601,10 +608,6 @@ Inductive cceval: nvmem -> vmem -> command -> obsseq -> nvmem -> vmem -> command
          (c2: command),
     eeval N V e r false ->
     cceval N V (TEST e THEN c1 ELSE c2) [Obs r] N V c2.
-(*if I can't
-get the coercisons to work I could make two functions to update the nonvol and vol maps
-instead of typing the
- constructors every time*)
 
 (************************************************************)
 
@@ -618,7 +621,7 @@ Inductive iceval: context-> nvmem -> vmem -> command -> obsseq -> context -> nvm
  | CP_CheckPoint: forall(k: context) (N: nvmem) (V: vmem) (c: command) (w: warvars),
                  iceval k N V ((incheckpoint w);;c)
                         [checkpoint]
-                        ((N |! w), V, c) N V c (*where presumably N |! w is checkpoint*)
+                        ((N |! w), V, c) N V c 
  | CP_Reboot: forall(N: nvmem) (N': nvmem)(*see below*) (*N is the checkpointed one*)
                (V: vmem) (V': vmem)
                (c: command), 
