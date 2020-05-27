@@ -379,7 +379,7 @@ Notation mem := (map loc eqb_loc). (*memory mapping*)
 
 Inductive nvmem := (*nonvolatile memory*)
   NonVol (m : mem) (D: warvars). (*extra argument to keep track of checkpointed warvars because
-                                  I reuse this type for checkpoint map*)
+                                  it might be nice to have for when we do checkpoint proofs*)
 
 Inductive vmem := (*volatile memory*)
   Vol (m : mem).
@@ -388,6 +388,11 @@ Inductive vmem := (*volatile memory*)
  of the correct type but it's already checked in my evaluation rules*)
 
 (**************************helpers for the memory maps*********************************************)
+
+(*note: a lot of these aren't being used right now because, after I changed the types
+ of DINO and WAR, they aren't necessary.
+ I won't delete them because having the domain of the checkpoint easily accessible and
+ manipulable could be handy in the future*)
 
 Definition getmap (N: nvmem) :=
   match N with NonVol m _ => m end.
