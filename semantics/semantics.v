@@ -9,8 +9,39 @@ Open Scope string_scope.
 Fixpoint eq_lists {A: Type} (L1: list A) (L2: list A) (eq: A -> A -> Prop) :=
         match L1, L2 with
           nil, nil => True
-        | (w::ws), (d::ds) => (eq w d) /\ (eq_lists ws ds eq)
+        | (w::ws), (d::ds) => (eq w d) /\ (eq_lists ws ds eq) (*considers order*)
         | _ , _ => False end.
+
+Inductive sublist {A: Type}: list A -> list A -> Prop :=
+  Empty: forall(L2: list A), sublist nil L2
+| AddBoth: forall(L1 L2: list A) (w: A), sublist L1 L2 -> sublist (w::L1) (w::L2)
+| AddRight: forall(L1 L2: list A) (w: A), sublist L1 L2 -> sublist L1 (w::L2).
+
+Lemma equal_sublists: forall{A: Type} (L1 L2: list A),
+    L1 = L2 -> sublist L1 L2.
+Proof.
+  induction L1.
+  - intros. apply Empty.
+  - intros. destruct L2.
+    + discriminate H.
+    + inversion H. apply (AddBoth L2 L2 a0). rewrite <- H2. apply (IHL1 L1). reflexivity.
+Qed.
+
+Lemma sublist_trans: forall{A: Type} (L1 L2 L3: list A),
+    sublist L1 L2 -> sublist L2 L3 -> sublist L1 L3.
+  intros. generalize dependent L1. induction L1. induction L2. try(constructor).
+  Admitted.
+  (*- intros. inversion H. subst.
+    + constructor.
+    + subst.
+    apply Empty.
+  - intros. inversion H. subst. inversion H0. subst. apply (AddBoth L1 L2 a).
+    apply (IHL1 L4 L2 H4 H5).
+  - subst. inversion H0. subst. apply (AddBoth L1 L2 w). apply (IHL1 L4 L2 H4 H3).
+  - subst. In 
+    + apply Empty.
+    +  *) 
+
 Lemma eqnat: Equality.axiom Init.Nat.eqb.
 Proof.
   unfold Equality.axiom. intros.
@@ -223,7 +254,7 @@ Notation el := {x: exp| elpred x}.
 Definition loc := smallvar + el. (*memory location type*)
 
 Definition warvar := smallvar + array. (*write after read variable type*)
-Definition warvars := list warvar.
+Notation warvars := (list warvar).
 (*Coercion (inl smallvar el): smallvar >-> loc.*)
 (*Coercion inl: smallvar >-> loc.*)
 
@@ -323,7 +354,9 @@ Fixpoint memberwv_wv_b (input: warvar) (w: warvars) :=
     [] => false
   | wv::wvs => orb (eqb_warvar input wv) (memberwv_wv_b input wvs) 
 end.
+
 Definition memberwv_wv (w: warvar) (W: warvars) := is_true(memberwv_wv_b w W).
+
 
 Definition eqb_loc (l1: loc) (l2: loc) :=
   match l1, l2 with
@@ -695,3 +728,4 @@ Inductive iceval: context-> nvmem -> vmem -> command -> obsseq -> context -> nvm
 into the types because I didn't want to define a context equality function*)
 
 Close Scope list_scope.
+*)

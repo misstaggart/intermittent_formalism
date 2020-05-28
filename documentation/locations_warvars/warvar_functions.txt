@@ -4,6 +4,7 @@ interfacing between warvars and locations
 eqb_warvar: warvar -> warvar -> bool
 eq_warvar: warvar -> warvar -> prop
 
+Checks if a warvar has been stored in a warvars (list warvar)
 memberwv_wv_b: warvar -> warvars -> bool
 
 memberwv_wv: warvar -> warvars -> prop
@@ -13,3 +14,4 @@ memberloc_wvs_b: loc -> warvars -> bool
 
 Converts a sequence of read observations into a sequence of WAR variables
 readobs_warvars: readobs -> warvars
+
