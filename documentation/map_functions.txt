@@ -1,0 +1,39 @@
+Returns an empty map of type (Type -> value)
+emptymap: Type -> (Type -> Type -> bool) -> (Type -> value)
+
+Returns an updated map with (index: Type) mapped to (v: value)
+Do not use this to update the NV maps; it will not update the domain
+parameter
+updatemap: (map Type eqb_type) -> Type -> value -> (map Type eqb_type)
+
+Returns true if (i: Type) is mapped to a non-error value in m:map
+indomain: (map Type eqb_type) -> Type -> prop
+
+Interfacing with the NV memory type:
+
+getmap: nvmem -> mem
+
+getdomain: nvmem -> warvars
+
+getvalue: nvmem -> loc -> value
+
+updateNV: nvmem -> loc -> value -> nvmem
+
+(updatemaps N N') evaluates to a nvmem which, given a location, 
+checks N first, and, if N does not map the location to a value, 
+then checks N'
+updatemaps: nvmem -> nvmem -> nvmem
+
+emptyNV:nvmem
+
+Restricts input nvmem to domain warvars
+restrict: nvmem -> warvars -> nvmem
+
+indomain_nvm: nvmem -> warvar -> bool
+
+isdomain_nvm: nvmem -> warvars -> prop
+
+Interfacing with the V memory type:
+
+Returns an empty vmem
+reset: vmem -> vmem

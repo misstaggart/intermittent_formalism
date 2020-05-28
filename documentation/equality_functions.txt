@@ -1,0 +1,29 @@
+Lists:
+eq_lists: {A}-> list A -> list A -> (A -> A -> prop) -> prop
+
+Strings:
+eqb_string: string -> string -> bool
+
+Values:
+eqb_value: value -> value -> bool
+
+eq_value: value -> value -> prop
+
+eq_valueop: option value -> option value -> prop
+
+Arrays, locations, warvars:
+eqb_array: array -> array -> bool
+
+Transitions between el type and conventional array[vindex] type.
+Returns True if el represents array[vindex]
+el_arrayind_eq: el -> array -> vindex -> prop
+
+eqb_smallvar: smallvar -> smallvar -> bool
+
+eqb_loc: location -> location -> bool
+
+eqb_warvar: warvar -> warvar -> bool
+
+eq_warvar: warvar -> warvar -> prop
+
+

@@ -1,0 +1,10 @@
+General loc functions, interfacing between locations and warvars
+
+eqb_loc: loc -> location -> bool
+
+Turns a memory loc into a WAR variable
+loc_warvars: loc -> warvar
+
+Checks if a location has been stored as a WAR variable
+memberloc_wvs_b: loc -> warvars -> bool
+

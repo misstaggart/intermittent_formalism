@@ -1,0 +1,18 @@
+Functions for dealing with array-element locations/
+interfacing between array and el types
+
+getarray: el -> array
+
+getindexel: el -> value
+
+Checks if (e: el) indexes into (a: array)
+samearray_b: el -> array -> bool
+
+samearray: el -> array -> prop
+
+Transitions between el type and conventional array[vindex] type.
+Returns True if el represents array[vindex]
+el_arrayind_eq: el -> array -> vindex -> prop
+
+
+
