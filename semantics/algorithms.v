@@ -133,7 +133,6 @@ Inductive DINO: warvars -> warvars -> warvars -> command
      DINO N W R (TEST e THEN c1 ELSE c2) (TEST e THEN c1' ELSE c2') (N1 ++ N2)
 | D_WAR_CP: forall(N N' W R: warvars) (c c': command),
     DINO nil nil nil c c' N' ->
-    DINO N W R ((incheckpoint nil);;c) ((incheckpoint N');;c') N'.
-(*it says N at the end there in the notes but I think it makes more sense for it to be N'*)
+    DINO N W R ((incheckpoint nil);;c) ((incheckpoint N');;c') N.
  Close Scope list_scope.
 
