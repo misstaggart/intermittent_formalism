@@ -230,6 +230,8 @@ Notation warvars := (list warvar).
 
 (**location and warvar helper functions*)
 (**no need to work directly with the subtypes or sumtypes, just use these**)
+(**Note: some of these are currently unused due to implementation changes, but I left them
+ as they might be useful later*)
 
 (*array and el functions*)
 
