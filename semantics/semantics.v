@@ -4,14 +4,20 @@ From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
 Import ListNotations.
-Open Scope string_scope.
 (*setting up*)
+Open Scope list_scope.
 Fixpoint eq_lists {A: Type} (L1: list A) (L2: list A) (eq: A -> A -> Prop) :=
         match L1, L2 with
           nil, nil => True
         | (w::ws), (d::ds) => (eq w d) /\ (eq_lists ws ds eq) (*considers order*)
         | _ , _ => False end.
 
+Definition prefix {A: Type} (O1: list A) (O2: list A) :=
+  exists(l: nat), O1 = firstn l O2.
+
+Close Scope list_scope.
+
+Open Scope string_scope.
 Lemma eqnat: Equality.axiom Init.Nat.eqb.
 Proof.
   unfold Equality.axiom. intros.
@@ -236,6 +242,7 @@ Notation warvars := (list warvar).
 (*array and el functions*)
 
 (*checks name and length*)
+Open Scope list_scope.
 Definition eqb_array (a1 a2: array) :=
   match a1, a2 with
     Array s1 l1, Array s2 l2 => andb (s1 == s2) (l1 == l2)
@@ -478,10 +485,16 @@ Inductive obs := (*observation*)
 | checkpoint.
 Coercion Obs : readobs >-> obs.
 
-Notation obsseq := (list obs). (*observation sequence*)
-Close Scope type_scope.
+Notation obseq := (list obs). (*observation sequence*)
 
 Open Scope list_scope.
+
+(*helpers for observations and warvars*)
+(*don't need the first two as there's no way to construct
+ a relation instance that would violate these*)
+Definition hasCheckpt (O: obseq) := In checkpoint O.
+
+Definition isAllRead (O: obseq) := not(hasCheckpt O) /\ not(In reboot O).
 
 (*converts from list of read locations to list of
 WAR variables
@@ -498,6 +511,39 @@ Fixpoint readobs_warvars (R: readobs) : warvars :=
               end)
            end
   end.
+
+(*relations between continuous and intermittent traces*)
+(*Definition reduces (O1 O2: readobs) :=
+  (prefix O1 O2*)
+Notation "S <= T" := (prefix S T).
+
+(*Where
+O1 is a sequence of read observation lists,
+where each continguous read observation list is separated from those adjacent to it by a reboot,
+and O2 is a read observation list,
+prefix_seq determines if each ro list in O1 is a valid
+prefix of O2*)
+Inductive prefix_seq: obseq -> readobs -> Prop :=
+  RB_Base: forall(O: readobs), prefix_seq [Obs O] O
+| RB_Ind: forall(O1 O2: readobs) (O1': obseq),
+    O1 <= O2 -> prefix_seq O1' O2 -> prefix_seq ([Obs O1] ++ [reboot] ++ O1') O2.
+
+(* Where
+O1 is a sequence of ((read observation list sequences), where
+each continguous read observation list is separated from those adjacent to it
+by a reboot), where each sequence is separated from those adjacent to it by a checkpoint.
+ie, each read observation list in a given read observation sequence
+occurs within the same checkpointed region as all the other read observation lists in that sequence,
+O2 is a read observation list,
+prefix_frag determines if each ro list in O1 is a prefix of some FRAGMENT of O2
+(where the fragments are separated by the positioning of the checkpoints in O1)
+ *)
+Inductive prefix_fragment: obseq -> readobs -> Prop :=
+  CP_Base: forall(O1: obseq) (O2: readobs), prefix_seq O1 O2 -> prefix_fragment O1 O2
+| CP_IND: forall(O1 O1': obseq) (O2 O2': readobs),
+    prefix_seq O1 O2 -> prefix_fragment O1' O2' ->
+   prefix_fragment (O1 ++ [checkpoint] ++ O1') (O2 ++ O2'). 
+
 (***************************************************************)
 
 (****************continuous operational semantics***********************)
@@ -553,7 +599,7 @@ Inductive eevaltest: nvmem -> vmem -> exp -> obs -> value -> Prop :=
 
 
 (*evaluation relation for commands*)
-Inductive cceval: nvmem -> vmem -> command -> obsseq -> nvmem -> vmem -> command -> Prop :=
+Inductive cceval: nvmem -> vmem -> command -> obseq -> nvmem -> vmem -> command -> Prop :=
   NV_Assign: forall(x: smallvar) (N: nvmem) (V: vmem) (e: exp) (r: readobs) (v: value),
     eeval N V e r v ->
     isNV(x) -> (*checks x is correct type for NV memory*)
@@ -623,7 +669,7 @@ Inductive cceval: nvmem -> vmem -> command -> obsseq -> nvmem -> vmem -> command
 
 (**********intermittent execution semantics*************************)
 (*evaluation relation for commands*)
-Inductive iceval: context-> nvmem -> vmem -> command -> obsseq -> context -> nvmem -> vmem -> command -> Prop :=
+Inductive iceval: context-> nvmem -> vmem -> command -> obseq -> context -> nvmem -> vmem -> command -> Prop :=
   CP_PowerFail: forall(k: context) (N: nvmem) (V: vmem) (c: command),
                  iceval k N V c
                         [Obs NoObs]
@@ -700,3 +746,4 @@ Inductive iceval: context-> nvmem -> vmem -> command -> obsseq -> context -> nvm
 into the types because I didn't want to define a context equality function*)
 
 Close Scope list_scope.
+Close Scope type_scope.

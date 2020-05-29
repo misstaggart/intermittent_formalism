@@ -44,26 +44,15 @@ Proof. intros. apply (incl_tran
                         H).
 Qed.
 
-
 Theorem DINO_WAR_correct: forall(N W R N': warvars) (c c': command),
     DINO N W R c c' N' -> (forall(N1: warvars), incl N' N1 -> WARok N1 W R c').
   intros N W R c c' N' H. induction H; intros N0 Hincl.
-
   - eapply WAR_I. applys Two H Hincl.
   - eapply WAR_Seq. applys Two H. apply onePointtwo in H0. eauto using incl_tran.
-  (* try (eapply WAR_I || eapply WAR_Seq);
-      eapply (Two _ _ _ _ _ _ _ _ H Hincl).
-  - intros N0 Hincl. try (eapply WAR_I || eapply WAR_Seq).
-      eapply (Two _ _ _ _ _ _ _ _ H Hincl).
-  - try (intros; (eapply WAR_I || eapply WAR_Seq); eapply Two in H; apply H); try (repeat assumption).
-- intros.
-  - intros. eapply WAR_Seq. eapply Two in H. apply H.
-    apply onePointtwo in H0. apply (incl_tran H0 H1).*)
     apply (IHDINO N0 Hincl).
   - eapply WAR_If; (try eassumption);
       ((apply IHDINO1; apply incl_app_l in Hincl)
        || (apply IHDINO2; apply incl_app_r in Hincl)); assumption.
   - intros. apply WAR_CP. apply IHDINO. apply (incl_refl N').
   Qed.
-  (*make ltac for first two bullets*)
 Close Scope list_scope.
