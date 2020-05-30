@@ -4,13 +4,22 @@ From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
 Import ListNotations.
-(*setting up*)
+(*basic list functions that I couldn't find in a library*)
 Open Scope list_scope.
 Fixpoint eq_lists {A: Type} (L1: list A) (L2: list A) (eq: A -> A -> Prop) :=
         match L1, L2 with
           nil, nil => True
         | (w::ws), (d::ds) => (eq w d) /\ (eq_lists ws ds eq) (*considers order*)
         | _ , _ => False end.
+
+Fixpoint member {A: Type} (eq: A -> A -> bool) (a: A)  (L: list A) :=
+  match L with
+    [] => false
+  | x::xs => orb (eq a x) (member eq a xs)
+  end.
+
+Definition remove {A: Type} (in_A: A -> list A -> bool) (L1 L2 : list A) :=
+  filter (fun x => negb (in_A x L1)) L2.
 
 Definition prefix {A: Type} (O1: list A) (O2: list A) :=
   exists(l: nat), O1 = firstn l O2.
@@ -317,6 +326,7 @@ Definition eqb_smallvar (x y: smallvar): bool :=
   andb ((getstringsv x)==(getstringsv y)) (samevolatility_b x y).
 
 (*loc and warvar functions*)
+
 Definition eqb_warvar (w1 w2: warvar) :=
   match w1, w2 with
                inl x, inl y => eqb_smallvar x y
@@ -328,11 +338,7 @@ Definition eq_warvar (w1 w2: warvar) :=
   is_true (eqb_warvar w1 w2).
 
 (*checks if w was recorded as read/written to in warvar list W*)
-Fixpoint memberwv_wv_b (input: warvar) (w: warvars) :=
-  match w with
-    [] => false
-  | wv::wvs => orb (eqb_warvar input wv) (memberwv_wv_b input wvs) 
-end.
+Notation memberwv_wv_b := (member eqb_warvar).
 
 Definition memberwv_wv (w: warvar) (W: warvars) := is_true(memberwv_wv_b w W).
 
@@ -345,12 +351,15 @@ Definition eqb_loc (l1: loc) (l2: loc) :=
   | _, _ => false 
   end. (*might be nice to have values as an equality type here*)
 
+Notation in_loc_b := (member eqb_loc).
+
 (*converts a location to a warvar*)
 Fixpoint loc_warvar (l: loc) : warvar := 
   match l with
     inl x => inl x
   | inr el => inr (getarray el)
   end.
+
 
 (*checks if a location input has been stored as a WAR location in w*)
 Definition memberloc_wvs_b (input: loc) (w: warvars) :=
@@ -368,17 +377,17 @@ Inductive instruction :=
  and checkpoints*)
 
 Inductive command :=
-  Instruct (l: instruction)
+  Ins (l: instruction)
 | Seqcom (l: instruction) (c: command) (*added suffix to distinguish from Seq ceval
                                          constructor*)
-| ite (e: exp) (c1: command) (c2: command).
+| ITE (e: exp) (c1: command) (c2: command).
 
 Notation "l ';;' c" := (Seqcom l c)
                          (at level 100).
 
-Notation "'TEST' e 'THEN' c1 'ELSE' c2 " := (ite e c1 c2)
+Notation "'TEST' e 'THEN' c1 'ELSE' c2 " := (ITE e c1 c2)
                                               (at level 100).
-Coercion Instruct : instruction >-> command.
+Coercion Ins : instruction >-> command.
 (*******************************************************************)
 
 (******setting up location equality relation for memory maps******************)
@@ -490,11 +499,6 @@ Notation obseq := (list obs). (*observation sequence*)
 Open Scope list_scope.
 
 (*helpers for observations and warvars*)
-(*don't need the first two as there's no way to construct
- a relation instance that would violate these*)
-Definition hasCheckpt (O: obseq) := In checkpoint O.
-
-Definition isAllRead (O: obseq) := not(hasCheckpt O) /\ not(In reboot O).
 
 (*converts from list of read locations to list of
 WAR variables
@@ -512,7 +516,15 @@ Fixpoint readobs_warvars (R: readobs) : warvars :=
            end
   end.
 
-(*relations between continuous and intermittent traces*)
+Fixpoint readobs_loc (R: readobs): (list loc) := 
+  match R with
+    nil => nil
+| (r::rs) => match r with
+             (location, _) => location :: (readobs_loc rs)
+           end
+  end.
+
+(*relations between continuous and intermittent observations*)
 (*Definition reduces (O1 O2: readobs) :=
   (prefix O1 O2*)
 Notation "S <= T" := (prefix S T).
@@ -546,8 +558,10 @@ Inductive prefix_fragment: obseq -> readobs -> Prop :=
 
 (***************************************************************)
 
+
 (****************continuous operational semantics***********************)
 (*evaluation relation for expressions*)
+
 Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
   VAL: forall(N: nvmem) (V: vmem) (v: value),
     (isvaluable v) -> (*extra premise to check if v is valuable*)
@@ -639,10 +653,8 @@ Inductive cceval: nvmem -> vmem -> command -> obseq -> nvmem -> vmem -> command 
          (V: vmem)
          (c: command),
     cceval N V (skip;;c) [Obs NoObs] N V c
-| Seq: forall (N: nvmem)
-         (N': nvmem)
-         (V: vmem)
-         (V': vmem)
+| Seq: forall (N N': nvmem)
+         (V V': vmem)
          (l: instruction)
          (c: command)
          (o: obs),
@@ -652,16 +664,14 @@ Inductive cceval: nvmem -> vmem -> command -> obseq -> nvmem -> vmem -> command 
          (V: vmem)
          (e: exp)
          (r: readobs)
-         (c1: command)
-         (c2: command),
+         (c1 c2: command),
     eeval N V e r true -> 
     cceval N V (TEST e THEN c1 ELSE c2) [Obs r] N V c1
 | If_F: forall(N: nvmem)
          (V: vmem)
          (e: exp)
          (r: readobs)
-         (c1: command)
-         (c2: command),
+         (c1 c2: command),
     eeval N V e r false ->
     cceval N V (TEST e THEN c1 ELSE c2) [Obs r] N V c2.
 
@@ -678,8 +688,8 @@ Inductive iceval: context-> nvmem -> vmem -> command -> obseq -> context -> nvme
                  iceval k N V ((incheckpoint w);;c)
                         [checkpoint]
                         ((N |! w), V, c) N V c 
- | CP_Reboot: forall(N: nvmem) (N': nvmem)(*see below*) (*N is the checkpointed one*)
-               (V: vmem) (V': vmem)
+ | CP_Reboot: forall(N N': nvmem) (*see below*) (*N is the checkpointed one*)
+               (V V': vmem) 
                (c: command), 
      iceval (N, V, c) N' V' inreboot
             [reboot]
@@ -731,19 +741,106 @@ Inductive iceval: context-> nvmem -> vmem -> command -> obseq -> context -> nvme
 |CP_If_T: forall(k: context) (N: nvmem) (V: vmem)
          (e: exp)
          (r: readobs)
-         (c1: command)
-         (c2: command),
+         (c1 c2: command),
     eeval N V e r true -> 
     iceval k N V (TEST e THEN c1 ELSE c2) [Obs r] k N V c1
 |CP_If_F: forall(k: context) (N: nvmem) (V: vmem)
          (e: exp)
          (r: readobs)
-         (c1: command)
-         (c2: command),
+         (c1 c2: command),
     eeval N V e r false ->
     iceval k N V (TEST e THEN c1 ELSE c2) [Obs r] k N V c2.
 (*CP_Reboot: I took out the equals premise and instead built it
 into the types because I didn't want to define a context equality function*)
+
+(********************************************)
+(*traces*)
+(*The trace type contains
+1. a starting configuration and ending configuration
+2. a list of warvars which have been written to
+3. a list of warvars which have been read from
+4. a list of warvars which have been written to before they have been read from
+ *)
+(*do I keep track of volatile writes as well...I don't think so
+ cuz the writes don't last and they all have to be checkpointed anyways*)
+(*this is ridiculously similar to cceval*)
+(*start -> end -> written -> read -> written before reading*)
+(*using context instead of cconf cuz they're exactly the same
+ but cconf has an annoying constructor*)
+
+(*trace helpers*)
+
+
+Definition el_arrayexp_eq (e: el) (a: array) (eindex: exp) (N: nvmem) (V: vmem) := (*transitions from el type to a[exp] representation*)
+  (samearray e a) /\
+  exists(r: readobs) (vindex: value), eeval N V eindex r vindex /\
+                                 (eq_value (getindexel e) vindex).
+
+Check filter.
+
+
+Inductive trace_c: context -> context -> (list loc) -> (list loc) -> (list loc) -> Prop :=
+ CTrace_Assign_nv: forall(x: smallvar) (N N': nvmem) (V V': vmem) (e: exp) (r: readobs),
+    isNV(x) -> (*checks x is in NV memory*)
+    cceval N V (asgn_sv x e) [Obs r] N' V' skip ->
+    trace_c (N, V, Ins (asgn_sv x e)) (N', V', Ins skip)
+            [inl x]  (readobs_loc r) [inl x]
+| CTrace_Assign_v: forall(x: smallvar) (N N': nvmem) (V V': vmem) (e: exp) (r: readobs),
+    isV(x) -> (*checks x is in volatile memory*)
+    cceval N V (asgn_sv x e) [Obs r] N' V' skip ->
+    trace_c (N, V, Ins (asgn_sv x e)) (N', V', Ins skip)
+            nil  (readobs_loc r) nil
+| CTrace_Assign_Arr: forall (N N': nvmem) (V V': vmem)
+               (a: array)
+               (ei: exp)
+               (ri: readobs)
+               (e: exp)
+               (r: readobs)
+               (element: el),
+    (el_arrayexp_eq element a ei N V) -> (*extra premise to check that inr element
+                                        is actually a[ei] *)
+    cceval N V (asgn_arr a ei e) [Obs (ri++r)] N' V' skip ->
+    trace_c (N, V, Ins (asgn_arr a ei e)) (N', V', Ins skip)
+            [inr element] (readobs_loc (ri ++ r)) [inr element]
+| CTrace_CheckPoint: forall(N: nvmem)
+               (V: vmem)
+               (c: command)
+               (w: warvars),
+    trace_c (N, V, (incheckpoint w);; c) (N, V, c)
+            nil nil nil
+| CTrace_Skip: forall(N: nvmem)
+         (V: vmem)
+         (c: command),
+    trace_c (N, V, skip;; c) (N, V, c)
+            nil nil nil
+| CTrace_Seq: forall (N N' N'': nvmem)
+         (V V' V'': vmem)
+         (WT1 RD1 FstWt1 WT2 RD2 FstWt2: list loc)
+         (l: instruction)
+         (c: command)
+         (r: readobs),
+    trace_c (N, V, Ins l) (N', V', Ins skip) WT1 RD1 FstWt1 ->
+    trace_c (N', V', c) (N'', V'', Ins skip) WT2 RD2 FstWt2 ->
+    trace_c (N, V, l;;c) (N'', V'', Ins skip) (WT1 ++ WT2) (RD1 ++ RD2) (FstWt1 ++ (remove in_loc_b RD1 FstWt2))
+(*start -> end -> written -> read -> written before reading*)
+| CTrace_If_T: forall(N N': nvmem)
+                (V V': vmem)
+                (WT RD FstWt: list loc)
+                (e: exp)
+                (r: readobs)
+                (c1 c2: command),
+    cceval N V (TEST e THEN c1 ELSE c2) [Obs r] N V c1 ->
+    trace_c (N, V, c1) (N', V', Ins skip) WT RD FstWt ->
+    trace_c (N, V, TEST e THEN c1 ELSE c2) (N', V', Ins skip) WT ((readobs_loc r) ++ RD) FstWt 
+| CTrace_If_F: forall(N N': nvmem)
+                (V V': vmem)
+                (WT RD FstWt: list loc)
+                (e: exp)
+                (r: readobs)
+                (c1 c2: command),
+    cceval N V (TEST e THEN c1 ELSE c2) [Obs r] N V c2 ->
+    trace_c (N, V, c2) (N', V', Ins skip) WT RD FstWt ->
+    trace_c (N, V, TEST e THEN c1 ELSE c2) (N', V', Ins skip) WT ((readobs_loc r) ++ RD) FstWt. 
 
 Close Scope list_scope.
 Close Scope type_scope.

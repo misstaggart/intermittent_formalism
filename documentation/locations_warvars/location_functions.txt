@@ -8,3 +8,5 @@ loc_warvars: loc -> warvar
 Checks if a location has been stored as a WAR variable
 memberloc_wvs_b: loc -> warvars -> bool
 
+in_loc_b: loc -> list loc -> bool
+

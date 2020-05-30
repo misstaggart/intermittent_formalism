@@ -44,9 +44,9 @@ Inductive instruction :=
 | inreboot.
 
 Inductive command :=
-  Instruct (l: instruction)
+  Ins (l: instruction)
 | Seqcom (l: instruction) (c: command)                                 
-| ite (e: exp) (c1: command) (c2: command).
+| ITE (e: exp) (c1: command) (c2: command).
 
 Base of memory mapping
 Notation mem := (map loc eqb_loc).
