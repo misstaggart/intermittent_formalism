@@ -755,18 +755,6 @@ into the types because I didn't want to define a context equality function*)
 
 (********************************************)
 (*traces*)
-(*The trace type contains
-1. a starting configuration and ending configuration
-2. a list of warvars which have been written to
-3. a list of warvars which have been read from
-4. a list of warvars which have been written to before they have been read from
- *)
-(*do I keep track of volatile writes as well...I don't think so
- cuz the writes don't last and they all have to be checkpointed anyways*)
-(*this is ridiculously similar to cceval*)
-(*start -> end -> written -> read -> written before reading*)
-(*using context instead of cconf cuz they're exactly the same
- but cconf has an annoying constructor*)
 
 (*trace helpers*)
 
@@ -779,6 +767,18 @@ Definition el_arrayexp_eq (e: el) (a: array) (eindex: exp) (N: nvmem) (V: vmem) 
 Check filter.
 
 
+(*The trace type contains
+1. a starting configuration and ending configuration
+2. a list of warvars which have been written to
+3. a list of warvars which have been read from
+4. a list of warvars which have been written to before they have been read from
+ *)
+(*do I keep track of volatile writes as well...I don't think so
+ cuz the writes don't last and they all have to be checkpointed anyways*)
+(*this is ridiculously similar to cceval...consider combining into one big type?*)
+(*start -> end -> written -> read -> written before reading*)
+(*using context instead of cconf cuz they're exactly the same
+ but cconf has an annoying constructor*)
 Inductive trace_c: context -> context -> (list loc) -> (list loc) -> (list loc) -> Prop :=
  CTrace_Assign_nv: forall(x: smallvar) (N N': nvmem) (V V': vmem) (e: exp) (r: readobs),
     isNV(x) -> (*checks x is in NV memory*)
@@ -822,7 +822,6 @@ Inductive trace_c: context -> context -> (list loc) -> (list loc) -> (list loc) 
     trace_c (N, V, Ins l) (N', V', Ins skip) WT1 RD1 FstWt1 ->
     trace_c (N', V', c) (N'', V'', Ins skip) WT2 RD2 FstWt2 ->
     trace_c (N, V, l;;c) (N'', V'', Ins skip) (WT1 ++ WT2) (RD1 ++ RD2) (FstWt1 ++ (remove in_loc_b RD1 FstWt2))
-(*start -> end -> written -> read -> written before reading*)
 | CTrace_If_T: forall(N N': nvmem)
                 (V V': vmem)
                 (WT RD FstWt: list loc)
