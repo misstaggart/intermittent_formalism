@@ -681,7 +681,7 @@ Inductive cceval: nvmem -> vmem -> command -> obseq -> nvmem -> vmem -> command 
 Inductive iceval: context-> nvmem -> vmem -> command -> obseq -> context -> nvmem -> vmem -> command -> Prop :=
   CP_PowerFail: forall(k: context) (N: nvmem) (V: vmem) (c: command),
                  iceval k N V c
-                        [Obs NoObs]
+                        nil
                         k N (reset V) inreboot
  | CP_CheckPoint: forall(k: context) (N: nvmem) (V: vmem) (c: command) (w: warvars),
                  iceval k N V ((incheckpoint w);;c)
@@ -850,17 +850,16 @@ Inductive trace_c: context -> context -> (list loc) -> (list loc) -> (list loc) 
 (*chose to include context in start and end values to ensure consistency with iceval
  in reboot case*)
 Inductive trace_i: iconf -> iconf -> (list loc) -> (list loc) -> (list loc) -> obseq -> Prop :=
-  ITrace_PowerFail: forall(k: context) (N: nvmem) (V: vmem) (c: command),
-                 iceval k N V c
-                        [Obs NoObs]
-                        k N (reset V) inreboot
- | CP_CheckPoint: forall(k: context) (N: nvmem) (V: vmem) (c: command) (w: warvars),
-                 iceval k N V ((incheckpoint w);;c)
-                        [checkpoint]
-                        ((N |! w), V, c) N V c 
+  iTrace_PowerFail: forall(k: context) (N: nvmem) (V: vmem) (c: command),
+    iceval k N V c
+    trace_i (k, N, V, c) (k, N, (reset V), Ins inreboot) nil nil nil nil 
+ | iTrace_CheckPoint: forall(k: context) (N: nvmem) (V: vmem) (c: command) (w: warvars),
+     trace_i (k, N, V, (incheckpoint w);;c) (((N |! w), V, c), N, V, c)
+             nil nil nil [checkpoint].
  | CP_Reboot: forall(N: nvmem) (N': nvmem)(*see below*) (*N is the checkpointed one*)
                (V: vmem) (V': vmem)
                (c: command), 
+     trace_i ((N, V, c), N', V', Ins inreboot) ((N, V, c), N U! )
      iceval (N, V, c) N' V' inreboot
             [reboot]
             (N, V, c) (N U! N') V c

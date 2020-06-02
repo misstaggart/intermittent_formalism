@@ -688,7 +688,7 @@ Inductive cceval: nvmem -> vmem -> command -> obseq -> nvmem -> vmem -> command 
 Inductive iceval: context-> nvmem -> vmem -> command -> obseq -> context -> nvmem -> vmem -> command -> Prop :=
   CP_PowerFail: forall(k: context) (N: nvmem) (V: vmem) (c: command),
                  iceval k N V c
-                        [Obs NoObs]
+                        nil
                         k N (reset V) inreboot
  | CP_CheckPoint: forall(k: context) (N: nvmem) (V: vmem) (c: command) (w: warvars),
                  iceval k N V ((incheckpoint w);;c)
