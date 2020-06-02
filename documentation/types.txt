@@ -62,8 +62,7 @@ Inductive cconf := (*continuous configuration*)
 
 Notation context := (nvmem * vmem * command). 
 
-Inductive iconf := (*intermittent configuration*)
-  IntermittentConf (qple: context * nvmem * vmem * command).
+Notation iconf := (context * nvmem * vmem * command).
 
 Definition ro := loc * value. (*read observation*)
 Definition readobs := list ro.
