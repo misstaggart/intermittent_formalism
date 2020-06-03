@@ -631,6 +631,7 @@ It not included in the evaluation relation in the paper.
 Notation the_write_stuff := ((list loc) * (list loc) * (list loc)).
 
 (*Single steps, accumulates write data*)
+(*Note: program consisting of just a checkpoint is illegal...huh*)
 Inductive cceval_w: context -> obseq -> context -> the_write_stuff -> Prop :=
 CheckPoint: forall(N: nvmem)
                (V: vmem)
@@ -706,6 +707,7 @@ CheckPoint: forall(N: nvmem)
 
 (**********intermittent execution semantics*************************)
 (*evaluation relation for commands*)
+(*accumlates write data as continuous relation does*)
 Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
   CP_PowerFail: forall(k: context) (N: nvmem) (V: vmem) (c: command),
                  iceval_w (k, N, V, c)
@@ -785,40 +787,6 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
 into the types because I didn't want to define a context equality function*)
 
 (********************************************)
-(*traces*)
 
-(*trace helpers*)
-
-
-Definition el_arrayexp_eq (e: el) (a: array) (eindex: exp) (N: nvmem) (V: vmem) := (*transitions from el type to a[exp] representation*)
-  (samearray e a) /\
-  exists(r: readobs) (vindex: value), eeval N V eindex r vindex /\
-                                 (eq_value (getindexel e) vindex).
-
-
-(*do I keep track of volatile writes as well...I don't think so
- cuz the writes don't last and they all have to be checkpointed anyways*)
-(*actually there's no reason for us to be checkpointing volatiles that are
- written to before they're ever read from along any path*)
-(*at first inspection it doesn't seem like it would be all that hard to keep track of this
- since we're already doing MFstWt for novolatiles*)
-
-(*using context instead of cconf cuz they're exactly the same
- but cconf has an annoying constructor*)
-
-(*The trace type contains
-1. a starting configuration and ending configuration
-2. a list of warvars which have been written to
-3. a list of warvars which have been read from
-4. a list of warvars which have been written to before they have been read from
- *)
-
-
-(* Concern:
-DO need one step evaluation in order to stop at a checkpoint...nvm lol
- *)
-
-
-(*start -> observations -> end -> the_write_stuff*)
 Close Scope list_scope.
 Close Scope type_scope.
