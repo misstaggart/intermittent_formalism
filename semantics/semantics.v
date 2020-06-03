@@ -617,72 +617,15 @@ Inductive eevaltest: nvmem -> vmem -> exp -> obs -> value -> Prop :=
 
 
 (*evaluation relation for commands*)
-Inductive cceval: context -> obseq -> context -> Prop :=
-  NV_Assign: forall(x: smallvar) (N: nvmem) (V: vmem) (e: exp) (r: readobs) (v: value),
-    eeval N V e r v ->
-    isNV(x) -> (*checks x is correct type for NV memory*)
-    (isvaluable v) -> (*extra premise to check if v is valuable*)
-    cceval (N, V, Ins (asgn_sv x e)) [Obs r]
-           ((updateNV N (inl x) v), V, Ins skip)
-| V_Assign: forall(x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
-    eeval N (Vol mapV) e r v ->
-    isV(x) -> (*checks x is correct type for V memory*)
-    (isvaluable v) -> (*extra premise to check if v is valuable*)
-    cceval (N, (Vol mapV), Ins (asgn_sv x e)) [Obs r] (N, (Vol ((inl x) |-> v ; mapV)), Ins skip)
-| Assign_Arr: forall (N: nvmem) (V: vmem)
-               (a: array)
-               (ei: exp)
-               (ri: readobs)
-               (vi: value)
-               (e: exp)
-               (r: readobs)
-               (v: value)
-               (element: el),
-    eeval N V ei ri vi ->
-    eeval N V e r v ->
-    (el_arrayind_eq element a vi) -> (*extra premise to check that inr element
-                                        is actually a[vindex] *)
-(*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
-    (isvaluable v) -> (*extra premise to check if v is valuable*)
-    cceval (N, V, Ins (asgn_arr a ei e)) [Obs (ri++r)]
-           ((updateNV N (inr element) v), V, Ins skip)
-    (*valuability and inboundedness of vindex are checked in sameindex*)
-| CheckPoint: forall(N: nvmem)
-               (V: vmem)
-               (c: command)
-               (w: warvars),
-               cceval (N, V, ((incheckpoint w);; c)) [checkpoint]
-               (N, V, c)
-| Skip: forall(N: nvmem)
-         (V: vmem)
-         (c: command),
-    cceval (N, V, (skip;;c)) [Obs NoObs] (N, V, c)
-| Seq: forall (N N': nvmem)
-         (V V': vmem)
-         (l: instruction)
-         (c: command)
-         (o: obs),
-    cceval (N, V, Ins l) [o] (N', V', Ins skip) ->
-    cceval (N, V, (l;;c)) [o] (N', V', c)
-| If_T: forall(N: nvmem)
-         (V: vmem)
-         (e: exp)
-         (r: readobs)
-         (c1 c2: command),
-    eeval N V e r true -> 
-    cceval (N, V, (TEST e THEN c1 ELSE c2)) [Obs r] (N, V, c1)
-| If_F: forall(N: nvmem)
-         (V: vmem)
-         (e: exp)
-         (r: readobs)
-         (c1 c2: command),
-    eeval N V e r false ->
-    cceval (N, V, (TEST e THEN c1 ELSE c2)) [Obs r] (N, V, c2).
 
 
 (***Below, I define an evaluation relation for continuous programs which accumulates
  read/write data as the program evaluates. This makes the trace type more elegant, while
- also containing the same data as the cceval above.**)
+ also containing the same data as the cceval above.
+However, the write data does not influence the evaluation of the program, so, if it were not
+for the trace type, it wouldn't be clear I would include this here.
+It not included in the evaluation relation in the paper.
+ **)
 
 (*written, read, written before reading*)
 Notation the_write_stuff := ((list loc) * (list loc) * (list loc)).
