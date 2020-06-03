@@ -18,6 +18,7 @@ Fixpoint member {A: Type} (eq: A -> A -> bool) (a: A)  (L: list A) :=
   | x::xs => orb (eq a x) (member eq a xs)
   end.
 
+(*removes L1 from L2*)
 Definition remove {A: Type} (in_A: A -> list A -> bool) (L1 L2 : list A) :=
   filter (fun x => negb (in_A x L1)) L2.
 
@@ -478,7 +479,11 @@ Definition isdomain_nvm (N: nvmem) (w: warvars) :=
 Inductive cconf := (*continuous configuration*)
   ContinuousConf (triple: nvmem * vmem * command).
 
-Notation context := (nvmem * vmem * command). 
+Notation context := (nvmem * vmem * command).
+
+(*A coercion for cconf doesn't work because it's the same essential type as context.
+ So, in practice, to avoid writing the constructor everywhere, I've been using contexts foralleverything, when conceptually a cconf would make more sense.
+ It would be nice to just have one type for this.*)
 
 Notation iconf := (context * nvmem * vmem * command).
 
@@ -612,18 +617,18 @@ Inductive eevaltest: nvmem -> vmem -> exp -> obs -> value -> Prop :=
 
 
 (*evaluation relation for commands*)
-Inductive cceval: nvmem -> vmem -> command -> obseq -> nvmem -> vmem -> command -> Prop :=
+Inductive cceval: context -> obseq -> context -> Prop :=
   NV_Assign: forall(x: smallvar) (N: nvmem) (V: vmem) (e: exp) (r: readobs) (v: value),
     eeval N V e r v ->
     isNV(x) -> (*checks x is correct type for NV memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    cceval N V (asgn_sv x e) [Obs r]
-           (updateNV N (inl x) v) V skip
+    cceval (N, V, Ins (asgn_sv x e)) [Obs r]
+           ((updateNV N (inl x) v), V, Ins skip)
 | V_Assign: forall(x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
     eeval N (Vol mapV) e r v ->
     isV(x) -> (*checks x is correct type for V memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    cceval N (Vol mapV) (asgn_sv x e) [Obs r] N (Vol ((inl x) |-> v ; mapV)) skip
+    cceval (N, (Vol mapV), Ins (asgn_sv x e)) [Obs r] (N, (Vol ((inl x) |-> v ; mapV)), Ins skip)
 | Assign_Arr: forall (N: nvmem) (V: vmem)
                (a: array)
                (ei: exp)
@@ -639,74 +644,74 @@ Inductive cceval: nvmem -> vmem -> command -> obseq -> nvmem -> vmem -> command 
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    cceval N V (asgn_arr a ei e) [Obs (ri++r)]
-           (updateNV N (inr element) v) V skip
+    cceval (N, V, Ins (asgn_arr a ei e)) [Obs (ri++r)]
+           ((updateNV N (inr element) v), V, Ins skip)
     (*valuability and inboundedness of vindex are checked in sameindex*)
 | CheckPoint: forall(N: nvmem)
                (V: vmem)
                (c: command)
                (w: warvars),
-               cceval N V ((incheckpoint w);; c) [checkpoint]
-               N V c
+               cceval (N, V, ((incheckpoint w);; c)) [checkpoint]
+               (N, V, c)
 | Skip: forall(N: nvmem)
          (V: vmem)
          (c: command),
-    cceval N V (skip;;c) [Obs NoObs] N V c
+    cceval (N, V, (skip;;c)) [Obs NoObs] (N, V, c)
 | Seq: forall (N N': nvmem)
          (V V': vmem)
          (l: instruction)
          (c: command)
          (o: obs),
-    cceval N V l [o] N' V' skip ->
-    cceval N V (l;;c) [o] N' V' c
+    cceval (N, V, Ins l) [o] (N', V', Ins skip) ->
+    cceval (N, V, (l;;c)) [o] (N', V', c)
 | If_T: forall(N: nvmem)
          (V: vmem)
          (e: exp)
          (r: readobs)
          (c1 c2: command),
     eeval N V e r true -> 
-    cceval N V (TEST e THEN c1 ELSE c2) [Obs r] N V c1
+    cceval (N, V, (TEST e THEN c1 ELSE c2)) [Obs r] (N, V, c1)
 | If_F: forall(N: nvmem)
          (V: vmem)
          (e: exp)
          (r: readobs)
          (c1 c2: command),
     eeval N V e r false ->
-    cceval N V (TEST e THEN c1 ELSE c2) [Obs r] N V c2.
+    cceval (N, V, (TEST e THEN c1 ELSE c2)) [Obs r] (N, V, c2).
 
 (************************************************************)
 
 (**********intermittent execution semantics*************************)
 (*evaluation relation for commands*)
-Inductive iceval: context-> nvmem -> vmem -> command -> obseq -> context -> nvmem -> vmem -> command -> Prop :=
+Inductive iceval: iconf -> obseq -> iconf -> Prop :=
   CP_PowerFail: forall(k: context) (N: nvmem) (V: vmem) (c: command),
-                 iceval k N V c
+                 iceval (k, N, V, c)
                         nil
-                        k N (reset V) inreboot
+                        (k, N, (reset V), Ins inreboot)
  | CP_CheckPoint: forall(k: context) (N: nvmem) (V: vmem) (c: command) (w: warvars),
-                 iceval k N V ((incheckpoint w);;c)
+                 iceval (k, N, V, ((incheckpoint w);;c))
                         [checkpoint]
-                        ((N |! w), V, c) N V c 
+                        (((N |! w), V, c), N, V, c) 
  | CP_Reboot: forall(N N': nvmem) (*see below*) (*N is the checkpointed one*)
                (V V': vmem) 
                (c: command), 
-     iceval (N, V, c) N' V' inreboot
+     iceval ((N, V, c), N', V', Ins inreboot)
             [reboot]
-            (N, V, c) (N U! N') V c
+            ((N, V, c), (N U! N'), V, c)
  | CP_NV_Assign: forall(k: context) (x: smallvar) (N: nvmem) (V: vmem) (e: exp) (r: readobs) (v: value),
     eeval N V e r v ->
     isNV(x) -> (*checks x is correct type for NV memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    iceval k N V (asgn_sv x e)
+    iceval (k, N, V, Ins (asgn_sv x e))
            [Obs r]
-           k (updateNV N (inl x) v) V skip
+           (k, (updateNV N (inl x) v), V, Ins skip)
 | CP_V_Assign: forall(k: context) (x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
     eeval N (Vol mapV) e r v ->
     isV(x) -> (*checks x is correct type for V memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    iceval k N (Vol mapV) (asgn_sv x e)
+    iceval (k, N, (Vol mapV), Ins (asgn_sv x e))
            [Obs r]
-           k N (Vol ((inl x) |-> v ; mapV)) skip
+           (k, N, (Vol ((inl x) |-> v ; mapV)), Ins skip)
 | CP_Assign_Arr: forall (k: context) (N: nvmem) (V: vmem)
                (a: array)
                (ei: exp)
@@ -722,33 +727,33 @@ Inductive iceval: context-> nvmem -> vmem -> command -> obseq -> context -> nvme
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    iceval k N V (asgn_arr a ei e)
+    iceval (k, N, V, Ins (asgn_arr a ei e))
            [Obs (ri++r)]
-           k (updateNV N (inr element) v) V skip
+           (k, (updateNV N (inr element) v), V, Ins skip)
 | CP_Skip: forall(k: context) (N: nvmem)
          (V: vmem)
          (c: command),
-    iceval k N V (skip;;c) [Obs NoObs] k N V c
+    iceval (k, N, V, (skip;;c)) [Obs NoObs] (k, N, V, c)
 |CP_Seq: forall (k: context)
          (N: nvmem) (N': nvmem)
          (V: vmem) (V': vmem)
          (l: instruction)
          (c: command)
          (o: obs),
-    iceval k N V l [o] k N' V' skip ->
-    iceval k N V (l;;c) [o] k N' V' c
+    iceval (k, N, V, Ins l) [o] (k, N', V', Ins skip) ->
+    iceval (k, N, V, (l;;c)) [o] (k, N', V', c)
 |CP_If_T: forall(k: context) (N: nvmem) (V: vmem)
          (e: exp)
          (r: readobs)
          (c1 c2: command),
     eeval N V e r true -> 
-    iceval k N V (TEST e THEN c1 ELSE c2) [Obs r] k N V c1
+    iceval (k, N, V, (TEST e THEN c1 ELSE c2)) [Obs r] (k, N, V, c1)
 |CP_If_F: forall(k: context) (N: nvmem) (V: vmem)
          (e: exp)
          (r: readobs)
          (c1 c2: command),
     eeval N V e r false ->
-    iceval k N V (TEST e THEN c1 ELSE c2) [Obs r] k N V c2.
+    iceval (k, N, V, (TEST e THEN c1 ELSE c2)) [Obs r] (k, N, V, c2).
 (*CP_Reboot: I took out the equals premise and instead built it
 into the types because I didn't want to define a context equality function*)
 
@@ -763,8 +768,16 @@ Definition el_arrayexp_eq (e: el) (a: array) (eindex: exp) (N: nvmem) (V: vmem) 
   exists(r: readobs) (vindex: value), eeval N V eindex r vindex /\
                                  (eq_value (getindexel e) vindex).
 
-Check filter.
 
+(*do I keep track of volatile writes as well...I don't think so
+ cuz the writes don't last and they all have to be checkpointed anyways*)
+(*actually there's no reason for us to be checkpointing volatiles that are
+ written to before they're ever read from along any path*)
+(*at first inspection it doesn't seem like it would be all that hard to keep track of this
+ since we're already doing MFstWt for novolatiles*)
+
+(*using context instead of cconf cuz they're exactly the same
+ but cconf has an annoying constructor*)
 
 (*The trace type contains
 1. a starting configuration and ending configuration
@@ -772,21 +785,31 @@ Check filter.
 3. a list of warvars which have been read from
 4. a list of warvars which have been written to before they have been read from
  *)
-(*do I keep track of volatile writes as well...I don't think so
- cuz the writes don't last and they all have to be checkpointed anyways*)
-(*this is ridiculously similar to cceval...consider combining into one big type?*)
+
+
+(* Concern:
+The trace relation below does everything the cceval relation does and more because it
+steps everything to completion. I do lose the ability to step from l;;c to c
+without stepping c, however.
+ Based on cursory inspection of the proofs, don't ever need this one step evaluation.
+If further inspection of the proofs verifies this, I'll remove the cceval relation.
+ *)
+
+(*written, read, written before reading*)
+Notation the_write_stuff := ((list loc) * (list loc) * (list loc)).
+
 (*start -> end -> written -> read -> written before reading -> obseq*)
-(*using context instead of cconf cuz they're exactly the same
- but cconf has an annoying constructor*)
-Inductive trace_c: context -> context -> (list loc) -> (list loc) -> (list loc) -> obseq -> Prop :=
- CTrace_Assign_nv: forall(x: smallvar) (N N': nvmem) (V V': vmem) (e: exp) (r: readobs),
+Inductive trace_c: context -> context -> the_write_stuff -> obseq -> Prop :=
+(*what if x is read in e...fix this!*)
+  CTrace_Assign_nv: forall(x: smallvar) (N N': nvmem) (V V': vmem) (e: exp) (r: readobs),
     isNV(x) -> (*checks x is in NV memory*)
-    cceval N V (asgn_sv x e) [Obs r] N' V' skip ->
-    trace_c (N, V, Ins (asgn_sv x e)) (N', V', Ins skip)
-            [inl x]  (readobs_loc r) [inl x] [Obs r]
+    cceval (N, V, Ins (asgn_sv x e)) [Obs r] (N', V', Ins skip) ->
+    trace_c (N, V, Ins (asgn_sv x e))
+            (N', V', Ins skip)
+            [inl x]  (readobs_loc r) (remove in_loc_b (readobs_loc r) [inl x]) [Obs r]
 | CTrace_Assign_v: forall(x: smallvar) (N N': nvmem) (V V': vmem) (e: exp) (r: readobs),
     isV(x) -> (*checks x is in volatile memory*)
-    cceval N V (asgn_sv x e) [Obs r] N' V' skip ->
+    cceval (N, V, Ins (asgn_sv x e)) [Obs r] (N', V', Ins skip) ->
     trace_c (N, V, Ins (asgn_sv x e)) (N', V', Ins skip)
             nil  (readobs_loc r) nil [Obs r]
 | CTrace_Assign_Arr: forall (N N': nvmem) (V V': vmem)
@@ -798,7 +821,7 @@ Inductive trace_c: context -> context -> (list loc) -> (list loc) -> (list loc) 
                (element: el),
     (el_arrayexp_eq element a ei N V) -> (*extra premise to check that inr element
                                         is actually a[ei] *)
-    cceval N V (asgn_arr a ei e) [Obs (ri++r)] N' V' skip ->
+    cceval (N, V, Ins (asgn_arr a ei e)) [Obs (ri++r)] (N', V', Ins skip) ->
     trace_c (N, V, Ins (asgn_arr a ei e)) (N', V', Ins skip)
             [inr element] (readobs_loc (ri ++ r)) [inr element] [Obs (ri ++ r)]
 | CTrace_CheckPoint: forall(N: nvmem)
@@ -831,7 +854,7 @@ Inductive trace_c: context -> context -> (list loc) -> (list loc) -> (list loc) 
                 (c1 c2: command)
                 (O1: obseq)
   ,
-    cceval N V (TEST e THEN c1 ELSE c2) [Obs r] N V c1 ->
+    cceval (N, V, (TEST e THEN c1 ELSE c2)) [Obs r] (N, V, c1) ->
     trace_c (N, V, c1) (N', V', Ins skip) WT RD FstWt O1 ->
     trace_c (N, V, TEST e THEN c1 ELSE c2) (N', V', Ins skip) WT ((readobs_loc r) ++ RD) FstWt ((Obs r)::O1) 
 | CTrace_If_F: forall(N N': nvmem)
@@ -841,7 +864,7 @@ Inductive trace_c: context -> context -> (list loc) -> (list loc) -> (list loc) 
                 (r: readobs)
                 (c1 c2: command)
                 (O2: obseq),
-    cceval N V (TEST e THEN c1 ELSE c2) [Obs r] N V c2 ->
+    cceval (N, V, (TEST e THEN c1 ELSE c2)) [Obs r] (N, V, c2) ->
     trace_c (N, V, c2) (N', V', Ins skip) WT RD FstWt O2->
     trace_c (N, V, TEST e THEN c1 ELSE c2) (N', V', Ins skip) WT ((readobs_loc r) ++ RD) FstWt ((Obs r)::O2).
 
@@ -849,7 +872,7 @@ Inductive trace_c: context -> context -> (list loc) -> (list loc) -> (list loc) 
 (*start -> end -> written -> read -> written before reading -> obseq*)
 (*chose to include context in start and end values to ensure consistency with iceval
  in reboot case*)
-Inductive trace_i: iconf -> iconf -> (list loc) -> (list loc) -> (list loc) -> obseq -> Prop :=
+(*Inductive trace_i: iconf -> iconf -> (list loc) -> (list loc) -> (list loc) -> obseq -> Prop :=
   iTrace_PowerFail: forall(k: context) (N: nvmem) (V: vmem) (c: command),
     iceval k N V c
     trace_i (k, N, V, c) (k, N, (reset V), Ins inreboot) nil nil nil nil 
@@ -941,5 +964,6 @@ Inductive same_ex_point: forall(N1 N2 N: nvmem) (V V': vmem) (c c': command),
       no_checkpts T1 ->
       forall(l: loc), not((N1 l) = (N2 loc)) -> ((In l (Wt T1)) /\ (In l (FstWt (T1 @ T2))) /\ not (In l (Wt T1))).
                                           (*same here with equality*)
+*)
 Close Scope list_scope.
 Close Scope type_scope.
