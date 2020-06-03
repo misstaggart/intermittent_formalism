@@ -58,44 +58,69 @@ DO need one step evaluation in order to stop at a checkpoint...nvm lol
 (*steps to termination, accumulates write data*)
 
 (*continuous traces*)
-Inductive trace_c: context -> obseq -> context -> the_write_stuff -> Prop :=
-  CTrace_Single: forall(C1 C2: context) (O: obseq) (W: the_write_stuff),
+Inductive trace_c (C1 C2: context): obseq -> the_write_stuff -> Prop :=
+  CTrace_Single: forall (O: obseq) (W: the_write_stuff),
                   single_com C1 -> (*checks program cannot be stepped more than once*)
                   cceval_w C1 O C2 W -> (*command in C2 is skip by def single_com, cceval_w*)
-                  trace_c C1 O C2 W
-| CTrace_Step: forall(C1 C2 C3: context) (O1 O2: obseq) 
+                  trace_c C1 C2 O W
+| CTrace_App: forall(Cmid: context) (O1 O2: obseq) 
                 (WT1 RD1 FstWt1 WT2 RD2 FstWt2: list loc),
     (*not (single_com C1) -> unclear if this is necessary as implied by
      the fact that c1 can be stepped at least twice...
      will try and prove without it and if it gets messy I'll add it*)
-    cceval_w C1 O1 C2 (WT1, RD1, FstWt1)-> (*diff between C1 and C2 is 1 step by def cceval_w*)
-    trace_c C2 O2 C3 (WT2, RD2, FstWt2) -> (*steps rest of program*)
-    trace_c C1 (O1 ++ O2) C3 ((WT1 ++ WT2), (RD1 ++ RD2), (FstWt1 ++ (remove in_loc_b RD1 FstWt2))).
- (*makes for easy subtraces by allowing the command in C3 to not be skip*)
+    trace_c C1 Cmid O1 (WT1, RD1, FstWt1)-> (*steps first section*)
+    trace_c Cmid C2 O2 (WT2, RD2, FstWt2) -> (*steps rest of program*)
+    trace_c C1 C2 (O1 ++ O2)((WT1 ++ WT2), (RD1 ++ RD2), (FstWt1 ++ (remove in_loc_b RD1 FstWt2))).
+ (*App makes for easy subtraces by allowing the trace to be partitioned anywhere*)
 
 (*intermittent traces*)
  (*the same as trace_c bar types as differences between
   intermittent and continuous execution have been implemented in evals*)
-Inductive trace_i: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
-  CTrace_Single: forall(C1 C2: iconf) (O: obseq) (W: the_write_stuff),
+Inductive trace_i (C1 C2: iconf): obseq -> the_write_stuff -> Prop :=
+  iTrace_Single: forall(O: obseq) (W: the_write_stuff),
                   single_com_i C1 -> (*checks program cannot be stepped more than once*)
-                  iceval_w C1 C2 O W -> (*command in C2 is skip by def single_com, iceval_w*)
-                  trace_i C1 O C2 W
-| CTrace_Step: forall(C1 C2 C3: context) (O1 O2: obseq) 
+                  iceval_w C1 O C2 W -> (*command in C2 is skip by def single_com, iceval_w*)
+                  trace_i C1 C2 O W
+| iTrace_App: forall(Cmid: iconf) (O1 O2: obseq) 
          (WT1 RD1 FstWt1 WT2 RD2 FstWt2: list loc),
-    iceval_w C1 O1 C2 (WT1, RD1, FstWt1)-> (*diff between C1 and C2 is 1 step by def iceval_w*)
-    trace_i C2 O2 C3 (WT2, RD2, FstWt2)-> (*steps rest of program*)
-    trace_i C1 (O1 ++ O2) C3 ((WT1 ++ WT2), (RD1 ++ RD2), (FstWt1 ++ (remove in_loc_b RD1 FstWt2))).
+    trace_i C1 Cmid O1 (WT1, RD1, FstWt1)-> (*steps first section*)
+    trace_i Cmid C2 O2 (WT2, RD2, FstWt2)-> (*steps rest of program*)
+    trace_i C1 C2 (O1 ++ O2)((WT1 ++ WT2), (RD1 ++ RD2), (FstWt1 ++ (remove in_loc_b RD1 FstWt2))).
 
-(*relations between continuous and intermittent memory
-Inductive same_ex_point: forall(N1 N2 N: nvmem) (V V': vmem) (c c': command),
-    same_program: forall(T1 T2: trace_i),
-      (getdomain N1) = (getdomain N2) -> (*putting equals for now, if this bites me later on I can define an                                        extensional equality relation with eqtype*)
-      (get_start T1) = (N, V, c) ->
-      (get_end T1) = (N1, V', c') ->
-      (get_start T2) = (N1, V', c') ->
-      get_command (get_end T2) = inscheckpoint ->
-      no_checkpts T1 ->
-      forall(l: loc), not((N1 l) = (N2 loc)) -> ((In l (Wt T1)) /\ (In l (FstWt (T1 @ T2))) /\ not (In l (Wt T1))).
-                                          (*same here with equality*)
-*)
+(*more trace helpers*)
+
+(*Program Definition append {C1 Cmid C2: context} {O1 O2: obseq} {W1 W2: }
+        (T1: trace_c C1 Cmid) (T2: trace_c Cmid C3) :=
+  match T1, T2 with*)
+
+
+(**********************************************************************************)
+
+
+(*relations between continuous and intermittent memory*)
+
+(*concern: not yet clear to me why we need the vmem parameter; pending further inspection of
+ proofs*)
+(*idea: helpers for determining if valid subtraces instead of taking in extra Vs*)
+(*concern: liberal use of intensional equality with nvmem*)
+Inductive same_ex_point: vmem -> command -> command -> nvmem -> nvmem -> Prop:=
+same_program: forall {N0 N1 N2: nvmem}
+                  {V0 V1 V2: vmem}
+                  {c0 c1: command}
+                  {W1 W2: the_write_stuff}
+                  {O1 O2: obseq}
+                  {w: warvars}
+                  (Ncomp: nvmem)
+                  (T1: trace_c (N0, V0, c0) (N1, V1, c1) O1 W1)
+                  (T2: trace_c (N1, V1, c1) (N2, V2, Ins (incheckpoint w)) O2 W2),
+                  (getdomain N1) = (getdomain Ncomp) 
+                  -> no_checkpts T1
+                  -> no_chkpts T2 (*checks checkpoint T2 ends on is nearest checkpoint*)
+                  (forall(l: loc),
+                      not((N1 l) = (Ncomp l))
+                      -> ((In l (Wt T1)) /\ (In l (FstWt (append T1 T2))) /\ not (In l (Wt T1))))
+                  -> same_ex_point V0 c0 c1 N1 Ncomp.
+(*need to check for NEAREST checkpoint
+well, the checkpoint T2 ends on hasn't been executed yet, so shouldn't so up in observation sequence
+ *)
+
