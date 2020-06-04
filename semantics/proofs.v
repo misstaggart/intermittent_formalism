@@ -57,10 +57,53 @@ Theorem DINO_WAR_correct: forall(N W R N': warvars) (c c': command),
 Qed.
 Check sub_disclude.
 
+
+(*make ltac for simpl. apply (incl_refl []).
+*)
+
+Lemma incl_add_both: forall{A: Type} (L1 L2: list A) (a: A),
+    incl L1 L2 -> incl (a:: L1) (a :: L2).
+Proof. intros. apply (incl_cons (in_eq a L2)
+                     (incl_tl a H)). Qed.
+
+Lemma incl_app_dbl: forall{A: Type} {L11 L12 L21 L22: list A},
+    incl L11 L12 -> incl L21 L22 -> incl (L11 ++ L21) (L12 ++ L22).
+Proof. intros. unfold incl. intros. apply (in_app_or L11 L21 a) in H1.
+       destruct H1; [apply H in H1 | apply H0 in H1]; apply in_or_app; [left | right]; assumption.
+Qed.
+
+
+Lemma remove_subst: forall{A: Type} (in_A: A -> list A -> bool)
+                     (L1 L2: list A),
+    incl (remove in_A L1 L2) L2.
+Proof. intros. induction L2.
+       - simpl. apply (incl_refl []).
+       - simpl. destruct (negb (in_A a L1)) eqn: beq.
+         + apply incl_add_both. assumption.
+         + apply incl_tl. assumption.
+Qed.
+
 Lemma wt_subst_fstwt: forall(C1 C2: context) (O: obseq) (W: the_write_stuff),
   trace_c C1 C2 O W ->
-    incl (getwt W) (getfstwt W).
-Proof. intros. induction H. intros. generalize C1.
+    incl (getfstwt W) (getwt W).
+Proof. intros. induction H.
+       + simpl. apply (incl_refl []).
+       + induction H0;
+           (try (simpl; apply (incl_refl [])));
+           (try (unfold getfstwt; unfold getwt;
+                 apply remove_subst)).
+       - subst. simpl in H. contradiction.
+       - simpl. apply (incl_app_dbl IHtrace_c1
+                                    (incl_tran
+                                    (remove_subst _ _ _)
+                                    IHtrace_c2)).
+Qed.
+           - simpl. apply (incl_refl []).
+           - unfold getfstwt. unfold getwt.
+             apply remove_subst.
+           - simpl. apply (incl_refl []).
+           - unfold getfstwt. unfold getwt. apply remove_subst.
+       intros. generaliz e C1.
        generalize dependent C2.
        generalize dependent O.
        generalize dependent W.

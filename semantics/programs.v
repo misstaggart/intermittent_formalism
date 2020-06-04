@@ -3,8 +3,9 @@ From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Lists.List Strings.String Program.
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
-From Semantics Require Import algorithms cceval2.
+From Semantics Require Import algorithms.
 
+Open Scope list_scope.
 (************* program traces*****************)
 
 (*trace helpers*)
@@ -163,6 +164,6 @@ Inductive same_config: iconf -> context -> Prop :=
                 same_pt N0 V0 c0 c N1 N2 -> (*nvms are extensionally the same by same_pt
                                           vms and cs are intensionally the same by types*)
                 same_config ((N0, V0, c0), N1, V, c) (N2, V, c).
-
+Close Scope list_scope.
 
 
