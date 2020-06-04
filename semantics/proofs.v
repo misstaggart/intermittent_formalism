@@ -83,7 +83,7 @@ Proof. intros. induction L2.
          + apply incl_tl. assumption.
 Qed.
 
-Lemma wt_subst_fstwt: forall(C1 C2: context) (O: obseq) (W: the_write_stuff),
+Lemma wt_subst_fstwt: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
   trace_c C1 C2 O W ->
     incl (getfstwt W) (getwt W).
 Proof. intros. induction H.
@@ -98,18 +98,7 @@ Proof. intros. induction H.
                                     (remove_subst _ _ _)
                                     IHtrace_c2)).
 Qed.
-           - simpl. apply (incl_refl []).
-           - unfold getfstwt. unfold getwt.
-             apply remove_subst.
-           - simpl. apply (incl_refl []).
-           - unfold getfstwt. unfold getwt. apply remove_subst.
-       intros. generaliz e C1.
-       generalize dependent C2.
-       generalize dependent O.
-       generalize dependent W.
-       induction T.
 
-Qed.
 Lemma eight: forall(N0 N1 N2: nvmem) (V0: vmem) (c0: command),
               (subset_nvm N0 N1) ->
               (subset_nvm N0 N2) ->
@@ -122,7 +111,12 @@ Proof. intros. inversion H1. subst.
        - intros. simpl. split.
          + assert (H6: not (In (loc_warvar l) (getdomain N0))) by
                apply (sub_disclude N0 N1 N2 l H H0 H5).
-           apply H4 in H5. destruct H5. apply H6 in H5.
+           apply H4 in H5. destruct H5. 
+         + unfold Wt. apply ((wt_subst_fstwt T) l H5).
+         + apply H6 in H5. contradiction.
+       - split.
+         + simpl.
+           apply H6 in H5.
            Admitted.
 (*ah i need that sweet nonconstructive logic*)
 Close Scope list_scope.
