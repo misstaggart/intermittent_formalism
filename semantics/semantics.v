@@ -481,19 +481,6 @@ Definition subset_nvm (N1 N2: nvmem) :=
                                     In (loc_warvar l) (getdomain N1) ->
                                     (getmap N1) l = (getmap N2) l
                                   ).
-Lemma sub_disclude: forall(N0 N1 N2: nvmem) (l: loc),
-                     subset_nvm N0 N1 ->
-                     subset_nvm N0 N2 ->
-                     not ((getmap N1) l = (getmap N2) l)
-                     -> not (In (loc_warvar l) (getdomain N0)).
-Proof. intros. intros contra. unfold subset_nvm in H. destruct H.
-       remember contra as contra1. clear Heqcontra1.
-       apply H2 in contra.
-       unfold subset_nvm in H0. destruct H0. apply H3 in contra1.
-       symmetry in contra.
-       apply (eq_trans contra) in contra1.
-       apply H1. assumption.
-Qed.
 (********************************************)
 Inductive cconf := (*continuous configuration*)
   ContinuousConf (triple: nvmem * vmem * command).

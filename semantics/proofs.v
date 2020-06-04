@@ -5,10 +5,42 @@ Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
 From TLC Require Import LibTactics.
 Import ListNotations.
-From Semantics Require Import programs semantics algorithms. (*shouldn't have to import both of these*)
+From Semantics Require Import programs semantics algorithms lemmas. (*shouldn't have to import both of these*)
 
 Open Scope list_scope.
-(*Lemma consRight: forall(A: Type) (L1 L2: list A) (a: A), incl L1 L2 -> incl L*)
+
+(*lemmas for the lemmas; not in paper*)
+Lemma sub_disclude: forall(N0 N1 N2: nvmem) (l: loc),
+                     subset_nvm N0 N1 ->
+                     subset_nvm N0 N2 ->
+                     not ((getmap N1) l = (getmap N2) l)
+                     -> not (In (loc_warvar l) (getdomain N0)).
+Proof. intros. intros contra. unfold subset_nvm in H. destruct H.
+       remember contra as contra1. clear Heqcontra1.
+       apply H2 in contra.
+       unfold subset_nvm in H0. destruct H0. apply H3 in contra1.
+       symmetry in contra.
+       apply (eq_trans contra) in contra1.
+       apply H1. assumption.
+Qed.
+
+Lemma wt_subst_fstwt: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
+  trace_c C1 C2 O W ->
+    incl (getfstwt W) (getwt W).
+Proof. intros. induction H.
+       + simpl. apply (incl_refl []).
+       + induction H0;
+           (try (simpl; apply (incl_refl [])));
+           (try (unfold getfstwt; unfold getwt;
+                 apply remove_subst)).
+       - subst. simpl in H. contradiction.
+       - simpl. apply (incl_app_dbl IHtrace_c1
+                                    (incl_tran
+                                    (remove_subst _ _ _)
+                                    IHtrace_c2)).
+Qed.
+
+(*actual lemmas*)
 
 Lemma onePointone: forall(N N' W W' R R': warvars) (l: instruction),
     DINO_ins N W R l N' W' R' -> incl N N'.
@@ -30,19 +62,6 @@ Lemma Two: forall(N N' W W' R R' N1: warvars) (l: instruction),
             (repeat assumption); apply H0; unfold In; left; reflexivity.
 Qed.
 
-Lemma incl_app_l: forall(A: Type) (L1 L2 L3: list A),
-    incl (L1 ++ L2) L3 -> incl L1 L3.
-Proof. intros. apply (incl_tran
-                        (incl_appl L2 (incl_refl L1))
-                        H).
-Qed.
-
-Lemma incl_app_r: forall(A: Type) (L1 L2 L3: list A),
-    incl (L1 ++ L2) L3 -> incl L2 L3.
-Proof. intros. apply (incl_tran
-                        (incl_appr L1 (incl_refl L2))
-                        H).
-Qed.
 
 Theorem DINO_WAR_correct: forall(N W R N': warvars) (c c': command),
     DINO N W R c c' N' -> (forall(N1: warvars), incl N' N1 -> WARok N1 W R c').
@@ -55,56 +74,7 @@ Theorem DINO_WAR_correct: forall(N W R N': warvars) (c c': command),
        || (apply IHDINO2; apply incl_app_r in Hincl)); assumption.
   - intros. apply WAR_CP. apply IHDINO. apply (incl_refl N').
 Qed.
-Check sub_disclude.
 
-
-(*make ltac for simpl. apply (incl_refl []).
-*)
-
-Lemma incl_add_both: forall{A: Type} (L1 L2: list A) (a: A),
-    incl L1 L2 -> incl (a:: L1) (a :: L2).
-Proof. intros. apply (incl_cons (in_eq a L2)
-                     (incl_tl a H)). Qed.
-
-Lemma incl_app_dbl: forall{A: Type} {L11 L12 L21 L22: list A},
-    incl L11 L12 -> incl L21 L22 -> incl (L11 ++ L21) (L12 ++ L22).
-Proof. intros. unfold incl. intros. apply (in_app_or L11 L21 a) in H1.
-       destruct H1; [apply H in H1 | apply H0 in H1]; apply in_or_app; [left | right]; assumption.
-Qed.
-
-
-Lemma remove_subst: forall{A: Type} (in_A: A -> list A -> bool)
-                     (L1 L2: list A),
-    incl (remove in_A L1 L2) L2.
-Proof. intros. induction L2.
-       - simpl. apply (incl_refl []).
-       - simpl. destruct (negb (in_A a L1)) eqn: beq.
-         + apply incl_add_both. assumption.
-         + apply incl_tl. assumption.
-Qed.
-
-Lemma wt_subst_fstwt: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
-  trace_c C1 C2 O W ->
-    incl (getfstwt W) (getwt W).
-Proof. intros. induction H.
-       + simpl. apply (incl_refl []).
-       + induction H0;
-           (try (simpl; apply (incl_refl [])));
-           (try (unfold getfstwt; unfold getwt;
-                 apply remove_subst)).
-       - subst. simpl in H. contradiction.
-       - simpl. apply (incl_app_dbl IHtrace_c1
-                                    (incl_tran
-                                    (remove_subst _ _ _)
-                                    IHtrace_c2)).
-Qed.
-
-Lemma filter_false: forall{A: Type} (L1: list A),
-    filter (fun x => negb false) L1 = L1.
-  induction L1.
-  - reflexivity.
-  - simpl. rewrite IHL1. reflexivity.
-Qed.
 
 Lemma eight: forall(N0 N1 N2: nvmem) (V0: vmem) (c0: command),
               (subset_nvm N0 N1) ->

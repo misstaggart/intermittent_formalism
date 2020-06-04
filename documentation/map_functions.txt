@@ -33,6 +33,10 @@ indomain_nvm: nvmem -> warvar -> bool
 
 isdomain_nvm: nvmem -> warvars -> prop
 
+subset_nvm N1 N2 checks if domain of N1 is contained in domain of N2 and if
+map of N1 behaves the same as map of N2 on N1's domain
+subset_nvm: nvmem -> nvmem -> prop
+
 Interfacing with the V memory type:
 
 Returns an empty vmem

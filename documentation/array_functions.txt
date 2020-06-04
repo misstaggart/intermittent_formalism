@@ -9,3 +9,7 @@ Transitions between el type and conventional array[vindex] type.
 Returns true if el represents array[vindex]
 el_arrayind_eq: el -> array -> vindex -> prop
 
+Transitions from el type to a[exp] representation
+Mems are necessary to evaluate the exp
+el_array_exp_eq: el -> array -> exp -> nvmem -> vmem -> prop
+
