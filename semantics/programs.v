@@ -3,39 +3,27 @@ From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Lists.List Strings.String Program.
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
-From Semantics Require Import semantics cceval2.
+From Semantics Require Import algorithms cceval2.
 
 (************* program traces*****************)
 
 (*trace helpers*)
 (*first three get on my nerves; coq insists that whenever I want to access elements of the_write_stuff
 I need to pass in all elements as separate arguments
-the helpers interface between the sum type and the constituent types but coq
-should be smart enough to unpack the type automatically*)
+
+ Without these helpers in CTrace_App,
+when I try to use the CTrace_App constructor inside another function,
+it'll complain that I'm passing in a trace defined with
+ the_write_stuff when I should actually be passing in
+a trace defined with a triple...
+ *)
 Definition getwt (W: the_write_stuff) := match W with (out, _, _ )=> out end.
 
 Definition getrd (W: the_write_stuff) := match W with (_, out , _ )=> out end.
 
 Definition getfstwt (W: the_write_stuff) := match W with (_, _, out )=> out end.
 
-Definition el_arrayexp_eq (e: el) (a: array) (eindex: exp) (N: nvmem) (V: vmem) := (*transitions from el type to a[exp] representation*)
-  (samearray e a) /\
-  exists(r: readobs) (vindex: value), eeval N V eindex r vindex /\
-                                 (eq_value (getindexel e) vindex).
 
-Program Definition single_com (C: context) :=
-  match C with (_, _, c) =>
-  (match c with
-    Ins _ => True
-   | _ => False end) end.
-
-(*start here*)
-
-Program Definition single_com_i (C: iconf) :=
-  match C with (_, _, c) =>
-  (match c with
-    Ins _ => True
-  | _ => False end) end.
 (*Notes:*)
 (*do I keep track of volatile writes as well...I don't think so
  cuz the writes don't last and they all have to be checkpointed anyways*)
@@ -45,9 +33,6 @@ Program Definition single_com_i (C: iconf) :=
 (*at first inspection it doesn't seem like it would be all that hard to keep track of this
  since we're already doing MFstWt for novolatiles.*)
 
-(* Concern:
-DO need one step evaluation in order to stop at a checkpoint...nvm lol
- *)
 (*concern: cconf and context are functionally the same but cconf has an annoying constructor
  which can't be coerced bc context exists, consider combining into one type?*)
 
@@ -64,7 +49,9 @@ DO need one step evaluation in order to stop at a checkpoint...nvm lol
 
 (*continuous traces*)
 Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Prop :=
-  CTrace_Single: forall {C1 C2: context} {O: obseq} {W: the_write_stuff},
+  CTrace_Empty: forall(C: context),
+                 trace_c C C nil (nil, nil, nil)
+  | CTrace_Single: forall {C1 C2: context} {O: obseq} {W: the_write_stuff},
                   single_com C1 -> (*checks program cannot be stepped more than once*)
                   cceval_w C1 O C2 W -> (*command in C2 is skip by def single_com, cceval_w*)
                   trace_c C1 C2 O W
@@ -78,25 +65,28 @@ Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Prop :=
     trace_c C1 C2 (O1 ++ O2) ((getwt W1) ++ (getwt W2), (getrd W1) ++ (getrd W2), (getfstwt W1) ++
                                                                                                 (remove in_loc_b (getrd W1)
                                                                                                         (getfstwt W2))).
- (*App makes for easy subtraces by allowing the trace to be partitioned anywhere*)
+ (*App makes for easy subtraces by allowing command in C2 not to be skip*)
 
 (*intermittent traces*)
  (*the same as trace_c bar types as differences between
   intermittent and continuous execution have been implemented in evals*)
-Inductive trace_i (C1 C2: iconf): obseq -> the_write_stuff -> Prop :=
-  iTrace_Single: forall(O: obseq) (W: the_write_stuff),
+Inductive trace_i : iconf -> iconf -> obseq -> the_write_stuff -> Prop :=
+iTrace_Empty: forall{C: iconf},
+                 trace_i C C nil (nil, nil, nil)
+|iTrace_Single: forall{C1 C2: iconf} {O: obseq} {W: the_write_stuff},
                   single_com_i C1 -> (*checks program cannot be stepped more than once*)
                   iceval_w C1 O C2 W -> (*command in C2 is skip by def single_com, iceval_w*)
                   trace_i C1 C2 O W
-| iTrace_App: forall{Cmid: iconf} {O1 O2: obseq}
-         {Wt1 RD1 FstWt1 Wt2 RD2 FstWt2: list loc},
-    trace_i C1 Cmid O1 (Wt1, RD1, FstWt1)-> (*steps first section*)
-    trace_i Cmid C2 O2 (Wt2, RD2, FstWt2)-> (*steps rest of program*)
-    trace_i C1 C2 (O1 ++ O2)((Wt1 ++ Wt2), (RD1 ++ RD2), (FstWt1 ++ (remove in_loc_b RD1 FstWt2))).
+| iTrace_App: forall{C1 C2 Cmid: iconf} {O1 O2: obseq}
+         {W1 W2: the_write_stuff},
+    trace_i C1 Cmid O1 W1 -> (*steps first section*)
+    trace_i Cmid C2 O2 W2 -> (*steps rest of program*)
+    trace_i C1 C2 (O1 ++ O2) ((getwt W1) ++ (getwt W2), (getrd W1) ++ (getrd W2), (getfstwt W1) ++
+                                                                                                (remove in_loc_b (getrd W1)
+                                                                                                        (getfstwt W2))).
 
 (*more trace helpers*)
 
-Check iTrace_App.
 
 Definition Wt {C1 C2: context} {O: obseq} {W: the_write_stuff}
   (T: trace_c C1 C2 O W) := getwt W.
@@ -104,53 +94,29 @@ Definition Wt {C1 C2: context} {O: obseq} {W: the_write_stuff}
 Definition FstWt {C1 C2: context} {O: obseq} {W: the_write_stuff}
   (T: trace_c C1 C2 O W) := getfstwt W.
 
-Check CTrace_App.
-(*hacky fix...unbelievable that coq is stupid enough to make me need this...
- when I try to use the CTrace_App constructor straight he complains that I'm passing in
- the_write_stuff when I should actually be giving a triple...doesn't unfold the types??
- Ask Arthur about this*)
-(*Program Definition append {C1 C2 Cmid: context} {O1 O2: obseq}
-         {W1 W2: the_write_stuff}
-    (T1: trace_c C1 Cmid O1 W1)
-    (T2: trace_c Cmid C2 O2 W2) :=
-       match W1, W2 with (Wt1, Rd1, FstWt1), (Wt2, Rd2, FstWt2) =>
-           CTrace_App (trace_c C1 Cmid O1 (Wt1, Rd1, FstWt1)) (trace_c Cmid C2 O2 (Wt2, Rd2, FstWt2)) end. *)
-(*Definition append {C1 C2 Cmid: context} {O1 O2: obseq}
-         {WT1 RD1 FstWt1 WT2 RD2 FstWt2: list loc}
-    (T1: trace_c C1 Cmid O1 W1)
-    (T2: trace_c Cmid C2 O2 W2) :=
-       match T1, T2 with trace_i C1 Cmid O1 (Wt1, Rd1, FstWt1),
-                         trace_i Cmid C2 O2 (Wt2, Rd2, FstWt2) =>
-           CTrace_App (trace_i C1 Cmid O1 (Wt1, Rd1, FstWt1)) (trace_i Cmid C2 O2 (Wt2, Rd2, FstWt2)) end.*)
-
-
-(*trace_i C1 Cmid O1 (WT1, RD1, FstWt1)-> (*steps first section*)
-    trace_i Cmid C2 O2 (WT2, RD2, FstWt2)-> *)
-
-
-
-(*Program Definition append {C1 Cmid C2: context} {O1 O2: obseq} {W1 W2: }
-        (T1: trace_c C1 Cmid) (T2: trace_c Cmid C3) :=
-  match T1, T2 with*)
-
 
 (**********************************************************************************)
 
 
 (*relations between continuous and intermittent memory*)
 
+
+(*Definition 4*)
 (*concern: not yet clear to me why we need the vmem parameter; pending further inspection of
  proofs*)
 (*idea: helpers for determining if valid subtraces instead of taking in extra Vs*)
 (*concern: liberal use of intensional equality with nvmem*)
-Inductive same_ex_point: vmem -> command -> command -> nvmem -> nvmem -> Prop:=
-same_program: forall {N0 N1 N2: nvmem}
+(*N0, V0 is starting state for both executions
+ N1, V1 and Ncomp are middle states of intermittent, continuous respectively
+ V1 isn't used anywhere it's just to fill out the type
+ N2, V2 is final state for intermittent, once again solely to fill out the type*)
+Inductive same_pt: nvmem -> vmem -> command -> command -> nvmem -> nvmem -> Prop:=
+same_mem: forall {N0 N1 N2 Ncomp: nvmem}
                   {V0 V1 V2: vmem}
                   {c0 c1: command}
                   {W1 W2: the_write_stuff}
                   {O1 O2: obseq}
                   {w: warvars}
-                  (Ncomp: nvmem)
                   (T1: trace_c (N0, V0, c0) (N1, V1, c1) O1 W1)
                   (T2: trace_c (N1, V1, c1) (N2, V2, Ins (incheckpoint w)) O2 W2),
                   (getdomain N1) = (getdomain Ncomp) 
@@ -158,9 +124,45 @@ same_program: forall {N0 N1 N2: nvmem}
                   -> not (In checkpoint O2) (*checks checkpoint T2 ends on is nearest checkpoint*)
                  -> (forall(l: loc),
                       not((getmap N1) l = (getmap Ncomp) l)
-                      -> ((In l (Wt T1)) /\ (In l (FstWt (CTrace_App T1 T2))) /\ not (In l (Wt T1))))
-                  -> same_ex_point V0 c0 c1 N1 Ncomp.
-(*need to check for NEAREST checkpoint
-well, the checkpoint T2 ends on hasn't been executed yet, so shouldn't so up in observation sequence
+                      -> ((In l (Wt T2)) /\ (In l (FstWt (CTrace_App T1 T2))) /\ not (In l (Wt T1))))
+                  -> same_pt N0 V0 c0 c1 N1 Ncomp.
+(*Definition 5*)
+(*N0, V0 is starting state for both executions
+ N1 V1 is middle state for intermittent
+N is state of checkpoint at N1
+ V1 isn't used anywhere it's just to fill out the type
+ N2, V2 is final state for intermittent, once again solely to fill out the type*)
+Inductive current_init_pt: nvmem -> vmem -> command -> nvmem -> nvmem -> Prop:=
+valid_mem: forall {N N0 N1 N2: nvmem}
+                  {V0 V1 V2: vmem}
+                  {c: command}
+                  {W : the_write_stuff}
+                  {O: obseq}
+                  {w: warvars}
+                  (T: trace_c (N1, V1, c) (N2, V2, Ins (incheckpoint w)) O W),
+                  (getdomain N1) = (getdomain N0) 
+                  -> not (In checkpoint O) (*checks checkpoint T ends on is nearest checkpoint*)
+                 -> (forall(l: loc),
+                      not((getmap N1) l = (getmap N0) l)
+                      -> (In l (FstWt T)) \/ (In (loc_warvar l) (getdomain N)))
+                 -> current_init_pt N V1 c N1 N0.
+
+(*Definition 6*)
+(*concern: Typo in paper, N0, V0 is left out of invocation of Def 4*)
+(*(N0, V0, c0) is checkpoint state at time c1
+N1 V c is intermittent state
+N2 V c is continuous state starting from same state as checkpoint
+concern: using context instead of cconf
  *)
+(*took out equality premises and built them into the types*)
+Check same_pt.
+Inductive same_config: iconf -> context -> Prop :=
+  SameConfig: forall(N0 N1 N2: nvmem)
+                (V0 V: vmem)
+                (c0 c: command),
+                same_pt N0 V0 c0 c N1 N2 -> (*nvms are extensionally the same by same_pt
+                                          vms and cs are intensionally the same by types*)
+                same_config ((N0, V0, c0), N1, V, c) (N2, V, c).
+
+
 

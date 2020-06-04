@@ -389,6 +389,7 @@ Notation "l ';;' c" := (Seqcom l c)
 Notation "'TEST' e 'THEN' c1 'ELSE' c2 " := (ITE e c1 c2)
                                               (at level 100).
 Coercion Ins : instruction >-> command.
+
 (*******************************************************************)
 
 (******setting up location equality relation for memory maps******************)
@@ -475,6 +476,24 @@ Definition indomain_nvm (N: nvmem) (w: warvar) :=
 Definition isdomain_nvm (N: nvmem) (w: warvars) :=
   eq_lists (getdomain N) w eq_warvar.
 
+Definition subset_nvm (N1 N2: nvmem) :=
+  (incl (getdomain N1) (getdomain N2)) /\ (forall(l: loc),
+                                    In (loc_warvar l) (getdomain N1) ->
+                                    (getmap N1) l = (getmap N2) l
+                                  ).
+Lemma sub_disclude: forall(N0 N1 N2: nvmem) (l: loc),
+                     subset_nvm N0 N1 ->
+                     subset_nvm N0 N2 ->
+                     not ((getmap N1) l = (getmap N2) l)
+                     -> not (In (loc_warvar l) (getdomain N0)).
+Proof. intros. intros contra. unfold subset_nvm in H. destruct H.
+       remember contra as contra1. clear Heqcontra1.
+       apply H2 in contra.
+       unfold subset_nvm in H0. destruct H0. apply H3 in contra1.
+       symmetry in contra.
+       apply (eq_trans contra) in contra1.
+       apply H1. assumption.
+Qed.
 (********************************************)
 Inductive cconf := (*continuous configuration*)
   ContinuousConf (triple: nvmem * vmem * command).
@@ -502,6 +521,19 @@ Notation obseq := (list obs). (*observation sequence*)
 
 Open Scope list_scope.
 
+(*helpers for configs*)
+Definition single_com (C: context) :=
+  match C with (_, _, c) =>
+  (match c with
+    Ins _ => True
+   | _ => False end) end.
+
+Definition single_com_i (C: iconf) :=
+  match C with (_, _, c) =>
+  (match c with
+    Ins _ => True
+  | _ => False end) end.
+
 (*helpers for observations and warvars*)
 
 (*converts from list of read locations to list of
@@ -527,6 +559,7 @@ Fixpoint readobs_loc (R: readobs): (list loc) :=
              (location, _) => location :: (readobs_loc rs)
            end
   end.
+
 
 (*relations between continuous and intermittent observations*)
 (*Definition reduces (O1 O2: readobs) :=
@@ -787,6 +820,11 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
 into the types because I didn't want to define a context equality function*)
 
 (********************************************)
-
+(*helpers that use the evals*)
+Definition el_arrayexp_eq (e: el) (a: array) (eindex: exp) (N: nvmem) (V: vmem) := (*transitions from el type to a[exp] representation*)
+  (samearray e a) /\
+  exists(r: readobs) (vindex: value), eeval N V eindex r vindex /\
+                                 (eq_value (getindexel e) vindex).
+(******)
 Close Scope list_scope.
 Close Scope type_scope.

@@ -5,7 +5,7 @@ Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
 From TLC Require Import LibTactics.
 Import ListNotations.
-From Semantics Require Export algorithms.
+From Semantics Require Import programs semantics algorithms. (*shouldn't have to import both of these*)
 
 Open Scope list_scope.
 (*Lemma consRight: forall(A: Type) (L1 L2: list A) (a: A), incl L1 L2 -> incl L*)
@@ -54,5 +54,21 @@ Theorem DINO_WAR_correct: forall(N W R N': warvars) (c c': command),
       ((apply IHDINO1; apply incl_app_l in Hincl)
        || (apply IHDINO2; apply incl_app_r in Hincl)); assumption.
   - intros. apply WAR_CP. apply IHDINO. apply (incl_refl N').
-  Qed.
+Qed.
+Check sub_disclude.
+Lemma eight: forall(N0 N1 N2: nvmem) (V0: vmem) (c0: command),
+              (subset_nvm N0 N1) ->
+              (subset_nvm N0 N2) ->
+              current_init_pt N0 V0 c0 N1 N2 ->
+              same_pt N1 V0 c0 c0 N1 N2.
+Proof. intros. inversion H1. subst.
+       apply (same_mem (CTrace_Empty (N1, V0, c0))
+                       T); (try assumption).
+       - simpl. intros contra. contradiction.
+       - intros. simpl. split.
+         + assert (H6: not (In (loc_warvar l) (getdomain N0))) by
+               apply (sub_disclude N0 N1 N2 l H H0 H5).
+           apply H4 in H5. apply H6 in H5.
+           Admitted.
+(*ah i need that sweet nonconstructive logic*)
 Close Scope list_scope.
