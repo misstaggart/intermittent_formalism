@@ -108,11 +108,15 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
   inversion H0; subst.
   + exists W. exists R. assumption.
   + unfold single_com in H2.
+    induction c'.
+  - induction l.
+    + applys WAR_I.
+    applys WAR_I.
     induction c. inversion H3; subst; exists W R; applys WAR_I; constructor.
     (*the existence is hacky here but I can't
                             figure out how to be smarter
                             w instantiations*)
-    - constructor. 
+    -  
     - applys WAR_Vol.
 
       inversion H3. subst.
