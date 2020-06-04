@@ -99,6 +99,13 @@ Proof. intros. induction H.
                                     IHtrace_c2)).
 Qed.
 
+Lemma filter_false: forall{A: Type} (L1: list A),
+    filter (fun x => negb false) L1 = L1.
+  induction L1.
+  - reflexivity.
+  - simpl. rewrite IHL1. reflexivity.
+Qed.
+
 Lemma eight: forall(N0 N1 N2: nvmem) (V0: vmem) (c0: command),
               (subset_nvm N0 N1) ->
               (subset_nvm N0 N2) ->
@@ -108,15 +115,17 @@ Proof. intros. inversion H1. subst.
        apply (same_mem (CTrace_Empty (N1, V0, c0))
                        T); (try assumption).
        - simpl. intros contra. contradiction.
-       - intros. simpl. split.
-         + assert (H6: not (In (loc_warvar l) (getdomain N0))) by
+       - intros. simpl.
+         assert (H6: not (In (loc_warvar l) (getdomain N0))) by
                apply (sub_disclude N0 N1 N2 l H H0 H5).
-           apply H4 in H5. destruct H5. 
+           apply H4 in H5. destruct H5. split. 
          + unfold Wt. apply ((wt_subst_fstwt T) l H5).
+         + split.
+             - unfold remove. unfold in_loc_b. rewrite filter_false.
+                 apply H5.
+             - intros contra. contradiction.
          + apply H6 in H5. contradiction.
-       - split.
-         + simpl.
-           apply H6 in H5.
-           Admitted.
-(*ah i need that sweet nonconstructive logic*)
+Qed.
+
+
 Close Scope list_scope.
