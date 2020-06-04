@@ -623,13 +623,6 @@ Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     eeval N V (a[[index]]) (rindex++[((inr element), v)]) v
 .
-(*ask Arthur why this notation doesn't work *)
-
-(*Reserved Notation "'{'N V'}=[' e ']=> <'r'>' v" (at level 40).
-Inductive eevaltest: nvmem -> vmem -> exp -> obs -> value -> Prop :=
-  VAL: forall(N: nvmem) (V: vmem) (v: value), 
-    {N V} =[ v ]=> <reboot> v
-  where "{N V}=[ e ]=> <r> v" := (eevaltest N V e r v).*)
 
 (****************************************************************************)
 

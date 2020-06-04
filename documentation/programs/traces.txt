@@ -1,0 +1,9 @@
+Trace helpers:
+
+getwt: the_write_stuff -> list loc
+getrd: the_write_stuff -> list loc
+getfstwt:  the_write_stuff -> list loc
+
+Wt: trace_c C1 C2 O W -> list loc
+FstWt: trace_c C1 C2 O W -> list loc
+

@@ -97,5 +97,8 @@ Proof. intros. inversion H1. subst.
          + apply H6 in H5. contradiction.
 Qed.
 
+Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
+            (O: obseq) (c c': command)
+
 
 Close Scope list_scope.

@@ -39,13 +39,13 @@ Definition getfstwt (W: the_write_stuff) := match W with (_, _, out )=> out end.
 
 (*The trace type contains
 1. starting configuration
-2. execution observations
-3. ending configuration
-3. a list of warvars which have been written to
-4. a list of warvars which have been read from
-5. a list of warvars which have been written to before they have been read from
+2. ending configuration
+3. execution observations
+4. a list of warvars which have been written to
+5. a list of warvars which have been read from
+6. a list of warvars which have been written to before they have been read from
  *)
-(*Ordering: start -> observations -> end -> the_write_stuff*)
+(*Ordering: start -> end -> observations -> the_write_stuff*)
 (*steps to termination, accumulates write data*)
 
 (*continuous traces*)
