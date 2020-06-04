@@ -56,6 +56,17 @@ Theorem DINO_WAR_correct: forall(N W R N': warvars) (c c': command),
   - intros. apply WAR_CP. apply IHDINO. apply (incl_refl N').
 Qed.
 Check sub_disclude.
+
+Lemma wt_subst_fstwt: forall(C1 C2: context) (O: obseq) (W: the_write_stuff),
+  trace_c C1 C2 O W ->
+    incl (getwt W) (getfstwt W).
+Proof. intros. induction H. intros. generalize C1.
+       generalize dependent C2.
+       generalize dependent O.
+       generalize dependent W.
+       induction T.
+
+Qed.
 Lemma eight: forall(N0 N1 N2: nvmem) (V0: vmem) (c0: command),
               (subset_nvm N0 N1) ->
               (subset_nvm N0 N2) ->
@@ -68,7 +79,7 @@ Proof. intros. inversion H1. subst.
        - intros. simpl. split.
          + assert (H6: not (In (loc_warvar l) (getdomain N0))) by
                apply (sub_disclude N0 N1 N2 l H H0 H5).
-           apply H4 in H5. apply H6 in H5.
+           apply H4 in H5. destruct H5. apply H6 in H5.
            Admitted.
 (*ah i need that sweet nonconstructive logic*)
 Close Scope list_scope.
