@@ -8,6 +8,15 @@ From Semantics Require Import semantics cceval2.
 (************* program traces*****************)
 
 (*trace helpers*)
+(*first three get on my nerves; coq insists that whenever I want to access elements of the_write_stuff
+I need to pass in all elements as separate arguments
+the helpers interface between the sum type and the constituent types but coq
+should be smart enough to unpack the type automatically*)
+Definition getwt (W: the_write_stuff) := match W with (out, _, _ )=> out end.
+
+Definition getrd (W: the_write_stuff) := match W with (_, out , _ )=> out end.
+
+Definition getfstwt (W: the_write_stuff) := match W with (_, _, out )=> out end.
 
 Definition el_arrayexp_eq (e: el) (a: array) (eindex: exp) (N: nvmem) (V: vmem) := (*transitions from el type to a[exp] representation*)
   (samearray e a) /\
@@ -39,12 +48,8 @@ Program Definition single_com_i (C: iconf) :=
 (* Concern:
 DO need one step evaluation in order to stop at a checkpoint...nvm lol
  *)
-
-(*using context instead of cconf cuz they're exactly the same
- but cconf has an annoying constructor*)
-
-
-
+(*concern: cconf and context are functionally the same but cconf has an annoying constructor
+ which can't be coerced bc context exists, consider combining into one type?*)
 
 (*The trace type contains
 1. starting configuration
@@ -64,13 +69,15 @@ Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Prop :=
                   cceval_w C1 O C2 W -> (*command in C2 is skip by def single_com, cceval_w*)
                   trace_c C1 C2 O W
 | CTrace_App: forall{C1 C2 Cmid: context} {O1 O2: obseq}
-                {WT1 RD1 FstWt1 WT2 RD2 FstWt2: list loc},
+               {W1 W2: the_write_stuff},
     (*not (single_com C1) -> unclear if this is necessary as implied by
      the fact that c1 can be stepped at least twice...
      will try and prove without it and if it gets messy I'll add it*)
-    trace_c C1 Cmid O1 (WT1, RD1, FstWt1)-> (*steps first section*)
-    trace_c Cmid C2 O2 (WT2, RD2, FstWt2) -> (*steps rest of program*)
-    trace_c C1 C2 (O1 ++ O2)((WT1 ++ WT2), (RD1 ++ RD2), (FstWt1 ++ (remove in_loc_b RD1 FstWt2))).
+    trace_c C1 Cmid O1 W1 -> (*steps first section*)
+    trace_c Cmid C2 O2 W2 -> (*steps rest of program*)
+    trace_c C1 C2 (O1 ++ O2) ((getwt W1) ++ (getwt W2), (getrd W1) ++ (getrd W2), (getfstwt W1) ++
+                                                                                                (remove in_loc_b (getrd W1)
+                                                                                                        (getfstwt W2))).
  (*App makes for easy subtraces by allowing the trace to be partitioned anywhere*)
 
 (*intermittent traces*)
@@ -92,13 +99,10 @@ Inductive trace_i (C1 C2: iconf): obseq -> the_write_stuff -> Prop :=
 Check iTrace_App.
 
 Definition Wt {C1 C2: context} {O: obseq} {W: the_write_stuff}
-  (T: trace_c C1 C2 O W) :=
-  match W with (out, _, _ )=> out end.
-
+  (T: trace_c C1 C2 O W) := getwt W.
 
 Definition FstWt {C1 C2: context} {O: obseq} {W: the_write_stuff}
-  (T: trace_c C1 C2 O W) :=
-  match W with (_, _, out)=> out end.
+  (T: trace_c C1 C2 O W) := getfstwt W.
 
 Check CTrace_App.
 (*hacky fix...unbelievable that coq is stupid enough to make me need this...
@@ -152,7 +156,7 @@ same_program: forall {N0 N1 N2: nvmem}
                   (getdomain N1) = (getdomain Ncomp) 
                   -> not (In checkpoint O1)
                   -> not (In checkpoint O2) (*checks checkpoint T2 ends on is nearest checkpoint*)
-                  (forall(l: loc),
+                 -> (forall(l: loc),
                       not((getmap N1) l = (getmap Ncomp) l)
                       -> ((In l (Wt T1)) /\ (In l (FstWt (CTrace_App T1 T2))) /\ not (In l (Wt T1))))
                   -> same_ex_point V0 c0 c1 N1 Ncomp.
