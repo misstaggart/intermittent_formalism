@@ -97,8 +97,31 @@ Proof. intros. inversion H1. subst.
          + apply H6 in H5. contradiction.
 Qed.
 
+(*N0 is checkpointed variables*)
 Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
-            (O: obseq) (c c': command)
+            (O: obseq) (c c': command),
+            WARok N0 W R c ->
+            multi_step_c (N, V, c) (N', V', c') O ->
+            not (In checkpoint O) ->
+            exists(W' R': warvars), WARok N0 W' R' c'.
+  intros. unfold multi_step_c in H0. destruct H0 as [Wr].
+  inversion H0; subst.
+  + exists W. exists R. assumption.
+  + unfold single_com in H2.
+    induction c. inversion H3; subst; exists W R; applys WAR_I; constructor.
+    (*the existence is hacky here but I can't
+                            figure out how to be smarter
+                            w instantiations*)
+    - constructor. 
+    - applys WAR_Vol.
+
+      inversion H3. subst.
+    (try (apply WAR_I); constructor).
+             eapply H. induction c'.
+    - simpl.
+
+  exists(locs_warvars (getwt Wr)). exists(locs_warvars (getrd Wr)).
+
 
 
 Close Scope list_scope.

@@ -179,18 +179,18 @@ Definition eq_valueop (x y : option value) :=
   end.
 
 (*memory maps...used for both memories and checkpoints*)
-Definition map (A: Type) (eqba: A -> A -> bool):= A -> value.
+Definition map_t (A: Type) (eqba: A -> A -> bool):= A -> value.
 
 (*memory helpers*)
-Definition emptymap A eqba :(map A eqba) := (fun _ => error).
-Definition updatemap {A} {eqba} (m: map A eqba) (i: A) (v: value) : map A eqba := (fun j =>
+Definition emptymap A eqba :(map_t A eqba) := (fun _ => error).
+Definition updatemap {A} {eqba} (m: map_t A eqba) (i: A) (v: value) : map_t A eqba := (fun j =>
                                                                if (eqba j i) then v
                                                                else (m j)).
 Notation "i '|->' v ';' m" := (updatemap m i v)
   (at level 100, v at next level, right associativity).
 (*in (m1 U! m2), m1 is checked first, then m2*)
 
-Definition indomain {A} {eqba} (m: map A eqba) (x: A) :=
+Definition indomain {A} {eqba} (m: map_t A eqba) (x: A) :=
   match m x with
     error => False
   | _ => True
@@ -361,8 +361,12 @@ Fixpoint loc_warvar (l: loc) : warvar :=
   | inr el => inr (getarray el)
   end.
 
+Definition locs_warvars (L: list loc) :=
+  map loc_warvar L.
+
 
 (*checks if a location input has been stored as a WAR location in w*)
+(*ask arthur...what is up with coq.lists map function?*)
 Definition memberloc_wvs_b (input: loc) (w: warvars) :=
   memberwv_wv_b (loc_warvar input) w.
 (*******************************************************************)
@@ -398,7 +402,7 @@ Coercion Ins : instruction >-> command.
 (****************************memory*************************************)
 
 (*memory locations defined above warvars*)
-Notation mem := (map loc eqb_loc). (*memory mapping*)
+Notation mem := (map_t loc eqb_loc). (*memory mapping*)
 
 Inductive nvmem := (*nonvolatile memory*)
   NonVol (m : mem) (D: warvars). (*extra argument to keep track of checkpointed warvars because

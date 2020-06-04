@@ -6,6 +6,8 @@ From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
 From Semantics Require Import algorithms.
 
 Open Scope list_scope.
+
+Open Scope type_scope.
 (************* program traces*****************)
 
 (*trace helpers*)
@@ -86,6 +88,12 @@ iTrace_Empty: forall{C: iconf},
                                                                                                 (remove in_loc_b (getrd W1)
                                                                                                         (getfstwt W2))).
 
+Definition multi_step_c (C1 C2: context) (O: obseq) :=
+    exists W: the_write_stuff, trace_c C1 C2 O W.
+          
+
+Definition multi_step_i (C1 C2: iconf) (O: obseq) :=
+    exists W: the_write_stuff, trace_i C1 C2 O W.
 (*more trace helpers*)
 
 
@@ -105,7 +113,6 @@ Definition FstWt {C1 C2: context} {O: obseq} {W: the_write_stuff}
 (*Definition 4*)
 (*concern: not yet clear to me why we need the vmem parameter; pending further inspection of
  proofs*)
-(*idea: helpers for determining if valid subtraces instead of taking in extra Vs*)
 (*concern: liberal use of intensional equality with nvmem*)
 (*N0, V0 is starting state for both executions
  N1, V1 and Ncomp are middle states of intermittent, continuous respectively
@@ -164,6 +171,6 @@ Inductive same_config: iconf -> context -> Prop :=
                 same_pt N0 V0 c0 c N1 N2 -> (*nvms are extensionally the same by same_pt
                                           vms and cs are intensionally the same by types*)
                 same_config ((N0, V0, c0), N1, V, c) (N2, V, c).
+
 Close Scope list_scope.
-
-
+Close Scope type_scope.
