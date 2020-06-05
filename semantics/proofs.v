@@ -34,7 +34,7 @@ Proof. intros C1 C2 O W T. induction T.
            (try (simpl; apply (incl_refl [])));
            (try (unfold getfstwt; unfold getwt;
                  apply remove_subst)).
-       - inversion s.
+       - assumption.
        - simpl. apply (incl_app_dbl IHT1
                                     (incl_tran
                                     (remove_subst _ _ _)
@@ -142,7 +142,8 @@ Lemma observe_checkpt: forall {N N': nvmem} {V V': vmem}
   intros N N' V V' c c' w O W T.
   dependent induction T.
   + left. reflexivity.
-  + inversion s.
+  +  inversion c0; subst. right.  apply(in_eq checkpoint).
+     inversion H8.
   + destruct3 Cmid. destruct (IHT1 N nmid V vmid c cmid w); subst; try reflexivity.
       - destruct (IHT2 nmid N' vmid V' c c' w); subst; try reflexivity;
           [left; reflexivity | right; apply (in_app_r H)].
@@ -162,7 +163,8 @@ Lemma single_step_all: forall{N N2: nvmem} {V V2: vmem}
                                           ).
   intros N N2 V V2 l c c2 O W T H. dependent induction T. 
   + exfalso. apply H. reflexivity.
-  + inversion s.
+  + inversion c0; subst; exists N2 V2 (nil : obseq); try (split;
+                                                     [exists emptysets; repeat constructor | apply empty_sub]).
   + destruct3 Cmid. assert (Dis: (l ;; c) = cmid \/ not ((l;;c) = cmid))
       by (apply classic). destruct Dis.
   - subst. 

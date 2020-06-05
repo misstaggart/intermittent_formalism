@@ -30,6 +30,8 @@ Definition getrd (W: the_write_stuff) := match W with (_, out , _ )=> out end.
 
 Definition getfstwt (W: the_write_stuff) := match W with (_, _, out )=> out end.
 
+Notation emptysets := ((nil : list loc), (nil: list loc), (nil: list loc)).
+
 (*Michael look here*)
 (*...do you get it....append the write sets....append the RIGHT sets....... :3*)
 Definition append_write (W1 W2: the_write_stuff) :=
@@ -63,7 +65,6 @@ Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Type :=
   CTrace_Empty: forall(C: context),
                  trace_c C C nil (nil, nil, nil)
   | CTrace_Single: forall {C1 C2: context} {O: obseq} {W: the_write_stuff},
-                  single_com C1 -> (*checks program cannot be stepped more than once*)
                   cceval_w C1 O C2 W -> (*command in C2 is skip by def single_com, cceval_w*)
                   trace_c C1 C2 O W
 | CTrace_App: forall{C1 C2 Cmid: context} {O1 O2: obseq}
@@ -83,7 +84,6 @@ Inductive trace_i : iconf -> iconf -> obseq -> the_write_stuff -> Prop :=
 iTrace_Empty: forall{C: iconf},
                  trace_i C C nil (nil, nil, nil)
 |iTrace_Single: forall{C1 C2: iconf} {O: obseq} {W: the_write_stuff},
-                  single_com_i C1 -> (*checks program cannot be stepped more than once*)
                   iceval_w C1 O C2 W -> (*command in C2 is skip by def single_com, iceval_w*)
                   trace_i C1 C2 O W
 | iTrace_App: forall{C1 C2 Cmid: iconf} {O1 O2: obseq}
