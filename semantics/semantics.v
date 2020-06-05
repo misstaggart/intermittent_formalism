@@ -647,6 +647,9 @@ Notation the_write_stuff := ((list loc) * (list loc) * (list loc)).
 
 (*Single steps, accumulates write data*)
 (*Note: program consisting of just a checkpoint is illegal...huh*)
+
+
+
 Inductive cceval_w: context -> obseq -> context -> the_write_stuff -> Prop :=
 CheckPoint: forall(N: nvmem)
                (V: vmem)

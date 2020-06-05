@@ -3,7 +3,7 @@ From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Lists.List Strings.String Program.
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
-From TLC Require Import LibTactics.
+From TLC Require Import LibTactics LibLogic.
 Import ListNotations.
 From Semantics Require Import programs semantics algorithms lemmas. (*shouldn't have to import both of these*)
 
@@ -137,10 +137,25 @@ Lemma observe_checkpt: forall {N N': nvmem} {V V': vmem}
       - right. apply (in_app_l H).
 Qed.
 
-Lemma single_step: forall{N N': nvmem} {V V': vmem}
-                    {l: instruction} {c: command}
+Lemma single_step: forall{N N2: nvmem} {V V2: vmem}
+                    {l: instruction} {c c2: command}
                     {O: obseq} {W: the_write_stuff},
+    trace_c (N, V, l;;c) (N2, V2, c2) O W ->
+    not ((l ;;c ) = c2) -> (*empty trace case *)
+    exists(N1: nvmem) (V1: vmem) (O1: obseq), multi_step_c (N1, V1, c) (N2, V2, c2) O1.
+  intros N N2 V V2 l c c2 O W T H. dependent induction T. 
+  + exfalso. apply H. reflexivity.
+  + inversion s.
+  + destruct3 Cmid. assert (Dis: ((l;;c) = cmid) + not ((l;;c) = cmid))
+    by classicT.
 
+    (l;;c = cmid).
+
+
+
+    assert (Hmid: exists N3 V3 O3,
+                               multi_step_c (N3, V3, c) (nmid, vmid, cmid) O3).
+                   - eapply IHT1. reflexivity. reflexivity.
 
 (*N0 is checkpointed variables*)
 Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
