@@ -27,17 +27,17 @@ Qed.
 Lemma wt_subst_fstwt: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
   trace_c C1 C2 O W ->
     incl (getfstwt W) (getwt W).
-Proof. intros. induction H.
+Proof. intros C1 C2 O W T. induction T.
        + simpl. apply (incl_refl []).
-       + induction H0;
+       + induction c;
            (try (simpl; apply (incl_refl [])));
            (try (unfold getfstwt; unfold getwt;
                  apply remove_subst)).
-       - subst. simpl in H. contradiction.
-       - simpl. apply (incl_app_dbl IHtrace_c1
+       - inversion s.
+       - simpl. apply (incl_app_dbl IHT1
                                     (incl_tran
                                     (remove_subst _ _ _)
-                                    IHtrace_c2)).
+                                    IHT2)).
 Qed.
 
 (*actual lemmas*)
@@ -98,6 +98,25 @@ Proof. intros. inversion H1. subst.
 Qed.
 
 (*N0 is checkpointed variables*)
+(*make ltac for destructing triples*)
+Lemma trace_stops: forall {N N': nvmem} {V V': vmem}
+                    {l: instruction} {c: command}
+  {O: obseq} {W: the_write_stuff},
+    trace_c (N, V, Ins l) (N', V', c) O W ->
+    (c = Ins l) \/ (c = skip).
+Proof.
+  intros N N' V V' l c O W T. dependent induction T.
+  + constructor.
+  + reflexivity.
+    inversion c0; subst; constructor.
+  + destruct Cmid as [Annoying cmid].
+    destruct Annoying as [nmid vmid].
+    assert (single_com (nmid, vmid, cmid)).
+    {
+      apply (IHT1 N nmid V vmid l cmid); reflexivity.
+    }
+  + inversion H. subst. eapply IHT2; reflexivity.
+  Qed.
 Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
             (O: obseq) (c c': command),
             WARok N0 W R c ->
@@ -105,8 +124,55 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
             not (In checkpoint O) ->
             exists(W' R': warvars), WARok N0 W' R' c'.
   intros. unfold multi_step_c in H0. destruct H0 as [Wr].
+  induction H.
+  + inversion H0 as [T]. dependent induction T.
+  + exists W R. applys WAR_I. apply H.
+  + inversion c; subst; try (exists W R; applys WAR_I; constructor).
+  - assert (H2: single_com Cmid).
+    + destruct Cmid as [Annoying cmid].
+      destruct Annoying as [nmid vmid].
+      apply (trace_stops T1).
+      inversion H2. subst. eapply IHT2.
+      assert (WAR_ins N0 W R l0 W' R')
+    +
+
+    inversion T1; subst.
+    + inversion T2; subst; try (applys WAR_I; constructor).
+    + applys WAR_I. apply H.
+
+    destruct Cmid as [Annoying cmid].
+      destruct Annoying as [nmid vmid].
+      apply (IHT1 N nmid V vmid c' l).
+     - assumption.
+     - 
+      apply (inhabits T1 ).
+      
+
+    remember H as Hwarins. clear HeqHwarins. eapply (IHT1) in H. apply H.
+    destruct Cmid as [Annoying cmid]. destruct Annoying
+                                                 as [nmid vmid]. apply (inhabits T1 ).
+    inversion H0; subst.
+       - applys WAR_I. apply H.
+       - inversion H3; subst; try (applys WAR_I; constructor).
+         + inversion H0; subst. applys WAR_I. apply H.
+         + inversion H5; subst; try(applys WAR_I; constructor).
+  + subst.
+
+
   inversion H0; subst.
   + exists W. exists R. assumption.
+  + inversion H2. subst. inversion H3; subst; try (exists W R; applys WAR_I; constructor).
+  - induction H.
+    + inversion H2. subst. inversion H3. subst.
+  - exists W R. applys WAR_I. apply H.
+  - subst. inversion H5. subst. exists W R. applys WAR_I. constructor.
+
+
+    destruct l. constructor.
+
+    + exists W R. applys WAR_I. constructor.
+  induction H.
+  + inversion H0. subst.
   + unfold single_com in H2.
     induction c'.
   - induction l.

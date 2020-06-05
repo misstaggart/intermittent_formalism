@@ -513,11 +513,9 @@ Notation obseq := (list obs). (*observation sequence*)
 Open Scope list_scope.
 
 (*helpers for configs*)
-Definition single_com (C: context) :=
-  match C with (_, _, c) =>
-  (match c with
-    Ins _ => True
-   | _ => False end) end.
+Inductive single_com: context -> Prop :=
+  SingleCom: forall(N: nvmem) (V: vmem) (l: instruction),
+               single_com (N, V, Ins l).
 
 Definition single_com_i (C: iconf) :=
   match C with (_, _, c) =>

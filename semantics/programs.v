@@ -1,6 +1,6 @@
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
-     Init.Datatypes Lists.List Strings.String Program.
+     Init.Datatypes Lists.List Strings.String Program Init.Logic.
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
 From Semantics Require Import algorithms.
@@ -51,7 +51,7 @@ Definition getfstwt (W: the_write_stuff) := match W with (_, _, out )=> out end.
 (*steps to termination, accumulates write data*)
 
 (*continuous traces*)
-Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Prop :=
+Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Type :=
   CTrace_Empty: forall(C: context),
                  trace_c C C nil (nil, nil, nil)
   | CTrace_Single: forall {C1 C2: context} {O: obseq} {W: the_write_stuff},
@@ -60,7 +60,7 @@ Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Prop :=
                   trace_c C1 C2 O W
 | CTrace_App: forall{C1 C2 Cmid: context} {O1 O2: obseq}
                {W1 W2: the_write_stuff},
-    (*not (single_com C1) -> unclear if this is necessary as implied by
+   (* not (single_com C1) -> unclear if this is necessary as implied by
      the fact that c1 can be stepped at least twice...
      will try and prove without it and if it gets messy I'll add it*)
     trace_c C1 Cmid O1 W1 -> (*steps first section*)
@@ -89,7 +89,7 @@ iTrace_Empty: forall{C: iconf},
                                                                                                         (getfstwt W2))).
 
 Definition multi_step_c (C1 C2: context) (O: obseq) :=
-    exists W: the_write_stuff, trace_c C1 C2 O W.
+    exists W: the_write_stuff, inhabited (trace_c C1 C2 O W).
           
 
 Definition multi_step_i (C1 C2: iconf) (O: obseq) :=
