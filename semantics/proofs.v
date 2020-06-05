@@ -165,7 +165,7 @@ Lemma single_step: forall{N N2: nvmem} {V V2: vmem}
        destruct_ms Hmid Tmid Wmid.
        destruct_ms Hend Tend Wend.
        exists var1 var2 (var3 ++ O2).
-       exists (append_write Wmid Wend). constructor.
+       exists (append_write Wmid Wend ). constructor.
        apply (CTrace_App Tmid Tend).
 Qed.
        (*N0 is checkpointed variables*)
@@ -175,9 +175,14 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
             multi_step_c (N, V, c) (N', V', c') O ->
             not (In checkpoint O) ->
             exists(W' R': warvars), WARok N0 W' R' c'.
-  intros. unfold multi_step_c in H0. destruct H0 as [Wr].
-  induction H.
-  + inversion H0 as [T]. dependent induction T.
+  intros.
+  unfold multi_step_c in H0. destruct H0 as [Wr].
+  generalize dependent N.
+  generalize dependent V.
+  induction H; intros.
+  + 
+    inversion H0 as [T].
+    dependent induction T.
   + exists W R. applys WAR_I. apply H.
   + inversion c; subst; try (exists W R; applys WAR_I; constructor).
   - destruct3 Cmid. 
@@ -191,7 +196,14 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
       + inversion H0 as [T]. apply observe_checkpt in T. destruct T.
         - subst. exists W R. constructor. assumption.
         - apply H1 in H2. contradiction.
-        -
+        - assert (Dis: (l ;; c) = c' \/ not ((l;;c) = c'))
+      by (apply classic). destruct Dis.
+         + subst. exists W R. eapply WAR_Seq. apply H. assumption.
+         + apply IHWARok. destruct H0 as [T0].
+           pose proof (single_step T0 H3) as destroyme.
+           ex_destruct3 destroyme.
+           destruct_ms Wr destroyme.
+                     apply (inhabits (single_step T0 H3)).
 
           (*garbage below*)
         inversion T; subst.
