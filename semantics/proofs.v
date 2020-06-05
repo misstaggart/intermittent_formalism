@@ -20,7 +20,7 @@ Proof. intros. intros contra. unfold subset_nvm in H. destruct H.
        apply H2 in contra.
        unfold subset_nvm in H0. destruct H0. apply H3 in contra1.
        symmetry in contra.
-       apply (eq_trans contra) in contra1.
+       apply (eq_trans _ _ _ contra) in contra1.
        apply H1. assumption.
 Qed.
 
@@ -146,17 +146,18 @@ Lemma single_step: forall{N N2: nvmem} {V V2: vmem}
   intros N N2 V V2 l c c2 O W T H. dependent induction T. 
   + exfalso. apply H. reflexivity.
   + inversion s.
-  + destruct3 Cmid. assert (Dis: ((l;;c) = cmid) + not ((l;;c) = cmid))
-    by classicT.
-
-    (l;;c = cmid).
-
-
-
-    assert (Hmid: exists N3 V3 O3,
-                               multi_step_c (N3, V3, c) (nmid, vmid, cmid) O3).
-                   - eapply IHT1. reflexivity. reflexivity.
-
+  + destruct3 Cmid. assert (Dis: (l ;; c) = cmid \/ not ((l;;c) = cmid))
+      by (apply classic). destruct Dis.
+  - subst. apply (IHT2 nmid N2 vmid V2 l c c2); try reflexivity; try assumption.
+ -  assert (Hmid: exists N3 V3 O3,
+              multi_step_c (N3, V3, c) (nmid, vmid, cmid) O3).
+     - eapply IHT1; try reflexivity; try assumption.
+     assert (Hend: multi_step_c (nmid, vmid, cmid)
+                                              (N2, V2, c2) O2
+            ).
+     - exists W2. apply (inhabits T2).
+     destruct Hmid.
+       eapply IHT2.
 (*N0 is checkpointed variables*)
 Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
             (O: obseq) (c c': command),
