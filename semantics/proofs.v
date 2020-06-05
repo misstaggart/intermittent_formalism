@@ -97,7 +97,6 @@ Proof. intros. inversion H1. subst.
          + apply H6 in H5. contradiction.
 Qed.
 
-(*N0 is checkpointed variables*)
 (*make ltac for destructing triples*)
 Lemma trace_stops: forall {N N': nvmem} {V V': vmem}
                     {l: instruction} {c: command}
@@ -119,7 +118,9 @@ Proof.
        -  eapply IHT2; reflexivity.
        - right.
          destruct (IHT2 nmid N' vmid V' skip c); (reflexivity || assumption).
-  Qed.
+Qed.
+
+(*N0 is checkpointed variables*)
 Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
             (O: obseq) (c c': command),
             WARok N0 W R c ->
@@ -136,7 +137,12 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
     assert (Hcmid: cmid = Ins l \/ cmid = skip).
     apply (trace_stops T1).
     destruct Hcmid; subst.
-    - eapply IHT2. apply H. apply (inhabits T2).
+  - eapply IHT2; (try reflexivity). apply H. apply (inhabits T2).
+    intros contra. eapply or_intror in contra.
+    apply in_or_app in contra. apply H1 in contra. contradiction.
+
+(*garbage below*)
+    applys H1 in (in_or_app contra).
       inversion H2. subst. eapply IHT2.
       assert (WAR_ins N0 W R l0 W' R')
     +
