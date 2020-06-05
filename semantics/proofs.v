@@ -152,7 +152,7 @@ Qed.
 
 (*could also add that written set of c -> c2 is inside written set of
  l;;c -> c2 but ill wait till I need it*)
-Lemma single_step: forall{N N2: nvmem} {V V2: vmem}
+Lemma single_step_all: forall{N N2: nvmem} {V V2: vmem}
                     {l: instruction} {c c2: command}
                     {O: obseq} {W: the_write_stuff},
     trace_c (N, V, l;;c) (N2, V2, c2) O W ->
@@ -189,7 +189,22 @@ Lemma single_step: forall{N N2: nvmem} {V V2: vmem}
        apply (CTrace_App Tmid Tend).
      +  apply (incl_app_dbl Obsmid (incl_refl O2)).
 Qed.
-       (*N0 is checkpointed variables*)
+
+(*hack to get around destroying conjunctions all the time*)
+Lemma single_step: forall{N N2: nvmem} {V V2: vmem}
+                    {l: instruction} {c c2: command}
+                    {O: obseq} {W: the_write_stuff},
+    trace_c (N, V, l;;c) (N2, V2, c2) O W ->
+    not ((l ;;c ) = c2) -> (*empty trace case *)
+    exists(N1: nvmem) (V1: vmem) (O1: obseq), ((multi_step_c (N1, V1, c) (N2, V2, c2) O1)
+                                         ).
+Proof. intros. pose proof (single_step_all X H).
+       ex_destruct3 H0. destruct H0.
+       exists var1 var2 var3. assumption.
+Qed.
+
+
+(*N0 is checkpointed variables*)
 Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
             (O: obseq) (c c': command),
             WARok N0 W R c ->
@@ -226,10 +241,15 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
          + 
            (*destruct H0 as [T0].*)
            destruct_ms H2 T0 W0.
-           pose proof (single_step T0 H3) as destroyme.
+           pose proof (single_step_all T0 H3) as destroyme.
            ex_destruct3 destroyme.
-           destruct_ms destroyme T1 WT1.
-                     apply (inhabits (single_step T0 H3)).
+           destruct destroyme as [MS sub].
+           destruct_ms MS T1 WT1.
+           eapply (IHWARok var3).
+        - intros contra. apply sub, H1 in contra. contradiction. (*cool applying!!*)
+          exists WT1. apply (inhabits T1).
+
+          apply (inhabits (single_step_all T0 H3)).
 eapply IHT2.
           (*garbage below*)
         inversion T; subst.
