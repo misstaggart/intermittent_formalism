@@ -103,7 +103,12 @@ Ltac destruct3 Cmid := destruct Cmid as [Annoying cmid]; destruct Annoying as [n
 Ltac ex_destruct3 H := destruct H as [var1 Annoying]; destruct Annoying as [var2 Annoying1];
                        destruct Annoying1 as [var3 H].
 
-Ltac destruct_ms M T WT := destruct M as [WT T0]; destruct T0 as [T].
+Ltac destruct_ms M T WT := destruct M as [WT neverseen]; destruct neverseen as [T].
+
+Ltac generalize_4 N N' V V' := generalize dependent N;
+                               generalize dependent N';
+                               generalize dependent V;
+                               generalize dependent V'.
 
 (*Ltac get_trace M :=*)
 
@@ -176,9 +181,8 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
             not (In checkpoint O) ->
             exists(W' R': warvars), WARok N0 W' R' c'.
   intros.
-  unfold multi_step_c in H0. destruct H0 as [Wr].
-  generalize dependent N.
-  generalize dependent V.
+  (*unfold multi_step_c in H0. destruct H0 as [Wr].*)
+  generalize_4 N N' V V'.
   induction H; intros.
   + 
     inversion H0 as [T].
@@ -189,8 +193,10 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
     assert (Hcmid: cmid = Ins l \/ cmid = skip) by
                                            (apply (trace_stops T1)).
     destruct Hcmid; subst.
-    - eapply IHT2; (try reflexivity). apply H. apply (inhabits T2).
-      intros contra. eapply in_app_r in contra. apply H1 in contra. contradiction.
+  - eapply IHT2; (try reflexivity). apply H.
+    (*apply (inhabits T2).*)
+  - intros contra. eapply in_app_r in contra. apply H1 in contra. contradiction.
+  - apply (inhabits T2).
     - apply trace_stops in T2. destruct T2; subst; exists W R;
                                  eapply WAR_I; constructor.
       + inversion H0 as [T]. apply observe_checkpt in T. destruct T.
@@ -199,12 +205,14 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
         - assert (Dis: (l ;; c) = c' \/ not ((l;;c) = c'))
       by (apply classic). destruct Dis.
          + subst. exists W R. eapply WAR_Seq. apply H. assumption.
-         + apply IHWARok. destruct H0 as [T0].
+         + 
+           (*destruct H0 as [T0].*)
+           destruct H2 as [T0].
            pose proof (single_step T0 H3) as destroyme.
            ex_destruct3 destroyme.
-           destruct_ms Wr destroyme.
+           destruct_ms destroyme T1 WT1.
                      apply (inhabits (single_step T0 H3)).
-
+eapply IHT2.
           (*garbage below*)
         inversion T; subst.
         exists W R. constructor. assumption.
