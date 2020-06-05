@@ -98,6 +98,9 @@ Proof. intros. inversion H1. subst.
 Qed.
 
 (*make ltac for destructing triples*)
+
+Ltac destruct3 Cmid := destruct Cmid as [Annoying cmid]; destruct Annoying as [nmid vmid].
+
 Lemma trace_stops: forall {N N': nvmem} {V V': vmem}
                     {l: instruction} {c: command}
   {O: obseq} {W: the_write_stuff},
@@ -108,8 +111,7 @@ Proof.
   + constructor.
   + reflexivity.
   + inversion c0; subst; try(right; reflexivity).
-  + destruct Cmid as [Annoying cmid].
-    destruct Annoying as [nmid vmid].
+  + destruct3 Cmid.
     assert (cmid = l \/ cmid = skip).
     {
       apply (IHT1 N nmid V vmid l cmid); reflexivity.
@@ -119,6 +121,26 @@ Proof.
        - right.
          destruct (IHT2 nmid N' vmid V' skip c); (reflexivity || assumption).
 Qed.
+
+Lemma observe_checkpt: forall {N N': nvmem} {V V': vmem}
+                     {c c': command} {w: warvars}
+                    {O: obseq} {W: the_write_stuff},
+    trace_c (N, V, (incheckpoint w ;; c)) (N', V', c') O W ->
+    c' = (incheckpoint w ;; c) \/ In checkpoint O.
+  intros N N' V V' c c' w O W T.
+  dependent induction T.
+  + left. reflexivity.
+  + inversion s.
+  + destruct3 Cmid. destruct (IHT1 N nmid V vmid c cmid w); subst; try reflexivity.
+      - destruct (IHT2 nmid N' vmid V' c c' w); subst; try reflexivity;
+          [left; reflexivity | right; apply (in_app_r H)].
+      - right. apply (in_app_l H).
+Qed.
+
+Lemma single_step: forall{N N': nvmem} {V V': vmem}
+                    {l: instruction} {c: command}
+                    {O: obseq} {W: the_write_stuff},
+
 
 (*N0 is checkpointed variables*)
 Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
@@ -132,14 +154,33 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
   + inversion H0 as [T]. dependent induction T.
   + exists W R. applys WAR_I. apply H.
   + inversion c; subst; try (exists W R; applys WAR_I; constructor).
-  - destruct Cmid as [Annoying cmid].
-      destruct Annoying as [nmid vmid].
-    assert (Hcmid: cmid = Ins l \/ cmid = skip).
-    apply (trace_stops T1).
+  - destruct3 Cmid. 
+    assert (Hcmid: cmid = Ins l \/ cmid = skip) by
+                                           (apply (trace_stops T1)).
     destruct Hcmid; subst.
-  - eapply IHT2; (try reflexivity). apply H. apply (inhabits T2).
+    - eapply IHT2; (try reflexivity). apply H. apply (inhabits T2).
+      intros contra. eapply in_app_r in contra. apply H1 in contra. contradiction.
+    - apply trace_stops in T2. destruct T2; subst; exists W R;
+                                 eapply WAR_I; constructor.
+      + inversion H0 as [T]. apply observe_checkpt in T. destruct T.
+        - subst. exists W R. constructor. assumption.
+        - apply H1 in H2. contradiction.
+   -
+        inversion T; subst.
+        exists W R. constructor. assumption.
+        inversion H3; subst.
+        exfalso. apply H1. apply in_eq.
+        inversion H2.
+
+       apply (in_eq H1). in H1. discriminate H1.
+      eapply IHT2. (try reflexivity); try (apply WAR_Skip).
+     apply WAR_Skip.
+
+     
+     apply H. apply (inhabits T2).
     intros contra. eapply or_intror in contra.
     apply in_or_app in contra. apply H1 in contra. contradiction.
+
 
 (*garbage below*)
     applys H1 in (in_or_app contra).

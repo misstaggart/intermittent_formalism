@@ -56,4 +56,15 @@ Lemma filter_false: forall{A: Type} (L1: list A),
   - simpl. rewrite IHL1. reflexivity.
 Qed.
 
+Lemma in_app_l: forall{A: Type} {a: A} {L1 L2: list A},
+    In a L1 -> In a (L1 ++ L2).
+  Proof. intros. eapply or_introl in H.
+         apply in_or_app in H. apply H.
+  Qed.
+
+Lemma in_app_r: forall{A: Type} {a: A} {L1 L2: list A},
+    In a L2 -> In a (L1 ++ L2).
+  Proof. intros. eapply or_intror in H.
+         apply in_or_app in H. apply H.
+  Qed.
 Close Scope list_scope.
