@@ -97,9 +97,15 @@ Proof. intros. inversion H1. subst.
          + apply H6 in H5. contradiction.
 Qed.
 
-(*make ltac for destructing triples*)
 
 Ltac destruct3 Cmid := destruct Cmid as [Annoying cmid]; destruct Annoying as [nmid vmid].
+
+Ltac ex_destruct3 H := destruct H as [var1 Annoying]; destruct Annoying as [var2 Annoying1];
+                       destruct Annoying1 as [var3 H].
+
+Ltac destruct_ms M T WT := destruct M as [WT T0]; destruct T0 as [T].
+
+(*Ltac get_trace M :=*)
 
 Lemma trace_stops: forall {N N': nvmem} {V V': vmem}
                     {l: instruction} {c: command}
@@ -155,10 +161,14 @@ Lemma single_step: forall{N N2: nvmem} {V V2: vmem}
      assert (Hend: multi_step_c (nmid, vmid, cmid)
                                               (N2, V2, c2) O2
             ).
-     - exists W2. apply (inhabits T2).
-     destruct Hmid.
-       eapply IHT2.
-(*N0 is checkpointed variables*)
+     - exists W2. apply (inhabits T2). ex_destruct3 Hmid.
+       destruct_ms Hmid Tmid Wmid.
+       destruct_ms Hend Tend Wend.
+       exists var1 var2 (var3 ++ O2).
+       exists (append_write Wmid Wend). constructor.
+       apply (CTrace_App Tmid Tend).
+Qed.
+       (*N0 is checkpointed variables*)
 Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
             (O: obseq) (c c': command),
             WARok N0 W R c ->
@@ -181,7 +191,9 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
       + inversion H0 as [T]. apply observe_checkpt in T. destruct T.
         - subst. exists W R. constructor. assumption.
         - apply H1 in H2. contradiction.
-   -
+        -
+
+          (*garbage below*)
         inversion T; subst.
         exists W R. constructor. assumption.
         inversion H3; subst.

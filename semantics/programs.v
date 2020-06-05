@@ -20,12 +20,20 @@ it'll complain that I'm passing in a trace defined with
  the_write_stuff when I should actually be passing in
 a trace defined with a triple...
  *)
+
+(*Michael look here*)
+(*I needed a type for tracking the variables written to during a program's execution*)
+(*guess what I called it*)
 Definition getwt (W: the_write_stuff) := match W with (out, _, _ )=> out end.
 
 Definition getrd (W: the_write_stuff) := match W with (_, out , _ )=> out end.
 
 Definition getfstwt (W: the_write_stuff) := match W with (_, _, out )=> out end.
 
+(*Michael look here*)
+(*...do you get it....append the write sets....append the RIGHT sets....... :3*)
+Definition append_write (W1 W2: the_write_stuff) :=
+((getwt W1) ++ (getwt W2), (getrd W1) ++ (getrd W2), (getfstwt W1) ++ (remove in_loc_b (getrd W1) (getfstwt W2))).
 
 (*Notes:*)
 (*do I keep track of volatile writes as well...I don't think so
@@ -65,10 +73,8 @@ Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Type :=
      will try and prove without it and if it gets messy I'll add it*)
     trace_c C1 Cmid O1 W1 -> (*steps first section*)
     trace_c Cmid C2 O2 W2 -> (*steps rest of program*)
-    trace_c C1 C2 (O1 ++ O2) ((getwt W1) ++ (getwt W2), (getrd W1) ++ (getrd W2), (getfstwt W1) ++
-                                                                                                (remove in_loc_b (getrd W1)
-                                                                                                        (getfstwt W2))).
- (*App makes for easy subtraces by allowing command in C2 not to be skip*)
+    trace_c C1 C2 (O1 ++ O2) (append_write W1 W2).
+  (*App makes for easy subtraces by allowing command in C2 not to be skip*)
 
 (*intermittent traces*)
  (*the same as trace_c bar types as differences between
@@ -84,10 +90,7 @@ iTrace_Empty: forall{C: iconf},
          {W1 W2: the_write_stuff},
     trace_i C1 Cmid O1 W1 -> (*steps first section*)
     trace_i Cmid C2 O2 W2 -> (*steps rest of program*)
-    trace_i C1 C2 (O1 ++ O2) ((getwt W1) ++ (getwt W2), (getrd W1) ++ (getrd W2), (getfstwt W1) ++
-                                                                                                (remove in_loc_b (getrd W1)
-                                                                                                        (getfstwt W2))).
-
+    trace_i C1 C2 (O1 ++ O2) (append_write W1 W2).
 Definition multi_step_c (C1 C2: context) (O: obseq) :=
     exists W: the_write_stuff, inhabited (trace_c C1 C2 O W).
           
