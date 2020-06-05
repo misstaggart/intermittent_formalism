@@ -108,14 +108,17 @@ Proof.
   intros N N' V V' l c O W T. dependent induction T.
   + constructor.
   + reflexivity.
-    inversion c0; subst; constructor.
+  + inversion c0; subst; try(right; reflexivity).
   + destruct Cmid as [Annoying cmid].
     destruct Annoying as [nmid vmid].
-    assert (single_com (nmid, vmid, cmid)).
+    assert (cmid = l \/ cmid = skip).
     {
       apply (IHT1 N nmid V vmid l cmid); reflexivity.
     }
-  + inversion H. subst. eapply IHT2; reflexivity.
+  + inversion H; subst.
+       -  eapply IHT2; reflexivity.
+       - right.
+         destruct (IHT2 nmid N' vmid V' skip c); (reflexivity || assumption).
   Qed.
 Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
             (O: obseq) (c c': command),
@@ -128,10 +131,12 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
   + inversion H0 as [T]. dependent induction T.
   + exists W R. applys WAR_I. apply H.
   + inversion c; subst; try (exists W R; applys WAR_I; constructor).
-  - assert (H2: single_com Cmid).
-    + destruct Cmid as [Annoying cmid].
+  - destruct Cmid as [Annoying cmid].
       destruct Annoying as [nmid vmid].
-      apply (trace_stops T1).
+    assert (Hcmid: cmid = Ins l \/ cmid = skip).
+    apply (trace_stops T1).
+    destruct Hcmid; subst.
+    - eapply IHT2. apply H. apply (inhabits T2).
       inversion H2. subst. eapply IHT2.
       assert (WAR_ins N0 W R l0 W' R')
     +
