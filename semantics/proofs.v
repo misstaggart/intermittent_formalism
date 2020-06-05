@@ -248,6 +248,8 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
            eapply (IHWARok var3).
         - intros contra. apply sub, H1 in contra. contradiction. (*cool applying!!*)
           exists WT1. apply (inhabits T1).
+ - destruct_ms H3 T3 WT3.
+            inversion T3; subst.
 
           apply (inhabits (single_step_all T0 H3)).
 eapply IHT2.
