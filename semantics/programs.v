@@ -98,7 +98,7 @@ Qed. *)
 (*steps, start, end*)
 Inductive trace_c: (list step) -> context -> context -> the_write_stuff -> Type :=
   CTrace_Empty: forall(C: context), trace_c [] C C emptysets
-| CTrace_single: forall {C1 C2: context} {O: obseq} {W: the_write_stuff},
+| CTrace_single: forall {C1 C2: context} {O: obseq} {WL: list the_write_stuff},
                   cceval_w C1 O C2 W -> (*command in C2 is skip by def single_com, cceval_w*)
                   trace_c [(C1, C2, O)] C1 C2 W
 | CTrace_App: forall{L1 L2: list step} {W1 W2: the_write_stuff} {S1 E1 S2 E2: context},

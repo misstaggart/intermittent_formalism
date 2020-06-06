@@ -111,8 +111,8 @@ Ltac destruct3 zero one two three:= destruct zero as [Annoying one]; destruct An
 Ltac ex_destruct3 H := destruct H as [var1 Annoying]; destruct Annoying as [var2 Annoying1];
                        destruct Annoying1 as [var3 H].
 
-Ltac destruct_ms M L WT T:= destruct M as [L neverseen]; destruct neverseen as [WT neverseen];
-                            destruct neverseen as [T M].
+Ltac destruct_ms M L WT T obs:= destruct M as [L neverseen]; destruct neverseen as [WT neverseen];
+                            destruct neverseen as [T obs].
 
 Ltac generalize_5 N N' V V' O := generalize dependent N;
                                generalize dependent N';
@@ -121,7 +121,7 @@ Ltac generalize_5 N N' V V' O := generalize dependent N;
                                generalize dependent O.
 (*Ltac get_trace M :=*)
 
-Lemma trace_stops: forall {N N': nvmem} {V V': vmem}
+Lemma ins_to_skip: forall {N N': nvmem} {V V': vmem}
                     {l: instruction} {c: command}
   {L: list step} {W: the_write_stuff},
     trace_c L (N, V, Ins l) (N', V', c) W ->
@@ -142,25 +142,37 @@ Proof.
          destruct (IHT2 nmid N' vmid V' skip c); (reflexivity || assumption).
 Qed.
 
+Lemma obs_subst_app_l: forall(L1 L2: list step),
+    incl (acc_obs L1) (acc_obs (L1 ++ L2)).
+  Proof. Admitted.
+
+Lemma obs_subst_app_r: forall(L1 L2: list step),
+    incl (acc_obs L2) (acc_obs (L1 ++ L2)).
+  Proof. Admitted.
+
+  (*WEIRD induction principle when I have T explicitly quantified*)
+  (*clean this up or just take observation sequence
+   out of the step type*)
 Lemma observe_checkpt: forall {N N': nvmem} {V V': vmem}
                      {c c': command} {w: warvars}
-                    {O: obseq} {W: the_write_stuff},
-    trace_c (N, V, (incheckpoint w ;; c)) (N', V', c') O W ->
-    c' = (incheckpoint w ;; c) \/ In checkpoint O.
-  intros N N' V V' c c' w O W T.
+                    {L: list step} {W: the_write_stuff},
+    (trace_c L (N, V, (incheckpoint w ;; c)) (N', V', c') W) ->
+    c' = (incheckpoint w ;; c) \/ In checkpoint (acc_obs L).
+  intros N N' V V' c c' w L W T.
   dependent induction T.
   + left. reflexivity.
-  +  inversion c0; subst. right.  apply(in_eq checkpoint).
-     inversion H8.
-  + destruct3 Cmid. destruct (IHT1 N nmid V vmid c cmid w); subst; try reflexivity.
-      - destruct (IHT2 nmid N' vmid V' c c' w); subst; try reflexivity;
-          [left; reflexivity | right; apply (in_app_r H)].
-      - right. apply (in_app_l H).
+  +  inversion c0; subst. right. left. reflexivity.      
+  +  inversion H8.
+    destruct3 S2 cmid nmid vmid. destruct (IHT1 N nmid V vmid c cmid w); subst; try reflexivity.
+  - destruct (IHT2 nmid N' vmid V' c c' w); subst; try reflexivity.
+    + left; reflexivity.
+    + right. apply (obs_subst_app_r L1 L2). apply H.
+ - right. apply (obs_subst_app_l). apply H.
 Qed.
 
 
 (*could also add that written set of c -> c2 is inside written set of
- l;;c -> c2 but ill wait till I need it*)
+ l;;c -> c2 but ill wait till I need it
 Lemma single_step_all: forall{N N2: nvmem} {V V2: vmem}
                     {l: instruction} {c c2: command}
                     {O: obseq} {W: the_write_stuff},
@@ -250,16 +262,6 @@ Proof. intros C1 C2 C3 C4 W L a T. induction T.
          rewrite undo_gets. apply IHT1. reflexivity.
 Qed.
 
-Lemma ins_to_skip: forall{W: the_write_stuff}
-                    {L: list step}
-                    {l: instruction}
-                    {N N1: nvmem}
-                    {V V1: vmem}
-                    {c: command}
-                    (T: trace_c L (N, V, Ins l) (N1, V1, c) W),
-    (N, V, Ins l) <> (N1, V1, c) ->
-    c = skip.
-  Proof. intros. induction L.
 
 (*N0 is checkpointed variables*)
 Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
@@ -271,8 +273,24 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
   intros.
   (*unfold multi_step_ic in H0. destruct H0 as [Wr].*)
   generalize_5 N N' V V' O.
+  remember H as warok. clear Heqwarok.
   induction H; intros.
-  + 
+  + destruct_ms H0 L WT T H0.
+    assert (Hc': c' = Ins l \/ c' = skip) by
+                                           (apply (ins_to_skip T)).
+    destruct Hc'; subst; exists W R. (*eapply WAR_I.*)
+    - apply warok.
+    - eapply WAR_I. apply WAR_Skip.
+ + destruct_ms H0 L WT T H0. remember T as T1. clear HeqT1.
+        apply observe_checkpt in T. destruct T.
+    - subst. exists W R. apply warok.
+    - unfold getobs in H0. subst. apply H1 in H2. contradiction.
+ +
+
+
+
+
+    (*how to induct on L*)
     destruct_ms H0 L Wr T.
     generalize_5 N N' V V' O.
     generalize dependent l.
@@ -284,6 +302,7 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
   - destruct L. destruct3 a Oa C1 C2.
     remember T as T1. clear HeqT1. eapply single_step in T.
     inversion T; subst.
+    (*end of induction on L*)
     remember T as T1. clear HeqT1. apply trace_not_empty in T. exfalso.
     apply T. reflexivity.
   + exists W R. applys WAR_I. apply H.
