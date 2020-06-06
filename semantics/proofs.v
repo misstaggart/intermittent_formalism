@@ -25,17 +25,24 @@ Proof. intros. intros contra. unfold subset_nvm in H. destruct H.
        apply H1. assumption.
 Qed.
 
-Lemma wt_subst_fstwt: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
-  trace_c C1 C2 O W ->
+(*Lemma accwt_assoc_wt: forall(L1 L2: list step),
+    getwt(acc_wts L1) ++ getwt(acc_wts L2) =
+    getwt (acc_wts (L1 ++ L2)).
+  intros. induction L2.
+  + simpl. repeat rewrite app_nil_r. reflexivity.
+  + destruct a as [blah W]. simpl. *)
+
+Lemma wt_subst_fstwt: forall{L: list step} {C1 C2: context}
+  {W: the_write_stuff},
+    trace_c L C1 C2 W ->
     incl (getfstwt W) (getwt W).
-Proof. intros C1 C2 O W T. induction T.
+Proof. intros L C1 C2 W T. induction T.
        + simpl. apply (incl_refl []).
-       + induction c;
-           (try (simpl; apply (incl_refl [])));
-           (try (unfold getfstwt; unfold getwt;
-                 apply remove_subst)).
+       + induction c; try (simpl; apply (incl_refl [])); try 
+         (rewrite (lock remove) /= -lock;
+          apply remove_subst).
        - assumption.
-       - simpl. apply (incl_app_dbl IHT1
+       - apply (incl_app_dbl IHT1
                                     (incl_tran
                                     (remove_subst _ _ _)
                                     IHT2)).
@@ -82,7 +89,7 @@ Lemma eight: forall(N0 N1 N2: nvmem) (V0: vmem) (c0: command),
               (subset_nvm N0 N2) ->
               current_init_pt N0 V0 c0 N1 N2 ->
               same_pt N1 V0 c0 c0 N1 N2.
-Proof. intros. inversion H1. subst.
+Proof. intros. inversion H1; subst.
        apply (same_mem (CTrace_Empty (N1, V0, c0))
                        T); (try assumption).
        - simpl. intros contra. contradiction.
@@ -104,7 +111,8 @@ Ltac destruct3 Cmid := destruct Cmid as [Annoying cmid]; destruct Annoying as [n
 Ltac ex_destruct3 H := destruct H as [var1 Annoying]; destruct Annoying as [var2 Annoying1];
                        destruct Annoying1 as [var3 H].
 
-Ltac destruct_ms M T WT := destruct M as [WT neverseen]; destruct neverseen as [T].
+Ltac destruct_ms M L WT T:= destruct M as [L neverseen]; destruct neverseen as [WT neverseen];
+                            destruct neverseen as [T M].
 
 Ltac generalize_5 N N' V V' O := generalize dependent N;
                                generalize dependent N';
@@ -113,7 +121,7 @@ Ltac generalize_5 N N' V V' O := generalize dependent N;
                                generalize dependent O.
 (*Ltac get_trace M :=*)
 
-Lemma trace_stops: forall {N N': nvmem} {V V': vmem}
+(*Lemma trace_stops: forall {N N': nvmem} {V V': vmem}
                     {l: instruction} {c: command}
   {O: obseq} {W: the_write_stuff},
     trace_c (N, V, Ins l) (N', V', c) O W ->
@@ -203,8 +211,18 @@ Lemma single_step: forall{N N2: nvmem} {V V2: vmem}
 Proof. intros. pose proof (single_step_all X H).
        ex_destruct3 H0. destruct H0.
        exists var1 var2 var3. assumption.
-Qed.
+Qed.*)
 
+(*hacky extra hypothesis L = [], coq should take care of remembering that*)
+Lemma trace_stops: forall {C1 C2: context} {W: the_write_stuff}
+                     {L: list step}
+  (T: trace_c L C1 C2 W), L = [] -> C1 = C2.
+Proof. intros C1 C2 W L T. induction T.
+       + intros. reflexivity.
+       + intros. inversion H.
+       + intros H. apply app_eq_nil in H. destruct H. apply IHT1 in H.
+         apply IHT2 in H0. apply (eq_trans _ _ _ H (eq_trans _ _ _ e H0)).
+Qed.
 
 (*N0 is checkpointed variables*)
 Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
@@ -218,8 +236,12 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
   generalize_5 N N' V V' O.
   induction H; intros.
   + 
-    destruct_ms H0 T Wr.
-    dependent induction T.
+    destruct_ms H0 L Wr T.
+  generalize_5 N N' V V' O.
+    induction L; intros.
+  - inversion T; subst.
+    remember T as T1. clear HeqT1. apply trace_not_empty in T. exfalso.
+    apply T. reflexivity.
   + exists W R. applys WAR_I. apply H.
   + inversion c; subst; try (exists W R; applys WAR_I; constructor).
   - destruct3 Cmid. 

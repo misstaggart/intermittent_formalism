@@ -649,7 +649,7 @@ Notation the_write_stuff := ((list loc) * (list loc) * (list loc)).
 
 (*Single steps, accumulates write data*)
 (*Note: program consisting of just a checkpoint is illegal...huh*)
-
+(*program consisting of just a skip is illegal cuz that's termination state*)
 
 
 Inductive cceval_w: context -> obseq -> context -> the_write_stuff -> Prop :=
