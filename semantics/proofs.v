@@ -106,7 +106,7 @@ Proof. intros. inversion H1; subst.
 Qed.
 
 
-Ltac destruct3 Cmid := destruct Cmid as [Annoying cmid]; destruct Annoying as [nmid vmid].
+Ltac destruct3 zero one two three:= destruct zero as [Annoying one]; destruct Annoying as [two three].
 
 Ltac ex_destruct3 H := destruct H as [var1 Annoying]; destruct Annoying as [var2 Annoying1];
                        destruct Annoying1 as [var3 H].
@@ -121,17 +121,17 @@ Ltac generalize_5 N N' V V' O := generalize dependent N;
                                generalize dependent O.
 (*Ltac get_trace M :=*)
 
-(*Lemma trace_stops: forall {N N': nvmem} {V V': vmem}
+Lemma trace_stops: forall {N N': nvmem} {V V': vmem}
                     {l: instruction} {c: command}
-  {O: obseq} {W: the_write_stuff},
-    trace_c (N, V, Ins l) (N', V', c) O W ->
+  {L: list step} {W: the_write_stuff},
+    trace_c L (N, V, Ins l) (N', V', c) W ->
     (c = Ins l) \/ (c = skip).
 Proof.
-  intros N N' V V' l c O W T. dependent induction T.
+  intros N N' V V' l c L W T. dependent induction T.
   + constructor.
   + reflexivity.
   + inversion c0; subst; try(right; reflexivity).
-  + destruct3 Cmid.
+  + destruct3 S2 cmid nmid vmid.
     assert (cmid = l \/ cmid = skip).
     {
       apply (IHT1 N nmid V vmid l cmid); reflexivity.
@@ -216,13 +216,50 @@ Qed.*)
 (*hacky extra hypothesis L = [], coq should take care of remembering that*)
 Lemma trace_stops: forall {C1 C2: context} {W: the_write_stuff}
                      {L: list step}
-  (T: trace_c L C1 C2 W), L = [] -> C1 = C2.
-Proof. intros C1 C2 W L T. induction T.
-       + intros. reflexivity.
-       + intros. inversion H.
-       + intros H. apply app_eq_nil in H. destruct H. apply IHT1 in H.
-         apply IHT2 in H0. apply (eq_trans _ _ _ H (eq_trans _ _ _ e H0)).
+  (T: trace_c L C1 C2 W), L = [] -> C1 = C2 /\ W = emptysets.
+Proof. intros C1 C2 W L T. induction T; intros.
+       + split; reflexivity.
+       + inversion H.
+       + apply app_eq_nil in H. destruct H. destruct (IHT1 H).
+         destruct (IHT2 H0). subst. split; reflexivity.
 Qed.
+
+Lemma undo_gets: forall(W: the_write_stuff),
+    (getwt W, getrd W, getfstwt W) = W.
+  intros. destruct3 W f g h. simpl. reflexivity. Qed.
+
+  (*ask arthur what is up with the variable names where
+this doesnt work destruct3 W one two three.*)
+
+
+(*clean this one up*)
+Lemma single_step: forall {C1 C2 C3 C4: context} {W: the_write_stuff}
+                     {L: list step}
+                     {O: obseq}
+  (T: trace_c L C1 C2 W), L = [(C3, C4, O)] -> cceval_w C1 O C2 W /\ C1 = C3 /\ C2 = C4.
+Proof. intros C1 C2 C3 C4 W L a T. induction T.
+       + intros. inversion H. 
+       + intros.  inversion H. subst. split; [assumption | split; reflexivity].
+       + intros H.
+         apply app_eq_unit in H. destruct H; destruct H; subst.
+       - destruct (trace_stops T1). reflexivity. subst.
+         unfold append_write. simpl. unfold remove. unfold in_loc_b.
+         rewrite filter_false. rewrite undo_gets. apply IHT2. reflexivity.
+       - destruct (trace_stops T2). reflexivity. subst.
+         unfold append_write. simpl. repeat rewrite app_nil_r.
+         rewrite undo_gets. apply IHT1. reflexivity.
+Qed.
+
+Lemma ins_to_skip: forall{W: the_write_stuff}
+                    {L: list step}
+                    {l: instruction}
+                    {N N1: nvmem}
+                    {V V1: vmem}
+                    {c: command}
+                    (T: trace_c L (N, V, Ins l) (N1, V1, c) W),
+    (N, V, Ins l) <> (N1, V1, c) ->
+    c = skip.
+  Proof. intros. induction L.
 
 (*N0 is checkpointed variables*)
 Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
@@ -232,14 +269,21 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
             not (In checkpoint O) ->
             exists(W' R': warvars), WARok N0 W' R' c'.
   intros.
-  (*unfold multi_step_c in H0. destruct H0 as [Wr].*)
+  (*unfold multi_step_ic in H0. destruct H0 as [Wr].*)
   generalize_5 N N' V V' O.
   induction H; intros.
   + 
     destruct_ms H0 L Wr T.
-  generalize_5 N N' V V' O.
+    generalize_5 N N' V V' O.
+    generalize dependent l.
+    generalize dependent c'.
     induction L; intros.
-  - inversion T; subst.
+  - assert ( (N0, V, Ins l) = (N', V', c')).
+    + apply (trace_stops T). reflexivity.
+      inversion H2. subst. exists W R. eapply WAR_I. apply H.
+  - destruct L. destruct3 a Oa C1 C2.
+    remember T as T1. clear HeqT1. eapply single_step in T.
+    inversion T; subst.
     remember T as T1. clear HeqT1. apply trace_not_empty in T. exfalso.
     apply T. reflexivity.
   + exists W R. applys WAR_I. apply H.
