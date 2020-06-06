@@ -33,20 +33,17 @@ Qed.
   + destruct a as [blah W]. simpl. *)
 
 Lemma wt_subst_fstwt: forall{L: list step} {C1 C2: context}
-  {W: the_write_stuff},
+  {W: list the_write_stuff},
     trace_c L C1 C2 W ->
-    incl (getfstwt W) (getwt W).
+    incl (getfstwt (append_write W)) (getwt (append_write W)).
 Proof. intros L C1 C2 W T. induction T.
        + simpl. apply (incl_refl []).
-       + induction c; try (simpl; apply (incl_refl [])); try 
-         (rewrite (lock remove) /= -lock;
+       + induction c; try (simpl; apply (incl_refl [])); try (
+         rewrite (lock remove) /= -lock;
+         rewrite app_nil_r;
           apply remove_subst).
        - assumption.
-       - apply (incl_app_dbl IHT1
-                                    (incl_tran
-                                    (remove_subst _ _ _)
-                                    IHT2)).
-Qed.
+       - Admitted.
 
 (*actual lemmas*)
 
@@ -97,11 +94,10 @@ Proof. intros. inversion H1; subst.
          assert (H6: not (In (loc_warvar l) (getdomain N0))) by
                apply (sub_disclude N0 N1 N2 l H H0 H5).
            apply H4 in H5. destruct H5. split. 
-         + unfold Wt. apply ((wt_subst_fstwt T) l H5).
+         + unfold Wt. unfold FstWt in H5. apply ((wt_subst_fstwt T) l H5).
          + split.
-             - unfold remove. unfold in_loc_b. rewrite filter_false.
-                 apply H5.
-             - intros contra. contradiction.
+       - unfold FstWt. unfold FstWt in H5. assumption.
+       - intros contra. contradiction.
          + apply H6 in H5. contradiction.
 Qed.
 
@@ -123,7 +119,7 @@ Ltac generalize_5 N N' V V' O := generalize dependent N;
 
 Lemma ins_to_skip: forall {N N': nvmem} {V V': vmem}
                     {l: instruction} {c: command}
-  {L: list step} {W: the_write_stuff},
+  {L: list step} {W: list the_write_stuff},
     trace_c L (N, V, Ins l) (N', V', c) W ->
     (c = Ins l) \/ (c = skip).
 Proof.
@@ -155,7 +151,7 @@ Lemma obs_subst_app_r: forall(L1 L2: list step),
    out of the step type*)
 Lemma observe_checkpt: forall {N N': nvmem} {V V': vmem}
                      {c c': command} {w: warvars}
-                    {L: list step} {W: the_write_stuff},
+                    {L: list step} {W: list the_write_stuff},
     (trace_c L (N, V, (incheckpoint w ;; c)) (N', V', c') W) ->
     c' = (incheckpoint w ;; c) \/ In checkpoint (acc_obs L).
   intros N N' V V' c c' w L W T.
@@ -171,13 +167,137 @@ Lemma observe_checkpt: forall {N N': nvmem} {V V': vmem}
 Qed.
 
 
+(*Lemma single_step: *)
+
 (*could also add that written set of c -> c2 is inside written set of
- l;;c -> c2 but ill wait till I need it
-Lemma single_step_all: forall{N N2: nvmem} {V V2: vmem}
+ l;;c -> c2 but ill wait till I need it *)
+
+(*hack to get around destroying conjunctions all the time
+Lemma single_step: forall{N N2: nvmem} {V V2: vmem}
                     {l: instruction} {c c2: command}
                     {O: obseq} {W: the_write_stuff},
     trace_c (N, V, l;;c) (N2, V2, c2) O W ->
     not ((l ;;c ) = c2) -> (*empty trace case *)
+    exists(N1: nvmem) (V1: vmem) (O1: obseq), ((multi_step_c (N1, V1, c) (N2, V2, c2) O1)
+                                         ).
+Proof. intros. pose proof (single_step_all X H).
+       ex_destruct3 H0. destruct H0.
+       exists var1 var2 var3. assumption.
+Qed.*)
+
+(*hacky extra hypothesis L = [], coq should take care of remembering that*)
+
+
+Lemma append_write_empty: forall{W1 W2: list the_write_stuff},
+    (append_write W1) = emptysets ->
+    (append_write W2) = emptysets ->
+    append_write (W1 ++ W2) = emptysets.
+Admitted.
+
+Lemma trace_stops: forall {C1 C2: context} {W: list the_write_stuff}
+                     {L: list step}
+  (T: trace_c L C1 C2 W), L = [] -> C1 = C2 /\ (append_write W) = emptysets.
+Proof. intros C1 C2 W L T. induction T; intros.
+       + split; reflexivity.
+       + inversion H.
+       + apply app_eq_nil in H. destruct H. destruct (IHT1 H).
+         destruct (IHT2 H0). subst. split; [reflexivity |
+                                            apply (append_write_empty H2 H4)]
+                                            .
+Qed.
+
+Lemma undo_gets: forall(W: the_write_stuff),
+    (getwt W, getrd W, getfstwt W) = W.
+  intros. destruct3 W f g h. simpl. reflexivity. Qed.
+
+  (*ask arthur what is up with the variable names where
+this doesnt work destruct3 W one two three.*)
+
+
+(*clean this one up*)
+Lemma single_step: forall (C1 C2 C3 C4: context) (W: list the_write_stuff)
+                     (L: list step)
+                     (O: obseq)
+  (T: trace_c L C1 C2 W), L = [(C3, C4, O)] -> cceval_w C1 O C2 W /\ C1 = C3 /\ C2 = C4.
+Proof. intros C1 C2 C3 C4 W L a T. induction T.
+       + intros. inversion H. 
+       + intros.  inversion H. subst. split; [assumption | split; reflexivity].
+       + intros H.
+         apply app_eq_unit in H. destruct H; destruct H; subst.
+       - destruct (trace_stops T1). reflexivity. subst.
+         Admitted.
+        (* apply append_write_empty in H0.
+         unfold append_write. simpl. unfold remove. unfold in_loc_b.
+         rewrite filter_false. rewrite undo_gets. apply IHT2. reflexivity.
+       - destruct (trace_stops T2). reflexivity. subst.
+         unfold append_write. simpl. repeat rewrite app_nil_r.
+         rewrite undo_gets. apply IHT1. reflexivity.
+Admitted.*)
+
+
+Lemma cceval_behaves: forall{C1 C2 C3: context} {W2 W3: list the_write_stuff}
+                       {O2 O3: obseq},
+    cceval_w C1 O2 C2 W2->
+    cceval_w C1 O3 C3 W3 ->
+    C2 = C3 /\ O2 = O3 /\ W2 = W3.
+Admitted.
+
+Lemma single_of_many:
+(*conclusion: induction on L is not the way to go
+  forall{Lbig Lrest: list step}
+                 {N1 N2 N3: nvmem}
+                    {V1 V2 V3: vmem}
+                    {Ostep: obseq}
+                    {s: step}
+                    {Wbig Wrest: list the_write_stuff}
+                    {w: the_write_stuff}
+                    {c1 c2 c3: command},
+    trace_c (Lbig) (N1, V1, c1) (N3, V3, c3) (Wbig) ->
+    cceval_w (N1, V1, c1) Ostep (N2, V2, c2) [w] ->
+    Lbig = (s::Lrest) ->
+    Wbig = (w:: Wrest) ->
+   trace_c Lrest (N2, V2, c2) (N3, V3, c3) Wrest.
+Proof. intros Lbig.
+        induction Lbig.
+       + intros. inversion H0.
+       + intros. subst. inversion H0. subst. clear H0.
+         eapply IHLbig.
+
+
+
+         destruct3 s s1 s2 s3. remember X as T. clear HeqT. apply (single_step (N1, V1, c1)
+                                                  (N3, V3, c3)
+                                                  s2
+                                                  s3
+                                                  (w:: Wrest)
+                                                  [(s2, s3, s1)]
+                                                  s1) in X.
+         destruct X. destruct H1. subst. destruct (cceval_behaves H0 H).
+         destruct H2. rewrite H1. inversion H3. apply CTrace_Empty.
+         constructor.
+      + intros.
+         (*need IH to be more general*)
+         reflexivity.
+
+   exists(Lsmall: list step)  (Wsmall: list the_write_stuff),
+     inhabited (trace_c Lsmall (N2, V2, c2) (N3, V3, c3) Wsmall).*)
+
+Lemma single_step_all: forall{N1 N2 N3: nvmem}
+                        {V1 V2 V3: vmem}
+                        {Ostep: obseq}
+                        {Lbig: list step}
+                        {Wbig Wstep: list the_write_stuff}
+                     {c1 c2 c3: command},
+    trace_c Lbig (N1, V1, c1) (N3, V3, c3) Wbig ->
+   (N1, V1, c1) <> (N3, V3, c3) -> (*has stepped*)
+   cceval_w (N1, V1, c1) Ostep (N2, V2, c2) Wstep ->
+   exists(Lsmall: list step)  (Wsmall: list the_write_stuff),
+     inhabited (trace_c Lsmall (N2, V2, c2) (N3, V3, c3) Wsmall).
+Proof. intros N1 N2 N3 V1 V2 V3 Ostep Lbig Wbig Wstep c1 c2 c3 T
+              Hskip Hceval. induction Lbig.
+       + apply trace_stops in T. destruct T. apply Hskip in H. contradiction.
+         reflexivity.
+
     exists(N1: nvmem) (V1: vmem) (O1: obseq), ((multi_step_c (N1, V1, c) (N2, V2, c2) O1)
                                           /\ (incl O1 O)
                                           ).
@@ -211,58 +331,6 @@ Lemma single_step_all: forall{N N2: nvmem} {V V2: vmem}
        apply (CTrace_App Tmid Tend).
      +  apply (incl_app_dbl Obsmid (incl_refl O2)).
 Qed.
-
-(*hack to get around destroying conjunctions all the time*)
-Lemma single_step: forall{N N2: nvmem} {V V2: vmem}
-                    {l: instruction} {c c2: command}
-                    {O: obseq} {W: the_write_stuff},
-    trace_c (N, V, l;;c) (N2, V2, c2) O W ->
-    not ((l ;;c ) = c2) -> (*empty trace case *)
-    exists(N1: nvmem) (V1: vmem) (O1: obseq), ((multi_step_c (N1, V1, c) (N2, V2, c2) O1)
-                                         ).
-Proof. intros. pose proof (single_step_all X H).
-       ex_destruct3 H0. destruct H0.
-       exists var1 var2 var3. assumption.
-Qed.*)
-
-(*hacky extra hypothesis L = [], coq should take care of remembering that*)
-Lemma trace_stops: forall {C1 C2: context} {W: the_write_stuff}
-                     {L: list step}
-  (T: trace_c L C1 C2 W), L = [] -> C1 = C2 /\ W = emptysets.
-Proof. intros C1 C2 W L T. induction T; intros.
-       + split; reflexivity.
-       + inversion H.
-       + apply app_eq_nil in H. destruct H. destruct (IHT1 H).
-         destruct (IHT2 H0). subst. split; reflexivity.
-Qed.
-
-Lemma undo_gets: forall(W: the_write_stuff),
-    (getwt W, getrd W, getfstwt W) = W.
-  intros. destruct3 W f g h. simpl. reflexivity. Qed.
-
-  (*ask arthur what is up with the variable names where
-this doesnt work destruct3 W one two three.*)
-
-
-(*clean this one up*)
-Lemma single_step: forall {C1 C2 C3 C4: context} {W: the_write_stuff}
-                     {L: list step}
-                     {O: obseq}
-  (T: trace_c L C1 C2 W), L = [(C3, C4, O)] -> cceval_w C1 O C2 W /\ C1 = C3 /\ C2 = C4.
-Proof. intros C1 C2 C3 C4 W L a T. induction T.
-       + intros. inversion H. 
-       + intros.  inversion H. subst. split; [assumption | split; reflexivity].
-       + intros H.
-         apply app_eq_unit in H. destruct H; destruct H; subst.
-       - destruct (trace_stops T1). reflexivity. subst.
-         unfold append_write. simpl. unfold remove. unfold in_loc_b.
-         rewrite filter_false. rewrite undo_gets. apply IHT2. reflexivity.
-       - destruct (trace_stops T2). reflexivity. subst.
-         unfold append_write. simpl. repeat rewrite app_nil_r.
-         rewrite undo_gets. apply IHT1. reflexivity.
-Qed.
-
-
 (*N0 is checkpointed variables*)
 Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
             (O: obseq) (c c': command),

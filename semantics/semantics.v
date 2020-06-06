@@ -652,7 +652,7 @@ Notation the_write_stuff := ((list loc) * (list loc) * (list loc)).
 (*program consisting of just a skip is illegal cuz that's termination state*)
 
 
-Inductive cceval_w: context -> obseq -> context -> the_write_stuff -> Prop :=
+Inductive cceval_w: context -> obseq -> context -> list the_write_stuff -> Prop :=
 CheckPoint: forall(N: nvmem)
                (V: vmem)
                (c: command)
@@ -660,7 +660,7 @@ CheckPoint: forall(N: nvmem)
     cceval_w (N, V, ((incheckpoint w);; c))
              [checkpoint]
              (N, V, c)
-             (nil, nil, nil)
+             [(nil, nil, nil)]
 | NV_Assign: forall(x: smallvar) (N: nvmem) (V: vmem) (e: exp) (r: readobs) (v: value),
     eeval N V e r v ->
     isNV(x) -> (*checks x is correct type for NV memory*)
@@ -668,14 +668,14 @@ CheckPoint: forall(N: nvmem)
     cceval_w (N, V, Ins (asgn_sv x e))
              [Obs r]
              ((updateNV N (inl x) v), V, Ins skip)
-             ([inl x],  (readobs_loc r), (remove in_loc_b (readobs_loc r) [inl x]))
+             [([inl x],  (readobs_loc r), (remove in_loc_b (readobs_loc r) [inl x]))]
 | V_Assign: forall(x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
     eeval N (Vol mapV) e r v ->
     isV(x) -> (*checks x is correct type for V memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     cceval_w (N, (Vol mapV), Ins (asgn_sv x e)) [Obs r]
              (N, (Vol ((inl x) |-> v ; mapV)), Ins skip)
-             (nil,  (readobs_loc r), nil)
+             [(nil,  (readobs_loc r), nil)]
 | Assign_Arr: forall (N: nvmem) (V: vmem)
                (a: array)
                (ei: exp)
@@ -694,18 +694,18 @@ CheckPoint: forall(N: nvmem)
     cceval_w (N, V, Ins (asgn_arr a ei e))
            [Obs (ri++r)]
            ((updateNV N (inr element) v), V, Ins skip)
-           ([inr element], (readobs_loc (ri ++ r)), (remove in_loc_b (readobs_loc (ri ++ r)) [inr element]))
+           [([inr element], (readobs_loc (ri ++ r)), (remove in_loc_b (readobs_loc (ri ++ r)) [inr element]))]
 (*valuability and inboundedness of vindex are checked in sameindex*)
 | Skip: forall(N: nvmem)
          (V: vmem)
          (c: command),
-    cceval_w (N, V, (skip;;c)) [Obs NoObs] (N, V, c) (nil, nil, nil)
+    cceval_w (N, V, (skip;;c)) [Obs NoObs] (N, V, c) [(nil, nil, nil)]
 | Seq: forall (N N': nvmem)
          (V V': vmem)
          (l: instruction)
          (c: command)
          (o: obs)
-         (W: the_write_stuff),
+         (W: list the_write_stuff),
     cceval_w (N, V, Ins l) [o] (N', V', Ins skip) W ->
     cceval_w (N, V, (l;;c)) [o] (N', V', c) W
 | If_T: forall(N: nvmem)
@@ -714,14 +714,14 @@ CheckPoint: forall(N: nvmem)
          (r: readobs)
          (c1 c2: command),
     eeval N V e r true -> (*yuh doy not writing anything in eeval*)
-    cceval_w (N, V, (TEST e THEN c1 ELSE c2)) [Obs r] (N, V, c1) (nil, (readobs_loc r), nil)
+    cceval_w (N, V, (TEST e THEN c1 ELSE c2)) [Obs r] (N, V, c1) [(nil, (readobs_loc r), nil)]
 | If_F: forall(N: nvmem)
          (V: vmem)
          (e: exp)
          (r: readobs)
          (c1 c2: command),
     eeval N V e r false ->
-    cceval_w (N, V, (TEST e THEN c1 ELSE c2)) [Obs r] (N, V, c2) (nil, (readobs_loc r), nil).
+    cceval_w (N, V, (TEST e THEN c1 ELSE c2)) [Obs r] (N, V, c2) [(nil, (readobs_loc r), nil)].
 
 (************************************************************)
 
