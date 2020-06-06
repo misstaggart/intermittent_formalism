@@ -643,6 +643,8 @@ It not included in the evaluation relation in the paper.
  **)
 
 (*written, read, written before reading*)
+(*I needed a type for tracking the variables written to during a program's execution*)
+(*guess what I called it*)
 Notation the_write_stuff := ((list loc) * (list loc) * (list loc)).
 
 (*Single steps, accumulates write data*)

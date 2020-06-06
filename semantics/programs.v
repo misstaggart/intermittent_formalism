@@ -61,21 +61,52 @@ Definition append_write (W1 W2: the_write_stuff) :=
 (*steps to termination, accumulates write data*)
 
 (*continuous traces*)
-Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Type :=
-  CTrace_Empty: forall(C: context),
-                 trace_c C C nil (nil, nil, nil)
-  | CTrace_Single: forall {C1 C2: context} {O: obseq} {W: the_write_stuff},
+Notation step :=((context * context * obseq) * the_write_stuff).
+
+ Fixpoint last {A: Type} (l:list A) :=
+  match l with
+    | [] => None
+    | [a] => Some a
+    | a :: l => last l
+  end.
+
+ (*Lemma last_none : forall{A: Type} (L: list A),
+     last L = None -> L = [].
+   Proof. intros. unfold last in H. simpl in H.*)
+
+(*Michael look here
+Program Definition getend (L: list step) (H: L <> nil) :=
+  match last L with
+    None => !
+  | Some C => C end.
+Next Obligation.
+  apply H.
+  induction L.
+  + reflexivity.
+  + simpl in Heq_anonymous.
+    destruct L. discriminate Heq_anonymous.
+    cut ((p::L) = []).
+  + intros. discriminate H0.
+  + apply IHL. intros contra. discriminate contra. assumption. 
+Qed. *)
+
+ (*Definition getend (T: (list step) * context * context) := match T with
+                                                             (_, _, out) => out end.
+
+ Definition getstart (T: (list step) * context * context) := match T with
+                                                             (out, _, _) => out end. *)
+(*steps, start, end*)
+Inductive trace_c: (list step) -> context -> context -> Type :=
+  CTrace_Empty: forall(C: context), trace_c [((C, C, nil), emptysets)] C C
+| CTrace_single: forall {C1 C2: context} {O: obseq} {W: the_write_stuff},
                   cceval_w C1 O C2 W -> (*command in C2 is skip by def single_com, cceval_w*)
-                  trace_c C1 C2 O W
-| CTrace_App: forall{C1 C2 Cmid: context} {O1 O2: obseq}
-               {W1 W2: the_write_stuff},
-   (* not (single_com C1) -> unclear if this is necessary as implied by
-     the fact that c1 can be stepped at least twice...
-     will try and prove without it and if it gets messy I'll add it*)
-    trace_c C1 Cmid O1 W1 -> (*steps first section*)
-    trace_c Cmid C2 O2 W2 -> (*steps rest of program*)
-    trace_c C1 C2 (O1 ++ O2) (append_write W1 W2).
-  (*App makes for easy subtraces by allowing command in C2 not to be skip*)
+                  trace_c [((C1, C2, O), W)] C1 C2
+| CTrace_App: forall{L1 L2: list step} {S1 E1 S2 E2: context},
+               trace_c L1 S1 E1 ->
+               trace_c L2 S2 E2->
+               E1 = S2 ->
+               trace_c (L1 ++ L2) S1 E2.
+
 
 (*intermittent traces*)
  (*the same as trace_c bar types as differences between
@@ -91,21 +122,35 @@ iTrace_Empty: forall{C: iconf},
     trace_i C1 Cmid O1 W1 -> (*steps first section*)
     trace_i Cmid C2 O2 W2 -> (*steps rest of program*)
     trace_i C1 C2 (O1 ++ O2) (append_write W1 W2).
+
+(*michael look here
 Definition multi_step_c (C1 C2: context) (O: obseq) :=
-    exists W: the_write_stuff, inhabited (trace_c C1 C2 O W).
-          
+    exists W: the_write_stuff, inhabited (trace_c C1 C2 O W). *)
+
+Definition multi_step_c (C1 C2: context) :=
+  exists (L: list step), inhabited (trace_c L C1 C2).
 
 Definition multi_step_i (C1 C2: iconf) (O: obseq) :=
     exists W: the_write_stuff, trace_i C1 C2 O W.
 (*more trace helpers*)
 
+Fixpoint acc_wts (L: list step) :=
+  match L with
+    [] => emptysets
+  |(((_, _, _), W1):: xs) => append_write W1 (acc_wts xs) end.
 
-Definition Wt {C1 C2: context} {O: obseq} {W: the_write_stuff}
-  (T: trace_c C1 C2 O W) := getwt W.
+Fixpoint acc_obs (L: list step) :=
+  match L with
+    [] => []
+  |(((_, _, obs), _):: xs) => obs ++ (acc_obs xs) end.
 
-Definition FstWt {C1 C2: context} {O: obseq} {W: the_write_stuff}
-  (T: trace_c C1 C2 O W) := getfstwt W.
+Definition Wt {C1 C2: context} {L: list step} (T: trace_c L C1 C2) :=
+getwt (acc_wts L).
 
+Definition FstWt {C1 C2: context} {L: list step} (T: trace_c L C1 C2)
+            := getfstwt (acc_wts L).
+Definition getobs {C1 C2: context} {L: list step} (T: trace_c L C1 C2) :=
+  acc_obs L.
 
 (**********************************************************************************)
 
@@ -121,21 +166,26 @@ Definition FstWt {C1 C2: context} {O: obseq} {W: the_write_stuff}
  N1, V1 and Ncomp are middle states of intermittent, continuous respectively
  V1 isn't used anywhere it's just to fill out the type
  N2, V2 is final state for intermittent, once again solely to fill out the type*)
+
+(*ask Arthur how to not do this*)
+Lemma refl_context : forall (C1: context), C1 = C1.
+intros. reflexivity. Qed. 
+
 Inductive same_pt: nvmem -> vmem -> command -> command -> nvmem -> nvmem -> Prop:=
 same_mem: forall {N0 N1 N2 Ncomp: nvmem}
                   {V0 V1 V2: vmem}
                   {c0 c1: command}
-                  {W1 W2: the_write_stuff}
-                  {O1 O2: obseq}
                   {w: warvars}
-                  (T1: trace_c (N0, V0, c0) (N1, V1, c1) O1 W1)
-                  (T2: trace_c (N1, V1, c1) (N2, V2, Ins (incheckpoint w)) O2 W2),
+                  {L1 L2: list step}
+                  (T1: trace_c L1 (N0, V0, c0) (N1, V1, c1))
+                  (T2: trace_c L2 (N1, V1, c1) (N2, V2, Ins (incheckpoint w))),
                   (getdomain N1) = (getdomain Ncomp) 
-                  -> not (In checkpoint O1)
-                  -> not (In checkpoint O2) (*checks checkpoint T2 ends on is nearest checkpoint*)
+                  -> not (In checkpoint (getobs T1))
+                  -> not (In checkpoint (getobs T2)) (*checks checkpoint T2 ends on is nearest checkpoint*)
                  -> (forall(l: loc),
                       not((getmap N1) l = (getmap Ncomp) l)
-                      -> ((In l (Wt T2)) /\ (In l (FstWt (CTrace_App T1 T2))) /\ not (In l (Wt T1))))
+                      -> ((In l (Wt T2)) /\ (In l (FstWt (CTrace_App T1 T2 (refl_context (N1, V1, c1))
+                                                          ))) /\ not (In l (Wt T1))))
                   -> same_pt N0 V0 c0 c1 N1 Ncomp.
 (*Definition 5*)
 (*N0, V0 is starting state for both executions
@@ -144,15 +194,15 @@ N is state of checkpoint at N1
  V1 isn't used anywhere it's just to fill out the type
  N2, V2 is final state for intermittent, once again solely to fill out the type*)
 Inductive current_init_pt: nvmem -> vmem -> command -> nvmem -> nvmem -> Prop:=
-valid_mem: forall {N N0 N1 N2: nvmem}
-                  {V0 V1 V2: vmem}
+valid_mem: forall {N N0 N1: nvmem}
+                  {V0 V1: vmem}
                   {c: command}
-                  {W : the_write_stuff}
-                  {O: obseq}
                   {w: warvars}
-                  (T: trace_c (N1, V1, c) (N2, V2, Ins (incheckpoint w)) O W),
+                  {L: list step}
+                  {C2: context}
+                  (T: trace_c L (N1, V1, c) C2),
                   (getdomain N1) = (getdomain N0) 
-                  -> not (In checkpoint O) (*checks checkpoint T ends on is nearest checkpoint*)
+                  -> not (In checkpoint (getobs T)) (*checks checkpoint T ends on is nearest checkpoint*)
                  -> (forall(l: loc),
                       not((getmap N1) l = (getmap N0) l)
                       -> (In l (FstWt T)) \/ (In (loc_warvar l) (getdomain N)))
