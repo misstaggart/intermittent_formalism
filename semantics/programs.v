@@ -35,36 +35,12 @@ Notation emptysets := ((nil : list loc), (nil: list loc), (nil: list loc)).
 
 (*Michael look here*)
 (*...do you get it....append the write sets....append the RIGHT sets....... :3*)
-Definition combine_write (W1 W2: the_write_stuff) :=
+Definition append_write (W1 W2: the_write_stuff) :=
 ((getwt W1) ++ (getwt W2), (getrd W1) ++ (getrd W2), (getfstwt W1) ++ (remove in_loc_b (getrd W1) (getfstwt W2))).
 
-Definition append_write (WL: list the_write_stuff) :=
-fold_right combine_write emptysets WL.
-(*Notes:*)
-(*do I keep track of volatile writes as well...I don't think so
- cuz the writes don't last and they all have to be checkpointed anyways*)
-(*concern:*)
-(*actually there's no reason for us to be checkpointing volatiles that are
- written to before they're ever read from along any path*)
-(*at first inspection it doesn't seem like it would be all that hard to keep track of this
- since we're already doing MFstWt for novolatiles.*)
-
-(*concern: cconf and context are functionally the same but cconf has an annoying constructor
- which can't be coerced bc context exists, consider combining into one type?*)
-
-(*The trace type contains
-1. starting configuration
-2. ending configuration
-3. execution observations
-4. a list of warvars which have been written to
-5. a list of warvars which have been read from
-6. a list of warvars which have been written to before they have been read from
- *)
-(*Ordering: start -> end -> observations -> the_write_stuff*)
-(*steps to termination, accumulates write data*)
-
-(*continuous traces*)
-Notation step :=(context * context * obseq).
+Definition combine_write (WL: list the_write_stuff) :=
+fold_right append_write emptysets WL.
+Notation step :=(context * obseq * context).
 
  Fixpoint last {A: Type} (l:list A) :=
   match l with
@@ -73,49 +49,48 @@ Notation step :=(context * context * obseq).
     | a :: l => last l
   end.
 
- (*Lemma last_none : forall{A: Type} (L: list A),
-     last L = None -> L = [].
-   Proof. intros. unfold last in H. simpl in H.*)
-
-(*Michael look here
-Program Definition getend (L: list step) (H: L <> nil) :=
-  match last L with
-    None => !
-  | Some C => C end.
-Next Obligation.
-  apply H.
-  induction L.
-  + reflexivity.
-  + simpl in Heq_anonymous.
-    destruct L. discriminate Heq_anonymous.
-    cut ((p::L) = []).
-  + intros. discriminate H0.
-  + apply IHL. intros contra. discriminate contra. assumption. 
-Qed. *)
-
- (*Definition getend (T: (list step) * context * context) := match T with
-                                                             (_, _, out) => out end.
-
- Definition getstart (T: (list step) * context * context) := match T with
-                                                             (out, _, _) => out end. *)
- (*steps, start, end*)
-
  Check classicT.
 
+ (*Michael look here*)
+ Program Definition getstart (L: list step) (H: L <> []):=
+   match L with
+     [] => !
+    | (out, _, _)::xs => out end.
 
+ (*contexts at end is ending context*)
+ (*can take anything out, ie, step the front, and the end stays the same*)
+ (*want it to be so that combining the stuff is just appending
+  but first write doesn't work like that*)
+ (*why is it that I can't combine the write data in real time again?*)
+ (*here you're going up AND down...won't work*)
+ Inductive trace_c: (list step) -> context -> (list the_write_stuff) -> Type :=
+  CTrace_Empty: forall(C: context), trace_c nil C nil
+| CTrace_single: forall {C1 C2: context} {O: obseq} {W: the_write_stuff},
+    cceval_w C1 O C2 W ->
+    trace_c [(C1, O, C2)] C2 [W]
+| CTrace_Step1: forall{C1 Cmid C3: context} {Omid: obseq} {W3: the_write_stuff} {L: list step} {WT: list the_write_stuff}
+  {H: L <> []},
+    trace_c L C3 WT ->
+    L <> [] -> (*if you want to do a single step use the single constructor; I haven't got time for an infinite loop*)
+    trace_c (tl L) C3 (tl WT) (*steps the front of the trace*)
+| CTrace_Step2: forall{Cmid C3: context} {O3: obseq} {W3: the_write_stuff} {L: list step} {WT: list the_write_stuff},
+    trace_c L Cmid WT ->
+    L <> [] ->
+    cceval_w Cmid O3 C3 W3 ->
+    trace_c (L ++ [(Cmid, O3, C3)]) C3 (WT ++ [W3]). (*steps the back of the trace*)
+(*maybe have append instead of Step2 as a constructor*)
+ (*Theorem trace_step: forall{L: list step} {Cend: context} {WL: list the_write_stuff},
+                      trace_c L Cend WL ->
+                      trace_c (tl L) Cend (tl WL).
+   intros L. induction L; intros Cend WL T.
+   + inversion T; subst.
+     - simpl. constructor.
+     - apply app_eq_nil in H. destruct H. discriminate H2.
+       + inversion T; subst.
+     - simpl. constructor.
+     - simpl.  rewrite H in T.*)
 
-
-
-Inductive trace_c: (list step) -> context -> context -> list the_write_stuff -> Type :=
-  CTrace_Empty: forall(C: context), trace_c [] C C []
-| CTrace_single: forall {C1 C2: context} {O: obseq} {W: list the_write_stuff},
-                  cceval_w C1 O C2 W -> (*command in C2 is skip by def single_com, cceval_w*)
-                  trace_c [(C1, C2, O)] C1 C2 W
-| CTrace_App: forall{L1 L2: list step} {W1 W2: list the_write_stuff} {S1 E1 S2 E2: context},
-               trace_c L1 S1 E1 W1->
-               trace_c L2 S2 E2 W2->
-               E1 = S2 ->
-               trace_c (L1 ++ L2) S1 E2 (W1 ++ W2).
+ Theorem trace_app: forall{L1 L2: list step} {Cend: context} {WT1 WT2: list the_write_stuff}
 
 
 (*intermittent traces*)
@@ -147,20 +122,20 @@ Definition multi_step_c (C1 C2: context) (O: obseq) :=
 Fixpoint acc_obs (L: list step) :=
   match L with
     [] => []
-  |((_, _, obs):: xs) => obs ++ (acc_obs xs) end.
+  |((_, obs, _):: xs) => obs ++ (acc_obs xs) end.
 
-Definition Wt {C1 C2: context} {L: list step} {WL: list the_write_stuff} (T: trace_c L C1 C2 WL) :=
-getwt (append_write WL).
+Definition Wt {C1: context} {L: list step} {WL: list the_write_stuff} (T: trace_c L C1 WL) :=
+getwt (combine_write WL).
 
-Definition FstWt {C1 C2: context} {L: list step} {WL: list the_write_stuff} (T: trace_c L C1 C2 WL)
-            := getfstwt (append_write WL).
-Definition getobs {C1 C2: context} {L: list step} {WL: list the_write_stuff} (T: trace_c L C1 C2 WL) :=
+Definition FstWt {C1: context} {L: list step} {WL: list the_write_stuff} (T: trace_c L C1 WL)
+            := getfstwt (combine_write WL).
+Definition getobs {C1: context} {L: list step} {WL: list the_write_stuff} (T: trace_c L C1 WL) :=
   acc_obs L.
 
 (**********************************************************************************)
 
-Definition multi_step_c (C1 C2: context) (O: obseq)  :=
-  exists (L: list step) (W: list the_write_stuff) (T: trace_c L C1 C2 W), (getobs T) = O.
+Definition multi_step_c (C1: context) (O: obseq)  :=
+  exists (L: list step) (W: list the_write_stuff) (T: trace_c L C1 W), (getobs T) = O.
 
 (*Definition multi_step_i (C1 C2: iconf) (O: obseq) :=
     exists W: the_write_stuff, trace_i C1 C2 O W.*)
