@@ -39,7 +39,11 @@ Proof. induction L; intros.
        +inversion T. subst.
        - inversion H1. 
        + 
-         inversion T. subst. destruct (e <? (Datatypes.length L)).
+         inversion T. subst.
+         unfold Wt. unfold FstWt.
+         destruct (e <? (Datatypes.length L)) eqn: eqlen.
+         cut (trace_c L s e).
+         + intros. eapply IHL.
          pose proof (prop_degeneracy (e < (Datatypes.length L))).
          destruct H0.
          -
