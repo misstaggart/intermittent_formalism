@@ -33,16 +33,32 @@ Definition getrd (W: the_write_stuff) := match W with (_, out , _ )=> out end.
 
 Definition getfstwt (W: the_write_stuff) := match W with (_, _, out )=> out end.
 
+
+Notation step := (context * obseq * the_write_stuff).
+ (*Michael look here*)
+ Program Definition gethead (L: list step) (H: L <> []):=
+   match L with
+     [] => !
+   | (out, _, _)::xs => out end.
+
+Definition getwt_s (W: step) := match W with (_, _, (out, _, _ ))=> out end.
+
+Definition getrd_s (W: step) := match W with (_, _, (_, out , _ )) => out end.
+
+Definition getfstwt_s (W: step) := match W with (_, _, (_, _, out )) => out end.
+
 Notation emptysets := ((nil : list loc), (nil: list loc), (nil: list loc)).
 
 (*Michael look here*)
 (*...do you get it....append the write sets....append the RIGHT sets....... :3*)
-Definition append_write (W1 W2: the_write_stuff) :=
-((getwt W1) ++ (getwt W2), (getrd W1) ++ (getrd W2), (getfstwt W1) ++ (remove in_loc_b (getrd W1) (getfstwt W2))).
+(*Definition append_write (W1 W2: the_write_stuff) :=
+((getwt W1) ++ (getwt W2), (getrd W1) ++ (getrd W2), (getfstwt W1) ++ (remove in_loc_b (getrd W1) (getfstwt W2))).*)
 
-Definition combine_write (WL: list the_write_stuff) :=
+Definition append_write (S: step) (W: the_write_stuff):=
+((getwt_s S) ++ (getwt W), (getrd_s S) ++ (getwt W), (getfstwt_s S) ++ (remove in_loc_b (getrd_s S) (getfstwt W))).
+
+Definition combine_write (WL: list step) :=
 fold_right append_write emptysets WL.
-Notation step :=(context * obseq * context).
 
  Fixpoint last {A: Type} (l:list A) :=
   match l with
@@ -52,34 +68,30 @@ Notation step :=(context * obseq * context).
   end.
 
  Check classicT.
-
- (*Michael look here*)
- Program Definition gethead (L: list context) (H: L <> []):=
-   match L with
-     [] => !
-    | out::xs => out end.
  (*trying with pointers*)
- Inductive step_term : (list context) -> (list obseq) -> (list the_write_stuff) -> Prop :=
+ Inductive step_term : (list step) -> Prop :=
    Step_Single : forall{C1: context} {N2: nvmem} {V2: vmem} {O: obseq} {W: the_write_stuff},
-     cceval_w C1 O (N2, V2, (Ins skip)) W -> step_term (C1::[(N2, V2, (Ins skip))]) [O] [W]
- | Step_Many: forall{C1 C2: context} {O1: obseq} {W1: the_write_stuff} (*makes program bigger*)
-               {Crest: (list context)} {Orest: (list obseq)} {Wrest: (list the_write_stuff)}    (H: Crest <> nil), 
-     step_term Crest Orest Wrest ->
-     cceval_w C1 O1 (gethead Crest H) W1 ->
-     step_term (C1::Crest) (O1:: Orest) (W1:: Wrest).
+     cceval_w C1 O (N2, V2, (Ins skip)) W ->
+     step_term ((C1, O, W)::[((N2, V2, (Ins skip)), [], emptysets)])
+ | Step_Many: forall{L: list step}
+     {C1 C2: context} {O1: obseq} {W1: the_write_stuff} (*makes program bigger*)
+      (H: L <> nil), 
+     step_term L ->
+     cceval_w C1 O1 (gethead L H) W1 ->
+     step_term ((C1, O1, W1) :: L).
 
- Inductive trace_c (CL: list context) (WL: list the_write_stuff) (OL: list obseq): nat -> nat -> Prop :=
+ Inductive trace_c (CL: list step): nat -> nat -> Prop :=
    Trace_C: forall
              (s e: nat)
-             (H1: s < (List.length CL))
-             (H2: e < (List.length CL)),
-             step_term CL OL WL ->
-             trace_c CL WL OL s e.
-Theorem trace_append : forall {CL: list context} {WL: list the_write_stuff} {OL: list obseq} {s1 mid e2: nat}
-                                          (T1: trace_c CL WL OL s1 mid) (T2: trace_c CL WL OL mid e2),
-     trace_c CL WL OL s1 e2.
+             (H1: is_true (s <? (List.length CL)))
+             (H2: is_true (e <? (List.length CL))),
+             step_term CL ->
+             trace_c CL s e.
+Theorem trace_append : forall {CL: list step} {s1 mid e2: nat}
+                                          (T1: trace_c CL s1 mid) (T2: trace_c CL mid e2),
+     trace_c CL s1 e2.
   intros. inversion T1. inversion T2. subst.
-  apply (Trace_C CL WL OL s1 e2 H1 H5 H6). Qed.
+  apply (Trace_C CL s1 e2 H1 H5 H6). Qed.
 
 
  
@@ -145,37 +157,40 @@ Definition multi_step_c (C1 C2: context) (O: obseq) :=
     [] => emptysets
   |(((_, _, _), W1):: xs) => append_write W1 (acc_wts xs) end.*)
 
-Fixpoint acc_obs (L: list obseq) :=
+Fixpoint acc_obs (L: list step) :=
   match L with
     [] => []
-  |(obs:: xs) => obs ++ (acc_obs xs) end.
+  |(_, obs, _):: xs => obs ++ (acc_obs xs) end.
 
 (*(nth_error CL e) *)
 
-Definition Wt {CL: list context} {WL: list the_write_stuff} {OL: list obseq} {s e: nat} (T: trace_c CL WL OL s e) :=
-getwt (combine_write (firstn (e- s + 1) (skipn s WL))).
+Definition Wt {CL: list step} {s e: nat} (T: trace_c CL s e) :=
+getwt (combine_write (firstn (e- s + 1) (skipn s CL))).
 
 
-Definition FstWt {CL: list context} {WL: list the_write_stuff} {OL: list obseq}{s e: nat} (T: trace_c CL WL OL s e) :=
-getfstwt (combine_write (firstn (e- s + 1) (skipn s WL))).
+Definition FstWt {CL: list step} {s e: nat} (T: trace_c CL s e) :=
+getfstwt (combine_write (firstn (e- s + 1) (skipn s CL))).
 
 
-Definition getobs {CL: list context} {WL: list the_write_stuff} {OL: list obseq}{s e: nat}
-           (T: trace_c CL WL OL s e) :=
-  acc_obs ( (firstn (e- s + 1) (skipn s OL))).
+Definition getobs  {CL: list step} {s e: nat} (T: trace_c CL s e) :=
+ acc_obs (firstn (e- s + 1) (skipn s CL)).
 
-Definition getstart {CL: list context} {WL: list the_write_stuff} {OL: list obseq} {s e: nat}
-           (T: trace_c CL WL OL s e) :=
-  nth_error CL s.
+Definition getstart {CL: list step} {s e: nat} (T: trace_c CL s e)
+           :=
+             match nth_error CL s with
+               None => None
+             | Some (out, _, _) => Some out end.
 
-Definition getend {CL: list context} {WL: list the_write_stuff} {OL: list obseq} {s e: nat}
-           (T: trace_c CL WL OL s e) :=
-  nth_error CL e.
+Definition getend {CL: list step} {s e: nat} (T: trace_c CL s e)
+            :=
+           match nth_error CL e with
+               None => None
+             | Some (out, _, _) => Some out end.
 (**********************************************************************************)
 
 Definition multi_step_c (C1 C2: context) (O: obseq)  :=
-  exists {CL: list context} {WL: list the_write_stuff} {OL: list obseq}
-    {s e: nat} (T: trace_c CL WL OL s e), (getobs T) = O /\ (getstart T) = (Some C1) /\ (getend T) = (Some C2).
+  exists {CL: list step}
+    {s e: nat} (T: trace_c CL s e), (getobs T) = O /\ (getstart T) = (Some C1) /\ (getend T) = (Some C2).
 
 (*Definition multi_step_i (C1 C2: iconf) (O: obseq) :=
     exists W: the_write_stuff, trace_i C1 C2 O W.*)
@@ -193,8 +208,6 @@ Definition multi_step_c (C1 C2: context) (O: obseq)  :=
  N2, V2 is final state for intermittent, once again solely to fill out the type*)
 
 (*ask Arthur how to not do this*)
-Lemma refl_context : forall (C1: context), C1 = C1.
-intros. reflexivity. Qed. 
 
 (*what about a relation for when there's not a checkpoint left?*)
 Inductive same_pt: nvmem -> vmem -> command -> command -> nvmem -> nvmem -> Prop:=
@@ -202,12 +215,10 @@ same_mem: forall {N0 N1 N2 Ncomp: nvmem}
                   {V0 V1 V2: vmem}
                   {c0 c1 c2: command}
                   {w: warvars}
-                  {L: list context}
-                  {O: list obseq}
-                  {W: list the_write_stuff}
+                  {L: list step}
                   {s1 mid e2: nat}
-                  (T1: trace_c L W O s1 mid)
-                  (T2: trace_c L W O mid e2),
+                  (T1: trace_c L s1 mid)
+                  (T2: trace_c L mid e2),
                   (getstart T1 = Some (N0, V0, c0)) ->
                   (getend T1 = Some (N1, V1, c1)) ->
                   (getend T2 = Some (N2, V2, (incheckpoint w);; c2)) -> 
@@ -230,11 +241,9 @@ valid_mem: forall {N N0 N1 N2: nvmem}
                   {V0 V1 V2: vmem}
                   {c c1: command}
                   {w: warvars}
-                  {CL: list context}
-                  {O: list obseq}
-                  {W: list the_write_stuff}
+                  {L: list step}
                   {s e: nat}
-                  (T: trace_c CL W O s e),
+                  (T: trace_c L s e),
     (getstart T) = Some (N1, V1, c) ->
     (getend T) = Some (N2, V2, (incheckpoint w) ;; c1 ) ->
                   (getdomain N1) = (getdomain N0) 

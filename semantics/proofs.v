@@ -32,11 +32,23 @@ Qed.
   + simpl. repeat rewrite app_nil_r. reflexivity.
   + destruct a as [blah W]. simpl. *)
 
-Lemma wt_subst_fstwt: forall{L: list step} {C1 C2: context}
-  {W: list the_write_stuff},
-    trace_c L C1 C2 W ->
-    incl (getfstwt (append_write W)) (getwt (append_write W)).
-Proof. intros L C1 C2 W T. induction T.
+(*need to force WL, OL, CL to be the same length...product type*)
+Lemma wt_subst_fstwt: forall{L: list step} {s e : nat} (T: trace_c L s e),
+    incl (Wt T) (FstWt T).
+Proof. induction L; intros.
+       +inversion T. subst.
+       - inversion H1. 
+       + 
+         inversion T. subst. destruct (e <? (Datatypes.length L)).
+         pose proof (prop_degeneracy (e < (Datatypes.length L))).
+         destruct H0.
+         -
+         unfold Wt. unfold FstWt. induction WL.
+       + assert (List.length CL = 0).
+       - apply same_len in H. simpl in H. destruct H. assumption.
+         rewrite H0 in H1. inversion H1.
+       + 
+         induction T.
        + simpl. apply (incl_refl []).
        + induction c; try (simpl; apply (incl_refl [])); try (
          rewrite (lock remove) /= -lock;
