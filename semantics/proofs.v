@@ -415,4 +415,8 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
         exists Osmall Wsmall. assumption.
 Qed.
 
+
+Lemma thirteen: 
+
+
 Close Scope list_scope.
