@@ -5,10 +5,31 @@ Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
 From TLC Require Import LibTactics LibLogic.
 Import ListNotations.
-From Semantics Require Import programs semantics algorithms lemmas. (*shouldn't have to import both of these*)
+From Semantics Require Import programs semantics algorithms lemmas_1. (*shouldn't have to import both of these*)
 
 Open Scope list_scope.
 Open Scope type_scope.
+
+(*ltac*)
+Ltac destruct4r H L1 L2 L3 L4 := destruct H as [L1 rest];
+         destruct rest as [L2 rest];
+         destruct rest as [L3 L4]. 
+
+Ltac destruct3 Cmid nmid vmid cmid:=
+           destruct Cmid as [Annoying cmid]; destruct Annoying as [nmid vmid].
+
+Ltac ex_destruct3 H := destruct H as [var1 Annoying]; destruct Annoying as [var2 Annoying1];
+                       destruct Annoying1 as [var3 H].
+
+Ltac destruct_ms M T WT := destruct M as [WT neverseen]; destruct neverseen as [T].
+
+Ltac generalize_5 N N' V V' O := generalize dependent N;
+                               generalize dependent N';
+                               generalize dependent V;
+                               generalize dependent V';
+                               generalize dependent O.
+
+
 
 (*lemmas for the lemmas; not in paper*)
 Lemma sub_disclude: forall(N0 N1 N2: nvmem) (l: loc),
@@ -40,82 +61,6 @@ Proof. intros C1 C2 O W T. induction T.
                                     (remove_subst _ _ _)
                                     IHT2)).
 Qed.
-
-(*actual lemmas*)
-
-Lemma onePointone: forall(N N' W W' R R': warvars) (l: instruction),
-    DINO_ins N W R l N' W' R' -> incl N N'.
-Proof. intros. induction H; try((try apply incl_tl); apply (incl_refl N)).
-Qed.
-
-
-Lemma onePointtwo: forall(N N' W R: warvars) (c c': command),
-    DINO N W R c c' N' -> incl N N'.
-Proof. intros. induction H; try(apply onePointone in H); try apply (incl_refl N); try assumption.
-       -  apply (incl_tran H IHDINO).
-       - apply (incl_appl N2 IHDINO1). (*why is coq too stupid to figure out these instantiations*)
- Qed.
-
-Lemma Two: forall(N N' W W' R R' N1: warvars) (l: instruction),
-    DINO_ins N W R l N' W' R' -> incl N' N1 -> WAR_ins N1 W R l W' R'.
-  intros. induction H; try (constructor; assumption || (apply War_noRd; assumption));
-            (apply WAR_Checkpointed || apply WAR_Checkpointed_Arr);
-            (repeat assumption); apply H0; unfold In; left; reflexivity.
-Qed.
-
-
-Theorem DINO_WAR_correct: forall(N W R N': warvars) (c c': command),
-    DINO N W R c c' N' -> (forall(N1: warvars), incl N' N1 -> WARok N1 W R c').
-  intros N W R c c' N' H. induction H; intros N0 Hincl.
-  - eapply WAR_I. applys Two H Hincl.
-  - eapply WAR_Seq. applys Two H. apply onePointtwo in H0. eauto using incl_tran.
-    apply (IHDINO N0 Hincl).
-  - eapply WAR_If; (try eassumption);
-      ((apply IHDINO1; apply incl_app_l in Hincl)
-       || (apply IHDINO2; apply incl_app_r in Hincl)); assumption.
-  - intros. apply WAR_CP. apply IHDINO. apply (incl_refl N').
-Qed.
-
-
-Lemma eight: forall(N0 N1 N2: nvmem) (V0: vmem) (c0: command),
-              (subset_nvm N0 N1) ->
-              (subset_nvm N0 N2) ->
-              current_init_pt N0 V0 c0 N1 N2 ->
-              same_pt N1 V0 c0 c0 N1 N2.
-Proof. intros. inversion H1. subst.
-       apply (same_mem (CTrace_Empty (N1, V0, c0))
-                       T); (try assumption).
-       - simpl. intros contra. contradiction.
-       - intros. simpl.
-         assert (H6: not (In (loc_warvar l) (getdomain N0))) by
-               apply (sub_disclude N0 N1 N2 l H H0 H5).
-           apply H4 in H5. destruct H5. split. 
-         + unfold Wt. apply ((wt_subst_fstwt T) l H5).
-         + split.
-             - unfold remove. unfold in_loc_b. rewrite filter_false.
-                 apply H5.
-             - intros contra. contradiction.
-         + apply H6 in H5. contradiction.
-Qed.
-
-Ltac destruct4r H L1 L2 L3 L4 := destruct H as [L1 rest];
-         destruct rest as [L2 rest];
-         destruct rest as [L3 L4]. 
-
-Ltac destruct3 Cmid nmid vmid cmid:=
-           destruct Cmid as [Annoying cmid]; destruct Annoying as [nmid vmid].
-
-Ltac ex_destruct3 H := destruct H as [var1 Annoying]; destruct Annoying as [var2 Annoying1];
-                       destruct Annoying1 as [var3 H].
-
-Ltac destruct_ms M T WT := destruct M as [WT neverseen]; destruct neverseen as [T].
-
-Ltac generalize_5 N N' V V' O := generalize dependent N;
-                               generalize dependent N';
-                               generalize dependent V;
-                               generalize dependent V';
-                               generalize dependent O.
-(*Ltac get_trace M :=*)
 
 Lemma trace_stops: forall {N N': nvmem} {V V': vmem}
                     {l: instruction} {c: command}
@@ -184,9 +129,6 @@ Check proj1_sig.
 Check val_eqP.
 Check elimT.
 
-(*do something about this
- start here*)
-
 Lemma determinism_e: forall{N: nvmem} {V: vmem} {e: exp} {r1 r2: readobs} {v1 v2: value},
     eeval N V e r1 v1 ->
     eeval N V e r2 v2 ->
@@ -241,9 +183,6 @@ Proof. intros C1 C2 C3 O1 O2 W1 W2 cc1 cc2. destruct C1 as [blah c]. destruct bl
 Qed.
 
 
-
-(*could also add that written set of c -> c2 is inside written set of
- l;;c -> c2 but ill wait till I need it*)
 (*concern: the theorem below is not true for programs with io
  but then again neither is lemma 10*)
 Lemma single_step_all: forall{C1 Cmid C3: context} 
@@ -304,7 +243,67 @@ Lemma if_step: forall{N: nvmem} {V: vmem} {e: exp} {c1 c2: command}
     cceval_w (N, V, (TEST e THEN c1 ELSE c2)) O C2 W ->  c1 = (getcom C2)
 \/ c2 = (getcom C2).
   intros. inversion H; subst; simpl;( (left; reflexivity) || (right; reflexivity)).
-  Qed.
+Qed.
+
+
+
+(*lemmas from paper*)
+
+Lemma onePointone: forall(N N' W W' R R': warvars) (l: instruction),
+    DINO_ins N W R l N' W' R' -> incl N N'.
+Proof. intros. induction H; try((try apply incl_tl); apply (incl_refl N)).
+Qed.
+
+
+Lemma onePointtwo: forall(N N' W R: warvars) (c c': command),
+    DINO N W R c c' N' -> incl N N'.
+Proof. intros. induction H; try(apply onePointone in H); try apply (incl_refl N); try assumption.
+       -  apply (incl_tran H IHDINO).
+       - apply (incl_appl N2 IHDINO1). (*why is coq too stupid to figure out these instantiations*)
+ Qed.
+
+Lemma Two: forall(N N' W W' R R' N1: warvars) (l: instruction),
+    DINO_ins N W R l N' W' R' -> incl N' N1 -> WAR_ins N1 W R l W' R'.
+  intros. induction H; try (constructor; assumption || (apply War_noRd; assumption));
+            (apply WAR_Checkpointed || apply WAR_Checkpointed_Arr);
+            (repeat assumption); apply H0; unfold In; left; reflexivity.
+Qed.
+
+
+Theorem DINO_WAR_correct: forall(N W R N': warvars) (c c': command),
+    DINO N W R c c' N' -> (forall(N1: warvars), incl N' N1 -> WARok N1 W R c').
+  intros N W R c c' N' H. induction H; intros N0 Hincl.
+  - eapply WAR_I. applys Two H Hincl.
+  - eapply WAR_Seq. applys Two H. apply onePointtwo in H0. eauto using incl_tran.
+    apply (IHDINO N0 Hincl).
+  - eapply WAR_If; (try eassumption);
+      ((apply IHDINO1; apply incl_app_l in Hincl)
+       || (apply IHDINO2; apply incl_app_r in Hincl)); assumption.
+  - intros. apply WAR_CP. apply IHDINO. apply (incl_refl N').
+Qed.
+
+
+Lemma eight: forall(N0 N1 N2: nvmem) (V0: vmem) (c0: command),
+              (subset_nvm N0 N1) ->
+              (subset_nvm N0 N2) ->
+              current_init_pt N0 V0 c0 N1 N2 ->
+              same_pt N1 V0 c0 c0 N1 N2.
+Proof. intros. inversion H1. subst.
+       apply (same_mem (CTrace_Empty (N1, V0, c0))
+                       T); (try assumption).
+       - simpl. intros contra. contradiction.
+       - intros. simpl.
+         assert (H6: not (In (loc_warvar l) (getdomain N0))) by
+               apply (sub_disclude N0 N1 N2 l H H0 H5).
+           apply H4 in H5. destruct H5. split. 
+         + unfold Wt. apply ((wt_subst_fstwt T) l H5).
+         + split.
+             - unfold remove. unfold in_loc_b. rewrite filter_false.
+                 apply H5.
+             - intros contra. contradiction.
+         + apply H6 in H5. contradiction.
+Qed.
+
 
 
 (*Concern: bottom three cases are essentially the same reasoning but with slight differences;
@@ -415,8 +414,5 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
             [contra blah]. inversion contra. subst. apply H3. reflexivity.
         exists Osmall Wsmall. assumption.
 Qed.
-
-
-
 
 Close Scope list_scope.

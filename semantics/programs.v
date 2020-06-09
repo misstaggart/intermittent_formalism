@@ -3,7 +3,7 @@ From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Lists.List Strings.String Program Init.Logic.
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
-From Semantics Require Import algorithms.
+From Semantics Require Import algorithms lemmas_1.
 
 Open Scope list_scope.
 
@@ -11,18 +11,6 @@ Open Scope type_scope.
 (************* program traces*****************)
 
 (*trace helpers*)
-(*consider using a record type so I don't need so many of these*)
-
-Definition getwt (W: the_write_stuff) := match W with (out, _, _ )=> out end.
-
-Definition getrd (W: the_write_stuff) := match W with (_, out , _ )=> out end.
-
-Definition getfstwt (W: the_write_stuff) := match W with (_, _, out )=> out end.
-
-Notation emptysets := ((nil : list loc), (nil: list loc), (nil: list loc)).
-
-Definition append_write (W1 W2: the_write_stuff) :=
-  ((getwt W1) ++ (getwt W2), (getrd W1) ++ (getrd W2), (getfstwt W1) ++ (remove in_loc_b (getrd W1) (getfstwt W2))).
 
 (*Notes:*)
 (*do I keep track of volatile writes as well...I don't think so
@@ -63,13 +51,8 @@ Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Type :=
     trace_c C1 C2 (O1 ++ O2) (append_write W1 W2).
   (*App makes for easy subtraces by allowing command in C2 not to be skip*)
 
+
 (*proofs for trace append*)
-
-Lemma undo_gets: forall(W: the_write_stuff),
-      (getwt W, getrd W, getfstwt W) = W.
-  Proof. intros. destruct W. destruct p. simpl. reflexivity.
-Qed.
-
 
 Lemma empty_trace: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
     trace_c C1 C2 O W -> O = [] -> C1 = C2 /\ W = emptysets.
@@ -90,10 +73,10 @@ Qed.
 Lemma append_write_empty_l: forall{W: the_write_stuff},
     append_write emptysets W = W.
 Proof. intros. simpl. unfold append_write. simpl.
-Admitted.
-
-
-
+       unfold remove. unfold in_loc_b.
+       rewrite filter_false.
+       apply undo_gets.
+Qed.
 
 Program Definition trace_append {C1 Cmid C2: context }
                   {O1 O2: obseq}
@@ -128,8 +111,6 @@ Next Obligation. split. intros wildcard contra. destruct contra. inversion H1.
                  intros contra. destruct contra. inversion H1. Qed.
 
 
-
-
 (*intermittent traces*)
  (*the same as trace_c bar types as differences between
   intermittent and continuous execution have been implemented in evals*)
@@ -149,9 +130,9 @@ Definition multi_step_c (C1 C2: context) (O: obseq) :=
           
 
 Definition multi_step_i (C1 C2: iconf) (O: obseq) :=
-    exists W: the_write_stuff, trace_i C1 C2 O W.
-(*more trace helpers*)
+  exists W: the_write_stuff, trace_i C1 C2 O W.
 
+(*trace helpers*)
 
 Definition Wt {C1 C2: context} {O: obseq} {W: the_write_stuff}
   (T: trace_c C1 C2 O W) := getwt W.

@@ -641,6 +641,24 @@ Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
 (*evaluation relation for commands*)
 
 
+
+(*written, read, written before reading*)
+Notation the_write_stuff := ((list loc) * (list loc) * (list loc)).
+
+(*consider using a record type so I don't need so many of these*)
+
+Definition getwt (W: the_write_stuff) := match W with (out, _, _ )=> out end.
+
+Definition getrd (W: the_write_stuff) := match W with (_, out , _ )=> out end.
+
+Definition getfstwt (W: the_write_stuff) := match W with (_, _, out )=> out end.
+
+Notation emptysets := ((nil : list loc), (nil: list loc), (nil: list loc)).
+
+Definition append_write (W1 W2: the_write_stuff) :=
+  ((getwt W1) ++ (getwt W2), (getrd W1) ++ (getrd W2), (getfstwt W1) ++ (remove in_loc_b (getrd W1) (getfstwt W2))).
+
+
 (***Below, I define an evaluation relation for continuous programs which accumulates
  read/write data as the program evaluates. This makes the trace type more elegant, while
  also containing the same data as the cceval above.
@@ -648,14 +666,8 @@ However, the write data does not influence the evaluation of the program, so, if
 for the trace type, it wouldn't be clear I would include this here.
 It not included in the evaluation relation in the paper.
  **)
-
-(*written, read, written before reading*)
-Notation the_write_stuff := ((list loc) * (list loc) * (list loc)).
-
 (*Single steps, accumulates write data*)
 (*Note: program consisting of just a checkpoint is illegal...huh*)
-
-
 
 Inductive cceval_w: context -> obseq -> context -> the_write_stuff -> Prop :=
 CheckPoint: forall(N: nvmem)
@@ -705,8 +717,6 @@ CheckPoint: forall(N: nvmem)
          (V: vmem)
          (c: command),
     cceval_w (N, V, (skip;;c)) [Obs NoObs] (N, V, c) (nil, nil, nil)
-   (*IP becomes obnoxious if you let checkpoint into the Seq case so I'm outlawing it
-    same with skip*) 
 | Seq: forall (N N': nvmem)
          (V V': vmem)
          (l: instruction)
@@ -717,6 +727,8 @@ CheckPoint: forall(N: nvmem)
     l <> skip ->
     cceval_w (N, V, Ins l) [o] (N', V', Ins skip) W ->
     cceval_w (N, V, (l;;c)) [o] (N', V', c) W
+   (*IP becomes obnoxious if you let checkpoint into the Seq case so I'm outlawing it
+    same with skip*) 
 | If_T: forall(N: nvmem)
          (V: vmem)
          (e: exp)
