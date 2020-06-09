@@ -39,6 +39,11 @@ WAR_Skip: forall(N W R: warvars),
              In (inl x) (R ++ Re) ->
              (In (inl x) W) ->
              WAR_ins N W R (asgn_sv x e) W (R ++ Re)
+(*no restrictions on the parameter W,
+ if make W really big, never enter the checkpointed case
+ and check N for anything
+ concern w regard to lemma 13 which allows for
+ an arbitrary W to be chosen*)
 | WAR_NoRd_Arr: forall(N W R Re Rindex: warvars)
                  (a: array) (e index: exp)
                  (e: exp),
