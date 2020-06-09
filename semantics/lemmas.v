@@ -48,7 +48,6 @@ Proof. intros. induction L2.
          + apply incl_tl. assumption.
 Qed.
 
-
 Lemma filter_false: forall{A: Type} (L1: list A),
     filter (fun x => negb false) L1 = L1.
   induction L1.
@@ -71,5 +70,6 @@ Lemma in_app_r: forall{A: Type} {a: A} {L1 L2: list A},
 
   Lemma empty_sub: forall{A: Type} {L: list A},
       incl [] L.
-   Proof. intros. unfold incl. intros. apply in_nil in H. contradiction. Qed.
+  Proof. intros. unfold incl. intros. apply in_nil in H. contradiction. Qed.
+
 Close Scope list_scope.

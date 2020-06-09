@@ -25,41 +25,21 @@ Proof. intros. intros contra. unfold subset_nvm in H. destruct H.
        apply H1. assumption.
 Qed.
 
-(*Lemma accwt_assoc_wt: forall(L1 L2: list step),
-    getwt(acc_wts L1) ++ getwt(acc_wts L2) =
-    getwt (acc_wts (L1 ++ L2)).
-  intros. induction L2.
-  + simpl. repeat rewrite app_nil_r. reflexivity.
-  + destruct a as [blah W]. simpl. *)
-
-(*need to force WL, OL, CL to be the same length...product type*)
-Lemma wt_subst_fstwt: forall{L: list step} {s e : nat} (T: trace_c L s e),
-    incl (Wt T) (FstWt T).
-Proof. induction L; intros.
-       +inversion T. subst.
-       - inversion H1. 
-       + 
-         inversion T. subst.
-         unfold Wt. unfold FstWt.
-         destruct (e <? (Datatypes.length L)) eqn: eqlen.
-         cut (trace_c L s e).
-         + intros. eapply IHL.
-         pose proof (prop_degeneracy (e < (Datatypes.length L))).
-         destruct H0.
-         -
-         unfold Wt. unfold FstWt. induction WL.
-       + assert (List.length CL = 0).
-       - apply same_len in H. simpl in H. destruct H. assumption.
-         rewrite H0 in H1. inversion H1.
-       + 
-         induction T.
+Lemma wt_subst_fstwt: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
+  trace_c C1 C2 O W ->
+    incl (getfstwt W) (getwt W).
+Proof. intros C1 C2 O W T. induction T.
        + simpl. apply (incl_refl []).
-       + induction c; try (simpl; apply (incl_refl [])); try (
-         rewrite (lock remove) /= -lock;
-         rewrite app_nil_r;
-          apply remove_subst).
+       + induction c;
+           (try (simpl; apply (incl_refl [])));
+           (try (unfold getfstwt; unfold getwt;
+                 apply remove_subst)).
        - assumption.
-       - Admitted.
+       - simpl. apply (incl_app_dbl IHT1
+                                    (incl_tran
+                                    (remove_subst _ _ _)
+                                    IHT2)).
+Qed.
 
 (*actual lemmas*)
 
@@ -102,7 +82,7 @@ Lemma eight: forall(N0 N1 N2: nvmem) (V0: vmem) (c0: command),
               (subset_nvm N0 N2) ->
               current_init_pt N0 V0 c0 N1 N2 ->
               same_pt N1 V0 c0 c0 N1 N2.
-Proof. intros. inversion H1; subst.
+Proof. intros. inversion H1. subst.
        apply (same_mem (CTrace_Empty (N1, V0, c0))
                        T); (try assumption).
        - simpl. intros contra. contradiction.
@@ -110,21 +90,25 @@ Proof. intros. inversion H1; subst.
          assert (H6: not (In (loc_warvar l) (getdomain N0))) by
                apply (sub_disclude N0 N1 N2 l H H0 H5).
            apply H4 in H5. destruct H5. split. 
-         + unfold Wt. unfold FstWt in H5. apply ((wt_subst_fstwt T) l H5).
+         + unfold Wt. apply ((wt_subst_fstwt T) l H5).
          + split.
-       - unfold FstWt. unfold FstWt in H5. assumption.
-       - intros contra. contradiction.
+             - unfold remove. unfold in_loc_b. rewrite filter_false.
+                 apply H5.
+             - intros contra. contradiction.
          + apply H6 in H5. contradiction.
 Qed.
 
+Ltac destruct4r H L1 L2 L3 L4 := destruct H as [L1 rest];
+         destruct rest as [L2 rest];
+         destruct rest as [L3 L4]. 
 
-Ltac destruct3 zero one two three:= destruct zero as [Annoying one]; destruct Annoying as [two three].
+Ltac destruct3 Cmid nmid vmid cmid:=
+           destruct Cmid as [Annoying cmid]; destruct Annoying as [nmid vmid].
 
 Ltac ex_destruct3 H := destruct H as [var1 Annoying]; destruct Annoying as [var2 Annoying1];
                        destruct Annoying1 as [var3 H].
 
-Ltac destruct_ms M L WT T obs:= destruct M as [L neverseen]; destruct neverseen as [WT neverseen];
-                            destruct neverseen as [T obs].
+Ltac destruct_ms M T WT := destruct M as [WT neverseen]; destruct neverseen as [T].
 
 Ltac generalize_5 N N' V V' O := generalize dependent N;
                                generalize dependent N';
@@ -133,17 +117,17 @@ Ltac generalize_5 N N' V V' O := generalize dependent N;
                                generalize dependent O.
 (*Ltac get_trace M :=*)
 
-Lemma ins_to_skip: forall {N N': nvmem} {V V': vmem}
+Lemma trace_stops: forall {N N': nvmem} {V V': vmem}
                     {l: instruction} {c: command}
-  {L: list step} {W: list the_write_stuff},
-    trace_c L (N, V, Ins l) (N', V', c) W ->
+  {O: obseq} {W: the_write_stuff},
+    trace_c (N, V, Ins l) (N', V', c) O W ->
     (c = Ins l) \/ (c = skip).
 Proof.
-  intros N N' V V' l c L W T. dependent induction T.
+  intros N N' V V' l c O W T. dependent induction T.
   + constructor.
   + reflexivity.
   + inversion c0; subst; try(right; reflexivity).
-  + destruct3 S2 cmid nmid vmid.
+  + destruct3 Cmid nmid vmid cmid.
     assert (cmid = l \/ cmid = skip).
     {
       apply (IHT1 N nmid V vmid l cmid); reflexivity.
@@ -154,199 +138,178 @@ Proof.
          destruct (IHT2 nmid N' vmid V' skip c); (reflexivity || assumption).
 Qed.
 
-Lemma obs_subst_app_l: forall(L1 L2: list step),
-    incl (acc_obs L1) (acc_obs (L1 ++ L2)).
-  Proof. Admitted.
-
-Lemma obs_subst_app_r: forall(L1 L2: list step),
-    incl (acc_obs L2) (acc_obs (L1 ++ L2)).
-  Proof. Admitted.
-
-  (*WEIRD induction principle when I have T explicitly quantified*)
-  (*clean this up or just take observation sequence
-   out of the step type*)
 Lemma observe_checkpt: forall {N N': nvmem} {V V': vmem}
                      {c c': command} {w: warvars}
-                    {L: list step} {W: list the_write_stuff},
-    (trace_c L (N, V, (incheckpoint w ;; c)) (N', V', c') W) ->
-    c' = (incheckpoint w ;; c) \/ In checkpoint (acc_obs L).
-  intros N N' V V' c c' w L W T.
+                    {O: obseq} {W: the_write_stuff},
+    trace_c (N, V, (incheckpoint w ;; c)) (N', V', c') O W ->
+    c' = (incheckpoint w ;; c) \/ In checkpoint O.
+  intros N N' V V' c c' w O W T.
   dependent induction T.
   + left. reflexivity.
-  +  inversion c0; subst. right. left. reflexivity.      
-  +  inversion H8.
-    destruct3 S2 cmid nmid vmid. destruct (IHT1 N nmid V vmid c cmid w); subst; try reflexivity.
-  - destruct (IHT2 nmid N' vmid V' c c' w); subst; try reflexivity.
-    + left; reflexivity.
-    + right. apply (obs_subst_app_r L1 L2). apply H.
- - right. apply (obs_subst_app_l). apply H.
+  +  inversion c0; subst. right.  apply(in_eq checkpoint).
+     inversion H10.
+  + destruct3 Cmid nmid vmid cmid. destruct (IHT1 N nmid V vmid c cmid w); subst; try reflexivity.
+      - destruct (IHT2 nmid N' vmid V' c c' w); subst; try reflexivity;
+          [left; reflexivity | right; apply (in_app_r H)].
+      - right. apply (in_app_l H).
+Qed.
+
+(*tidy up this theorem statement a little*)
+Lemma negNVandV: forall(x : smallvar), not(isNV x /\ isV x).
+Proof. intros. unfold isNV. unfold isV.
+       unfold isNV_b. unfold isV_b.
+       destruct x as [x p]. simpl. induction x; (try destruct q); intros contra;
+                                         destruct contra as [H1 H2];
+      (discriminate H1 || discriminate H2).
+Qed.
+(*weird that destruct works in the above but inversion does nothing
+ ask arthur*)
+
+
+(*ask arthur how to subtypes!*)
+Lemma el_arrayind: forall{e0 e1: el} {a: array} {v: value},
+    el_arrayind_eq e0 a v -> el_arrayind_eq e1 a v ->
+    e0 = e1.
+Proof. intros e0 e1 a v. intros.
+       (*cut (val e0 == val e1).*)
+       unfold el_arrayind_eq.
+       unfold samearray.
+       unfold samearray_b.
+       unfold getarray.
+Admitted.
+(*plan is to use these but then I would have to set up
+ equality type for expressions;
+ going to wait to ask if there is an easier way*)
+Check proj1_sig.
+Check val_eqP.
+Check elimT.
+
+(*do something about this
+ start here*)
+
+Lemma determinism_e: forall{N: nvmem} {V: vmem} {e: exp} {r1 r2: readobs} {v1 v2: value},
+    eeval N V e r1 v1 ->
+    eeval N V e r2 v2 ->
+    r1 = r2 /\ v1 = v2.
+Proof. intros. induction H.
+       + inversion H0.
+       - subst. split; reflexivity.
+         - subst. 
+Admitted.
+(*waiting till I decide whether or not I'm using the subtypes*)
+
+
+  (*ask Arthur why the other version acted
+ weirdly with inversion*)
+
+Lemma determinism: forall{C1 C2 C3: context} {O1 O2: obseq} {W1 W2: the_write_stuff},
+    cceval_w C1 O1 C2 W1 ->
+    cceval_w C1 O2 C3 W2 ->
+    C2 = C3 /\ O1 = O2 /\ W1 = W2.
+Proof. intros C1 C2 C3 O1 O2 W1 W2 cc1 cc2. destruct C1 as [blah c]. destruct blah as [N V].
+       destruct3 C2 N2 V2 com2. 
+       generalize dependent C3.
+       generalize dependent O2.
+       generalize dependent W2.
+       induction cc1; intros; try (inversion cc2; subst; pose proof (determinism_e H H9); destruct H2; subst;
+           try( split; [reflexivity | split; reflexivity]); try(exfalso; apply (negNVandV x); split; assumption)).
+       + inversion cc2; subst; split; try (inversion H8); [reflexivity | (split; reflexivity)].
+       +  inversion cc2; subst; pose proof (determinism_e H H11) as p. destruct p.
+             subst.
+             pose proof (el_arrayind H13 H1). subst.
+             pose proof (determinism_e H12 H0) as p. destruct p. subst. split;
+      [reflexivity | split; reflexivity].
+      + inversion cc2; subst; split; (try inversion H8);
+      [reflexivity | split; reflexivity]. 
+      + inversion cc2; subst.
+       - exfalso. apply (H w). reflexivity.
+       - contradiction.
+       - cut ( N' = N'0  /\ V' = V'0 /\
+              [o] = [o0] /\ W = W2).
+         + intros H13. destruct4r H13 L1 L2 L3 L4. inversion L3. subst.
+         split; [reflexivity | split; reflexivity].
+         + cut ((N', V', Ins skip) = (N'0, V'0, Ins skip) /\
+                [o] = [o0] /\ W = W2).
+           intros Hnew. destruct Hnew as [L1 rest].
+           inversion L1. subst. split; [reflexivity |
+                                        split; try reflexivity; try assumption].
+           apply (IHcc1 W2 [o0] (N'0, V'0, Ins skip) H10).
+         + inversion cc2; subst; pose proof (determinism_e H H8) as p; destruct p; subst;
+             try (split; [reflexivity| split; reflexivity]); inversion H1.
+        + inversion cc2; subst; pose proof (determinism_e H H8) as p; destruct p; subst;
+             try (split; [reflexivity| split; reflexivity]); inversion H1.
 Qed.
 
 
-(*Lemma single_step: *)
 
 (*could also add that written set of c -> c2 is inside written set of
- l;;c -> c2 but ill wait till I need it *)
-
-(*hack to get around destroying conjunctions all the time
-Lemma single_step: forall{N N2: nvmem} {V V2: vmem}
-                    {l: instruction} {c c2: command}
-                    {O: obseq} {W: the_write_stuff},
-    trace_c (N, V, l;;c) (N2, V2, c2) O W ->
-    not ((l ;;c ) = c2) -> (*empty trace case *)
-    exists(N1: nvmem) (V1: vmem) (O1: obseq), ((multi_step_c (N1, V1, c) (N2, V2, c2) O1)
-                                         ).
-Proof. intros. pose proof (single_step_all X H).
-       ex_destruct3 H0. destruct H0.
-       exists var1 var2 var3. assumption.
-Qed.*)
-
-(*hacky extra hypothesis L = [], coq should take care of remembering that*)
-
-
-Lemma append_write_empty: forall{W1 W2: list the_write_stuff},
-    (append_write W1) = emptysets ->
-    (append_write W2) = emptysets ->
-    append_write (W1 ++ W2) = emptysets.
-Admitted.
-
-Lemma trace_stops: forall {C1 C2: context} {W: list the_write_stuff}
-                     {L: list step}
-  (T: trace_c L C1 C2 W), L = [] -> C1 = C2 /\ (append_write W) = emptysets.
-Proof. intros C1 C2 W L T. induction T; intros.
-       + split; reflexivity.
-       + inversion H.
-       + apply app_eq_nil in H. destruct H. destruct (IHT1 H).
-         destruct (IHT2 H0). subst. split; [reflexivity |
-                                            apply (append_write_empty H2 H4)]
-                                            .
+ l;;c -> c2 but ill wait till I need it*)
+(*concern: the theorem below is not true for programs with io
+ but then again neither is lemma 10*)
+Lemma single_step_all: forall{C1 Cmid C3: context} 
+                    {Obig: obseq} {Wbig: the_write_stuff},
+    trace_c C1 C3 Obig Wbig ->
+    Obig <> [] ->
+    (exists (O1: obseq) (W1: the_write_stuff), cceval_w C1 O1 Cmid W1) ->
+    exists(Wrest: the_write_stuff) (Orest: obseq), inhabited (trace_c Cmid C3 Orest Wrest)
+/\ incl Orest Obig
+.
+  intros C1 Cmid C3 Obig Wbig T OH c.
+  generalize dependent c.
+  generalize dependent Cmid.
+  remember T as Tsaved. clear HeqTsaved. (*make ltac for this*)
+  dependent induction T; intros.
+  + exfalso. apply OH. reflexivity.
+  + destruct c0 as [O1 rest]. destruct rest as [W1 c0]. exists emptysets (nil: obseq).
+    constructor. cut (C2 = Cmid).
+    - intros Hmid. subst. constructor. apply CTrace_Empty.
+    - eapply determinism. apply c. apply c0.
+    - apply empty_sub.
+      + assert (Tfirst: exists Wrest Orest, inhabited (trace_c Cmid0 Cmid Orest Wrest)
+                       /\ incl Orest O1                           
+               ) by (apply IHT1; try assumption).
+        destruct Tfirst as [Wrest rest]. destruct rest as [Orest T0mid]. destruct T0mid as [T0mid incl1].
+        destruct T0mid as [T0mid].
+   exists (append_write Wrest W2) (Orest ++ O2). destruct Orest; split; (try constructor).
+    - simpl. apply empty_trace in T0mid. destruct T0mid as [l r].
+      subst. rewrite append_write_empty_l. assumption.
+      reflexivity.
+    - simpl. apply incl_appr. apply incl_refl.
+    - eapply CTrace_App. apply T0mid. intros contra. inversion contra.
+      assumption. assumption.
+    - eapply incl_app_dbl. assumption. apply incl_refl.
 Qed.
 
-Lemma undo_gets: forall(W: the_write_stuff),
-    (getwt W, getrd W, getfstwt W) = W.
-  intros. destruct3 W f g h. simpl. reflexivity. Qed.
-
-  (*ask arthur what is up with the variable names where
-this doesnt work destruct3 W one two three.*)
-
-
-(*clean this one up*)
-Lemma single_step: forall (C1 C2 C3 C4: context) (W: list the_write_stuff)
-                     (L: list step)
-                     (O: obseq)
-  (T: trace_c L C1 C2 W), L = [(C3, C4, O)] -> cceval_w C1 O C2 W /\ C1 = C3 /\ C2 = C4.
-Proof. intros C1 C2 C3 C4 W L a T. induction T.
-       + intros. inversion H. 
-       + intros.  inversion H. subst. split; [assumption | split; reflexivity].
-       + intros H.
-         apply app_eq_unit in H. destruct H; destruct H; subst.
-       - destruct (trace_stops T1). reflexivity. subst.
-         Admitted.
-        (* apply append_write_empty in H0.
-         unfold append_write. simpl. unfold remove. unfold in_loc_b.
-         rewrite filter_false. rewrite undo_gets. apply IHT2. reflexivity.
-       - destruct (trace_stops T2). reflexivity. subst.
-         unfold append_write. simpl. repeat rewrite app_nil_r.
-         rewrite undo_gets. apply IHT1. reflexivity.
-Admitted.*)
-
-
-Lemma cceval_behaves: forall{C1 C2 C3: context} {W2 W3: list the_write_stuff}
-                       {O2 O3: obseq},
-    cceval_w C1 O2 C2 W2->
-    cceval_w C1 O3 C3 W3 ->
-    C2 = C3 /\ O2 = O3 /\ W2 = W3.
-Admitted.
-
-Lemma single_of_many:
-(*conclusion: induction on L is not the way to go
-  forall{Lbig Lrest: list step}
-                 {N1 N2 N3: nvmem}
-                    {V1 V2 V3: vmem}
-                    {Ostep: obseq}
-                    {s: step}
-                    {Wbig Wrest: list the_write_stuff}
-                    {w: the_write_stuff}
-                    {c1 c2 c3: command},
-    trace_c (Lbig) (N1, V1, c1) (N3, V3, c3) (Wbig) ->
-    cceval_w (N1, V1, c1) Ostep (N2, V2, c2) [w] ->
-    Lbig = (s::Lrest) ->
-    Wbig = (w:: Wrest) ->
-   trace_c Lrest (N2, V2, c2) (N3, V3, c3) Wrest.
-Proof. intros Lbig.
-        induction Lbig.
-       + intros. inversion H0.
-       + intros. subst. inversion H0. subst. clear H0.
-         eapply IHLbig.
-
-
-
-         destruct3 s s1 s2 s3. remember X as T. clear HeqT. apply (single_step (N1, V1, c1)
-                                                  (N3, V3, c3)
-                                                  s2
-                                                  s3
-                                                  (w:: Wrest)
-                                                  [(s2, s3, s1)]
-                                                  s1) in X.
-         destruct X. destruct H1. subst. destruct (cceval_behaves H0 H).
-         destruct H2. rewrite H1. inversion H3. apply CTrace_Empty.
-         constructor.
-      + intros.
-         (*need IH to be more general*)
-         reflexivity.
-
-   exists(Lsmall: list step)  (Wsmall: list the_write_stuff),
-     inhabited (trace_c Lsmall (N2, V2, c2) (N3, V3, c3) Wsmall).*)
-
-Lemma single_step_all: forall{N1 N2 N3: nvmem}
-                        {V1 V2 V3: vmem}
-                        {Ostep: obseq}
-                        {Lbig: list step}
-                        {Wbig Wstep: list the_write_stuff}
-                     {c1 c2 c3: command},
-    trace_c Lbig (N1, V1, c1) (N3, V3, c3) Wbig ->
-   (N1, V1, c1) <> (N3, V3, c3) -> (*has stepped*)
-   cceval_w (N1, V1, c1) Ostep (N2, V2, c2) Wstep ->
-   exists(Lsmall: list step)  (Wsmall: list the_write_stuff),
-     inhabited (trace_c Lsmall (N2, V2, c2) (N3, V3, c3) Wsmall).
-Proof. intros N1 N2 N3 V1 V2 V3 Ostep Lbig Wbig Wstep c1 c2 c3 T
-              Hskip Hceval. induction Lbig.
-       + apply trace_stops in T. destruct T. apply Hskip in H. contradiction.
-         reflexivity.
-
-    exists(N1: nvmem) (V1: vmem) (O1: obseq), ((multi_step_c (N1, V1, c) (N2, V2, c2) O1)
-                                          /\ (incl O1 O)
-                                          ).
-  intros N N2 V V2 l c c2 O W T H. dependent induction T. 
-  + exfalso. apply H. reflexivity.
-  + inversion c0; subst; exists N2 V2 (nil : obseq); try (split;
-                                                     [exists emptysets; repeat constructor | apply empty_sub]).
-  + destruct3 Cmid. assert (Dis: (l ;; c) = cmid \/ not ((l;;c) = cmid))
-      by (apply classic). destruct Dis.
-  - subst. 
-    cut (exists N1 V1 O1, (multi_step_c (N1, V1, c) (N2, V2, c2) O1 /\ incl O1 O2)).
-    + intros H3. ex_destruct3 H3. exists var1 var2 var3. destruct H3 as [H31 H32]. split.
-      -  assumption.
-      - apply (incl_appr O1 H32).  
-   + apply (IHT2 nmid N2 vmid V2 l c c2); try reflexivity; try assumption.
- -  assert (Hmid: exists N3 V3 O3,
-               multi_step_c (N3, V3, c) (nmid, vmid, cmid) O3
-              /\ incl O3 O1
-           ).
-     - eapply IHT1; try reflexivity; try assumption.
-       assert (Hend: multi_step_c (nmid, vmid, cmid)
-                                              (N2, V2, c2) O2
-            ).
-       + exists W2. apply (inhabits T2).
-       ex_destruct3 Hmid.
-       destruct Hmid as [Hmid Obsmid].
-     destruct_ms Hmid Tmid Wmid.
-     destruct_ms Hend Tend Wend.
-     exists var1 var2 (var3 ++ O2). split.
-     + exists (append_write Wmid Wend ). constructor.
-       apply (CTrace_App Tmid Tend).
-     +  apply (incl_app_dbl Obsmid (incl_refl O2)).
+Lemma trace_steps: forall{C1 C3: context} 
+                    {Obig: obseq} {Wbig: the_write_stuff},
+    trace_c C1 C3 Obig Wbig ->
+    Obig <> [] ->
+    exists(Csmall: context) (Osmall: obseq) (Wsmall: the_write_stuff),
+      cceval_w C1 Osmall Csmall Wsmall.
+Proof. intros C1 C3 Obig Wbig T H. induction T.
+       + exfalso. apply H. reflexivity.
+       + exists C2 O W. assumption. apply (IHT1 n).
 Qed.
+
+Lemma seq_step: forall{N: nvmem} {V: vmem} {l: instruction} {c: command}
+    {C2: context} {O: obseq} {W: the_write_stuff},
+    cceval_w (N, V, l;;c) O C2 W ->  c = (getcom C2).
+Proof.
+  intros. inversion H; subst; simpl; reflexivity.
+Qed.
+
+
+Lemma if_step: forall{N: nvmem} {V: vmem} {e: exp} {c1 c2: command}
+    {C2: context} {O: obseq} {W: the_write_stuff},
+    cceval_w (N, V, (TEST e THEN c1 ELSE c2)) O C2 W ->  c1 = (getcom C2)
+\/ c2 = (getcom C2).
+  intros. inversion H; subst; simpl;( (left; reflexivity) || (right; reflexivity)).
+  Qed.
+
+
+(*Concern: bottom three cases are essentially the same reasoning but with slight differences;
+ unsure how to automate
+ maybe remembering c so that I can use c instead of the specific form of c?*)
 (*N0 is checkpointed variables*)
 Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
             (O: obseq) (c c': command),
@@ -355,153 +318,104 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
             not (In checkpoint O) ->
             exists(W' R': warvars), WARok N0 W' R' c'.
   intros.
-  (*unfold multi_step_ic in H0. destruct H0 as [Wr].*)
   generalize_5 N N' V V' O.
   remember H as warok. clear Heqwarok.
   induction H; intros.
-  + destruct_ms H0 L WT T H0.
-    assert (Hc': c' = Ins l \/ c' = skip) by
-                                           (apply (ins_to_skip T)).
-    destruct Hc'; subst; exists W R. (*eapply WAR_I.*)
-    - apply warok.
-    - eapply WAR_I. apply WAR_Skip.
- + destruct_ms H0 L WT T H0. remember T as T1. clear HeqT1.
-        apply observe_checkpt in T. destruct T.
+  +  destruct_ms H0 T Wr.
+    cut (c' = Ins l \/ c' = skip).
+  - intros Hdis. destruct Hdis as [Hins | Hskip]; subst; exists W R.
+    + apply warok.
+    + eapply WAR_I. apply WAR_Skip.
+  - apply trace_stops in T. assumption.
+  + intros. destruct_ms H0 T WT. remember T as T1. clear HeqT1.
+        apply observe_checkpt in T. destruct T as [eq | contra].
     - subst. exists W R. apply warok.
-    - unfold getobs in H0. subst. apply H1 in H2. contradiction.
- +
+    - apply H1 in contra. contradiction.
++ destruct_ms H2 T WT; subst.
+      assert (Dis: (l ;; c) = c' \/ not ((l;;c) = c'))
+          by (apply classic). destruct Dis.
+    - subst. exists W R. assumption.
+    - assert(exists(Csmall: context) (Osmall: obseq) (Wsmall: the_write_stuff),
+                  cceval_w (N0, V, l;;c) Osmall Csmall Wsmall).
+      + eapply trace_steps. apply T. intros contra. subst.
+        apply empty_trace in T. destruct T as [H3 H4].
+        inversion H3. apply H2. assumption. reflexivity.
+        destruct H3 as [Csmall rest].
+        destruct rest as [Osmall rest]. destruct rest as [Wsmall c1].
+        remember Csmall as Csmall1.
+        destruct Csmall as [blah1 smallcom]. destruct blah1 as [Nsmall Vsmall].
+        remember c1 as c11. clear Heqc11.
+        apply seq_step in c11. unfold getcom in c11. subst.
+        cut (exists(Wrest: the_write_stuff) (Orest: obseq), inhabited
+                                                         (trace_c
+                                                            (Nsmall, Vsmall, smallcom)
+                                                            (N', V', c')
+                                                            Orest Wrest)
+                                                       /\ incl Orest O).
+        intros bigH. destruct bigH as [Wrest blah]. destruct blah as [Orest inhab]. destruct inhab as [inhab inclO].
+        assert (Hmulti: multi_step_c
+              (Nsmall, Vsmall, smallcom)
+              (N', V', c') Orest) by (exists Wrest; assumption).
+        eapply IHWARok; try assumption.
+        + intros contra. apply inclO in contra. apply H1 in contra. contradiction.
+          apply Hmulti.                          
+        + eapply single_step_all. apply T.
+      - intros contra. apply (empty_trace T) in contra. destruct contra as
+            [contra blah]. inversion contra. subst. apply H2. reflexivity.
+        exists Osmall Wsmall. assumption.
+ + destruct_ms H3 T WT; subst. remember (TEST e THEN c1 ELSE c2) as bigif.
+   assert (Dis: bigif = c' \/
+                bigif <> c')
+     by (apply classic). destruct Dis.
+      - subst. exists W R. apply warok.
+      - assert(exists(Csmall: context) (Osmall: obseq) (Wsmall: the_write_stuff),
+                  cceval_w (N0, V, bigif) Osmall Csmall Wsmall).
+        + eapply trace_steps. apply T. intros contra. subst.
+          apply empty_trace in T. destruct T as [H10 H11]. inversion H10. apply H3. assumption. reflexivity.
+        destruct H4 as [Csmall rest].
+        destruct rest as [Osmall rest]. destruct rest as [Wsmall cc].
+        remember Csmall as Csmall1.
+        destruct Csmall as [blah1 smallcom]. destruct blah1 as [Nsmall Vsmall].
+        remember cc as cc1. clear Heqcc1. rewrite Heqbigif in cc1.
+        apply if_step in cc1. destruct cc1 as [tcase | fcase].
+        - unfold getcom in tcase. subst.
+        cut (exists(Wrest: the_write_stuff) (Orest: obseq), inhabited
+                                                         (trace_c
+                                                            (Nsmall, Vsmall, smallcom)
+                                                            (N', V', c')
+                                                            Orest Wrest)
+                                                       /\ incl Orest O).
+        intros bigH. destruct bigH as [Wrest blah]. destruct blah as [Orest inhab]. destruct inhab as [inhab inclO].
+        assert (Hmulti: multi_step_c
+              (Nsmall, Vsmall, smallcom)
+              (N', V', c') Orest) by (exists Wrest; assumption).
+        eapply IHWARok1; try assumption.
+        + intros contra. apply inclO in contra. apply H2 in contra. contradiction.
+          apply Hmulti.                          
+        + eapply single_step_all. apply T.
+      - intros contra. apply (empty_trace T) in contra. destruct contra as
+            [contra blah]. inversion contra. subst. apply H3. reflexivity.
+        exists Osmall Wsmall. assumption.
+      - unfold getcom in fcase. subst.
+        cut (exists(Wrest: the_write_stuff) (Orest: obseq), inhabited
+                                                         (trace_c
+                                                            (Nsmall, Vsmall, smallcom)
+                                                            (N', V', c')
+                                                            Orest Wrest)
+                                                       /\ incl Orest O).
+        intros bigH. destruct bigH as [Wrest blah]. destruct blah as [Orest inhab]. destruct inhab as [inhab inclO].
+        assert (Hmulti: multi_step_c
+              (Nsmall, Vsmall, smallcom)
+              (N', V', c') Orest) by (exists Wrest; assumption).
+        eapply IHWARok2; try assumption.
+        + intros contra. apply inclO in contra. apply H2 in contra. contradiction.
+          apply Hmulti.                          
+        + eapply single_step_all. apply T.
+      - intros contra. apply (empty_trace T) in contra. destruct contra as
+            [contra blah]. inversion contra. subst. apply H3. reflexivity.
+        exists Osmall Wsmall. assumption.
+Qed.
 
-
-
-
-    (*how to induct on L*)
-    destruct_ms H0 L Wr T.
-    generalize_5 N N' V V' O.
-    generalize dependent l.
-    generalize dependent c'.
-    induction L; intros.
-  - assert ( (N0, V, Ins l) = (N', V', c')).
-    + apply (trace_stops T). reflexivity.
-      inversion H2. subst. exists W R. eapply WAR_I. apply H.
-  - destruct L. destruct3 a Oa C1 C2.
-    remember T as T1. clear HeqT1. eapply single_step in T.
-    inversion T; subst.
-    (*end of induction on L*)
-    remember T as T1. clear HeqT1. apply trace_not_empty in T. exfalso.
-    apply T. reflexivity.
-  + exists W R. applys WAR_I. apply H.
-  + inversion c; subst; try (exists W R; applys WAR_I; constructor).
-  - destruct3 Cmid. 
-    assert (Hcmid: cmid = Ins l \/ cmid = skip) by
-                                           (apply (trace_stops T1)).
-    destruct Hcmid; subst.
-  - eapply IHT2; (try reflexivity). apply H.
-    (*apply (inhabits T2).*)
-  - intros contra. eapply in_app_r in contra. apply H1 in contra. contradiction.
- (* - apply (inhabits T2).*)
-    - apply trace_stops in T2. destruct T2; subst; exists W R;
-                                 eapply WAR_I; constructor.
-      + (*inversion H0 as [T].*)
-    destruct_ms H0 T Wr.
-        apply observe_checkpt in T. destruct T.
-        - subst. exists W R. constructor. assumption.
-        - apply H1 in H0. contradiction.
-        - assert (Dis: (l ;; c) = c' \/ not ((l;;c) = c'))
-      by (apply classic). destruct Dis.
-         + subst. exists W R. eapply WAR_Seq. apply H. assumption.
-         + 
-           (*destruct H0 as [T0].*)
-           destruct_ms H2 T0 W0.
-           pose proof (single_step_all T0 H3) as destroyme.
-           ex_destruct3 destroyme.
-           destruct destroyme as [MS sub].
-           destruct_ms MS T1 WT1.
-           eapply (IHWARok var3).
-        - intros contra. apply sub, H1 in contra. contradiction. (*cool applying!!*)
-          exists WT1. apply (inhabits T1).
- - destruct_ms H3 T3 WT3.
-            inversion T3; subst.
-
-          apply (inhabits (single_step_all T0 H3)).
-eapply IHT2.
-          (*garbage below*)
-        inversion T; subst.
-        exists W R. constructor. assumption.
-        inversion H3; subst.
-        exfalso. apply H1. apply in_eq.
-        inversion H2.
-
-       apply (in_eq H1). in H1. discriminate H1.
-      eapply IHT2. (try reflexivity); try (apply WAR_Skip).
-     apply WAR_Skip.
-
-     
-     apply H. apply (inhabits T2).
-    intros contra. eapply or_intror in contra.
-    apply in_or_app in contra. apply H1 in contra. contradiction.
-
-
-(*garbage below*)
-    applys H1 in (in_or_app contra).
-      inversion H2. subst. eapply IHT2.
-      assert (WAR_ins N0 W R l0 W' R')
-    +
-
-    inversion T1; subst.
-    + inversion T2; subst; try (applys WAR_I; constructor).
-    + applys WAR_I. apply H.
-
-    destruct Cmid as [Annoying cmid].
-      destruct Annoying as [nmid vmid].
-      apply (IHT1 N nmid V vmid c' l).
-     - assumption.
-     - 
-      apply (inhabits T1 ).
-      
-
-    remember H as Hwarins. clear HeqHwarins. eapply (IHT1) in H. apply H.
-    destruct Cmid as [Annoying cmid]. destruct Annoying
-                                                 as [nmid vmid]. apply (inhabits T1 ).
-    inversion H0; subst.
-       - applys WAR_I. apply H.
-       - inversion H3; subst; try (applys WAR_I; constructor).
-         + inversion H0; subst. applys WAR_I. apply H.
-         + inversion H5; subst; try(applys WAR_I; constructor).
-  + subst.
-
-
-  inversion H0; subst.
-  + exists W. exists R. assumption.
-  + inversion H2. subst. inversion H3; subst; try (exists W R; applys WAR_I; constructor).
-  - induction H.
-    + inversion H2. subst. inversion H3. subst.
-  - exists W R. applys WAR_I. apply H.
-  - subst. inversion H5. subst. exists W R. applys WAR_I. constructor.
-
-
-    destruct l. constructor.
-
-    + exists W R. applys WAR_I. constructor.
-  induction H.
-  + inversion H0. subst.
-  + unfold single_com in H2.
-    induction c'.
-  - induction l.
-    + applys WAR_I.
-    applys WAR_I.
-    induction c. inversion H3; subst; exists W R; applys WAR_I; constructor.
-    (*the existence is hacky here but I can't
-                            figure out how to be smarter
-                            w instantiations*)
-    -  
-    - applys WAR_Vol.
-
-      inversion H3. subst.
-    (try (apply WAR_I); constructor).
-             eapply H. induction c'.
-    - simpl.
-
-  exists(locs_warvars (getwt Wr)). exists(locs_warvars (getrd Wr)).
 
 
 

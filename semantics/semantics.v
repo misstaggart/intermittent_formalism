@@ -39,6 +39,9 @@ Canonical nat_eqMixin := EqMixin eqnat.
 Canonical nat_eqtype := Eval hnf in EqType nat nat_eqMixin.
 (*---*)
 
+
+
+
 (*setting up strings equality type*)
 (* eqb_string and
 eqb_string_true_iff taken from software foundations*)
@@ -497,6 +500,10 @@ Notation context := (nvmem * vmem * command).
 
 Notation iconf := (context * nvmem * vmem * command).
 
+Definition getcom (C: context) :=
+  match C with
+    (_, _, out) => out end.
+
 Definition ro := loc * value. (*read observation*)
 Definition readobs := list ro.
 
@@ -643,13 +650,11 @@ It not included in the evaluation relation in the paper.
  **)
 
 (*written, read, written before reading*)
-(*I needed a type for tracking the variables written to during a program's execution*)
-(*guess what I called it*)
 Notation the_write_stuff := ((list loc) * (list loc) * (list loc)).
 
 (*Single steps, accumulates write data*)
 (*Note: program consisting of just a checkpoint is illegal...huh*)
-(*program consisting of just a skip is illegal cuz that's termination state*)
+
 
 
 Inductive cceval_w: context -> obseq -> context -> the_write_stuff -> Prop :=
@@ -694,18 +699,22 @@ CheckPoint: forall(N: nvmem)
     cceval_w (N, V, Ins (asgn_arr a ei e))
            [Obs (ri++r)]
            ((updateNV N (inr element) v), V, Ins skip)
-          ([inr element], (readobs_loc (ri ++ r)), (remove in_loc_b (readobs_loc (ri ++ r)) [inr element]))
+           ([inr element], (readobs_loc (ri ++ r)), (remove in_loc_b (readobs_loc (ri ++ r)) [inr element]))
 (*valuability and inboundedness of vindex are checked in sameindex*)
 | Skip: forall(N: nvmem)
          (V: vmem)
          (c: command),
     cceval_w (N, V, (skip;;c)) [Obs NoObs] (N, V, c) (nil, nil, nil)
+   (*IP becomes obnoxious if you let checkpoint into the Seq case so I'm outlawing it
+    same with skip*) 
 | Seq: forall (N N': nvmem)
          (V V': vmem)
          (l: instruction)
          (c: command)
          (o: obs)
          (W: the_write_stuff),
+    (forall(w: warvars), l <> (incheckpoint w)) ->
+    l <> skip ->
     cceval_w (N, V, Ins l) [o] (N', V', Ins skip) W ->
     cceval_w (N, V, (l;;c)) [o] (N', V', c) W
 | If_T: forall(N: nvmem)
