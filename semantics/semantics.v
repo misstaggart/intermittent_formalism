@@ -535,17 +535,14 @@ Definition single_com_i (C: iconf) :=
 (*converts from list of read locations to list of
 WAR variables
  *)
+
+
 Fixpoint readobs_warvars (R: readobs) : warvars := 
   match R with
     nil => nil
-| (r::rs) => match r with
-              (location, _) => (*get the location r has recorded reading from*)
-              (match location with
-                inl x => (inl x)::(readobs_warvars rs) (*location is a smallvar*)
-              | inr el => (inr (getarray el))::(readobs_warvars rs) (*location is an array element
-                                                                   records entire array in warvars*)
-              end)
-           end
+  | (r::rs) => match r with
+               (location, _) => (loc_warvar location)::(readobs_warvars rs)
+             end
   end.
 
 Fixpoint readobs_loc (R: readobs): (list loc) := 
@@ -653,7 +650,7 @@ Definition getrd (W: the_write_stuff) := match W with (_, out , _ )=> out end.
 
 Definition getfstwt (W: the_write_stuff) := match W with (_, _, out )=> out end.
 
-Notation emptysets := ((nil : list loc), (nil: list loc), (nil: list loc)).
+Notation emptysets := ((nil : (list loc)), (nil: (list loc)), (nil: (list loc))).
 
 Definition append_write (W1 W2: the_write_stuff) :=
   ((getwt W1) ++ (getwt W2), (getrd W1) ++ (getrd W2), (getfstwt W1) ++ (remove in_loc_b (getrd W1) (getfstwt W2))).

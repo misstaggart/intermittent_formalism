@@ -130,12 +130,14 @@ Definition multi_step_c (C1 C2: context) (O: obseq) :=
           
 
 Definition multi_step_i (C1 C2: iconf) (O: obseq) :=
-  exists W: the_write_stuff, trace_i C1 C2 O W.
-
-(*trace helpers*)
+    exists W: the_write_stuff, trace_i C1 C2 O W.
+(*more trace helpers*)
 
 Definition Wt {C1 C2: context} {O: obseq} {W: the_write_stuff}
   (T: trace_c C1 C2 O W) := getwt W.
+
+Definition Rd {C1 C2: context} {O: obseq} {W: the_write_stuff}
+           (T: trace_c C1 C2 O W) := getrd W.
 
 Definition FstWt {C1 C2: context} {O: obseq} {W: the_write_stuff}
   (T: trace_c C1 C2 O W) := getfstwt W.

@@ -315,7 +315,8 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
             WARok N0 W R c ->
             multi_step_c (N, V, c) (N', V', c') O ->
             not (In checkpoint O) ->
-            exists(W' R': warvars), WARok N0 W' R' c'.
+            exists(W' R': warvars), WARok N0 W' R' c' /\
+                               incl ((locs_warvars (Rd T)) ++ R) R' .
   intros.
   generalize_5 N N' V V' O.
   remember H as warok. clear Heqwarok.
