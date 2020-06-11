@@ -176,26 +176,24 @@ same_mem: forall {N0 N1 N2 Ncomp: nvmem}
                       -> ((In l (Wt T2)) /\ (In l (FstWt (trace_append T1 T2))) /\ not (In l (Wt T1))))
                   -> same_pt N0 V0 c0 c1 N1 Ncomp.
 (*Definition 5*)
-(*N0, V0 is starting state for both executions
+(*N0 is starting, reference nvm
  N1 V1 is middle state for intermittent
-N is state of checkpoint at N1
- V1 isn't used anywhere it's just to fill out the type
- N2, V2 is final state for intermittent, once again solely to fill out the type
- c is remaining program left to do when you're at N1*)
+N, V, c is checkpoint at middle state of intermittent
+ N2, V2 is final state for intermittent, not used, solely to fill out the type*)
 Inductive current_init_pt: nvmem -> vmem -> command -> nvmem -> nvmem -> Prop:=
-valid_mem: forall {N N0 N1 N2: nvmem}
-                  {V0 V1 V2: vmem}
+  valid_mem: forall {N N0 N1 N2: nvmem}
+                  {V V2: vmem}
                   {c: command}
                   {W : the_write_stuff}
                   {O: obseq}
                   {w: warvars}
-                  (T: trace_c (N1, V1, c) (N2, V2, Ins (incheckpoint w)) O W),
+                  (T: trace_c (N0, V, c) (N2, V2, Ins (incheckpoint w)) O W),
                   (getdomain N1) = (getdomain N0) 
                   -> not (In checkpoint O) (*checks checkpoint T ends on is nearest checkpoint*)
                  -> (forall(l: loc),
                       not((getmap N1) l = (getmap N0) l)
                       -> (In l (FstWt T)) \/ (In (loc_warvar l) (getdomain N)))
-                 -> current_init_pt N V1 c N1 N0.
+                 -> current_init_pt N V c N1 N0.
 
 (*Definition 6*)
 (*concern: Typo in paper, N0, V0 is left out of invocation of Def 4*)
