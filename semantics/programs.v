@@ -118,12 +118,14 @@ Inductive trace_i : iconf -> iconf -> obseq -> the_write_stuff -> Prop :=
 iTrace_Empty: forall{C: iconf},
                  trace_i C C nil (nil, nil, nil)
 |iTrace_Single: forall{C1 C2: iconf} {O: obseq} {W: the_write_stuff},
-                  iceval_w C1 O C2 W -> (*command in C2 is skip by def single_com, iceval_w*)
-                  trace_i C1 C2 O W
+    iceval_w C1 O C2 W ->
+    trace_i C1 C2 O W
 | iTrace_App: forall{C1 C2 Cmid: iconf} {O1 O2: obseq}
          {W1 W2: the_write_stuff},
     trace_i C1 Cmid O1 W1 -> (*steps first section*)
     trace_i Cmid C2 O2 W2 -> (*steps rest of program*)
+    O1 <> [] -> (* forces empty step to use other constructors*)
+    O2 <> []  ->
     trace_i C1 C2 (O1 ++ O2) (append_write W1 W2).
 Definition multi_step_c (C1 C2: context) (O: obseq) :=
     exists W: the_write_stuff, inhabited (trace_c C1 C2 O W).
@@ -153,7 +155,7 @@ Definition FstWt {C1 C2: context} {O: obseq} {W: the_write_stuff}
 (*concern: not yet clear to me why we need the vmem parameter; pending further inspection of
  proofs*)
 (*concern: liberal use of intensional equality with nvmem*)
-(*N0, V0 is starting state for both executions
+(*N0, V0 c0 is starting state for both executions
  N1, V1 and Ncomp are middle states of intermittent, continuous respectively
  V1 isn't used anywhere it's just to fill out the type
  N2, V2 is final state for intermittent, once again solely to fill out the type*)
@@ -178,7 +180,8 @@ same_mem: forall {N0 N1 N2 Ncomp: nvmem}
  N1 V1 is middle state for intermittent
 N is state of checkpoint at N1
  V1 isn't used anywhere it's just to fill out the type
- N2, V2 is final state for intermittent, once again solely to fill out the type*)
+ N2, V2 is final state for intermittent, once again solely to fill out the type
+ c is remaining program left to do when you're at N1*)
 Inductive current_init_pt: nvmem -> vmem -> command -> nvmem -> nvmem -> Prop:=
 valid_mem: forall {N N0 N1 N2: nvmem}
                   {V0 V1 V2: vmem}
