@@ -49,8 +49,39 @@ Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Type :=
     O2 <> []  ->
     trace_c Cmid C2 O2 W2 -> (*steps rest of program*)
     trace_c C1 C2 (O1 ++ O2) (append_write W1 W2).
-  (*App makes for easy subtraces by allowing command in C2 not to be skip*)
+(*App makes for easy subtraces by allowing command in C2 not to be skip*)
+(*never actually need to append traces now that I have the write datatype
+ consider a simpler type?*)
 
+(*tracks write data accumulated when executing from first command to second command
+ prevents me from having to prove the existence of traces every five seconds
+ bool keeps track of whether we've passed a checkpoint in which case, in all the proofs,
+ you want to wipe the write data*)
+Inductive write_right: command -> command -> bool -> the_write_stuff -> Prop :=
+  Empty_Writes : forall(c: command),
+                 write_right c c false (nil, nil, nil)
+|  Single_Writes : forall (c1 c2: command) (W: the_write_stuff),
+      (exists (N1 N2: nvmem) (V1 V2: vmem) (O: obseq),
+        cceval_w (N1, V1, c1) O (N2, V2, c2) W /\ (*doesn't matter that every time this
+                                                   constructor is used
+                                                   you can pick random mems bc
+                                                   writes are determined solely
+                                                   by commands*)
+      not (In checkpoint O)) -> (*makes CP use the other constructor*)
+      write_right c1 c2 false W (*have not passed a CP*)
+|  Single_Writes_CP : forall (c1 c2: command) (W: the_write_stuff),
+      (exists (N1 N2: nvmem) (V1 V2: vmem) (O: obseq),
+          cceval_w (N1, V1, c1) O (N2, V2, c2) W ->
+      (In checkpoint O)) -> (*makes other commands use the other constructor*)
+      write_right c1 c2 true W
+| Write_App: forall{c1 c2 cmid: command}
+              {W1 W2: the_write_stuff}
+              {b1 b2: bool},
+    c1 <> cmid -> (* forces empty step to use other constructors*)
+    c2 <> cmid  ->
+    write_right c1 cmid b1 W1 -> (*steps first section*)
+    write_right cmid c2 b2 W1 -> (*steps second section*)
+    write_right c1 c2 (orb b1 b2) (append_write W1 W2).
 
 (*proofs for trace append*)
 
@@ -160,20 +191,20 @@ Definition FstWt {C1 C2: context} {O: obseq} {W: the_write_stuff}
  V1 isn't used anywhere it's just to fill out the type
  N2, V2 is final state for intermittent, once again solely to fill out the type*)
 Inductive same_pt: nvmem -> vmem -> command -> command -> nvmem -> nvmem -> Prop:=
-same_mem: forall {N0 N1 N2 Ncomp: nvmem}
-                  {V0 V1 V2: vmem}
-                  {c0 c1: command}
+same_mem: forall (N0 N1 Ncomp: nvmem)
+                  (V0: vmem)
+                  {c0 c1 crem: command}
                   {W1 W2: the_write_stuff}
-                  {O1 O2: obseq}
                   {w: warvars}
-                  (T1: trace_c (N0, V0, c0) (N1, V1, c1) O1 W1)
-                  (T2: trace_c (N1, V1, c1) (N2, V2, Ins (incheckpoint w)) O2 W2),
+                  {b1 b2: bool}
+                  (H1: write_right c0 c1 b1 W1) (*proof W1 is the right stuff*)
+                  (H2: write_right c1 ((incheckpoint w);; crem) b2 W2), (*proof W2 is the right stuff*)
                   (getdomain N1) = (getdomain Ncomp) 
-                  -> not (In checkpoint O1)
-                  -> not (In checkpoint O2) (*checks checkpoint T2 ends on is nearest checkpoint*)
+                  -> (b1 = false)
+                  -> (b2 = false) (*checks checkpoint T2 ends on is nearest checkpoint*)
                  -> (forall(l: loc),
                       not((getmap N1) l = (getmap Ncomp) l)
-                      -> ((In l (Wt T2)) /\ (In l (FstWt (trace_append T1 T2))) /\ not (In l (Wt T1))))
+                      -> ((In l (getwt W2)) /\ (In l (getfstwt (append_write W1 W2))) /\ not (In l (getwt W1))))
                   -> same_pt N0 V0 c0 c1 N1 Ncomp.
 (*Definition 5*)
 (*N0 is starting, reference nvm
@@ -181,18 +212,18 @@ same_mem: forall {N0 N1 N2 Ncomp: nvmem}
 N, V, c is checkpoint at middle state of intermittent
  N2, V2 is final state for intermittent, not used, solely to fill out the type*)
 Inductive current_init_pt: nvmem -> vmem -> command -> nvmem -> nvmem -> Prop:=
-  valid_mem: forall {N N0 N1 N2: nvmem}
-                  {V V2: vmem}
-                  {c: command}
+  valid_mem: forall {N N0 N1: nvmem}
+                  {V: vmem}
+                  {c crem: command}
                   {W : the_write_stuff}
-                  {O: obseq}
                   {w: warvars}
-                  (T: trace_c (N0, V, c) (N2, V2, Ins (incheckpoint w)) O W),
+                  {b: bool}
+                  (H: write_right c ((incheckpoint w);; crem) b W), (*proof W1 is the right stuff*)
                   (getdomain N1) = (getdomain N0) 
-                  -> not (In checkpoint O) (*checks checkpoint T ends on is nearest checkpoint*)
+                  -> b = false (*checks checkpoint T ends on is nearest checkpoint*)
                  -> (forall(l: loc),
                       not((getmap N1) l = (getmap N0) l)
-                      -> (In l (FstWt T)) \/ (In (loc_warvar l) (getdomain N)))
+                      -> (In l (getfstwt W)) \/ (In (loc_warvar l) (getdomain N)))
                  -> current_init_pt N V c N1 N0.
 
 (*Definition 6*)

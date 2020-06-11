@@ -46,7 +46,7 @@ Proof. intros. intros contra. unfold subset_nvm in H. destruct H.
        apply H1. assumption.
 Qed.
 
-Lemma wt_subst_fstwt: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
+Lemma wt_subst_fstwt1: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
   trace_c C1 C2 O W ->
     incl (getfstwt W) (getwt W).
 Proof. intros C1 C2 O W T. induction T.
@@ -61,6 +61,11 @@ Proof. intros C1 C2 O W T. induction T.
                                     (remove_subst _ _ _)
                                     IHT2)).
 Qed.
+
+Lemma wt_subst_fstwt: forall{c1 c2: command} {W: the_write_stuff} {b: bool},
+  write_right c1 c2 b W ->
+  incl (getfstwt W) (getwt W).
+Admitted.
 
 Lemma trace_stops: forall {N N': nvmem} {V V': vmem}
                     {l: instruction} {c: command}
@@ -289,19 +294,20 @@ Lemma eight: forall(N0 N1 N2: nvmem) (V0: vmem) (c0: command),
               current_init_pt N0 V0 c0 N1 N2 ->
               same_pt N1 V0 c0 c0 N1 N2.
 Proof. intros. inversion H1. subst.
-       apply (same_mem (CTrace_Empty (N1, V0, c0))
-                       T); (try assumption).
-       - simpl. intros contra. contradiction.
+       apply (same_mem N1 N1 N2 V0
+                (Empty_Writes c0)
+                       H2); (try assumption); try reflexivity.
        - intros. simpl.
          assert (H6: not (In (loc_warvar l) (getdomain N0))) by
-               apply (sub_disclude N0 N1 N2 l H H0 H5).
-           apply H4 in H5. destruct H5. split. 
-         + unfold Wt. apply ((wt_subst_fstwt T) l H5).
+               apply (sub_disclude N0 N1 N2 l H H0 H4).
+         apply H5 in H4. destruct H4.
+         split.
+         + apply ((wt_subst_fstwt H2) l H4).
          + split.
              - unfold remove. unfold in_loc_b. rewrite filter_false.
-                 apply H5.
+                 apply H4.
              - intros contra. contradiction.
-         + apply H6 in H5. contradiction.
+         + apply H6 in H4. contradiction.
 Qed.
 
 

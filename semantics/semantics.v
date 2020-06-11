@@ -652,8 +652,6 @@ Definition getfstwt (W: the_write_stuff) := match W with (_, _, out )=> out end.
 
 Notation emptysets := ((nil : (list loc)), (nil: (list loc)), (nil: (list loc))).
 
-Definition append_write (W1 W2: the_write_stuff) :=
-  ((getwt W1) ++ (getwt W2), (getrd W1) ++ (getrd W2), (getfstwt W1) ++ (remove in_loc_b (getrd W1) (getfstwt W2))).
 
 
 (***Below, I define an evaluation relation for continuous programs which accumulates
@@ -741,6 +739,8 @@ CheckPoint: forall(N: nvmem)
     eeval N V e r false ->
     cceval_w (N, V, (TEST e THEN c1 ELSE c2)) [Obs r] (N, V, c2) (nil, (readobs_loc r), nil).
 
+Definition append_write (W1 W2: the_write_stuff) :=
+  ((getwt W1) ++ (getwt W2), (getrd W1) ++ (getrd W2), (getfstwt W1) ++ (remove in_loc_b (getrd W1) (getfstwt W2))).
 (************************************************************)
 
 (**********intermittent execution semantics*************************)
