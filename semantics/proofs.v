@@ -62,9 +62,17 @@ Proof. intros C1 C2 O W T. induction T.
                                     IHT2)).
 Qed.
 
+(*ask arthur how to fix that destruct garbage*)
 Lemma wt_subst_fstwt: forall{c1 c2: command} {W: the_write_stuff} {b: bool},
   write_right c1 c2 b W ->
   incl (getfstwt W) (getwt W).
+Proof. intros. induction H.
+       + simpl. apply (incl_refl []).
+       + destruct H. destruct H. destruct H. destruct H. destruct H. 
+         induction H;
+           (try (simpl; apply (incl_refl [])));
+           (try (unfold getfstwt; unfold getwt;
+                 apply remove_subst)).
 Admitted.
 
 Lemma trace_stops: forall {N N': nvmem} {V V': vmem}

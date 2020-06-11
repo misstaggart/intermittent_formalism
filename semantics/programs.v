@@ -53,36 +53,6 @@ Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Type :=
 (*never actually need to append traces now that I have the write datatype
  consider a simpler type?*)
 
-(*tracks write data accumulated when executing from first command to second command
- prevents me from having to prove the existence of traces every five seconds
- bool keeps track of whether we've passed a checkpoint in which case, in all the proofs,
- you want to wipe the write data*)
-Inductive write_right: command -> command -> bool -> the_write_stuff -> Prop :=
-  Empty_Writes : forall(c: command),
-                 write_right c c false (nil, nil, nil)
-|  Single_Writes : forall (c1 c2: command) (W: the_write_stuff),
-      (exists (N1 N2: nvmem) (V1 V2: vmem) (O: obseq),
-        cceval_w (N1, V1, c1) O (N2, V2, c2) W /\ (*doesn't matter that every time this
-                                                   constructor is used
-                                                   you can pick random mems bc
-                                                   writes are determined solely
-                                                   by commands*)
-      not (In checkpoint O)) -> (*makes CP use the other constructor*)
-      write_right c1 c2 false W (*have not passed a CP*)
-|  Single_Writes_CP : forall (c1 c2: command) (W: the_write_stuff),
-      (exists (N1 N2: nvmem) (V1 V2: vmem) (O: obseq),
-          cceval_w (N1, V1, c1) O (N2, V2, c2) W ->
-      (In checkpoint O)) -> (*makes other commands use the other constructor*)
-      write_right c1 c2 true W
-| Write_App: forall{c1 c2 cmid: command}
-              {W1 W2: the_write_stuff}
-              {b1 b2: bool},
-    c1 <> cmid -> (* forces empty step to use other constructors*)
-    c2 <> cmid  ->
-    write_right c1 cmid b1 W1 -> (*steps first section*)
-    write_right cmid c2 b2 W1 -> (*steps second section*)
-    write_right c1 c2 (orb b1 b2) (append_write W1 W2).
-
 (*proofs for trace append*)
 
 Lemma empty_trace: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
