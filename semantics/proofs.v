@@ -82,26 +82,12 @@ Lemma observe_checkpt: forall {N N': nvmem} {V V': vmem}
       - right. apply (in_app_l H).
 Qed.
 
-(*tidy up this theorem statement a little*)
-Lemma negNVandV: forall(x : smallvar), not(isNV x /\ isV x).
-Proof. intros. unfold isNV. unfold isV.
+Lemma negNVandV: forall(x : smallvar), isNV x -> not (isV x).
+Proof. unfold isNV. unfold isV.
        unfold isNV_b. unfold isV_b.
-       destruct x as [x p]. simpl. induction x; (try destruct q); intros contra;
-                                         destruct contra as [H1 H2];
-      (discriminate H1 || discriminate H2).
+       move => [s v]. destruct v; auto. (*ask arthur do both destructs at once?*)
 Qed.
-(*weird that destruct works in the above but inversion does nothing
- ask arthur*)
 
-
-Lemma el_arrayind: forall{e0 e1: el} {a: array} {v: value},
-(El a v) = (val e0) -> (El a v) = (val e1)->
-    e0 = e1.
-Proof. intros e0 e1 a v H0 H1.
-       apply val_inj.
-       rewrite <- H0. assumption.
-Qed. (* ask arthur
-why does subst do nothing here?*)
 (*ask arthur difference between val and sval
  i think it's to do with one being an equality type
  and the other not?*)
@@ -110,22 +96,30 @@ Lemma determinism_e: forall{N: nvmem} {V: vmem} {e: exp} {r1 r2: readobs} {v1 v2
     eeval N V e r1 v1 ->
     eeval N V e r2 v2 ->
     r1 = r2 /\ v1 = v2.
-Proof. intros. induction H.
-       + inversion H0; subst.
-       - split; reflexivity.
-         pose proof (valP x) as xp.
-         Check val.
-         Check sval. (*ask ask arthur about here*)
-         subst.
-       - apply val_inj in H1.
-         Check sval. subst.
-Admitted.
-(*waiting till I decide whether or not I'm using the subtypes*)
+Proof. intros N V e r1 r2 v1 v2 H. move: r2 v2. (*ask arthur; does GD not do what
+                                                      I want here bc it's a prop?*)
+       dependent induction H.
+       + intros r2 v2 H2. dependent induction H2. split; reflexivity.
+       + intros r0 v0 H2.
+         dependent induction H2.
+         appldis IHeeval1 H2_.
+         appldis IHeeval2 H2_0.
+         subst. split; reflexivity.
+       + intros r2 v2 H2. inversion H2; subst.
+         - split; reflexivity.
+         - exfalso. apply (negNVandV x); assumption.
+       + intros r2 v2 H2. inversion H2; subst.
+         - exfalso. apply (negNVandV x); assumption.
+         - split; reflexivity.
+       + intros r2 v2 H2nd. inversion H2nd. subst.
+         appldis IHeeval H5. subst.
+         rewrite <- H9 in H1.
+         apply val_inj in H1. subst.
+         split; reflexivity.
+Qed.
 
-
-  (*ask Arthur why the other version acted
- weirdly with inversion*)
-
+(*I try to use the same names in all branches for automation
+ and it tells me "name" already used!*)
 Lemma determinism: forall{C1 C2 C3: context} {O1 O2: obseq} {W1 W2: the_write_stuff},
     cceval_w C1 O1 C2 W1 ->
     cceval_w C1 O2 C3 W2 ->
@@ -135,34 +129,42 @@ Proof. intros C1 C2 C3 O1 O2 W1 W2 cc1 cc2. destruct C1 as [blah c]. destruct bl
        generalize dependent C3.
        generalize dependent O2.
        generalize dependent W2.
-       induction cc1; intros; try (inversion cc2; subst; pose proof (determinism_e H H9); destruct H2; subst;
-           try( split; [reflexivity | split; reflexivity]); try(exfalso; apply (negNVandV x); split; assumption)).
-       + inversion cc2; subst; split; try (inversion H8); [reflexivity | (split; reflexivity)].
-       +  inversion cc2; subst; pose proof (determinism_e H H11) as p. destruct p.
-             subst.
-             pose proof (el_arrayind H13 H1). subst.
-             pose proof (determinism_e H12 H0) as p. destruct p. subst. split;
-      [reflexivity | split; reflexivity].
-      + inversion cc2; subst; split; (try inversion H8);
-      [reflexivity | split; reflexivity]. 
-      + inversion cc2; subst.
-       - exfalso. apply (H w). reflexivity.
-       - contradiction.
-       - cut ( N' = N'0  /\ V' = V'0 /\
-              [o] = [o0] /\ W = W2).
-         + intros H13. destruct4r H13 L1 L2 L3 L4. inversion L3. subst.
-         split; [reflexivity | split; reflexivity].
-         + cut ((N', V', Ins skip) = (N'0, V'0, Ins skip) /\
-                [o] = [o0] /\ W = W2).
-           intros Hnew. destruct Hnew as [L1 rest].
-           inversion L1. subst. split; [reflexivity |
-                                        split; try reflexivity; try assumption].
-           apply (IHcc1 W2 [o0] (N'0, V'0, Ins skip) H10).
-         + inversion cc2; subst; pose proof (determinism_e H H8) as p; destruct p; subst;
-             try (split; [reflexivity| split; reflexivity]); inversion H1.
-        + inversion cc2; subst; pose proof (determinism_e H H8) as p; destruct p; subst;
-             try (split; [reflexivity| split; reflexivity]); inversion H1.
+       induction cc1; intros; inversion cc2 as
+           [| | | | | N20 N2' V20 V2' l20 c20 o20 W20| | ]
+       (*only put vars for 1 branch but all changed? start here do not ask
+        arthur this*)
+       ; subst; [
+       | ]
+       + split; [reflexivity | (split; reflexivity)].
+       + exfalso. apply (H w). reflexivity.
+       + destruct (determinism_e H H2). subst.
+         split; [reflexivity | (split; reflexivity)].
+       + exfalso. eapply (negNVandV x); assumption.
+       + exfalso. eapply (negNVandV x); assumption.
+       + destruct (determinism_e H H2). subst.
+        split; [reflexivity | (split; reflexivity)].
+       + destruct (determinism_e H3 H). destruct (determinism_e H4 H0).
+         subst. rewrite <- H1 in H5. apply val_inj in H5.
+         subst. split; [reflexivity | (split; reflexivity)].
+       +split; [reflexivity | (split; reflexivity)].
+       + exfalso. apply H0. reflexivity.
+       + exfalso. apply (H w). reflexivity.
+       + exfalso. apply H0. reflexivity.
+       + apply IHcc1 in H3. destruct H3 as
+             [onee rest]. destruct rest as [two threee].
+         inversion onee. inversion two.
+         subst.
+         split; [reflexivity | (split; reflexivity)].
+      + destruct (determinism_e H H0). subst.
+        split; [reflexivity | (split; reflexivity)].
+      + destruct (determinism_e H H0). inversion H2.
+      + destruct (determinism_e H H0). inversion H2.
+      +destruct (determinism_e H H0). subst.
+       split; [reflexivity | (split; reflexivity)].
 Qed.
+
+         (*ask arthur nested patterns
+          in destruct so I don't have to do the above*)
 
 
 (*concern: the theorem below is not true for programs with io

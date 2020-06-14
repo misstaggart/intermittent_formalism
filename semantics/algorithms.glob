@@ -81,7 +81,7 @@ R797:797 Semantics.algorithms <> R var
 R795:795 Semantics.algorithms <> W var
 R793:793 Semantics.algorithms <> N var
 R836:842 Semantics.semantics <> warvars syndef
-R849:856 Semantics.semantics <> smallvar syndef
+R849:856 Semantics.semantics <> smallvar ind
 R863:865 Semantics.semantics <> exp ind
 R974:974 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R982:1081 Coq.Init.Logic <> ::type_scope:x_'->'_x not
@@ -103,7 +103,7 @@ R975:976 Semantics.algorithms <> rd ind
 R980:981 Semantics.algorithms <> Re var
 R978:978 Semantics.algorithms <> e var
 R1191:1197 Semantics.semantics <> warvars syndef
-R1217:1224 Semantics.semantics <> smallvar syndef
+R1217:1224 Semantics.semantics <> smallvar ind
 R1231:1233 Semantics.semantics <> exp ind
 R1256:1302 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R1303:1303 Coq.Init.Logic <> ::type_scope:x_'->'_x not
@@ -137,7 +137,7 @@ R1307:1307 Semantics.algorithms <> e var
 R1250:1253 Semantics.semantics <> isNV def
 R1255:1255 Semantics.algorithms <> x var
 R1542:1548 Semantics.semantics <> warvars syndef
-R1568:1575 Semantics.semantics <> smallvar syndef
+R1568:1575 Semantics.semantics <> smallvar ind
 R1582:1584 Semantics.semantics <> exp ind
 R1601:1601 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R1609:1708 Coq.Init.Logic <> ::type_scope:x_'->'_x not
@@ -182,7 +182,7 @@ R1602:1603 Semantics.algorithms <> rd ind
 R1607:1608 Semantics.algorithms <> Re var
 R1605:1605 Semantics.algorithms <> e var
 R1943:1949 Semantics.semantics <> warvars syndef
-R1969:1976 Semantics.semantics <> smallvar syndef
+R1969:1976 Semantics.semantics <> smallvar ind
 R1983:1985 Semantics.semantics <> exp ind
 R2002:2002 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R2010:2109 Coq.Init.Logic <> ::type_scope:x_'->'_x not
@@ -459,7 +459,7 @@ R4418:4418 Semantics.algorithms <> R var
 R4416:4416 Semantics.algorithms <> W var
 R4414:4414 Semantics.algorithms <> N var
 R4461:4467 Semantics.semantics <> warvars syndef
-R4474:4481 Semantics.semantics <> smallvar syndef
+R4474:4481 Semantics.semantics <> smallvar ind
 R4488:4490 Semantics.semantics <> exp ind
 R4599:4599 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R4607:4706 Coq.Init.Logic <> ::type_scope:x_'->'_x not
@@ -482,7 +482,7 @@ R4600:4601 Semantics.algorithms <> rd ind
 R4605:4606 Semantics.algorithms <> Re var
 R4603:4603 Semantics.algorithms <> e var
 R4824:4830 Semantics.semantics <> warvars syndef
-R4855:4862 Semantics.semantics <> smallvar syndef
+R4855:4862 Semantics.semantics <> smallvar ind
 R4869:4871 Semantics.semantics <> exp ind
 R4888:4888 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R4896:4995 Coq.Init.Logic <> ::type_scope:x_'->'_x not
@@ -517,7 +517,7 @@ R4889:4890 Semantics.algorithms <> rd ind
 R4894:4895 Semantics.algorithms <> Re var
 R4892:4892 Semantics.algorithms <> e var
 R5179:5185 Semantics.semantics <> warvars syndef
-R5192:5199 Semantics.semantics <> smallvar syndef
+R5192:5199 Semantics.semantics <> smallvar ind
 R5206:5208 Semantics.semantics <> exp ind
 R5280:5280 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R5288:5387 Coq.Init.Logic <> ::type_scope:x_'->'_x not
@@ -561,7 +561,7 @@ R5281:5282 Semantics.algorithms <> rd ind
 R5286:5287 Semantics.algorithms <> Re var
 R5284:5284 Semantics.algorithms <> e var
 R5627:5633 Semantics.semantics <> warvars syndef
-R5654:5661 Semantics.semantics <> smallvar syndef
+R5654:5661 Semantics.semantics <> smallvar ind
 R5668:5670 Semantics.semantics <> exp ind
 R5687:5687 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R5695:5794 Coq.Init.Logic <> ::type_scope:x_'->'_x not

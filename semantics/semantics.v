@@ -234,27 +234,26 @@ Inductive volatility :=
   nonvol
  | vol.
 
+Inductive smallvar :=
+  SV (s: string) (q: volatility).
+
 Inductive exp :=
-  Var (s: string) (q: volatility) 
+  Var (x: smallvar) 
 | Val (v: value)
 | Bop (bop: boptype) (e1: exp) (e2: exp) 
 | El (a: array) (e: exp).
 Coercion Val : value >-> exp.
+Coercion Var : smallvar >-> exp.
 Notation "a '[[' e ']]'" := (El (a) (e))
                             (at level 100, right associativity).
 (*used subtypes to enforce the fact that only some expressions are
  memory locations*)
 (*also made the write after read type easier*)
-Definition smallvarpred := (fun x=> match x with
-                                        Var _ _ => true
-                                        | _ => false
-                                 end).
 Definition elpred  := (fun x=> match x with
                                         El (Array _ length) (Val (Nat i)) => (i <? length)
                                         | _ => false
                                  end).
 (*note elpred checks if index is a natural in bounds*)
-Notation smallvar := {x: exp | smallvarpred x}.
 Notation el := {x: exp| elpred x}.
 Definition loc := smallvar + el. (*memory location type*)
 
@@ -333,20 +332,16 @@ Definition samearray_b (element: el) (a: array) := (*checks if element indexes i
 
 Definition samearray (element: el) (a: array) := is_true(samearray_b element a).
 
-Definition el_arrayind_eq (e: el) (a: array) (vindex: value) := (*transitions from el type
-                                                          to a[i] representation*)
-(val e) = (El a vindex).
-
 (*smallvar functions*)
 Definition isNV_b (x: smallvar) := (*checks if x is stored in nonvolatile memory*)
-  match (val x) with
-    Var _ nonvol => true
+  match x with
+    SV _ nonvol => true
   | _ => false
   end.
 
 Definition isV_b (x: smallvar) :=(*checks if x is stored in volatile memory*)
-  match (val x) with
-    Var _ vol => true
+  match x with
+    SV _ vol => true
   | _ => false
   end.
 
@@ -361,7 +356,8 @@ Definition samevolatility_b (x y: smallvar) := (*used for defining equality of m
   | _, _ => false
   end.
 
-Program Definition getstringsv (x: smallvar): string :=
+(*start here. delete me and smallvar helpers above*)
+(*Program Definition getstringsv (x: smallvar): string :=
   match val x with
     Var s _ => s
   | _ => !
@@ -369,10 +365,13 @@ Program Definition getstringsv (x: smallvar): string :=
 Next Obligation.
     destruct x as [s| | |];
       try (simpl in H0; discriminate H0). apply (H s q). reflexivity.
-Qed.
+Qed.*)
 
 Definition eqb_smallvar (x y: smallvar): bool :=
-  andb ((getstringsv x)==(getstringsv y)) (samevolatility_b x y).
+  match x, y with
+    SV sx vol, SV sy vol => sx== sy
+  | SV sx nonvol, SV sy nonvol => sx== sy
+  | _, _ => false end.                                     
 
 (*loc and warvar functions*)
 
@@ -653,12 +652,12 @@ Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
     ((inl x) <-N) = v ->
     isNV(x) -> (*extra premise to make sure x is correct type for NV memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    eeval N mapV (val x) [((inl x), v)] v
+    eeval N mapV x [((inl x), v)] v
 | RD_VAR_V: forall(N: nvmem) (mapV: mem) (x: smallvar) (v: value),
     (mapV (inl x)) = v ->
     isV(x) -> (*extra premise to make sure x is correct type for V memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    eeval N (Vol mapV) (val x) [((inl x), v)] v
+    eeval N (Vol mapV) x [((inl x), v)] v
 | RD_ARR: forall(N: nvmem) (V: vmem)
            (a: array)
            (index: exp)
@@ -668,7 +667,7 @@ Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
            (v: value),
     eeval N V (index) rindex vindex ->
     ((inr element) <-N) = v ->
-    (el_arrayind_eq element a vindex) -> (*extra premise to check that inr element
+    (val element) = (El a vindex) -> (*extra premise to check that inr element
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
@@ -744,7 +743,7 @@ CheckPoint: forall(N: nvmem)
                (element: el),
     eeval N V ei ri vi ->
     eeval N V e r v ->
-    (el_arrayind_eq element a vi) -> (*extra premise to check that inr element
+    (val element) = (El a vi) -> (*extra premise to check that inr element
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
@@ -833,8 +832,7 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
                (element: el),
     eeval N V ei ri vi ->
     eeval N V e r v ->
-    (el_arrayind_eq element a vi) -> (*extra premise to check that inr element
-                                        is actually a[vindex] *)
+    (val element) = (El a vi) -> (*extra premise to check that inr element                                        is actually a[vi] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     iceval_w (k, N, V, Ins (asgn_arr a ei e))
