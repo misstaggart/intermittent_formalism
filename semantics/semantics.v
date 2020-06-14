@@ -2,8 +2,9 @@ Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Lists.List Strings.String Program.
 Require Export Coq.Strings.String.
-From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
-Import ListNotations.
+From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype.
+(*ambiguous coercion error message ask arthur*)
+
 (*basic list functions that I couldn't find in a library*)
 Open Scope list_scope.
 Fixpoint eq_lists {A: Type} (L1: list A) (L2: list A) (eq: A -> A -> Prop) :=
@@ -28,18 +29,7 @@ Definition prefix {A: Type} (O1: list A) (O2: list A) :=
 Close Scope list_scope.
 
 Open Scope string_scope.
-Lemma eqnat: Equality.axiom Init.Nat.eqb.
-Proof.
-  unfold Equality.axiom. intros.
-  destruct (Init.Nat.eqb (x) (y)) eqn:beq.
-  - constructor. apply beq_nat_true in beq. assumption.
-  -  constructor. apply beq_nat_false in beq. assumption.
-Qed.
-Canonical nat_eqMixin := EqMixin eqnat.
-Canonical nat_eqtype := Eval hnf in EqType nat nat_eqMixin.
 (*---*)
-
-
 
 
 (*setting up strings equality type*)
@@ -70,7 +60,6 @@ Proof.
 Qed.
 Canonical string_eqMixin := EqMixin eqstring.
 Canonical string_eqtype := Eval hnf in EqType string string_eqMixin.
-Close Scope string_scope.
 (***)
 
 
@@ -93,6 +82,49 @@ Inductive value :=
   | error. 
 Coercion Bool : bool >-> value.
 Coercion Nat : nat >-> value.
+
+Definition eqb_value (x y: value) :=
+  match x, y with
+    Nat nx, Nat ny => nx == ny
+  | Bool bx, Bool byy => bx == byy
+  | error, error => true
+  | _, _ => false
+  end.
+
+Lemma eq_bool_prop : forall (x y: nat), x == y -> x = y.
+Proof. by move => x y /eqP. Qed.
+
+Lemma eqb_value_true_iff : forall x y : value,
+    is_true(eqb_value x y) <-> x = y.
+Proof.
+  intros. destruct x, y; split; simpl; 
+            try (move/eqP ->); try (intros H; inversion H); auto.
+Qed.
+
+(*Set Printing Coercions.
+Lemma eqb_value_true_iff : forall x y : value,
+    is_true(eqb_value x y) <-> x = y.
+Proof.
+  intros. destruct x, y; split; simpl; try (intros H; discriminate H).
+  - move/eqP ->. reflexivity.
+  - intros H. inversion H. (*ask arthur..can't this be combined into one thing with move?*) apply eq_refl.
+  - move/eqP ->. reflexivity. (*why can the above move/eqP
+                                             be done with auto but this onenot*)
+  - intros H. inversion H. apply eq_refl.
+  - auto.
+  - auto.*)
+
+
+Lemma eqvalue: Equality.axiom eqb_value.
+Proof.
+  unfold Equality.axiom. intros.
+  destruct (eqb_value x y) eqn:beq.
+  - constructor. apply eqb_value_true_iff in beq. assumption.
+  -  constructor. intros contra. apply eqb_value_true_iff in contra.
+     rewrite contra in beq. discriminate beq.
+Qed.
+Canonical value_eqMixin := EqMixin eqvalue.
+Canonical value_eqtype := Eval hnf in EqType value value_eqMixin.
 
 (*evaluation rules for binary operations*)
 
@@ -164,15 +196,9 @@ Definition isvalidbop (bop: boptype) (v1 v2 : value) :=
   match (bopeval bop v1 v2) with
     error => False
   | _ => True
-   end.
-
-Definition eqb_value (x y: value) :=
-  match x, y with
-    Nat nx, Nat ny => nx == ny
-  | Bool bx, Bool byy => eqb bx byy
-  | _, _ => false
   end.
-Definition eq_value (x y: value) := is_true(eqb_value x y).
+
+
 
 Definition eq_valueop (x y : option value) :=
   match x, y with
@@ -283,6 +309,7 @@ Next Obligation. destruct (x) as [s| | |];
                  apply (H a v). subst. reflexivity.
 Qed.
 
+
 Definition samearray_b (element: el) (a: array) := (*checks if element indexes into a*)
   eqb_array (getarray element) a.
 
@@ -290,7 +317,7 @@ Definition samearray (element: el) (a: array) := is_true(samearray_b element a).
 
 Definition el_arrayind_eq (e: el) (a: array) (vindex: value) := (*transitions from el type
                                                           to a[i] representation*)
-  (samearray e a) /\ (eq_value (getindexel e) vindex).
+(val e) = (El a vindex).
 
 (*smallvar functions*)
 Definition isNV_b (x: smallvar) := (*checks if x is stored in nonvolatile memory*)

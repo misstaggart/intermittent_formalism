@@ -6,6 +6,7 @@ From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
 From TLC Require Import LibTactics LibLogic.
 Import ListNotations.
 From Semantics Require Import programs semantics algorithms lemmas_1. (*shouldn't have to import both of these*)
+Require Import Omega.
 
 Open Scope list_scope.
 Open Scope type_scope.
@@ -28,6 +29,7 @@ Ltac generalize_5 N N' V V' O := generalize dependent N;
                                generalize dependent V;
                                generalize dependent V';
                                generalize dependent O.
+
 
 
 
@@ -124,6 +126,17 @@ Qed.
  ask arthur*)
 
 
+Lemma el_arrayind: forall{e0 e1: el} {a: array} {v: value},
+(val e0) = (El a v) -> (val e1) = (El a v) ->
+    e0 = e1.
+Proof. intros e0 e1 a v. intros H H0.
+       apply val_inj.
+       (*cut (val e0 == val e1).*)
+       unfold el_arrayind_eq.
+       unfold samearray.
+       unfold samearray_b.
+       unfold getarray.
+Admitted.
 (*ask arthur how to subtypes!*)
 Lemma el_arrayind: forall{e0 e1: el} {a: array} {v: value},
     el_arrayind_eq e0 a v -> el_arrayind_eq e1 a v ->
@@ -319,6 +332,7 @@ Proof. intros. inversion H1. subst.
 Qed.
 
 
+
 (*Concern: bottom three cases are essentially the same reasoning but with slight differences;
  unsure how to automate
  maybe remembering c so that I can use c instead of the specific form of c?*)
@@ -329,7 +343,7 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
             multi_step_c (N, V, c) (N', V', c') O ->
             not (In checkpoint O) ->
             exists(W' R': warvars), WARok N0 W' R' c'.
-  intros.
+   intros.
   generalize_5 N N' V V' O.
   remember H as warok. clear Heqwarok.
   induction H; intros.
@@ -428,96 +442,8 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
         exists Osmall Wsmall. assumption.
 Qed.
 
-(*below I have an example illustrating my concerns with lemma 13*)
 
-Definition yvar := Var "y" nonvol.
-
-Definition xvar := Var "x" nonvol.
-
-Lemma YP: (smallvarpred yvar).
-  unfold smallvarpred. unfold yvar. simpl. constructor. Qed.
-(*ask arthur about constructor part..weird!!*)
-
-Lemma XP: (is_true (smallvarpred xvar)).
-  unfold smallvarpred. unfold xvar. simpl. 
-  Admitted.
-
-Definition y := (eqtype.Sub yvar YP): smallvar.
-
-Definition x := (eqtype.Sub xvar XP): smallvar.
-
-Definition c0 := (asgn_sv y (Nat 5)) ;; (asgn_sv x (val x);;
-((incheckpoint []);; (Ins skip))).
-
-Definition c1 :=  (asgn_sv x (val x));;
-((incheckpoint []);; (Ins skip)).
-(*RD(T0) = [y]*)
-
-Definition N := NonVol ((inl x) |-> (Nat 5) ; (emptymap loc eqb_loc))
-[(inl x)].
-
-Definition V := Vol (emptymap loc eqb_loc).
-
-Lemma stupid: ((inl x) |-> (Nat 5) ; (emptymap loc eqb_loc)) (inl x) = Nat 5.
-  unfold updatemap. simpl. reflexivity.
-Qed.
-
-Lemma problem13: WARok [] ((inl x)::[(inl y)]) ((inl x)::[(inl y)])
-                       c1.
-  unfold c1. eapply WAR_Seq. apply WAR_WT.
-  eapply RD.
-  apply (RD_VAR_NV N V x (Nat 5)).
-  simpl. rewrite stupid. unfold eq_value. unfold eqb_value. auto.
-  unfold x.
-  unfold eq_value. unfold eqb_value.
-  unfold isNV. unfold isNV_b. simpl. constructor.
-  unfold isvaluable. auto.
-  apply in_or_app. left. apply in_eq.
-  apply in_eq.
-  apply WAR_CP.
-  eapply WAR_I.
-  constructor.
-  Qed.
-
-(**************)
-(*a trace between two commands will exist or not exist irrespective of
- memory states
- observation sequence does not stay the
-same amongst all of them also cuz the values you read dependent on memory*)
-(*this isn't really true because c could get something out of N1
- that needs to be a boolean*)
-Lemma same_coms: forall(N1 N1' N2: nvmem)
-                  (V1 V1' V2: vmem)
-                  (O1: obseq)
-                  (W1: the_write_stuff)
-                  (c c': command),
-                 trace_c (N1, V1, c) (N1', V1', c') O1 W1 ->
-                 exists(N2': nvmem) (V2': vmem)(O2: obseq),
-                   multi_step_c (N2, V2, c) (N2', V2', c') O2.
-Admitted.
+Lemma thirteen: 
 
 
-
-(*N0, V, c0 is checkpoint at start
- N1, c0 is start
- N1', V' is end
- N2 is acceptable start from a continuous
- execution*)
-Lemma twelve: forall(N0 N1 N1' N2: nvmem)
-               (V V': vmem)
-               (c c0: command)
-               (O: obseq),
-               multi_step_i ((N0, V, c0), N1, V, c0) ((N0, V, c0), N1', V', c) O ->
-               not (In checkpoint O) ->
-               not (In reboot O) ->
-               WARok (getdomain N0) [] [] c0 -> (*unclear if I need this*)
-               current_init_pt N0 V c0 N1 N2 ->
-               current_init_pt N0 V c0 N1' N2.
-Proof.
-  intros. inversion H3. subst.
-  apply same_coms _ _ N1' in T.
-  assert multi_step_c (N1, V1, c) (N1', V1', c') O1
-
-  apply same_coms in T.
-  assert ()
-  constructor.
+Close Scope list_scope.

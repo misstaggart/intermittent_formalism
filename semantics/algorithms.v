@@ -81,8 +81,6 @@ Inductive WARok: warvars -> warvars -> warvars -> command -> Prop:=
      WARok N W R (TEST e THEN c1 ELSE c2)
 .
 
-
-
 Inductive DINO_ins: warvars -> warvars -> warvars -> instruction
                 -> warvars -> warvars -> warvars -> Prop:=
   D_WAR_Skip: forall(N W R: warvars),
@@ -144,3 +142,4 @@ Inductive DINO: warvars -> warvars -> warvars -> command
     DINO nil nil nil c c' N' ->
     DINO N W R ((incheckpoint nil);;c) ((incheckpoint N');;c') N.
  Close Scope list_scope.
+
