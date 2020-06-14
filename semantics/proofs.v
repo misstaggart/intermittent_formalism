@@ -5,32 +5,12 @@ Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
 From TLC Require Import LibTactics LibLogic.
 Import ListNotations.
-From Semantics Require Import programs semantics algorithms lemmas_1. (*shouldn't have to import both of these*)
+From Semantics Require Export programs semantics algorithms lemmas_1
+lemmas_0. (*shouldn't have to import both of these*)
 Require Import Omega.
 
 Open Scope list_scope.
 Open Scope type_scope.
-
-(*ltac*)
-Ltac destruct4r H L1 L2 L3 L4 := destruct H as [L1 rest];
-         destruct rest as [L2 rest];
-         destruct rest as [L3 L4]. 
-
-Ltac destruct3 Cmid nmid vmid cmid:=
-           destruct Cmid as [Annoying cmid]; destruct Annoying as [nmid vmid].
-
-Ltac ex_destruct3 H := destruct H as [var1 Annoying]; destruct Annoying as [var2 Annoying1];
-                       destruct Annoying1 as [var3 H].
-
-Ltac destruct_ms M T WT := destruct M as [WT neverseen]; destruct neverseen as [T].
-
-Ltac generalize_5 N N' V V' O := generalize dependent N;
-                               generalize dependent N';
-                               generalize dependent V;
-                               generalize dependent V';
-                               generalize dependent O.
-
-
 
 
 (*lemmas for the lemmas; not in paper*)
@@ -64,18 +44,6 @@ Proof. intros C1 C2 O W T. induction T.
                                     IHT2)).
 Qed.
 
-(*ask arthur how to fix that destruct garbage*)
-Lemma wt_subst_fstwt: forall{c1 c2: command} {W: the_write_stuff} {b: bool},
-  write_right c1 c2 b W ->
-  incl (getfstwt W) (getwt W).
-Proof. intros. induction H.
-       + simpl. apply (incl_refl []).
-       + destruct H. destruct H. destruct H. destruct H. destruct H. 
-         induction H;
-           (try (simpl; apply (incl_refl [])));
-           (try (unfold getfstwt; unfold getwt;
-                 apply remove_subst)).
-Admitted.
 
 Lemma trace_stops: forall {N N': nvmem} {V V': vmem}
                     {l: instruction} {c: command}
@@ -127,42 +95,30 @@ Qed.
 
 
 Lemma el_arrayind: forall{e0 e1: el} {a: array} {v: value},
-(val e0) = (El a v) -> (val e1) = (El a v) ->
+(El a v) = (val e0) -> (El a v) = (val e1)->
     e0 = e1.
-Proof. intros e0 e1 a v. intros H H0.
+Proof. intros e0 e1 a v H0 H1.
        apply val_inj.
-       (*cut (val e0 == val e1).*)
-       unfold el_arrayind_eq.
-       unfold samearray.
-       unfold samearray_b.
-       unfold getarray.
-Admitted.
-(*ask arthur how to subtypes!*)
-Lemma el_arrayind: forall{e0 e1: el} {a: array} {v: value},
-    el_arrayind_eq e0 a v -> el_arrayind_eq e1 a v ->
-    e0 = e1.
-Proof. intros e0 e1 a v. intros.
-       (*cut (val e0 == val e1).*)
-       unfold el_arrayind_eq.
-       unfold samearray.
-       unfold samearray_b.
-       unfold getarray.
-Admitted.
-(*plan is to use these but then I would have to set up
- equality type for expressions;
- going to wait to ask if there is an easier way*)
-Check proj1_sig.
-Check val_eqP.
-Check elimT.
-
+       rewrite <- H0. assumption.
+Qed. (* ask arthur
+why does subst do nothing here?*)
+(*ask arthur difference between val and sval
+ i think it's to do with one being an equality type
+ and the other not?*)
+Set Printing Coercions. 
 Lemma determinism_e: forall{N: nvmem} {V: vmem} {e: exp} {r1 r2: readobs} {v1 v2: value},
     eeval N V e r1 v1 ->
     eeval N V e r2 v2 ->
     r1 = r2 /\ v1 = v2.
 Proof. intros. induction H.
-       + inversion H0.
-       - subst. split; reflexivity.
-         - subst. 
+       + inversion H0; subst.
+       - split; reflexivity.
+         pose proof (valP x) as xp.
+         Check val.
+         Check sval. (*ask ask arthur about here*)
+         subst.
+       - apply val_inj in H1.
+         Check sval. subst.
 Admitted.
 (*waiting till I decide whether or not I'm using the subtypes*)
 

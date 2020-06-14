@@ -3,6 +3,7 @@ From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Lists.List Strings.String Program.
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype.
+From Semantics Require Import lemmas_0.
 (*ambiguous coercion error message ask arthur*)
 
 (*basic list functions that I couldn't find in a library*)
@@ -90,9 +91,6 @@ Definition eqb_value (x y: value) :=
   | error, error => true
   | _, _ => false
   end.
-
-Lemma eq_bool_prop : forall (x y: nat), x == y -> x = y.
-Proof. by move => x y /eqP. Qed.
 
 Lemma eqb_value_true_iff : forall x y : value,
     is_true(eqb_value x y) <-> x = y.
@@ -199,14 +197,6 @@ Definition isvalidbop (bop: boptype) (v1 v2 : value) :=
   end.
 
 
-
-Definition eq_valueop (x y : option value) :=
-  match x, y with
-    Error, None => True
-  | Some x1, Some y1 => eq_value x1 y1
-  | _, _ => False
-  end.
-
 (*memory maps...used for both memories and checkpoints*)
 Definition map_t (A: Type) (eqba: A -> A -> bool):= A -> value.
 
@@ -285,7 +275,35 @@ Open Scope list_scope.
 Definition eqb_array (a1 a2: array) :=
   match a1, a2 with
     Array s1 l1, Array s2 l2 => andb (s1 == s2) (l1 == l2)
-    end.
+  end.
+(*equality type for arrays*)
+
+Lemma eqb_array_true_iff : forall x y : array,
+    is_true(eqb_array x y) <-> x = y.
+Proof.
+  intros. destruct x, y; split; simpl.
+  - move/(reflect_conj eqP eqP).
+    case => H0 H1. subst. reflexivity.
+  - intros H. inversion H.
+    apply (introT (reflect_conj eqP eqP)). (*ask arthur is there a
+                                            way to do this using ssreflect
+                                            rather than the introT
+                                            lemma*)
+    split; reflexivity.
+Qed.
+
+Lemma eqarray: Equality.axiom eqb_array.
+Proof.
+  unfold Equality.axiom. intros.
+  destruct (eqb_array x y) eqn:beq.
+  - constructor. apply eqb_array_true_iff in beq. assumption.
+  -  constructor. intros contra. apply eqb_array_true_iff in contra.
+     rewrite contra in beq. discriminate beq.
+Qed.
+Canonical array_eqMixin := EqMixin eqarray.
+Canonical array_eqtype := Eval hnf in EqType array array_eqMixin.
+(*****)
+
 Program Definition getarray (x: el): array :=
   match val x with
     El (arr) _ => arr
@@ -311,7 +329,7 @@ Qed.
 
 
 Definition samearray_b (element: el) (a: array) := (*checks if element indexes into a*)
-  eqb_array (getarray element) a.
+  (getarray element) == a.
 
 Definition samearray (element: el) (a: array) := is_true(samearray_b element a).
 
@@ -377,10 +395,10 @@ Definition memberwv_wv (w: warvar) (W: warvars) := is_true(memberwv_wv_b w W).
 Definition eqb_loc (l1: loc) (l2: loc) :=
   match l1, l2 with
     inl x, inl y => eqb_smallvar x y
-  | inr x, inr y => andb (eqb_array (getarray x) (getarray y))
-                        (eqb_value (getindexel x) (getindexel y))
+  | inr x, inr y => andb ((getarray x) == (getarray y))
+                        ((getindexel x) == (getindexel y))
   | _, _ => false 
-  end. (*might be nice to have values as an equality type here*)
+  end.
 
 Notation in_loc_b := (member eqb_loc).
 
@@ -632,12 +650,12 @@ Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
     (isvalidbop bop v1 v2) -> (*extra premise to check if v1, v2, bop v1 v2 valuable*)
     eeval N V (Bop bop e1 e2) (r1++ r2) (bopeval bop v1 v2)
 | RD_VAR_NV: forall(N: nvmem) (mapV: vmem) (x: smallvar) (v: value),
-    eq_value ((inl x) <-N) v ->
+    ((inl x) <-N) = v ->
     isNV(x) -> (*extra premise to make sure x is correct type for NV memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     eeval N mapV (val x) [((inl x), v)] v
 | RD_VAR_V: forall(N: nvmem) (mapV: mem) (x: smallvar) (v: value),
-    eq_value (mapV (inl x)) v ->
+    (mapV (inl x)) = v ->
     isV(x) -> (*extra premise to make sure x is correct type for V memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     eeval N (Vol mapV) (val x) [((inl x), v)] v
@@ -649,7 +667,7 @@ Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
            (element: el)
            (v: value),
     eeval N V (index) rindex vindex ->
-    eq_value ((inr element) <-N) v ->
+    ((inr element) <-N) = v ->
     (el_arrayind_eq element a vindex) -> (*extra premise to check that inr element
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
@@ -852,11 +870,11 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
 into the types because I didn't want to define a context equality function*)
 
 (********************************************)
-(*helpers that use the evals*)
+(*helpers that use the evals
 Definition el_arrayexp_eq (e: el) (a: array) (eindex: exp) (N: nvmem) (V: vmem) := (*transitions from el type to a[exp] representation*)
   (samearray e a) /\
   exists(r: readobs) (vindex: value), eeval N V eindex r vindex /\
-                                 (eq_value (getindexel e) vindex).
+                                 (eq_value (getindexel e) vindex).*)
 (******)
 Close Scope list_scope.
 Close Scope type_scope.
