@@ -129,40 +129,47 @@ Proof. intros C1 C2 C3 O1 O2 W1 W2 cc1 cc2. destruct C1 as [blah c]. destruct bl
        generalize dependent C3.
        generalize dependent O2.
        generalize dependent W2.
-       induction cc1; intros; inversion cc2 as
+ induction cc1; intros; inversion cc2 as
            [| | | | | N20 N2' V20 V2' l20 c20 o20 W20| | ]
        (*only put vars for 1 branch but all changed? start here do not ask
         arthur this*)
-       ; subst; [
-       | ]
-       + split; [reflexivity | (split; reflexivity)].
-       + exfalso. apply (H w). reflexivity.
-       + destruct (determinism_e H H2). subst.
-         split; [reflexivity | (split; reflexivity)].
-       + exfalso. eapply (negNVandV x); assumption.
-       + exfalso. eapply (negNVandV x); assumption.
-       + destruct (determinism_e H H2). subst.
-        split; [reflexivity | (split; reflexivity)].
-       + destruct (determinism_e H3 H). destruct (determinism_e H4 H0).
-         subst. rewrite <- H1 in H5. apply val_inj in H5.
-         subst. split; [reflexivity | (split; reflexivity)].
-       +split; [reflexivity | (split; reflexivity)].
-       + exfalso. apply H0. reflexivity.
-       + exfalso. apply (H w). reflexivity.
-       + exfalso. apply H0. reflexivity.
-       + apply IHcc1 in H3. destruct H3 as
-             [onee rest]. destruct rest as [two threee].
-         inversion onee. inversion two.
-         subst.
-         split; [reflexivity | (split; reflexivity)].
-      + destruct (determinism_e H H0). subst.
-        split; [reflexivity | (split; reflexivity)].
-      + destruct (determinism_e H H0). inversion H2.
-      + destruct (determinism_e H H0). inversion H2.
-      +destruct (determinism_e H H0). subst.
-       split; [reflexivity | (split; reflexivity)].
+       ; subst; try (exfalso; eapply (negNVandV x); assumption);
+         try (destruct (determinism_e H H2); subst);
+         try (exfalso; apply (H w); reflexivity);
+         try (exfalso; apply H0; reflexivity);
+         try (destruct (determinism_e H H0); inversion H2);
+         try (destruct (determinism_e H3 H); destruct (determinism_e H4 H0);
+         subst; rewrite <- H1 in H5; apply val_inj in H5);
+         try (apply IHcc1 in H3; destruct H3 as
+             [onee rest]; destruct rest as [two threee];
+              inversion onee; inversion two);
+         try( 
+         subst;
+         split; [reflexivity | (split; reflexivity)]).
 Qed.
-
+       (* ask arthur why this gave the error it gave
+induction cc1; intros; inversion cc2 as
+           [| | | | | N20 N2' V20 V2' l20 c20 o20 W20| | ]
+       (*only put vars for 1 branch but all changed? start here do not ask
+        arthur this*)
+       ; subst; try (exfalso; eapply (negNVandV x); assumption);
+         try (destruct (determinism_e H H2); subst);
+         try (exfalso; apply (H w); reflexivity);
+         try (exfalso; apply H0; reflexivity);
+         try (destruct (determinism_e H H0); inversion H2);
+       [|
+         |
+         | destruct (determinism_e H3 H); destruct (determinism_e H4 H0);
+         subst; rewrite <- H1 in H5; apply val_inj in H5
+         |
+         | apply IHcc1 in H3; destruct H3 as
+             [onee rest]; destruct rest as [two threee];
+         inversion onee; inversion two
+         |
+         |
+       ]; 
+         subst;
+         split; [reflexivity | (split; reflexivity)].*)
          (*ask arthur nested patterns
           in destruct so I don't have to do the above*)
 
