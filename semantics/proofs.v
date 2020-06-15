@@ -277,7 +277,7 @@ Qed.
 Lemma eight: forall(N0 N1 N2: nvmem) (V0: vmem) (c0: command),
               (subset_nvm N0 N1) ->
               (subset_nvm N0 N2) ->
-              current_init_pt N0 V0 c0 N1 N2 ->
+              current_init_pt N0 V0 c0 N1 N2 N1 ->
               same_pt N1 V0 c0 c0 N1 N2.
 Proof. intros. inversion H1. subst.
        apply (same_mem N1 N1 N2 V0
