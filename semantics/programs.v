@@ -163,14 +163,14 @@ Definition FstWt {C1 C2: context} {O: obseq} {W: the_write_stuff}
  V1 isn't used anywhere it's just to fill out the type
  N2, V2 is final state for intermittent, once again solely to fill out the type*)
 Inductive same_pt: nvmem -> vmem -> command -> command -> nvmem -> nvmem -> Prop:=
-same_mem: forall {N0 N1 Ncomp: nvmem}
-                  (V0 V1: vmem)
+same_mem: forall {N0 N1 Ncomp N2: nvmem}
+                  {V0 V1 V2: vmem}
                   {c0 c1 crem: command}
                   {W1 W2: the_write_stuff}
                   {w: warvars}
                   {O1 O2: obseq}
                   (T1: trace_c (N0, V0, c0) (N1, V1, c1) O1 W1)
-                  (T2: trace_c (N1, V1, c1) (N1, V1, ((incheckpoint w);; crem)) O2 W2),
+                  (T2: trace_c (N1, V1, c1) (N2, V2, ((incheckpoint w);; crem)) O2 W2),
                   (getdomain N1) = (getdomain Ncomp) 
                   -> not(In checkpoint O1)
                   -> not (In checkpoint O2) (*checks checkpoint T2 ends on is nearest checkpoint*)
@@ -183,23 +183,23 @@ same_mem: forall {N0 N1 Ncomp: nvmem}
 Ni0 is starting nvm for intermittent
  N1 V1 is middle state for intermittent
 N, V, c is checkpoint at middle state of intermittent
- N2, V2 is final state for intermittent, not used, solely to fill out the type
+ Nend, Vend is final state for intermittent, not used, solely to fill out the type
  V1 isn't used anywhere it's just to fill out the type
  N2, V2 is final state for intermittent, once again solely to fill out the type*)
 Inductive current_init_pt: nvmem -> vmem -> command -> nvmem -> nvmem -> nvmem -> Prop:=
-  valid_mem: forall {N N1 Nc0 Ni0 N2: nvmem}
-                  {V V1 V2: vmem}
+  valid_mem: forall {N Ni0 N1 Nc0 Nend: nvmem}
+                  {V V1 Vend: vmem}
                   {c crem: command}
                   {W : the_write_stuff}
                   {O: obseq}
                   {w: warvars}
-                  (T: trace_c (Ni0, V, c) (N2, V2, (incheckpoint w);;crem) O W),
+                  (T: trace_c (Ni0, V, c) (Nend, Vend, (incheckpoint w);;crem) O W),
                   (getdomain N1) = (getdomain Nc0) 
                   -> not (In checkpoint O) (*checks checkpoint T ends on is nearest checkpoint*)
                  -> (forall(l: loc),
                       not((getmap N1) l = (getmap Nc0) l)
                       -> (In l (getfstwt W)) \/ (In (loc_warvar l) (getdomain N)))
-                 -> current_init_pt N V c N1 Nc0 Ni0.
+                 -> current_init_pt N V c Ni0 N1 Nc0.
 (*Definition 6*)
 (*concern: Typo in paper, N0, V0 is left out of invocation of Def 4*)
 (*(N0, V0, c0) is checkpoint state at time c1

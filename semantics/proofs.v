@@ -7,7 +7,6 @@ From TLC Require Import LibTactics LibLogic.
 Import ListNotations.
 From Semantics Require Export programs semantics algorithms lemmas_1
 lemmas_0. (*shouldn't have to import both of these*)
-Require Import Omega.
 
 Open Scope list_scope.
 Open Scope type_scope.
@@ -277,16 +276,17 @@ Qed.
 Lemma eight: forall(N0 N1 N2: nvmem) (V0: vmem) (c0: command),
               (subset_nvm N0 N1) ->
               (subset_nvm N0 N2) ->
-              current_init_pt N0 V0 c0 N1 N2 N1 ->
+              current_init_pt N0 V0 c0 N1 N1 N2 ->
               same_pt N1 V0 c0 c0 N1 N2.
 Proof. intros. inversion H1. subst.
-       apply (same_mem N1 N1 N2 V0
-                (Empty_Writes c0)
-                       H2); (try assumption); try reflexivity.
-       - intros. simpl.
+ apply (same_mem
+                (CTrace_Empty (N1, V0, c0))
+                T); auto. 
+       - intros l Hl. simpl.
          assert (H6: not (In (loc_warvar l) (getdomain N0))) by
-               apply (sub_disclude N0 N1 N2 l H H0 H4).
-         apply H5 in H4. destruct H4.
+               apply (sub_disclude N0 N1 N2 l H H0 Hl).
+         (*try appldis here*)
+         apply H4 in Hl. destruct Hl.
          split.
          + apply ((wt_subst_fstwt H2) l H4).
          + split.
@@ -407,8 +407,11 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
         exists Osmall Wsmall. assumption.
 Qed.
 
-
-Lemma thirteen: 
-
+Lemma 12.0: forall(N0 N1 N1': nvmem) (V V': vmem) (c0 c1 crem: command)
+  (Obig Osmall: obseq) (Wbig Wsmall: the_write_stuff),
+    WARok N0 [] [] [] c0 ->
+    multistep_c ((N0, V, c0), N1, V, c0) ((N0, V, c0), )
+    iceval ((N0, V, c0), N1, V, c0) ((N0, V, c0), N1', V', c1) Osmall Wsmall ->
+    
 
 Close Scope list_scope.
