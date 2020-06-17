@@ -1,6 +1,6 @@
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
-     Init.Datatypes Lists.List Strings.String Program.
+     Init.Datatypes Lists.List Strings.String Program Logic.FunctionalExtensionality.
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
 From TLC Require Import LibTactics LibLogic.
@@ -27,7 +27,7 @@ Proof. intros. intros contra. unfold subset_nvm in H. destruct H.
        apply H1. assumption.
 Qed.
 
-Lemma wt_subst_fstwt1: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
+Lemma wt_subst_fstwt: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
   trace_c C1 C2 O W ->
     incl (getfstwt W) (getwt W).
 Proof. intros C1 C2 O W T. induction T.
@@ -288,12 +288,12 @@ Proof. intros. inversion H1. subst.
          (*try appldis here*)
          apply H4 in Hl. destruct Hl.
          split.
-         + apply ((wt_subst_fstwt H2) l H4).
+         + apply ((wt_subst_fstwt T) l H5).
          + split.
              - unfold remove. unfold in_loc_b. rewrite filter_false.
-                 apply H4.
+                 assumption.
              - intros contra. contradiction.
-         + apply H6 in H4. contradiction.
+         + apply H6 in H5. contradiction.
 Qed.
 
 
@@ -407,10 +407,83 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
         exists Osmall Wsmall. assumption.
 Qed.
 
+(*if trace from N1,c  to CP
+ then trace from N1' U! N0, c to CP
+ and indeed should be the SAME cp
+with same memories?
+yes as if diff in one of the mems, that diff came from a first accessed (in c)
+diff between N1 and (N1' U! N0). this diff is x. 
+at the start.
+case: x is not in CP.
+then, N1(x) != N1'(x). Since N1 --> N1' while doing c!,
+x was modified on the way to N1' while executing c.
+N1' = (N1 with x --> e).
+If x was read from before this point while executing c, then x would be in the CP by warok.
+So, x was not read from.
+So, when going the second time around from c, N1' does x --> e.
+Since x is the first diff
+
+Moreover, the expression x := e that x was assigned to must be equal in both cases, since
+N1 and (N1' U! N0) have been equal up until x  
+
+and that first diff existed between _whichever one_ and N2...not true, maybe theyre ALL different
+which means either it's a FW
+or in the CP ....but N1 isn't updated w a CP.... need subset relation?
+ but I don't need that just yet
+but i do need to show that the write sets are the same
+easiest way to do that might be to show everything the same?*)
+
+Lemma sub_update: forall{N0 N1: nvmem},
+    subset_nvm N0 N1 ->
+    (N0 U! N1) = N1.
+Admitted.
+
+
+(*ask arthur how does inversion not cover this*)
+Lemma stupid: forall {c: command} {w: warvars},
+    c <> ((incheckpoint w);; c).
+  move => c w contra.
+  induction c; inversion contra.
+    by apply IHc.
+Qed.
+
+Lemma twelve0: forall(N0 N1 N1' NCP: nvmem) (V V' VCP: vmem) (c c' cCP: command) (w: warvars) (O1 OCP: obseq)
+  (WCP: the_write_stuff),
+   multi_step_i ((N0, V, c), N1, V, c) ((N0, V, c), N1', V', c') O1
+      -> not (In checkpoint O1)
+      -> WARok (getdomain N0) [] [] c
+      -> subset_nvm N0 N1
+      -> trace_c (N1, V, c) (NCP, VCP, (incheckpoint w);; cCP) OCP WCP
+      -> inhabited (trace_c ((N0 U! N1'), V, c) (NCP, VCP, (incheckpoint w);; cCP) OCP WCP).
+  intros. rename X into T.
+  destruct_ms H Ti WTi.
+  dependent induction Ti. (*makes a diff here w remembering that N1 and N1' are the same*)
+  + rewrite (sub_update H2). constructor. assumption.
+  + dependent induction i.
+     - rewrite (sub_update H2). constructor. assumption.
+     - repeat rewrite (sub_update H2). constructor. assumption. (*weird that the reboot case is like this*)
+     - exfalso. apply (stupid x).
+     - 
+       
+       (*x has been written to*)
+  unfold multi_step_c in H.
+  destruct H.
+
+
+Lemma twelve: forall(N0 N1 N1' N2: nvmem) (V V': vmem) (c c': command) (O: obseq),
+           multi_step_i ((N0, V, c), N1, V, c) ((N0, V, c), N1', V', c') O ->
+           not In checkpoint O ->
+             WARok (getdomain N0) [] [] c ->
+             current_init_pt N0 V c N1 N1 N2 ->
+             current_init_pt N0 V c (N0 U! N1') (N0 U! N1') N2.
+(*got some other assumptions here that you should add*)
+
+
+
 Lemma 12.0: forall(N0 N1 N1': nvmem) (V V': vmem) (c0 c1 crem: command)
   (Obig Osmall: obseq) (Wbig Wsmall: the_write_stuff),
     WARok N0 [] [] [] c0 ->
-    multistep_c ((N0, V, c0), N1, V, c0) ((N0, V, c0), )
+    multistep_c ((N0, V, c0), N1, V, c0) ((N0, V, c0), N1', V', c)
     iceval ((N0, V, c0), N1, V, c0) ((N0, V, c0), N1', V', c1) Osmall Wsmall ->
     
 

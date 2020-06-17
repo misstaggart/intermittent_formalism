@@ -119,7 +119,7 @@ Next Obligation. split. intros wildcard contra. destruct contra. inversion H1.
 (*intermittent traces*)
  (*the same as trace_c bar types as differences between
   intermittent and continuous execution have been implemented in evals*)
-Inductive trace_i : iconf -> iconf -> obseq -> the_write_stuff -> Prop :=
+Inductive trace_i : iconf -> iconf -> obseq -> the_write_stuff -> Type :=
 iTrace_Empty: forall{C: iconf},
                  trace_i C C nil (nil, nil, nil)
 |iTrace_Single: forall{C1 C2: iconf} {O: obseq} {W: the_write_stuff},
@@ -129,13 +129,16 @@ iTrace_Empty: forall{C: iconf},
          {W1 W2: the_write_stuff},
     trace_i C1 Cmid O1 W1 -> (*steps first section*)
     trace_i Cmid C2 O2 W2 -> (*steps rest of program*)
+    O1 <> [] -> (* forces empty step to use other constructors*)
+    O2 <> []  ->
     trace_i C1 C2 (O1 ++ O2) (append_write W1 W2).
+
 Definition multi_step_c (C1 C2: context) (O: obseq) :=
     exists W: the_write_stuff, inhabited (trace_c C1 C2 O W).
           
 
 Definition multi_step_i (C1 C2: iconf) (O: obseq) :=
-    exists W: the_write_stuff, trace_i C1 C2 O W.
+    exists W: the_write_stuff, inhabited (trace_i C1 C2 O W).
 (*more trace helpers*)
 
 Definition Wt {C1 C2: context} {O: obseq} {W: the_write_stuff}
