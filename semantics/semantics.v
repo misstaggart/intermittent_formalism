@@ -198,18 +198,18 @@ Definition isvalidbop (bop: boptype) (v1 v2 : value) :=
 
 
 (*memory maps...used for both memories and checkpoints*)
-Definition map_t (A: Type) := A -> value.
+Definition map_t (A: eqType) := A -> value.
 
 (*memory helpers*)
-Definition emptymap A eqba :(map_t A eqba) := (fun _ => error).
-Definition updatemap {A} {eqba} (m: map_t A eqba) (i: A) (v: value) : map_t A eqba := (fun j =>
-                                                               if (eqba j i) then v
+Definition emptymap A :(map_t A) := (fun _ => error).
+Definition updatemap {A} (m: map_t A) (i: A) (v: value) : map_t A := (fun j =>
+                                                               if (j ==i) then v
                                                                else (m j)).
 Notation "i '|->' v ';' m" := (updatemap m i v)
   (at level 100, v at next level, right associativity).
 (*in (m1 U! m2), m1 is checked first, then m2*)
 
-Definition indomain {A} {eqba} (m: map_t A eqba) (x: A) :=
+Definition indomain {A} (m: map_t A) (x: A) :=
   match m x with
     error => False
   | _ => True
@@ -228,7 +228,6 @@ checks if a warvar is in the domain, rather than checking a location.
 (*******************************more syntax**********************************************)
 Inductive array :=
   Array (s: string) (l: nat).
-
 
 Inductive volatility :=
   nonvol
@@ -346,14 +345,6 @@ Canonical eld_eqtype := Eval hnf in EqType dangerous_el eld_eqMixin.
 Check SubEqMixin.
 Check SubType.
 
-(*Definition elpred_works (e: dangerous_el)
-  (H: is_true (elpred e)) :=
-    eqtype.Sub e H. *)
-
-Canonical el_eqtype := sig_eqType elpred.
-
-(*ask arthur about this warning*)
-
 Definition testname := Array "a" 10.
 Definition testname1 := El_d testname 0.
 Lemma xworks: is_true (elpred testname1).
@@ -416,7 +407,6 @@ Definition eqb_loc (l1: loc) (l2: loc) :=
   | _, _ => false 
   end.
 
-
 (*equality type for locations*)
 
 Lemma eqb_loc_true_iff : forall x y : loc,
@@ -469,7 +459,7 @@ Coercion Ins : instruction >-> command.
 (****************************memory*************************************)
 
 (*memory locations defined above warvars*)
-Notation mem := (map_t loc eqb_loc). (*memory mapping*)
+Notation mem := (map_t loc_eqtype). (*memory mapping*)
 
 Inductive nvmem := (*nonvolatile memory*)
   NonVol (m : mem) (D: warvars). (*extra argument to keep track of checkpointed warvars because
