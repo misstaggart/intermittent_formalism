@@ -493,15 +493,7 @@ Definition getvalue (N: nvmem) (i: loc) :=
   (*updates domain and mapping function*)
 Definition updateNV (N: nvmem) (i: loc) (v: value) :=
   match N with NonVol m D =>
-               NonVol (updatemap m i v) (
-                        match i with 
-                          inl x => ((inl x) :: D) (*i is a smallvar*)
-                        | inr el => ((inr (getarray el))::D) (*i is an array element*)
-                                     (*here I add the entire array to the domain
-                                      even though only one element has been assigned to*)
-                        end
-                      )
-  end.
+               NonVol (updatemap m i v) (i:: D)  end.
 
 (*used to update NV memory with checkpoint*)
 (*checks N first, then N'*)
@@ -517,15 +509,23 @@ Definition updatemaps (N: nvmem) (N': nvmem): nvmem :=
   (D ++ D') (*inclusion of duplicates*)
   end.
 Notation "m1 'U!' m2" := (updatemaps m1 m2) (at level 100).
+(*start here should really change the above ordering to be more intuitive*)
 
-Notation emptyNV := (NonVol (emptymap loc eqb_loc) nil).
-Definition reset (V: vmem) := Vol (emptymap loc eqb_loc).
+Notation emptyNV := (NonVol (emptymap loc_eqtype) nil).
+Definition reset (V: vmem) := Vol (emptymap loc_eqtype).
 
 (*restricts memory map m to domain w*)
 (*doesn't actually clean the unnecessary variables out of m*)
+(*need a decidable In here*)
+
+Lemma decidable_loc: forall(x y: loc), {x = y} + {x <> y}.
+  intros. destruct (x == y) eqn: beq.
+  apply left. move: beq. apply / eqP.
+Qed.
+
 Definition restrict (N: nvmem) (w: warvars): nvmem :=
   match N with NonVol m D => NonVol
-    (fun input => if (memberloc_wvs_b input w) then m input else error) w  end.
+    (fun input => if (In input w) then m input else error) w  end.
 
 Notation "N '|!' w" := (restrict N w) 
   (at level 40, left associativity).
