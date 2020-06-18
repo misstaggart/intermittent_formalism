@@ -198,7 +198,7 @@ Definition isvalidbop (bop: boptype) (v1 v2 : value) :=
 
 
 (*memory maps...used for both memories and checkpoints*)
-Definition map_t (A: Type) (eqba: A -> A -> bool):= A -> value.
+Definition map_t (A: Type) := A -> value.
 
 (*memory helpers*)
 Definition emptymap A eqba :(map_t A eqba) := (fun _ => error).
@@ -436,24 +436,6 @@ Proof.
 Qed.
 Canonical loc_eqMixin := EqMixin eqloc.
 Canonical loc_eqtype := Eval hnf in EqType loc loc_eqMixin.
-
-Notation in_loc_b := (member eqb_loc).
-
-(*converts a location to a warvar*)
-Fixpoint loc_warvar (l: loc) : warvar := 
-  match l with
-    inl x => inl x
-  | inr el => inr (getarray el)
-  end.
-
-Definition locs_warvars (L: list loc) :=
-  map loc_warvar L.
-
-
-(*checks if a location input has been stored as a WAR location in w*)
-(*ask arthur...what is up with coq.lists map function?*)
-Definition memberloc_wvs_b (input: loc) (w: warvars) :=
-  memberwv_wv_b (loc_warvar input) w.
 (*******************************************************************)
 
 (*more syntax*)
