@@ -354,14 +354,14 @@ Canonical el_eqtype := sig_eqType elpred.
 
 (*ask arthur about this warning*)
 
-Definition a := Array "a" 10.
-Definition x := El_d a 0.
-Lemma xworks: is_true (elpred x).
-  unfold elpred. unfold x. unfold a. auto. Qed.
+Definition testname := Array "a" 10.
+Definition testname1 := El_d testname 0.
+Lemma xworks: is_true (elpred testname1).
+  unfold elpred. unfold testname1. unfold testname. auto. Qed.
 
-Definition X: el := eqtype.Sub x xworks. (*ask arthur shouldn't coq be able to infer the subtype type*)
+Definition Test: el := eqtype.Sub testname1 xworks. (*ask arthur shouldn't coq be able to infer the subtype type*)
 
-Check X == X.
+Check Test == Test.
 
 (*smallvar functions*)
 Definition isNV_b (x: smallvar) := (*checks if x is stored in nonvolatile memory*)
@@ -389,7 +389,7 @@ Definition eqb_smallvar (x y: smallvar): bool :=
 Lemma eqb_smallvar_iff : forall x y : smallvar,
     is_true(eqb_smallvar x y) <-> x = y.
 Proof.
-  intros. destruct x eqn: what. y. q, q0; simpl;
+  intros. destruct x, y, q, q0; simpl;
      try (split; [move/ eqP ->; reflexivity |
                   intros H; inversion H; auto]);
   try (split; [case => H; discriminate H | case => H H1; inversion H1]).
@@ -416,28 +416,26 @@ Definition eqb_loc (l1: loc) (l2: loc) :=
   | _, _ => false 
   end.
 
+
 (*equality type for locations*)
 
 Lemma eqb_loc_true_iff : forall x y : loc,
     is_true(eqb_loc x y) <-> x = y.
 Proof.
-  case => [x1 | x2] [y1 | y2]; simpl; try (split; [move/ eqP ->; reflexivity |
-                  intros H; inversion H; auto]);
-  try (split; [case => H; discriminate H | case => H H1; inversion H1]).
-+ split. move/ eqP.
-
+  case => [x1 | x2] [y1 | y2]; simpl; split; try (by move/ eqP ->);
+      try (by move => [] ->); intros H; inversion H.
 Qed.
 
-Lemma eqarray: Equality.axiom eqb_array.
+Lemma eqloc: Equality.axiom eqb_loc.
 Proof.
   unfold Equality.axiom. intros.
-  destruct (eqb_array x y) eqn:beq.
-  - constructor. apply eqb_array_true_iff in beq. assumption.
-  -  constructor. intros contra. apply eqb_array_true_iff in contra.
+  destruct (eqb_loc x y) eqn:beq.
+  - constructor. apply eqb_loc_true_iff in beq. assumption.
+  -  constructor. intros contra. apply eqb_loc_true_iff in contra.
      rewrite contra in beq. discriminate beq.
 Qed.
-Canonical array_eqMixin := EqMixin eqarray.
-Canonical array_eqtype := Eval hnf in EqType array array_eqMixin.
+Canonical loc_eqMixin := EqMixin eqloc.
+Canonical loc_eqtype := Eval hnf in EqType loc loc_eqMixin.
 
 Notation in_loc_b := (member eqb_loc).
 
