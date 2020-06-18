@@ -1,6 +1,6 @@
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
-     Init.Datatypes Lists.List Strings.String Program.
+     Init.Datatypes Lists.List Strings.String Program Sumbool.
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype.
 From Semantics Require Import lemmas_0.
@@ -20,9 +20,6 @@ Fixpoint member {A: Type} (eq: A -> A -> bool) (a: A)  (L: list A) :=
   | x::xs => orb (eq a x) (member eq a xs)
   end.
 
-(*removes L1 from L2*)
-Definition remove {A: Type} (in_A: A -> list A -> bool) (L1 L2 : list A) :=
-  filter (fun x => negb (in_A x L1)) L2.
 
 Definition prefix {A: Type} (O1: list A) (O2: list A) :=
   exists(l: nat), O1 = firstn l O2.
@@ -237,13 +234,14 @@ Inductive smallvar :=
   SV (s: string) (q: volatility).
 
 Inductive dangerous_el :=
-  El_d (a: array) (n: nat).
+  El_d (a: array) (n: value).
 
 (*used subtypes to enforce the fact that only some expressions are
  memory locations*)
 Definition elpred  := (fun x=> match x with
-                                        El_d (Array _ length) i => (i <? length)
-                                 end).
+                                        El_d (Array _ length) (Nat i) => (i <? length)
+                            | _ => false                                            
+                            end).
 (*elpred checks if index is a natural in bounds*)
 
 Notation el := {x: dangerous_el | elpred x}.
@@ -517,29 +515,66 @@ Definition reset (V: vmem) := Vol (emptymap loc_eqtype).
 (*restricts memory map m to domain w*)
 (*doesn't actually clean the unnecessary variables out of m*)
 (*need a decidable In here*)
-
 Lemma decidable_loc: forall(x y: loc), {x = y} + {x <> y}.
   intros. destruct (x == y) eqn: beq.
-  apply left. move: beq. apply / eqP.
+  apply left. apply: eqP beq.
+  apply right. apply (elimF eqP beq).
 Qed.
+(*start here how to use the reflect/move stuff when things
+ are false*)
+Lemma decidable_in: forall(x: loc) (w: warvars),
+    {In x w} + {not (In x w)}.
+apply (in_dec decidable_loc). Qed.
+
+
+(*removes L1 from L2 *)
+Definition remove (L1 L2 : list loc) :=
+  filter (fun x =>  sumbool_not _ _ (decidable_in x L1)
+            ) L2.
 
 Definition restrict (N: nvmem) (w: warvars): nvmem :=
   match N with NonVol m D => NonVol
-    (fun input => if (In input w) then m input else error) w  end.
+    (fun input => if (decidable_in input w) then m input else error) w  end.
 
 Notation "N '|!' w" := (restrict N w) 
   (at level 40, left associativity).
 
 (*prop determining if every location in array a is in the domain of m*)
-Definition indomain_nvm (N: nvmem) (w: warvar) :=
-  memberwv_wv_b w (getdomain N).
+Definition indomain_nvm (N: nvmem) (w: loc) :=
+  In w (getdomain N).
+
+(*equality type for list loc*)
+
+Fixpoint eqb_warvars (w1: warvars) (w2: warvars) :=
+  match w1, w2 with
+    [], [] => true
+  | (x::xs), (y::ys) => (x == y) && (eqb_warvars xs ys)
+  | _, _ => false 
+  end.
+
+Lemma eqb_wv_refl: forall y: warvars, is_true (eqb_warvars y y).
+  Admitted.
+
+Lemma eqb_wv_true_iff : forall x y : warvars,
+    is_true(eqb_warvars x y) <-> x = y.
+Proof.
+  intros. induction x.
+  + split. destruct y. simpl. auto.
+    unfold eqb_warvars. simpl. intros contra. discriminate contra.
+    move ->. Admitted.
+
+Lemma eqwv: Equality.axiom eqb_warvars.
+Proof.
+Admitted.
+
+Canonical wv_eqMixin := EqMixin eqwv.
+Canonical wv_eqtype := Eval hnf in EqType warvars wv_eqMixin.
 
 Definition isdomain_nvm (N: nvmem) (w: warvars) :=
-  eq_lists (getdomain N) w eq_warvar.
-
+  (getdomain N) == w.
 Definition subset_nvm (N1 N2: nvmem) :=
   (incl (getdomain N1) (getdomain N2)) /\ (forall(l: loc),
-                                    In (loc_warvar l) (getdomain N1) ->
+                                    In l (getdomain N1) ->
                                     (getmap N1) l = (getmap N2) l
                                   ).
 (********************************************)
@@ -589,15 +624,6 @@ Definition single_com_i (C: iconf) :=
 (*converts from list of read locations to list of
 WAR variables
  *)
-
-
-Fixpoint readobs_warvars (R: readobs) : warvars := 
-  match R with
-    nil => nil
-  | (r::rs) => match r with
-               (location, _) => (loc_warvar location)::(readobs_warvars rs)
-             end
-  end.
 
 Fixpoint readobs_loc (R: readobs): (list loc) := 
   match R with
@@ -677,7 +703,7 @@ Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
            (v: value),
     eeval N V (index) rindex vindex ->
     ((inr element) <-N) = v ->
-    (val element) = (El a vindex) -> (*extra premise to check that inr element
+    (val element) = (El_d a vindex) -> (*extra premise to check that inr element
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
@@ -734,7 +760,7 @@ CheckPoint: forall(N: nvmem)
     cceval_w (N, V, Ins (asgn_sv x e))
              [Obs r]
              ((updateNV N (inl x) v), V, Ins skip)
-             ([inl x],  (readobs_loc r), (remove in_loc_b (readobs_loc r) [inl x]))
+             ([inl x],  (readobs_loc r), (remove (readobs_loc r) [inl x]))
 | V_Assign: forall(x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
     eeval N (Vol mapV) e r v ->
     isV(x) -> (*checks x is correct type for V memory*)
@@ -753,14 +779,14 @@ CheckPoint: forall(N: nvmem)
                (element: el),
     eeval N V ei ri vi ->
     eeval N V e r v ->
-    (val element) = (El a vi) -> (*extra premise to check that inr element
+    (val element) = (El_d a vi) -> (*extra premise to check that inr element
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     cceval_w (N, V, Ins (asgn_arr a ei e))
            [Obs (ri++r)]
            ((updateNV N (inr element) v), V, Ins skip)
-           ([inr element], (readobs_loc (ri ++ r)), (remove in_loc_b (readobs_loc (ri ++ r)) [inr element]))
+           ([inr element], (readobs_loc (ri ++ r)), (remove (readobs_loc (ri ++ r)) [inr element]))
 (*valuability and inboundedness of vindex are checked in sameindex*)
 | Skip: forall(N: nvmem)
          (V: vmem)
@@ -794,7 +820,7 @@ CheckPoint: forall(N: nvmem)
     cceval_w (N, V, (TEST e THEN c1 ELSE c2)) [Obs r] (N, V, c2) (nil, (readobs_loc r), nil).
 
 Definition append_write (W1 W2: the_write_stuff) :=
-  ((getwt W1) ++ (getwt W2), (getrd W1) ++ (getrd W2), (getfstwt W1) ++ (remove in_loc_b (getrd W1) (getfstwt W2))).
+  ((getwt W1) ++ (getwt W2), (getrd W1) ++ (getrd W2), (getfstwt W1) ++ (remove (getrd W1) (getfstwt W2))).
 (************************************************************)
 
 (**********intermittent execution semantics*************************)
@@ -822,7 +848,7 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
     iceval_w (k, N, V, Ins (asgn_sv x e))
            [Obs r]
            (k, (updateNV N (inl x) v), V, Ins skip)
-           ([inl x],  (readobs_loc r), (remove in_loc_b (readobs_loc r) [inl x]))
+           ([inl x],  (readobs_loc r), (remove (readobs_loc r) [inl x]))
 | CP_V_Assign: forall(k: context) (x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
     eeval N (Vol mapV) e r v ->
     isV(x) -> (*checks x is correct type for V memory*)
@@ -842,13 +868,13 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
                (element: el),
     eeval N V ei ri vi ->
     eeval N V e r v ->
-    (val element) = (El a vi) -> (*extra premise to check that inr element                                        is actually a[vi] *)
+    (val element) = (El_d a vi) -> (*extra premise to check that inr element                                        is actually a[vi] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     iceval_w (k, N, V, Ins (asgn_arr a ei e))
            [Obs (ri++r)]
            (k, (updateNV N (inr element) v), V, Ins skip)
-           ([inr element], (readobs_loc (ri ++ r)), (remove in_loc_b (readobs_loc (ri ++ r)) [inr element]))
+           ([inr element], (readobs_loc (ri ++ r)), (remove  (readobs_loc (ri ++ r)) [inr element]))
 | CP_Skip: forall(k: context) (N: nvmem)
          (V: vmem)
          (c: command),
