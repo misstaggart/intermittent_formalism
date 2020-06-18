@@ -354,10 +354,14 @@ Canonical el_eqtype := sig_eqType elpred.
 
 (*ask arthur about this warning*)
 
-Definition samearray_b (element: el) (a: array) := (*checks if element indexes into a*)
-  (getarray element) == a.
+Definition a := Array "a" 10.
+Definition x := El_d a 0.
+Lemma xworks: is_true (elpred x).
+  unfold elpred. unfold x. unfold a. auto. Qed.
 
-Definition samearray (element: el) (a: array) := is_true(samearray_b element a).
+Definition X: el := eqtype.Sub x xworks. (*ask arthur shouldn't coq be able to infer the subtype type*)
+
+Check X == X.
 
 (*smallvar functions*)
 Definition isNV_b (x: smallvar) := (*checks if x is stored in nonvolatile memory*)
@@ -385,7 +389,7 @@ Definition eqb_smallvar (x y: smallvar): bool :=
 Lemma eqb_smallvar_iff : forall x y : smallvar,
     is_true(eqb_smallvar x y) <-> x = y.
 Proof.
-  intros. destruct x, y, q, q0; simpl;
+  intros. destruct x eqn: what. y. q, q0; simpl;
      try (split; [move/ eqP ->; reflexivity |
                   intros H; inversion H; auto]);
   try (split; [case => H; discriminate H | case => H H1; inversion H1]).

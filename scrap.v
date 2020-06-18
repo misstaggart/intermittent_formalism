@@ -1,3 +1,17 @@
+
+Inductive dangerous_el :=
+  El_d (a: array) (n: nat).
+
+(*used subtypes to enforce the fact that only some expressions are
+ memory locations*)
+Definition elpred  := (fun x=> match x with
+                                        El_d (Array _ length) i => (i <? length)
+                                 end).
+(*elpred checks if index is a natural in bounds*)
+
+Notation el := {x: dangerous_el | elpred x}.
+
+
 Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Type :=
   CTrace_Empty: forall(C: context),
                  trace_c C C nil (nil, nil, nil)
