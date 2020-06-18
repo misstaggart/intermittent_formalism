@@ -237,28 +237,37 @@ Inductive volatility :=
 Inductive smallvar :=
   SV (s: string) (q: volatility).
 
+Inductive dangerous_el :=
+  El_d (a: array) (n: nat).
+
+(*used subtypes to enforce the fact that only some expressions are
+ memory locations*)
+Definition elpred  := (fun x=> match x with
+                                        El_d (Array _ length) i => (i <? length)
+                                 end).
+(*elpred checks if index is a natural in bounds*)
+
+Notation el := {x: dangerous_el | elpred x}.
+
+Check SubType el.
+
 Inductive exp :=
   Var (x: smallvar) 
 | Val (v: value)
 | Bop (bop: boptype) (e1: exp) (e2: exp) 
-| El (a: array) (e: exp).
+| El_loc (e: el)
+| Element (a: array) (e: exp). (*good that you let in out of bounds arrays here because it means that
+                           war bugs of that kind can still get in at the type level,
+                           need the CP system*)
 Coercion Val : value >-> exp.
 Coercion Var : smallvar >-> exp.
-Notation "a '[[' e ']]'" := (El (a) (e))
-                            (at level 100, right associativity).
-(*used subtypes to enforce the fact that only some expressions are
- memory locations*)
-(*also made the write after read type easier*)
-Definition elpred  := (fun x=> match x with
-                                        El (Array _ length) (Val (Nat i)) => (i <? length)
-                                        | _ => false
-                                 end).
-(*note elpred checks if index is a natural in bounds*)
-Notation el := {x: exp| elpred x}.
+Notation "a '[[' e ']]'" := (Element (a) (e))
+                              (at level 100, right associativity).
+
+
 Definition loc := smallvar + el. (*memory location type*)
 
-Definition warvar := smallvar + array. (*write after read variable type*)
-Notation warvars := (list warvar).
+Notation warvars := (list loc).
 (*Coercion (inl smallvar el): smallvar >-> loc.*)
 (*Coercion inl: smallvar >-> loc.*)
 
@@ -269,13 +278,12 @@ Notation warvars := (list warvar).
 
 (*array and el functions*)
 
-(*checks name and length*)
+(*equality type for arrays*)
 Open Scope list_scope.
 Definition eqb_array (a1 a2: array) :=
   match a1, a2 with
     Array s1 l1, Array s2 l2 => andb (s1 == s2) (l1 == l2)
   end.
-(*equality type for arrays*)
 
 Lemma eqb_array_true_iff : forall x y : array,
     is_true(eqb_array x y) <-> x = y.
@@ -303,29 +311,48 @@ Canonical array_eqMixin := EqMixin eqarray.
 Canonical array_eqtype := Eval hnf in EqType array array_eqMixin.
 (*****)
 
-Program Definition getarray (x: el): array :=
-  match val x with
-    El (arr) _ => arr
-  | _ => !
-  end.
-Next Obligation. destruct (x) as [s| | |];
-                 try (simpl in H0; discriminate H0).
-     apply (H a e). reflexivity.
+(*equality type for elements*)
+
+Definition eqb_el_d (x y:dangerous_el) :=
+  match x, y with
+    El_d ax ix, El_d ay iy => (ax==ay) && (ix == iy) end.
+
+
+Lemma eqb_eld_iff : forall x y : dangerous_el,
+    is_true(eqb_el_d x y) <-> x = y.
+Proof.
+  case => [ax ix] [ay yP]. simpl.
+  split. case / (reflect_conj eqP eqP) => [H1 H2]. by subst.
+  move => [H1 H2]. subst. apply/ (reflect_conj eqP eqP). auto.
 Qed.
 
-Program Definition getindexel (x: el): value  :=
-  match val x with
-    El _ (Val v) => v
-  | _ => !
-  end.
-Next Obligation. destruct (x) as [s| | |];
-                 try (simpl in H0; discriminate H0).
-                 destruct a eqn: adestruct.
-                 destruct e;
-                 try (simpl in H0; discriminate H0).
-                 apply (H a v). subst. reflexivity.
+Lemma eq_eld_iff: Equality.axiom eqb_el_d.
+Proof.
+  unfold Equality.axiom. intros.
+  destruct (eqb_el_d x y) eqn:beq.
+  - constructor. apply eqb_eld_iff in beq. assumption.
+  -  constructor. intros contra. apply eqb_eld_iff in contra.
+     rewrite contra in beq. discriminate beq.
 Qed.
+Check el.
+Check val.
+Check SubEqMixin.
+Check EqMixin.
+Check Equality.mixin_of.
+Canonical eld_eqMixin := EqMixin eq_eld_iff.
+Canonical eld_eqtype := Eval hnf in EqType dangerous_el eld_eqMixin.
+(*suggests it wants an equality relation for the big type before it lets
+ you have it for the subtype...that's annoying...ask arthur*)
+Check SubEqMixin.
+Check SubType.
 
+(*Definition elpred_works (e: dangerous_el)
+  (H: is_true (elpred e)) :=
+    eqtype.Sub e H. *)
+
+Canonical el_eqtype := sig_eqType elpred.
+
+(*ask arthur about this warning*)
 
 Definition samearray_b (element: el) (a: array) := (*checks if element indexes into a*)
   (getarray element) == a.
@@ -349,55 +376,64 @@ Definition isNV x := is_true(isNV_b x). (*prop version of isNV_b*)
 
 Definition isV x := is_true(isV_b x). (*prop version of isV_b*)
 
-Definition samevolatility_b (x y: smallvar) := (*used for defining equality of memory locations*)
-  match isNV_b(x), isNV_b(y) with
-    true, true => true
-  | false, false => true
-  | _, _ => false
-  end.
-
-(*start here. delete me and smallvar helpers above*)
-(*Program Definition getstringsv (x: smallvar): string :=
-  match val x with
-    Var s _ => s
-  | _ => !
-  end. 
-Next Obligation.
-    destruct x as [s| | |];
-      try (simpl in H0; discriminate H0). apply (H s q). reflexivity.
-Qed.*)
-
 Definition eqb_smallvar (x y: smallvar): bool :=
   match x, y with
     SV sx vol, SV sy vol => sx== sy
   | SV sx nonvol, SV sy nonvol => sx== sy
   | _, _ => false end.                                     
 
+Lemma eqb_smallvar_iff : forall x y : smallvar,
+    is_true(eqb_smallvar x y) <-> x = y.
+Proof.
+  intros. destruct x, y, q, q0; simpl;
+     try (split; [move/ eqP ->; reflexivity |
+                  intros H; inversion H; auto]);
+  try (split; [case => H; discriminate H | case => H H1; inversion H1]).
+Qed.
+
+Lemma eqsmallvar: Equality.axiom eqb_smallvar.
+Proof.
+  unfold Equality.axiom. intros.
+  destruct (eqb_smallvar x y) eqn:beq.
+  - constructor. apply eqb_smallvar_iff in beq. assumption.
+  -  constructor. intros contra. apply eqb_smallvar_iff in contra.
+     rewrite contra in beq. discriminate beq.
+Qed.
+
+Canonical smallvar_eqMixin := EqMixin eqsmallvar.
+Canonical smallvar_eqtype := Eval hnf in EqType smallvar smallvar_eqMixin.
+
 (*loc and warvar functions*)
-
-Definition eqb_warvar (w1 w2: warvar) :=
-  match w1, w2 with
-               inl x, inl y => eqb_smallvar x y
-             | inr x, inr y => eqb_array x y
-             | _, _ => false
-  end.
-
-Definition eq_warvar (w1 w2: warvar) :=
-  is_true (eqb_warvar w1 w2).
-
-(*checks if w was recorded as read/written to in warvar list W*)
-Notation memberwv_wv_b := (member eqb_warvar).
-
-Definition memberwv_wv (w: warvar) (W: warvars) := is_true(memberwv_wv_b w W).
-
 
 Definition eqb_loc (l1: loc) (l2: loc) :=
   match l1, l2 with
-    inl x, inl y => eqb_smallvar x y
-  | inr x, inr y => andb ((getarray x) == (getarray y))
-                        ((getindexel x) == (getindexel y))
+    inl x, inl y => x == y
+  | inr x, inr y => x == y
   | _, _ => false 
   end.
+
+(*equality type for locations*)
+
+Lemma eqb_loc_true_iff : forall x y : loc,
+    is_true(eqb_loc x y) <-> x = y.
+Proof.
+  case => [x1 | x2] [y1 | y2]; simpl; try (split; [move/ eqP ->; reflexivity |
+                  intros H; inversion H; auto]);
+  try (split; [case => H; discriminate H | case => H H1; inversion H1]).
++ split. move/ eqP.
+
+Qed.
+
+Lemma eqarray: Equality.axiom eqb_array.
+Proof.
+  unfold Equality.axiom. intros.
+  destruct (eqb_array x y) eqn:beq.
+  - constructor. apply eqb_array_true_iff in beq. assumption.
+  -  constructor. intros contra. apply eqb_array_true_iff in contra.
+     rewrite contra in beq. discriminate beq.
+Qed.
+Canonical array_eqMixin := EqMixin eqarray.
+Canonical array_eqtype := Eval hnf in EqType array array_eqMixin.
 
 Notation in_loc_b := (member eqb_loc).
 
