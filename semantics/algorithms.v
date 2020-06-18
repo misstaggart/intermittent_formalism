@@ -11,7 +11,7 @@ Open Scope list_scope.
 (*N, V are irrespective, just put them there for eeval to typecheck*)
 Inductive rd: exp -> warvars -> Prop :=
     RD (e: exp) (N: nvmem) (V: vmem) (rs: readobs) (v: value):
-      eeval N V e rs v -> rd e (readobs_warvars rs).
+      eeval N V e rs v -> rd e (readobs_loc rs).
 Inductive WAR_ins: warvars -> warvars -> warvars -> instruction -> warvars -> warvars -> Prop :=
 WAR_Skip: forall(N W R: warvars),
     WAR_ins N W R skip W R

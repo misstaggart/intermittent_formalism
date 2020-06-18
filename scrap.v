@@ -1,3 +1,13 @@
+Inductive array :=
+  Array (s: string) (l: nat).
+
+
+Inductive volatility :=
+  nonvol
+ | vol.
+
+Inductive smallvar :=
+  SV (s: string) (q: volatility).
 
 Inductive dangerous_el :=
   El_d (a: array) (n: nat).
@@ -10,6 +20,26 @@ Definition elpred  := (fun x=> match x with
 (*elpred checks if index is a natural in bounds*)
 
 Notation el := {x: dangerous_el | elpred x}.
+
+Check SubType el.
+
+Inductive exp :=
+  Var (x: smallvar) 
+| Val (v: value)
+| Bop (bop: boptype) (e1: exp) (e2: exp) 
+| El_loc (e: el)
+| Element (a: array) (e: exp). (*good that you let in out of bounds arrays here because it means that
+                           war bugs of that kind can still get in at the type level,
+                           need the CP system*)
+Coercion Val : value >-> exp.
+Coercion Var : smallvar >-> exp.
+Notation "a '[[' e ']]'" := (Element (a) (e))
+                              (at level 100, right associativity).
+
+
+Definition loc := smallvar + el. (*memory location type*)
+
+Notation warvars := (list loc).
 
 
 Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Type :=
