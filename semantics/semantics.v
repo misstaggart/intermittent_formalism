@@ -2,9 +2,8 @@ Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Lists.List Strings.String Program Sumbool.
 Require Export Coq.Strings.String.
-From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype.
+From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype fintype.
 From Semantics Require Import lemmas_0.
-(*ambiguous coercion error message ask arthur*)
 
 (*basic list functions that I couldn't find in a library*)
 Open Scope list_scope.
@@ -20,9 +19,42 @@ Fixpoint member {A: Type} (eq: A -> A -> bool) (a: A)  (L: list A) :=
   | x::xs => orb (eq a x) (member eq a xs)
   end.
 
+Definition intersect := forall {A: Type} (L1 L2: list A),
+    exists(x: A), ((In x L1) /\ (In x L2)).
 
 Definition prefix {A: Type} (O1: list A) (O2: list A) :=
   exists(l: nat), O1 = firstn l O2.
+
+Check intersect.
+Check prefix.
+
+Definition bar := forall n: nat, n= 0.
+Definition foo := fun n: nat => n = 0.
+
+
+Fixpoint loop (n: nat) : unit := let _ := (loop n) in tt.
+
+Compute (loop 0).
+
+(*Eval cbv in (loop 0).*)
+
+Print loop.
+
+(*Goal forall n : nat, (fix loop (n: nat) := n) n = n.
+  intros n.
+  destruct n.
+  reflexivity. Qed.*)
+
+(*Goal forall n : nat, (fun x=> x) n = n.
+  reflexivity.
+
+Goal (fun x => x) 42 = 42.
+  reflexivity.
+
+Goal bar = forall n: nat, foo n.
+  reflexivity.
+  unfold foo. reflexivity.*)
+
 
 Close Scope list_scope.
 
@@ -96,19 +128,19 @@ Proof.
             try (move/eqP ->); try (intros H; inversion H); auto.
 Qed.
 
-(*Set Printing Coercions.
-Lemma eqb_value_true_iff : forall x y : value,
+(*look in here!*)
+(*Lemma eqb_value_true_iff1 : forall x y : value,
     is_true(eqb_value x y) <-> x = y.
 Proof.
   intros. destruct x, y; split; simpl; try (intros H; discriminate H).
   - move/eqP ->. reflexivity.
-  - intros H. inversion H. (*ask arthur..can't this be combined into one thing with move?*) apply eq_refl.
-  - move/eqP ->. reflexivity. (*why can the above move/eqP
-                                             be done with auto but this onenot*)
+  - by move => [->].
+  - move/eqP ->. reflexivity.
   - intros H. inversion H. apply eq_refl.
   - auto.
   - auto.*)
 
+    (*move => []*)
 
 Lemma eqvalue: Equality.axiom eqb_value.
 Proof.
@@ -226,6 +258,12 @@ checks if a warvar is in the domain, rather than checking a location.
 Inductive array :=
   Array (s: string) (l: nat).
 
+Definition get_length (a: array) :=
+  match a with
+    Array _ length => length end.
+
+Definition index_t (a: array) := 'I_(get_length a).
+
 Inductive volatility :=
   nonvol
  | vol.
@@ -233,26 +271,26 @@ Inductive volatility :=
 Inductive smallvar :=
   SV (s: string) (q: volatility).
 
-Inductive dangerous_el :=
-  El_d (a: array) (n: value).
+Inductive el_loc :=
+  El (a: array) (i: (index_t a)).
 
 (*used subtypes to enforce the fact that only some expressions are
- memory locations*)
+ memory locations
 Definition elpred  := (fun x=> match x with
-                                        El_d (Array _ length) (Nat i) => (i <? length)
+                                        El (Array _ length) (Nat i) => (i <? length)
                             | _ => false                                            
                             end).
 (*elpred checks if index is a natural in bounds*)
 
-Notation el := {x: dangerous_el | elpred x}.
+Notation el_old := {x: el_loc | elpred x}.
 
-Check SubType el.
+Check SubType el.*)
 
 Inductive exp :=
   Var (x: smallvar) 
 | Val (v: value)
 | Bop (bop: boptype) (e1: exp) (e2: exp) 
-| El_loc (e: el)
+| El_loc (e: el_loc)
 | Element (a: array) (e: exp). (*good that you let in out of bounds arrays here because it means that
                            war bugs of that kind can still get in at the type level,
                            need the CP system*)
@@ -262,7 +300,7 @@ Notation "a '[[' e ']]'" := (Element (a) (e))
                               (at level 100, right associativity).
 
 
-Definition loc := smallvar + el. (*memory location type*)
+Definition loc := smallvar + el_loc. (*memory location type*)
 
 Notation warvars := (list loc).
 (*Coercion (inl smallvar el): smallvar >-> loc.*)
@@ -310,12 +348,17 @@ Canonical array_eqtype := Eval hnf in EqType array array_eqMixin.
 
 (*equality type for elements*)
 
-Definition eqb_el_d (x y:dangerous_el) :=
+
+Check cast_ord.
+
+
+
+Definition eqb_el_d (x y:el_loc) :=
   match x, y with
-    El_d ax ix, El_d ay iy => (ax==ay) && (ix == iy) end.
+    El ax ix, El ay iy => (ax==ay) && (ix == iy) end.
 
 
-Lemma eqb_eld_iff : forall x y : dangerous_el,
+Lemma eqb_eld_iff : forall x y : el_loc,
     is_true(eqb_el_d x y) <-> x = y.
 Proof.
   case => [ax ix] [ay yP]. simpl.
@@ -337,14 +380,14 @@ Check SubEqMixin.
 Check EqMixin.
 Check Equality.mixin_of.
 Canonical eld_eqMixin := EqMixin eq_eld_iff.
-Canonical eld_eqtype := Eval hnf in EqType dangerous_el eld_eqMixin.
+Canonical eld_eqtype := Eval hnf in EqType el_loc eld_eqMixin.
 (*suggests it wants an equality relation for the big type before it lets
  you have it for the subtype...that's annoying...ask arthur*)
 Check SubEqMixin.
 Check SubType.
 
 Definition testname := Array "a" 10.
-Definition testname1 := El_d testname 0.
+Definition testname1 := El testname 0.
 Lemma xworks: is_true (elpred testname1).
   unfold elpred. unfold testname1. unfold testname. auto. Qed.
 
@@ -424,6 +467,84 @@ Proof.
 Qed.
 Canonical loc_eqMixin := EqMixin eqloc.
 Canonical loc_eqtype := Eval hnf in EqType loc loc_eqMixin.
+
+
+Definition index (a: array) := 'I_(get_length a).
+
+Check index.
+
+Definition generate_locs' (a: array): list (index a) := enum (index a).
+
+Check generate_locs'.
+
+(*ask arthur!*)
+Compute (generate_locs' (Array "h" 5)).
+
+Definition X := (generate_locs' (Array "h" 5)).
+
+Print X.
+
+
+
+(*'I_5 the type of all naturals < 5*)
+
+Check (enum _).
+
+Check enum [pred x: 'I_5 | true].
+
+Check enum 'I_5.
+
+
+(*want:
+ do I even have to work with the nats?*)
+Check (enum_val 0 (enum 'I_5)).
+
+Compute enum [pred x : 'I_5 | true].
+
+Check [pred x: 'I_5 | x < 3 ].
+
+Check simpl_pred.
+
+Check 'I_4.
+
+Definition test (n: nat) :=
+  'I_n.
+
+Definition index_type (a: array) :=
+  match a with
+    Array _ length =>
+
+  Print test.
+
+
+Lemma annoying: forall(a: array) (n: nat),
+    (n < (get_length a)) -> is_true (elpred (El a (Nat n))).
+Admitted.
+
+
+
+Fixpoint generate_locs (a: array) (n: nat) (H: (get_length a) < n) :=
+  match n with
+    0 => [Sub (El a (Nat 0)) (annoying H)]
+  | S n' => (Sub (El a (Nat n)) (annoying H))::
+                                              generate_locs a n'
+                                              (transitivity term)
+El a (Nat n)::(generate_locs a n') end.
+
+Definition array_to_el (a: array) :=
+  match a with
+    Array _ length => generate_locs a length end.
+
+Lemma elpredok: forall(a: array) (x: el_loc),
+    In x (array_to_el a) -> is_true (elpred x).
+Admitted.
+
+Definition array_to_loc (a: array) :=
+  map (fun x => el_to_loc (elpredok a) x ___)  (*how to communicate to map
+                                                  that the element it's manipulatin
+                                                  is in the argument list
+                                                  ask arthur*)
+
 (*******************************************************************)
 
 (*more syntax*)
@@ -703,7 +824,7 @@ Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
            (v: value),
     eeval N V (index) rindex vindex ->
     ((inr element) <-N) = v ->
-    (val element) = (El_d a vindex) -> (*extra premise to check that inr element
+    (val element) = (El a vindex) -> (*extra premise to check that inr element
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
@@ -779,7 +900,7 @@ CheckPoint: forall(N: nvmem)
                (element: el),
     eeval N V ei ri vi ->
     eeval N V e r v ->
-    (val element) = (El_d a vi) -> (*extra premise to check that inr element
+    (val element) = (El a vi) -> (*extra premise to check that inr element
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
@@ -868,7 +989,7 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
                (element: el),
     eeval N V ei ri vi ->
     eeval N V e r v ->
-    (val element) = (El_d a vi) -> (*extra premise to check that inr element                                        is actually a[vi] *)
+    (val element) = (El a vi) -> (*extra premise to check that inr element                                        is actually a[vi] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     iceval_w (k, N, V, Ins (asgn_arr a ei e))

@@ -6,9 +6,10 @@ From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
 Import ListNotations.
 From Semantics Require Export semantics.
 Open Scope list_scope.
-(*relation determining what variables are read when evaluating exp e
+(*relation determining what variables are read from when evaluating exp e
  *)
-(*N, V are irrespective, just put them there for eeval to typecheck*)
+(*N, V are irrespective as they'll
+determine the values read, not the variables, just put them there for eeval to typecheck*)
 Inductive rd: exp -> warvars -> Prop :=
     RD (e: exp) (N: nvmem) (V: vmem) (rs: readobs) (v: value):
       eeval N V e rs v -> rd e (readobs_loc rs).
@@ -45,11 +46,10 @@ WAR_Skip: forall(N W R: warvars),
  concern w regard to lemma 13 which allows for
  an arbitrary W to be chosen*)
 | WAR_NoRd_Arr: forall(N W R Re Rindex: warvars)
-                 (a: array) (e index: exp)
-                 (e: exp),
+                 (a: array) (e index: exp),
     (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
     (rd index Rindex) -> (*extra premise checking that Rindex is the list of values read when index is evaluated*)
-    not(In (inr a) (R ++ Re ++ Rindex)) ->
+    not(intersect (array_to_loc a) (R ++ Re ++ Rindex)) ->
     WAR_ins N W R (asgn_arr a index e) ((inr a)::W) (R ++ Re ++ Rindex) (*written set is modified but
                                                                         don't need to check if a is NV cuz all arrays are*)
 | WAR_Checkpointed_Arr: forall(N W R Re Rindex: warvars)
