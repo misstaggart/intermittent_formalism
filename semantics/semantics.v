@@ -1,32 +1,26 @@
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
-     Init.Datatypes Lists.List Strings.String Program Sumbool.
+     Init.Datatypes Strings.String Program Sumbool.
 Require Export Coq.Strings.String.
-From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype fintype.
+From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype fintype seq.
 From Semantics Require Import lemmas_0.
 
-(*basic list functions that I couldn't find in a library*)
-Open Scope list_scope.
-Fixpoint eq_lists {A: Type} (L1: list A) (L2: list A) (eq: A -> A -> Prop) :=
+(*basic seq functions that I couldn't find in a library*)
+Fixpoint eq_seqs {A: Type} (L1: seq A) (L2: seq A) (eq: A -> A -> Prop) :=
         match L1, L2 with
           nil, nil => True
-        | (w::ws), (d::ds) => (eq w d) /\ (eq_lists ws ds eq) (*considers order*)
+        | (w::ws), (d::ds) => (eq w d) /\ (eq_seqs ws ds eq) (*considers order*)
         | _ , _ => False end.
 
-Fixpoint member {A: Type} (eq: A -> A -> bool) (a: A)  (L: list A) :=
+Fixpoint member {A: Type} (eq: A -> A -> bool) (a: A)  (L: seq A) :=
   match L with
-    [] => false
+    [::] => false
   | x::xs => orb (eq a x) (member eq a xs)
   end.
 
-Definition intersect {A: Type} (L1 L2: list A) :=
-    exists(x: A), ((In x L1) /\ (In x L2)).
+Definition prefix {A: Type} (O1: seq A) (O2: list A) :=
+  exists(l: nat), O1 = take l O2.
 
-Definition prefix {A: Type} (O1: list A) (O2: list A) :=
-  exists(l: nat), O1 = firstn l O2.
-
-Check intersect.
-Check prefix.
 
 Definition bar := forall n: nat, n= 0.
 Definition foo := fun n: nat => n = 0.
@@ -56,7 +50,6 @@ Goal bar = forall n: nat, foo n.
   unfold foo. reflexivity.*)
 
 
-Close Scope list_scope.
 
 Open Scope string_scope.
 (*---*)
@@ -339,9 +332,9 @@ Definition loc := smallvar + el_loc. (*memory location type*)
 Definition index_loc (a: array) (i: ('I_(get_length a))) : loc :=
   inr (El a i).
 
-Definition generate_locs (a: array): list loc :=
+Definition generate_locs (a: array): seq loc :=
   map (index_loc a) (enum ('I_(get_length a))).
-Notation warvars := (list loc).
+Notation warvars := (seq loc).
 (*Coercion (inl smallvar el): smallvar >-> loc.*)
 (*Coercion inl: smallvar >-> loc.*)
 
@@ -353,7 +346,7 @@ Notation warvars := (list loc).
 (*array and el functions*)
 
 (*equality type for arrays*)
-Open Scope list_scope.
+Open Scope seq_scope.
 Definition eqb_array (a1 a2: array) :=
   match a1, a2 with
     Array s1 l1, Array s2 l2 => andb (s1 == s2) (l1 == l2)
@@ -621,32 +614,32 @@ Lemma decidable_loc: forall(x y: loc), {x = y} + {x <> y}.
 Qed.
 (*start here how to use the reflect/move stuff when things
  are false*)
-Lemma decidable_in: forall(x: loc) (w: warvars),
+
+(*Lemma decidable_in: forall(x: loc) (w: warvars),
     {In x w} + {not (In x w)}.
-apply (in_dec decidable_loc). Qed.
+apply (in_dec decidable_loc). Qed.*)
 
 
 (*removes L1 from L2 *)
-Definition remove (L1 L2 : list loc) :=
-  filter (fun x =>  sumbool_not _ _ (decidable_in x L1)
-            ) L2.
+Definition remove (L1 L2 : seq loc) :=
+  filter (fun x =>  negb (x \in L1)) L2.
 
 Definition restrict (N: nvmem) (w: warvars): nvmem :=
   match N with NonVol m D => NonVol
-    (fun input => if (decidable_in input w) then m input else error) w  end.
+    (fun input => if (input \in w) then m input else error) w  end.
 
 Notation "N '|!' w" := (restrict N w) 
   (at level 40, left associativity).
 
 (*prop determining if every location in array a is in the domain of m*)
 Definition indomain_nvm (N: nvmem) (w: loc) :=
-  In w (getdomain N).
+  w \in (getdomain N).
 
-(*equality type for list loc*)
+(*equality type for seq loc*)
 
 Fixpoint eqb_warvars (w1: warvars) (w2: warvars) :=
   match w1, w2 with
-    [], [] => true
+    [::], [::] => true
   | (x::xs), (y::ys) => (x == y) && (eqb_warvars xs ys)
   | _, _ => false 
   end.
@@ -672,8 +665,8 @@ Canonical wv_eqtype := Eval hnf in EqType warvars wv_eqMixin.
 Definition isdomain_nvm (N: nvmem) (w: warvars) :=
   (getdomain N) == w.
 Definition subset_nvm (N1 N2: nvmem) :=
-  (incl (getdomain N1) (getdomain N2)) /\ (forall(l: loc),
-                                    In l (getdomain N1) ->
+  (subseq (getdomain N1) (getdomain N2)) /\ (forall(l: loc),
+                                    l \in (getdomain N1) ->
                                     (getmap N1) l = (getmap N2) l
                                   ).
 (********************************************)
@@ -693,9 +686,9 @@ Definition getcom (C: context) :=
     (_, _, out) => out end.
 
 Definition ro := loc * value. (*read observation*)
-Definition readobs := list ro.
+Definition readobs := seq ro.
 
-Notation NoObs := ([]: readobs).
+Notation NoObs := ([::]: readobs).
 
 Inductive obs := (*observation*)
   Obs (r: readobs)
@@ -703,9 +696,9 @@ Inductive obs := (*observation*)
 | checkpoint.
 Coercion Obs : readobs >-> obs.
 
-Notation obseq := (list obs). (*observation sequence*)
+Notation obseq := (seq obs). (*observation sequence*)
 
-Open Scope list_scope.
+Open Scope seq_scope.
 
 (*helpers for configs*)
 Inductive single_com: context -> Prop :=
@@ -720,11 +713,11 @@ Definition single_com_i (C: iconf) :=
 
 (*helpers for observations and warvars*)
 
-(*converts from list of read locations to list of
+(*converts from seq of read locations to list of
 WAR variables
  *)
 
-Fixpoint readobs_loc (R: readobs): (list loc) := 
+Fixpoint readobs_loc (R: readobs): (seq loc) := 
   match R with
     nil => nil
 | (r::rs) => match r with
@@ -739,31 +732,31 @@ Fixpoint readobs_loc (R: readobs): (list loc) :=
 Notation "S <= T" := (prefix S T).
 
 (*Where
-O1 is a sequence of read observation lists,
-where each continguous read observation list is separated from those adjacent to it by a reboot,
-and O2 is a read observation list,
-prefix_seq determines if each ro list in O1 is a valid
+O1 is a sequence of read observation seqs,
+where each continguous read observation seq is separated from those adjacent to it by a reboot,
+and O2 is a read observation seq,
+prefix_seq determines if each ro seq in O1 is a valid
 prefix of O2*)
 Inductive prefix_seq: obseq -> readobs -> Prop :=
-  RB_Base: forall(O: readobs), prefix_seq [Obs O] O
+  RB_Base: forall(O: readobs), prefix_seq [:: Obs O] O
 | RB_Ind: forall(O1 O2: readobs) (O1': obseq),
-    O1 <= O2 -> prefix_seq O1' O2 -> prefix_seq ([Obs O1] ++ [reboot] ++ O1') O2.
+    O1 <= O2 -> prefix_seq O1' O2 -> prefix_seq ([:: Obs O1] ++ [:: reboot] ++ O1') O2.
 
 (* Where
-O1 is a sequence of ((read observation list sequences), where
-each continguous read observation list is separated from those adjacent to it
+O1 is a sequence of ((read observation seq sequences), where
+each continguous read observation seq is separated from those adjacent to it
 by a reboot), where each sequence is separated from those adjacent to it by a checkpoint.
-ie, each read observation list in a given read observation sequence
-occurs within the same checkpointed region as all the other read observation lists in that sequence,
-O2 is a read observation list,
-prefix_frag determines if each ro list in O1 is a prefix of some FRAGMENT of O2
+ie, each read observation seq in a given read observation sequence
+occurs within the same checkpointed region as all the other read observation seqs in that sequence,
+O2 is a read observation seq,
+prefix_frag determines if each ro seq in O1 is a prefix of some FRAGMENT of O2
 (where the fragments are separated by the positioning of the checkpoints in O1)
  *)
 Inductive prefix_fragment: obseq -> readobs -> Prop :=
   CP_Base: forall(O1: obseq) (O2: readobs), prefix_seq O1 O2 -> prefix_fragment O1 O2
 | CP_IND: forall(O1 O1': obseq) (O2 O2': readobs),
     prefix_seq O1 O2 -> prefix_fragment O1' O2' ->
-   prefix_fragment (O1 ++ [checkpoint] ++ O1') (O2 ++ O2'). 
+   prefix_fragment (O1 ++ [:: checkpoint] ++ O1') (O2 ++ O2'). 
 
 (***************************************************************)
 
@@ -787,12 +780,12 @@ Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
     ((inl x) <-N) = v ->
     isNV(x) -> (*extra premise to make sure x is correct type for NV memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    eeval N mapV x [((inl x), v)] v
+    eeval N mapV x [:: ((inl x), v)] v
 | RD_VAR_V: forall(N: nvmem) (mapV: mem) (x: smallvar) (v: value),
     (mapV (inl x)) = v ->
     isV(x) -> (*extra premise to make sure x is correct type for V memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    eeval N (Vol mapV) x [((inl x), v)] v
+    eeval N (Vol mapV) x [:: ((inl x), v)] v
 | RD_ARR: forall(N: nvmem) (V: vmem)
            (a: array)
            (index: exp)
@@ -806,7 +799,7 @@ Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    eeval N V (a[[index]]) (rindex++[((inr element), v)]) v
+    eeval N V (a[[index]]) (rindex++[:: ((inr element), v)]) v
 .
 
 (****************************************************************************)
@@ -819,7 +812,7 @@ Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
 
 
 (*written, read, written before reading*)
-Notation the_write_stuff := ((list loc) * (list loc) * (list loc)).
+Notation the_write_stuff := ((seq loc) * (list loc) * (list loc)).
 
 (*consider using a record type so I don't need so many of these*)
 
@@ -829,7 +822,7 @@ Definition getrd (W: the_write_stuff) := match W with (_, out , _ )=> out end.
 
 Definition getfstwt (W: the_write_stuff) := match W with (_, _, out )=> out end.
 
-Notation emptysets := ((nil : (list loc)), (nil: (list loc)), (nil: (list loc))).
+Notation emptysets := ((nil : (seq loc)), (nil: (list loc)), (nil: (list loc))).
 
 
 
@@ -849,7 +842,7 @@ CheckPoint: forall(N: nvmem)
                (c: command)
                (w: warvars),
     cceval_w (N, V, ((incheckpoint w);; c))
-             [checkpoint]
+             [:: checkpoint]
              (N, V, c)
              (nil, nil, nil)
 | NV_Assign: forall(x: smallvar) (N: nvmem) (V: vmem) (e: exp) (r: readobs) (v: value),
@@ -857,14 +850,14 @@ CheckPoint: forall(N: nvmem)
     isNV(x) -> (*checks x is correct type for NV memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     cceval_w (N, V, Ins (asgn_sv x e))
-             [Obs r]
+             [:: Obs r]
              ((updateNV_sv N x v), V, Ins skip)
-             ([inl x],  (readobs_loc r), (remove (readobs_loc r) [inl x]))
+             ([:: inl x],  (readobs_loc r), (remove (readobs_loc r) [:: inl x]))
 | V_Assign: forall(x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
     eeval N (Vol mapV) e r v ->
     isV(x) -> (*checks x is correct type for V memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    cceval_w (N, (Vol mapV), Ins (asgn_sv x e)) [Obs r]
+    cceval_w (N, (Vol mapV), Ins (asgn_sv x e)) [:: Obs r]
              (N, (Vol ((inl x) |-> v ; mapV)), Ins skip)
              (nil,  (readobs_loc r), nil)
 | Assign_Arr: forall (N: nvmem) (V: vmem)
@@ -883,14 +876,14 @@ CheckPoint: forall(N: nvmem)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     cceval_w (N, V, Ins (asgn_arr a ei e))
-           [Obs (ri++r)]
+           [:: Obs (ri++r)]
            ((updateNV_arr N element a v), V, Ins skip)
-           ([inr element], (readobs_loc (ri ++ r)), (remove (readobs_loc (ri ++ r)) [inr element]))
+           ([:: inr element], (readobs_loc (ri ++ r)), (remove (readobs_loc (ri ++ r)) [:: inr element]))
 (*valuability and inboundedness of vindex are checked in sameindex*)
 | Skip: forall(N: nvmem)
          (V: vmem)
          (c: command),
-    cceval_w (N, V, (skip;;c)) [Obs NoObs] (N, V, c) (nil, nil, nil)
+    cceval_w (N, V, (skip;;c)) [:: Obs NoObs] (N, V, c) (nil, nil, nil)
 | Seq: forall (N N': nvmem)
          (V V': vmem)
          (l: instruction)
@@ -899,24 +892,25 @@ CheckPoint: forall(N: nvmem)
          (W: the_write_stuff),
     (forall(w: warvars), l <> (incheckpoint w)) ->
     l <> skip ->
-    cceval_w (N, V, Ins l) [o] (N', V', Ins skip) W ->
-    cceval_w (N, V, (l;;c)) [o] (N', V', c) W
+    cceval_w (N, V, Ins l) [:: o] (N', V', Ins skip) W ->
+    cceval_w (N, V, (l;;c)) [:: o] (N', V', c) W
    (*IP becomes obnoxious if you let checkpoint into the Seq case so I'm outlawing it
-    same with skip*) 
+    same with skip*)
+   (*ask arthur why sometimes it finds errors at the end before errors at the front*)
 | If_T: forall(N: nvmem)
          (V: vmem)
          (e: exp)
          (r: readobs)
          (c1 c2: command),
     eeval N V e r true -> (*yuh doy not writing anything in eeval*)
-    cceval_w (N, V, (TEST e THEN c1 ELSE c2)) [Obs r] (N, V, c1) (nil, (readobs_loc r), nil)
+    cceval_w (N, V, (TEST e THEN c1 ELSE c2)) [:: Obs r] (N, V, c1) (nil, (readobs_loc r), nil)
 | If_F: forall(N: nvmem)
          (V: vmem)
          (e: exp)
          (r: readobs)
          (c1 c2: command),
     eeval N V e r false ->
-    cceval_w (N, V, (TEST e THEN c1 ELSE c2)) [Obs r] (N, V, c2) (nil, (readobs_loc r), nil).
+    cceval_w (N, V, (TEST e THEN c1 ELSE c2)) [:: Obs r] (N, V, c2) (nil, (readobs_loc r), nil).
 
 Definition append_write (W1 W2: the_write_stuff) :=
   ((getwt W1) ++ (getwt W2), (getrd W1) ++ (getrd W2), (getfstwt W1) ++ (remove (getrd W1) (getfstwt W2))).
@@ -934,26 +928,26 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
                (V V': vmem) 
                (c: command), 
      iceval_w ((N, V, c), N', V', Ins inreboot)
-            [reboot]
+            [:: reboot]
             ((N, V, c), (N U! N'), V, c) (nil, nil, nil)
  | CP_CheckPoint: forall(k: context) (N: nvmem) (V: vmem) (c: command) (w: warvars),
                  iceval_w (k, N, V, ((incheckpoint w);;c))
-                        [checkpoint]
+                        [:: checkpoint]
                         (((N |! w), V, c), N, V, c) (nil, nil, nil) 
  | CP_NV_Assign: forall(k: context) (x: smallvar) (N: nvmem) (V: vmem) (e: exp) (r: readobs) (v: value),
     eeval N V e r v ->
     isNV(x) -> (*checks x is correct type for NV memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     iceval_w (k, N, V, Ins (asgn_sv x e))
-           [Obs r]
+           [:: Obs r]
            (k, (updateNV_sv N x v), V, Ins skip)
-           ([inl x],  (readobs_loc r), (remove (readobs_loc r) [inl x]))
+           ([:: inl x],  (readobs_loc r), (remove (readobs_loc r) [:: inl x]))
 | CP_V_Assign: forall(k: context) (x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
     eeval N (Vol mapV) e r v ->
     isV(x) -> (*checks x is correct type for V memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     iceval_w (k, N, (Vol mapV), Ins (asgn_sv x e))
-           [Obs r]
+           [:: Obs r]
            (k, N, (Vol ((inl x) |-> v ; mapV)), Ins skip)
              (nil,  (readobs_loc r), nil)
 | CP_Assign_Arr: forall (k: context) (N: nvmem) (V: vmem)
@@ -970,13 +964,13 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
     equal_index element a vi ->
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     iceval_w (k, N, V, Ins (asgn_arr a ei e))
-           [Obs (ri++r)]
+           [:: Obs (ri++r)]
            (k, (updateNV_arr N element a v), V, Ins skip)
-           ([inr element], (readobs_loc (ri ++ r)), (remove  (readobs_loc (ri ++ r)) [inr element]))
+           ([:: inr element], (readobs_loc (ri ++ r)), (remove  (readobs_loc (ri ++ r)) [:: inr element]))
 | CP_Skip: forall(k: context) (N: nvmem)
          (V: vmem)
          (c: command),
-    iceval_w (k, N, V, (skip;;c)) [Obs NoObs] (k, N, V, c) (nil, nil, nil)
+    iceval_w (k, N, V, (skip;;c)) [:: Obs NoObs] (k, N, V, c) (nil, nil, nil)
 |CP_Seq: forall (k: context)
          (N: nvmem) (N': nvmem)
          (V: vmem) (V': vmem)
@@ -984,20 +978,20 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
          (c: command)
          (o: obs)
          (W: the_write_stuff),
-    iceval_w (k, N, V, Ins l) [o] (k, N', V', Ins skip) W ->
-    iceval_w (k, N, V, (l;;c)) [o] (k, N', V', c) W
+    iceval_w (k, N, V, Ins l) [:: o] (k, N', V', Ins skip) W ->
+    iceval_w (k, N, V, (l;;c)) [:: o] (k, N', V', c) W (*ask arthur like with those two os just there*)
 |CP_If_T: forall(k: context) (N: nvmem) (V: vmem)
          (e: exp)
          (r: readobs)
          (c1 c2: command),
     eeval N V e r true -> 
-    iceval_w (k, N, V, (TEST e THEN c1 ELSE c2)) [Obs r] (k, N, V, c1) (nil, (readobs_loc r), nil)
+    iceval_w (k, N, V, (TEST e THEN c1 ELSE c2)) [:: Obs r] (k, N, V, c1) (nil, (readobs_loc r), nil)
 |CP_If_F: forall(k: context) (N: nvmem) (V: vmem)
          (e: exp)
          (r: readobs)
          (c1 c2: command),
     eeval N V e r false ->
-    iceval_w (k, N, V, (TEST e THEN c1 ELSE c2)) [Obs r] (k, N, V, c2) (nil, (readobs_loc r), nil).
+    iceval_w (k, N, V, (TEST e THEN c1 ELSE c2)) [:: Obs r] (k, N, V, c2) (nil, (readobs_loc r), nil).
 (*CP_Reboot: I took out the equals premise and instead built it
 into the types because I didn't want to define a context equality function*)
 
@@ -1008,5 +1002,6 @@ Definition el_arrayexp_eq (e: el) (a: array) (eindex: exp) (N: nvmem) (V: vmem) 
   exists(r: readobs) (vindex: value), eeval N V eindex r vindex /\
                                  (eq_value (getindexel e) vindex).*)
 (******)
-Close Scope list_scope.
+
+(*ask arthur how to check in*)
 Close Scope type_scope.
