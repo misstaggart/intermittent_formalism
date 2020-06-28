@@ -13,6 +13,7 @@ determine the values read, not the variables, just put them there for eeval to t
 Inductive rd: exp -> warvars -> Prop :=
     RD (e: exp) (N: nvmem) (V: vmem) (rs: readobs) (v: value):
       eeval N V e rs v -> rd e (readobs_loc rs).
+
 Inductive WAR_ins: warvars -> warvars -> warvars -> instruction -> warvars -> warvars -> Prop :=
 WAR_Skip: forall(N W R: warvars),
     WAR_ins N W R skip W R
@@ -49,16 +50,16 @@ WAR_Skip: forall(N W R: warvars),
                  (a: array) (e index: exp),
     (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
     (rd index Rindex) -> (*extra premise checking that Rindex is the list of values read when index is evaluated*)
-    not(intersect (array_to_loc a) (R ++ Re ++ Rindex)) ->
-    WAR_ins N W R (asgn_arr a index e) ((inr a)::W) (R ++ Re ++ Rindex) (*written set is modified but
+    not(incl (generate_locs a) (R ++ Re ++ Rindex)) ->
+    WAR_ins N W R (asgn_arr a index e) ((generate_locs a) ++ W) (R ++ Re ++ Rindex) (*written set is modified but
                                                                         don't need to check if a is NV cuz all arrays are*)
 | WAR_Checkpointed_Arr: forall(N W R Re Rindex: warvars)
                  (a: array) (e index: exp),
     (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
     (rd index Rindex) -> (*extra premise checking that Rindex is the list of values read when index is evaluated*)
-    (In (inr a) (R ++ Re ++ Rindex)) ->
-    (In (inr a) N) ->
-    WAR_ins N W R (asgn_arr a index e) ((inr a)::W) (R ++ Re ++ Rindex)
+    (incl (generate_locs a) (R ++ Re ++ Rindex)) ->
+    (incl (generate_locs a)  N) ->
+    WAR_ins N W R (asgn_arr a index e) ((generate_locs a) ++ W) (R ++ Re ++ Rindex)
 .
 
 Inductive WARok: warvars -> warvars -> warvars -> command -> Prop:=
@@ -112,15 +113,15 @@ Inductive DINO_ins: warvars -> warvars -> warvars -> instruction
                  (a: array) (e index: exp),
     (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
     (rd index Rindex) -> (*extra premise checking that Rindex is the list of values read when index is evaluated*)
-    not(In (inr a) (R ++ Re ++ Rindex)) ->
-    DINO_ins N W R (asgn_arr a index e) N ((inr a)::W) (R ++ Re ++ Rindex)
+    not(incl (generate_locs a) (R ++ Re ++ Rindex)) ->
+    DINO_ins N W R (asgn_arr a index e) N ((generate_locs a) ++ W) (R ++ Re ++ Rindex)
 | D_WAR_CP_Arr: forall(N W R Re Rindex: warvars)
                  (a: array) (e index: exp), 
     (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
     (rd index Rindex) -> (*extra premise checking that Rindex is the list of values read when index is evaluated*)
-                 In (inr a) (R ++ Re ++ Rindex) ->
+                 incl (generate_locs a) (R ++ Re ++ Rindex) ->
                  DINO_ins N W R (asgn_arr a index e)
-             ((inr a):: N) ((inr a)::W) (R ++ Re ++ Rindex)
+             ((generate_locs a) ++ N) ((generate_locs a)++ W) (R ++ Re ++ Rindex)
 .
 
 Inductive DINO: warvars -> warvars -> warvars -> command

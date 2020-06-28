@@ -37,9 +37,6 @@ Open Scope type_scope.
 
 (*continuous traces*)
 
-
-
-
 Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Type :=
   CTrace_Empty: forall(C: context),
                  trace_c C C nil (nil, nil, nil)
@@ -78,7 +75,10 @@ Qed.
 Lemma append_write_empty_l: forall{W: the_write_stuff},
     append_write emptysets W = W.
 Proof. intros. simpl. unfold append_write. simpl.
-       unfold remove. unfold in_loc_b.
+       unfold remove. simpl.
+       unfold Sumbool.sumbool_not.
+       simpl.
+       unfold in_loc_b.
        rewrite filter_false.
        apply undo_gets.
 Qed.

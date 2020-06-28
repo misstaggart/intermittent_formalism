@@ -19,7 +19,7 @@ Fixpoint member {A: Type} (eq: A -> A -> bool) (a: A)  (L: list A) :=
   | x::xs => orb (eq a x) (member eq a xs)
   end.
 
-Definition intersect := forall {A: Type} (L1 L2: list A),
+Definition intersect {A: Type} (L1 L2: list A) :=
     exists(x: A), ((In x L1) /\ (In x L2)).
 
 Definition prefix {A: Type} (O1: list A) (O2: list A) :=
@@ -262,8 +262,6 @@ Definition get_length (a: array) :=
   match a with
     Array _ length => length end.
 
-Definition index_t (a: array) := 'I_(get_length a).
-
 Inductive volatility :=
   nonvol
  | vol.
@@ -272,7 +270,42 @@ Inductive smallvar :=
   SV (s: string) (q: volatility).
 
 Inductive el_loc :=
-  El (a: array) (i: (index_t a)).
+  El (a: array) (i: ('I_(get_length a))).
+
+
+Definition equal_index (e: el_loc) (a2: array) (v: value) :=
+  match e with
+    El a1 i =>
+  match v with
+    Nat j => ((nat_of_ord i) = j) /\ (a1 = a2)
+  | _ => False end
+  end.
+
+
+(*'I_5 the type of all naturals < 5*)
+
+Check (enum _).
+
+Check enum [pred x: 'I_5 | true].
+
+Check enum 'I_5.
+
+
+(*want:
+ do I even have to work with the nats?*)
+
+Compute enum [pred x : 'I_5 | true].
+
+Check [pred x: 'I_5 | x < 3 ].
+
+Check simpl_pred.
+
+Check 'I_4.
+
+Definition test (n: nat) :=
+  'I_n.
+
+
 
 (*used subtypes to enforce the fact that only some expressions are
  memory locations
@@ -299,9 +332,15 @@ Coercion Var : smallvar >-> exp.
 Notation "a '[[' e ']]'" := (Element (a) (e))
                               (at level 100, right associativity).
 
+Coercion El_loc : el_loc >-> exp.
 
 Definition loc := smallvar + el_loc. (*memory location type*)
 
+Definition index_loc (a: array) (i: ('I_(get_length a))) : loc :=
+  inr (El a i).
+
+Definition generate_locs (a: array): list loc :=
+  map (index_loc a) (enum ('I_(get_length a))).
 Notation warvars := (list loc).
 (*Coercion (inl smallvar el): smallvar >-> loc.*)
 (*Coercion inl: smallvar >-> loc.*)
@@ -355,16 +394,35 @@ Check cast_ord.
 
 Definition eqb_el_d (x y:el_loc) :=
   match x, y with
-    El ax ix, El ay iy => (ax==ay) && (ix == iy) end.
+    El ax ix, El ay iy => (ax==ay) && ((nat_of_ord ix) == (nat_of_ord iy)) end.
+
+(*if I remove annoying does subst in the proof below behave differently?*)
+
+Lemma annoying: forall(a1 a2: array),
+    a1 == a2 -> 'I_(get_length a1) = 'I_(get_length a2).
+by move => a1 a2 / eqP ->. Qed.
 
 
+Set Printing All.
+(*tidy this up*)
 Lemma eqb_eld_iff : forall x y : el_loc,
     is_true(eqb_el_d x y) <-> x = y.
 Proof.
-  case => [ax ix] [ay yP]. simpl.
-  split. case / (reflect_conj eqP eqP) => [H1 H2]. by subst.
-  move => [H1 H2]. subst. apply/ (reflect_conj eqP eqP). auto.
+  case => [ax ix] [ay iy]. simpl.
+  split.   case / (reflect_conj eqP eqP) => [H1 H2]. subst.
+  cut (ix = iy).
+  intros. by subst.
+    by apply val_inj.
+ Unset Printing All.
+ move => [H1 H2].
+ apply andb_true_iff. split.
+   by move / eqP : H1.
+  inversion H2. (*why does this inversion cause a loop?*)
+  by apply (introT eqP).
 Qed.
+
+
+
 
 Lemma eq_eld_iff: Equality.axiom eqb_el_d.
 Proof.
@@ -374,8 +432,6 @@ Proof.
   -  constructor. intros contra. apply eqb_eld_iff in contra.
      rewrite contra in beq. discriminate beq.
 Qed.
-Check el.
-Check val.
 Check SubEqMixin.
 Check EqMixin.
 Check Equality.mixin_of.
@@ -383,17 +439,7 @@ Canonical eld_eqMixin := EqMixin eq_eld_iff.
 Canonical eld_eqtype := Eval hnf in EqType el_loc eld_eqMixin.
 (*suggests it wants an equality relation for the big type before it lets
  you have it for the subtype...that's annoying...ask arthur*)
-Check SubEqMixin.
-Check SubType.
 
-Definition testname := Array "a" 10.
-Definition testname1 := El testname 0.
-Lemma xworks: is_true (elpred testname1).
-  unfold elpred. unfold testname1. unfold testname. auto. Qed.
-
-Definition Test: el := eqtype.Sub testname1 xworks. (*ask arthur shouldn't coq be able to infer the subtype type*)
-
-Check Test == Test.
 
 (*smallvar functions*)
 Definition isNV_b (x: smallvar) := (*checks if x is stored in nonvolatile memory*)
@@ -469,81 +515,6 @@ Canonical loc_eqMixin := EqMixin eqloc.
 Canonical loc_eqtype := Eval hnf in EqType loc loc_eqMixin.
 
 
-Definition index (a: array) := 'I_(get_length a).
-
-Check index.
-
-Definition generate_locs' (a: array): list (index a) := enum (index a).
-
-Check generate_locs'.
-
-(*ask arthur!*)
-Compute (generate_locs' (Array "h" 5)).
-
-Definition X := (generate_locs' (Array "h" 5)).
-
-Print X.
-
-
-
-(*'I_5 the type of all naturals < 5*)
-
-Check (enum _).
-
-Check enum [pred x: 'I_5 | true].
-
-Check enum 'I_5.
-
-
-(*want:
- do I even have to work with the nats?*)
-Check (enum_val 0 (enum 'I_5)).
-
-Compute enum [pred x : 'I_5 | true].
-
-Check [pred x: 'I_5 | x < 3 ].
-
-Check simpl_pred.
-
-Check 'I_4.
-
-Definition test (n: nat) :=
-  'I_n.
-
-Definition index_type (a: array) :=
-  match a with
-    Array _ length =>
-
-  Print test.
-
-
-Lemma annoying: forall(a: array) (n: nat),
-    (n < (get_length a)) -> is_true (elpred (El a (Nat n))).
-Admitted.
-
-
-
-Fixpoint generate_locs (a: array) (n: nat) (H: (get_length a) < n) :=
-  match n with
-    0 => [Sub (El a (Nat 0)) (annoying H)]
-  | S n' => (Sub (El a (Nat n)) (annoying H))::
-                                              generate_locs a n'
-                                              (transitivity term)
-El a (Nat n)::(generate_locs a n') end.
-
-Definition array_to_el (a: array) :=
-  match a with
-    Array _ length => generate_locs a length end.
-
-Lemma elpredok: forall(a: array) (x: el_loc),
-    In x (array_to_el a) -> is_true (elpred x).
-Admitted.
-
-Definition array_to_loc (a: array) :=
-  map (fun x => el_to_loc (elpredok a) x ___)  (*how to communicate to map
-                                                  that the element it's manipulatin
-                                                  is in the argument list
-                                                  ask arthur*)
 
 (*******************************************************************)
 
@@ -610,9 +581,16 @@ Definition getvalue (N: nvmem) (i: loc) :=
 
 
   (*updates domain and mapping function*)
-Definition updateNV (N: nvmem) (i: loc) (v: value) :=
+Definition updateNV_sv (N: nvmem) (i: smallvar) (v: value) :=
   match N with NonVol m D =>
-               NonVol (updatemap m i v) (i:: D)  end.
+               NonVol (updatemap m (inl i) v) ((inl i):: D)  end.
+
+
+(*this one should only be called within in eval*)
+(*adds ENTIRE array to domain for checkpoint utility*)
+Definition updateNV_arr (N: nvmem) (i: el_loc) (a: array) (v: value) :=
+  match N with NonVol m D =>
+               NonVol (updatemap m (inr i) v) ((generate_locs a) ++ D)  end.
 
 (*used to update NV memory with checkpoint*)
 (*checks N first, then N'*)
@@ -820,11 +798,11 @@ Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
            (index: exp)
            (rindex: readobs)
            (vindex: value)
-           (element: el)
+           (element: el_loc)
            (v: value),
     eeval N V (index) rindex vindex ->
     ((inr element) <-N) = v ->
-    (val element) = (El a vindex) -> (*extra premise to check that inr element
+    equal_index element a vindex -> (*extra premise to check that inr element
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
@@ -880,7 +858,7 @@ CheckPoint: forall(N: nvmem)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     cceval_w (N, V, Ins (asgn_sv x e))
              [Obs r]
-             ((updateNV N (inl x) v), V, Ins skip)
+             ((updateNV_sv N x v), V, Ins skip)
              ([inl x],  (readobs_loc r), (remove (readobs_loc r) [inl x]))
 | V_Assign: forall(x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
     eeval N (Vol mapV) e r v ->
@@ -897,16 +875,16 @@ CheckPoint: forall(N: nvmem)
                (e: exp)
                (r: readobs)
                (v: value)
-               (element: el),
+               (element: el_loc),
     eeval N V ei ri vi ->
     eeval N V e r v ->
-    (val element) = (El a vi) -> (*extra premise to check that inr element
+    equal_index element a vi -> (*extra premise to check that inr element
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     cceval_w (N, V, Ins (asgn_arr a ei e))
            [Obs (ri++r)]
-           ((updateNV N (inr element) v), V, Ins skip)
+           ((updateNV_arr N element a v), V, Ins skip)
            ([inr element], (readobs_loc (ri ++ r)), (remove (readobs_loc (ri ++ r)) [inr element]))
 (*valuability and inboundedness of vindex are checked in sameindex*)
 | Skip: forall(N: nvmem)
@@ -968,7 +946,7 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     iceval_w (k, N, V, Ins (asgn_sv x e))
            [Obs r]
-           (k, (updateNV N (inl x) v), V, Ins skip)
+           (k, (updateNV_sv N x v), V, Ins skip)
            ([inl x],  (readobs_loc r), (remove (readobs_loc r) [inl x]))
 | CP_V_Assign: forall(k: context) (x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
     eeval N (Vol mapV) e r v ->
@@ -986,15 +964,14 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
                (e: exp)
                (r: readobs)
                (v: value)
-               (element: el),
+               (element: el_loc),
     eeval N V ei ri vi ->
     eeval N V e r v ->
-    (val element) = (El a vi) -> (*extra premise to check that inr element                                        is actually a[vi] *)
-(*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
+    equal_index element a vi ->
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     iceval_w (k, N, V, Ins (asgn_arr a ei e))
            [Obs (ri++r)]
-           (k, (updateNV N (inr element) v), V, Ins skip)
+           (k, (updateNV_arr N element a v), V, Ins skip)
            ([inr element], (readobs_loc (ri ++ r)), (remove  (readobs_loc (ri ++ r)) [inr element]))
 | CP_Skip: forall(k: context) (N: nvmem)
          (V: vmem)
