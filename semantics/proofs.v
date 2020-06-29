@@ -87,7 +87,23 @@ Qed.
 (*ask arthur difference between val and sval
  i think it's to do with one being an equality type
  and the other not?*)
-Set Printing Coercions. 
+Set Printing Coercions.
+
+Lemma equal_index_works: forall{e0 e1: el_loc} {a: array} {v: value},
+    equal_index e0 a v -> equal_index e1 a v ->
+    e0 = e1.
+        intros. unfold equal_index in H.
+        destruct e0.
+        destruct e1.
+        destruct v eqn: veq; try (exfalso; assumption).
+        unfold equal_index in H0.
+        destruct H, H0.
+        subst.
+        cut (i = i0).
+        intros. by subst.
+          by apply ord_inj.
+Qed.
+
 Lemma determinism_e: forall{N: nvmem} {V: vmem} {e: exp} {r1 r2: readobs} {v1 v2: value},
     eeval N V e r1 v1 ->
     eeval N V e r2 v2 ->
@@ -112,17 +128,8 @@ Proof. intros N V e r1 r2 v1 v2 H. move: r2 v2. (*ask arthur; does GD not do wha
          cut (element = element0).
         intros. subst.
         split; reflexivity.
-        unfold equal_index in H9.
-        destruct element0.
-        destruct element.
-        destruct vindex0 eqn: veq; try (exfalso; assumption).
-        unfold equal_index in H1.
-        destruct H1, H9.
-        subst.
-        cut (i = i0).
-        intros. by subst.
-          by apply ord_inj.
-Qed.
+        apply (equal_index_works H1 H9).
+        Qed.
 
 (*I try to use the same names in all branches for automation
  and it tells me "name" already used!*)
@@ -144,40 +151,15 @@ Proof. intros C1 C2 C3 O1 O2 W1 W2 cc1 cc2. destruct C1 as [blah c]. destruct bl
          try (exfalso; apply (H w); reflexivity);
          try (exfalso; apply H0; reflexivity);
          try (destruct (determinism_e H H0); inversion H2);
-         try (destruct (determinism_e H3 H); destruct (determinism_e H4 H0);
-         subst; rewrite <- H1 in H5; apply val_inj in H5);
          try (apply IHcc1 in H3; destruct H3 as
              [onee rest]; destruct rest as [two threee];
               inversion onee; inversion two);
          try( 
-         subst;
+ destruct (determinism_e H3 H); destruct (determinism_e H4 H0); subst;
+   pose proof (equal_index_works H1 H5));
+         (subst;
          split; [reflexivity | (split; reflexivity)]).
 Qed.
-       (* ask arthur why this gave the error it gave
-induction cc1; intros; inversion cc2 as
-           [| | | | | N20 N2' V20 V2' l20 c20 o20 W20| | ]
-       (*only put vars for 1 branch but all changed? start here do not ask
-        arthur this*)
-       ; subst; try (exfalso; eapply (negNVandV x); assumption);
-         try (destruct (determinism_e H H2); subst);
-         try (exfalso; apply (H w); reflexivity);
-         try (exfalso; apply H0; reflexivity);
-         try (destruct (determinism_e H H0); inversion H2);
-       [|
-         |
-         | destruct (determinism_e H3 H); destruct (determinism_e H4 H0);
-         subst; rewrite <- H1 in H5; apply val_inj in H5
-         |
-         | apply IHcc1 in H3; destruct H3 as
-             [onee rest]; destruct rest as [two threee];
-         inversion onee; inversion two
-         |
-         |
-       ]; 
-         subst;
-         split; [reflexivity | (split; reflexivity)].*)
-         (*ask arthur nested patterns
-          in destruct so I don't have to do the above*)
 
 
 (*concern: the theorem below is not true for programs with io
