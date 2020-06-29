@@ -229,28 +229,32 @@ Qed.
 (*lemmas from paper*)
 
 Lemma onePointone: forall(N N' W W' R R': warvars) (l: instruction),
-    DINO_ins N W R l N' W' R' -> incl N N'.
+    DINO_ins N W R l N' W' R' -> subseq N N'.
 Proof. intros. induction H; try((try apply incl_tl); apply (incl_refl N)).
+       apply incl_appr.
+       apply incl_refl.
 Qed.
 
 
 Lemma onePointtwo: forall(N N' W R: warvars) (c c': command),
-    DINO N W R c c' N' -> incl N N'.
+    DINO N W R c c' N' -> subseq N N'.
 Proof. intros. induction H; try(apply onePointone in H); try apply (incl_refl N); try assumption.
        -  apply (incl_tran H IHDINO).
        - apply (incl_appl N2 IHDINO1). (*why is coq too stupid to figure out these instantiations*)
  Qed.
 
 Lemma Two: forall(N N' W W' R R' N1: warvars) (l: instruction),
-    DINO_ins N W R l N' W' R' -> incl N' N1 -> WAR_ins N1 W R l W' R'.
-  intros. induction H; try (constructor; assumption || (apply War_noRd; assumption));
-            (apply WAR_Checkpointed || apply WAR_Checkpointed_Arr);
-            (repeat assumption); apply H0; unfold In; left; reflexivity.
+    DINO_ins N W R l N' W' R' -> subseq N' N1 -> WAR_ins N1 W R l W' R'.
+  intros. induction H; try ((constructor; assumption) || (apply War_noRd; assumption)).
+            (apply WAR_Checkpointed);
+              (repeat assumption); apply H0; unfold In; left; reflexivity.
+            apply WAR_Checkpointed_Arr; try assumption. apply (incl_app_lr H0).
+
 Qed.
 
 
 Theorem DINO_WAR_correct: forall(N W R N': warvars) (c c': command),
-    DINO N W R c c' N' -> (forall(N1: warvars), incl N' N1 -> WARok N1 W R c').
+    DINO N W R c c' N' -> (forall(N1: warvars), subseq N' N1 -> WARok N1 W R c').
   intros N W R c c' N' H. induction H; intros N0 Hincl.
   - eapply WAR_I. applys Two H Hincl.
   - eapply WAR_Seq. applys Two H. apply onePointtwo in H0. eauto using incl_tran.
