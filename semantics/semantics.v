@@ -686,9 +686,9 @@ Definition getcom (C: context) :=
     (_, _, out) => out end.
 
 Definition ro := loc * value. (*read observation*)
-Definition readobs := seq ro.
+Definition readobs := list ro.
 
-Notation NoObs := ([::]: readobs).
+Notation NoObs := (nil : readobs).
 
 Inductive obs := (*observation*)
   Obs (r: readobs)
@@ -696,9 +696,11 @@ Inductive obs := (*observation*)
 | checkpoint.
 Coercion Obs : readobs >-> obs.
 
-Notation obseq := (seq obs). (*observation sequence*)
 
-Open Scope seq_scope.
+Notation obseq := (list obs). (*observation sequence*)
+
+Check ([::] : list nat).
+(*....what*)
 
 (*helpers for configs*)
 Inductive single_com: context -> Prop :=
@@ -993,9 +995,9 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
     eeval N V e r false ->
     iceval_w (k, N, V, (TEST e THEN c1 ELSE c2)) [:: Obs r] (k, N, V, c2) (nil, (readobs_loc r), nil).
 (*CP_Reboot: I took out the equals premise and instead built it
-into the types because I didn't want to define a context equality function*)
+into the types because I didn't wanit to define a context equality function*)
 
-(********************************************)
+(**************************************i******)
 (*helpers that use the evals
 Definition el_arrayexp_eq (e: el) (a: array) (eindex: exp) (N: nvmem) (V: vmem) := (*transitions from el type to a[exp] representation*)
   (samearray e a) /\

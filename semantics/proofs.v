@@ -2,7 +2,7 @@ Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Lists.List Strings.String Program Logic.FunctionalExtensionality.
 Require Export Coq.Strings.String.
-From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq fintype.
 From TLC Require Import LibTactics LibLogic.
 Import ListNotations.
 From Semantics Require Export programs semantics algorithms lemmas_1
@@ -17,7 +17,7 @@ Lemma sub_disclude: forall(N0 N1 N2: nvmem) (l: loc),
                      subset_nvm N0 N1 ->
                      subset_nvm N0 N2 ->
                      not ((getmap N1) l = (getmap N2) l)
-                     -> not (In (loc_warvar l) (getdomain N0)).
+                     -> not (l \in (getdomain N0)).
 Proof. intros. intros contra. unfold subset_nvm in H. destruct H.
        remember contra as contra1. clear Heqcontra1.
        apply H2 in contra.
@@ -29,17 +29,14 @@ Qed.
 
 Lemma wt_subst_fstwt: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
   trace_c C1 C2 O W ->
-    incl (getfstwt W) (getwt W).
+    subseq (getfstwt W) (getwt W).
 Proof. intros C1 C2 O W T. induction T.
-       + simpl. apply (incl_refl []).
-       + induction c;
-           (try (simpl; apply (incl_refl [])));
-           (try (unfold getfstwt; unfold getwt;
-                 apply remove_subst)).
-       - assumption.
-       - simpl. apply (incl_app_dbl IHT1
-                                    (incl_tran
-                                    (remove_subst _ _ _)
+       + auto.
+       + induction c; auto; try (unfold getfstwt; unfold getwt;
+         apply filter_subseq).
+       - simpl. apply (cat_subseq IHT1
+                                    (subseq_trans
+                                    (filter_subseq _ _ )
                                     IHT2)).
 Qed.
 
@@ -112,9 +109,19 @@ Proof. intros N V e r1 r2 v1 v2 H. move: r2 v2. (*ask arthur; does GD not do wha
          - split; reflexivity.
        + intros r2 v2 H2nd. inversion H2nd. subst.
          appldis IHeeval H5. subst.
-         rewrite <- H9 in H1.
-         apply val_inj in H1. subst.
-         split; reflexivity.
+         cut (element = element0).
+        intros. subst.
+        split; reflexivity.
+        unfold equal_index in H9.
+        destruct element0.
+        destruct element.
+        destruct vindex0 eqn: veq; try (exfalso; assumption).
+        unfold equal_index in H1.
+        destruct H1, H9.
+        subst.
+        cut (i = i0).
+        intros. by subst.
+          by apply ord_inj.
 Qed.
 
 (*I try to use the same names in all branches for automation

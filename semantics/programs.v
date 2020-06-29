@@ -1,11 +1,10 @@
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
-     Init.Datatypes Lists.List Strings.String Program Init.Logic.
+     Init.Datatypes Strings.String Program Init.Logic Lists.List.
 Require Export Coq.Strings.String.
-From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq ssrnat.
 From Semantics Require Import algorithms lemmas_1.
 
-Open Scope list_scope.
 
 Open Scope type_scope.
 (************* program traces*****************)
@@ -46,8 +45,8 @@ Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Type :=
 | CTrace_App: forall{C1 C2 Cmid: context} {O1 O2: obseq}
                {W1 W2: the_write_stuff},
     trace_c C1 Cmid O1 W1 -> (*steps first section*)
-    O1 <> [] -> (* forces empty step to use other constructors*)
-    O2 <> []  ->
+    O1 <> [::] -> (* forces empty step to use other constructors*)
+    O2 <> [::]  ->
     trace_c Cmid C2 O2 W2 -> (*steps rest of program*)
     trace_c C1 C2 (O1 ++ O2) (append_write W1 W2).
 (*App makes for easy subtraces by allowing command in C2 not to be skip*)
@@ -56,18 +55,29 @@ Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Type :=
 
 (*proofs for trace append*)
 
+
+(*if you need the empty cat thing come back here*)
 Lemma empty_trace: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
-    trace_c C1 C2 O W -> O = [] -> C1 = C2 /\ W = emptysets.
+    trace_c C1 C2 O W -> O = [::] -> C1 = C2 /\ W = emptysets.
 Proof. intros. inversion X; subst.
        + split; reflexivity.
        + inversion H0.
-       + exfalso. apply app_eq_nil in H4. destruct H4. apply H0. assumption.
+       + exfalso.
+         move / nilP : H4 => H4.
+         unfold nilp in H4.
+         apply (elimT eqP) in H4.
+         rewrite (size_cat O1 O2) in H4.
+         move / eqP : H4.
+         rewrite addn_eq0.
+         apply / andb_true_iff => H.
+         destruct H.
+         by move / nilP / H0 : H.
 Qed.
 
 Lemma append_write_empty: forall{W: the_write_stuff},
     append_write W emptysets = W.
 Proof. intros. simpl. unfold append_write. simpl.
-       repeat rewrite app_nil_r.
+       repeat rewrite cats0.
        apply undo_gets.
 Qed.
 
@@ -76,10 +86,7 @@ Lemma append_write_empty_l: forall{W: the_write_stuff},
     append_write emptysets W = W.
 Proof. intros. simpl. unfold append_write. simpl.
        unfold remove. simpl.
-       unfold Sumbool.sumbool_not.
-       simpl.
-       unfold in_loc_b.
-       rewrite filter_false.
+       rewrite filter_predT. 
        apply undo_gets.
 Qed.
 
@@ -90,9 +97,9 @@ Program Definition trace_append {C1 Cmid C2: context }
                   (T2: trace_c Cmid C2 O2 W2) : trace_c C1 C2 (O1 ++ O2) (append_write W1 W2)
   :=
   match O1, O2 with
-    [], [] => T1 (*C1 = Cmid = C2*)
-  | [], _ => T2 (*C1 = Cmid*)
-  | _, [] => T1 (**)
+    [::], [::] => T1 (*C1 = Cmid = C2*)
+  | [::], _ => T2 (*C1 = Cmid*)
+  | _, [::] => T1 (**)
   | (x::xs), (y::ys) => CTrace_App T1 _ _ T2 end.
 
 (*clean up this ltac*)
@@ -110,7 +117,7 @@ Next Obligation. empty2 T1 T2. Qed.
 Next Obligation. empty T1. Qed.
 Next Obligation. emptyl T1. rewrite append_write_empty_l. reflexivity. Qed. 
 Next Obligation. empty T2. Qed.
-Next Obligation. symmetry. apply app_nil_r. Qed.
+Next Obligation. by rewrite cats0. Qed.
 Next Obligation. emptyl T2. rewrite append_write_empty. reflexivity. Qed.
 Next Obligation. split. intros wildcard contra. destruct contra. inversion H1.
                  intros contra. destruct contra. inversion H1. Qed.
@@ -129,8 +136,8 @@ iTrace_Empty: forall{C: iconf},
          {W1 W2: the_write_stuff},
     trace_i C1 Cmid O1 W1 -> (*steps first section*)
     trace_i Cmid C2 O2 W2 -> (*steps rest of program*)
-    O1 <> [] -> (* forces empty step to use other constructors*)
-    O2 <> []  ->
+    O1 <> [::] -> (* forces empty step to use other constructors*)
+    O2 <> [::]  ->
     trace_i C1 C2 (O1 ++ O2) (append_write W1 W2).
 
 Definition multi_step_c (C1 C2: context) (O: obseq) :=
@@ -165,6 +172,8 @@ Definition FstWt {C1 C2: context} {O: obseq} {W: the_write_stuff}
  N1, V1 and Ncomp are middle states of intermittent, continuous respectively
  V1 isn't used anywhere it's just to fill out the type
  N2, V2 is final state for intermittent, once again solely to fill out the type*)
+
+Open Scope list_scope.
 Inductive same_pt: nvmem -> vmem -> command -> command -> nvmem -> nvmem -> Prop:=
 same_mem: forall {N0 N1 Ncomp N2: nvmem}
                   {V0 V1 V2: vmem}
@@ -179,7 +188,7 @@ same_mem: forall {N0 N1 Ncomp N2: nvmem}
                   -> not (In checkpoint O2) (*checks checkpoint T2 ends on is nearest checkpoint*)
                  -> (forall(l: loc),
                       not((getmap N1) l = (getmap Ncomp) l)
-                      -> ((In l (getwt W2)) /\ (In l (getfstwt (append_write W1 W2))) /\ not (In l (getwt W1))))
+                      -> ((l \in (getwt W2)) /\ (l \in (getfstwt (append_write W1 W2))) /\ not (l \in (getwt W1))))
                   -> same_pt N0 V0 c0 c1 N1 Ncomp.
 (*Definition 5*)
 (*Nc0 is starting nvm for cont
@@ -201,7 +210,7 @@ Inductive current_init_pt: nvmem -> vmem -> command -> nvmem -> nvmem -> nvmem -
                   -> not (In checkpoint O) (*checks checkpoint T ends on is nearest checkpoint*)
                  -> (forall(l: loc),
                       not((getmap N1) l = (getmap Nc0) l)
-                      -> (In l (getfstwt W)) \/ (In (loc_warvar l) (getdomain N)))
+                      -> (In l (getfstwt W)) \/ (In l (getdomain N)))
                  -> current_init_pt N V c Ni0 N1 Nc0.
 (*Definition 6*)
 (*concern: Typo in paper, N0, V0 is left out of invocation of Def 4*)
@@ -220,5 +229,5 @@ Inductive same_config: iconf -> context -> Prop :=
                                           vms and cs are intensionally the same by types*)
                 same_config ((N0, V0, c0), N1, V, c) (N2, V, c).
 
-Close Scope list_scope.
 Close Scope type_scope.
+Close Scope list_scope.
