@@ -45,10 +45,10 @@ Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Type :=
 | CTrace_App: forall{C1 C2 Cmid: context} {O1 O2: obseq}
                {W1 W2: the_write_stuff},
     trace_c C1 Cmid O1 W1 -> (*steps first section*)
-    O1 <> [::] -> (* forces empty step to use other constructors*)
-    O2 <> [::]  ->
+    O1 <> List.nil -> (* forces empty step to use other constructors*)
+    O2 <> List.nil  ->
     trace_c Cmid C2 O2 W2 -> (*steps rest of program*)
-    trace_c C1 C2 (O1 ++ O2) (append_write W1 W2).
+    trace_c C1 C2 (List.app O1 O2) (append_write W1 W2).
 (*App makes for easy subtraces by allowing command in C2 not to be skip*)
 (*never actually need to append traces now that I have the write datatype
  consider a simpler type?*)
@@ -58,7 +58,7 @@ Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Type :=
 
 (*if you need the empty cat thing come back here*)
 Lemma empty_trace: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
-    trace_c C1 C2 O W -> O = [::] -> C1 = C2 /\ W = emptysets.
+    trace_c C1 C2 O W -> O = List.nil -> C1 = C2 /\ W = emptysets.
 Proof. intros. inversion X; subst.
        + split; reflexivity.
        + inversion H0.
