@@ -1,14 +1,12 @@
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
-     Init.Datatypes Lists.List Strings.String Program Logic.FunctionalExtensionality.
+     Init.Datatypes Strings.String Program Logic.FunctionalExtensionality.
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq fintype.
 From TLC Require Import LibTactics LibLogic.
-Import ListNotations.
 From Semantics Require Export programs semantics algorithms lemmas_1
 lemmas_0. (*shouldn't have to import both of these*)
 
-Open Scope list_scope.
 Open Scope type_scope.
 
 
@@ -66,11 +64,11 @@ Lemma observe_checkpt: forall {N N': nvmem} {V V': vmem}
                      {c c': command} {w: warvars}
                     {O: obseq} {W: the_write_stuff},
     trace_c (N, V, (incheckpoint w ;; c)) (N', V', c') O W ->
-    c' = (incheckpoint w ;; c) \/ In checkpoint O.
+    c' = (incheckpoint w ;; c) \/ checkpoint \in O.
   intros N N' V V' c c' w O W T.
   dependent induction T.
   + left. reflexivity.
-  +  inversion c0; subst. right.  apply(in_eq checkpoint).
+  +  inversion c0; subst. right.  apply(mem_head checkpoint).
      inversion H10.
   + destruct3 Cmid nmid vmid cmid. destruct (IHT1 N nmid V vmid c cmid w); subst; try reflexivity.
       - destruct (IHT2 nmid N' vmid V' c c' w); subst; try reflexivity;
@@ -167,10 +165,10 @@ Qed.
 Lemma single_step_all: forall{C1 Cmid C3: context} 
                     {Obig: obseq} {Wbig: the_write_stuff},
     trace_c C1 C3 Obig Wbig ->
-    Obig <> [] ->
+    Obig <> [::] ->
     (exists (O1: obseq) (W1: the_write_stuff), cceval_w C1 O1 Cmid W1) ->
     exists(Wrest: the_write_stuff) (Orest: obseq), inhabited (trace_c Cmid C3 Orest Wrest)
-/\ incl Orest Obig
+/\ subseq Orest Obig
 .
   intros C1 Cmid C3 Obig Wbig T OH c.
   generalize dependent c.
@@ -182,9 +180,9 @@ Lemma single_step_all: forall{C1 Cmid C3: context}
     constructor. cut (C2 = Cmid).
     - intros Hmid. subst. constructor. apply CTrace_Empty.
     - eapply determinism. apply c. apply c0.
-    - apply empty_sub.
+    - apply sub0seq.
       + assert (Tfirst: exists Wrest Orest, inhabited (trace_c Cmid0 Cmid Orest Wrest)
-                       /\ incl Orest O1                           
+                       /\ subseq Orest O1                           
                ) by (apply IHT1; try assumption).
         destruct Tfirst as [Wrest rest]. destruct rest as [Orest T0mid]. destruct T0mid as [T0mid incl1].
         destruct T0mid as [T0mid].
@@ -192,16 +190,16 @@ Lemma single_step_all: forall{C1 Cmid C3: context}
     - simpl. apply empty_trace in T0mid. destruct T0mid as [l r].
       subst. rewrite append_write_empty_l. assumption.
       reflexivity.
-    - simpl. apply incl_appr. apply incl_refl.
+    - simpl. apply suffix_subseq.
     - eapply CTrace_App. apply T0mid. intros contra. inversion contra.
       assumption. assumption.
-    - eapply incl_app_dbl. assumption. apply incl_refl.
+    - eapply cat_subseq. assumption. apply subseq_refl.
 Qed.
 
 Lemma trace_steps: forall{C1 C3: context} 
                     {Obig: obseq} {Wbig: the_write_stuff},
     trace_c C1 C3 Obig Wbig ->
-    Obig <> [] ->
+    Obig <> [::] ->
     exists(Csmall: context) (Osmall: obseq) (Wsmall: the_write_stuff),
       cceval_w C1 Osmall Csmall Wsmall.
 Proof. intros C1 C3 Obig Wbig T H. induction T.
@@ -231,24 +229,27 @@ Qed.
 Lemma onePointone: forall(N N' W W' R R': warvars) (l: instruction),
     DINO_ins N W R l N' W' R' -> subseq N N'.
 Proof. intros. induction H; try((try apply subseq_tl); apply (subseq_refl N)).
-       apply incl_appr.
-       apply incl_refl.
+       apply (subseq_cons N (inl x)).
+       apply suffix_subseq.
 Qed.
 
 
 Lemma onePointtwo: forall(N N' W R: warvars) (c c': command),
     DINO N W R c c' N' -> subseq N N'.
 Proof. intros. induction H; try(apply onePointone in H); try apply (incl_refl N); try assumption.
-       -  apply (incl_tran H IHDINO).
-       - apply (incl_appl N2 IHDINO1). (*why is coq too stupid to figure out these instantiations*)
+       -  apply (subseq_trans H IHDINO).
+       - apply subseq_app_rr. assumption. apply subseq_refl.
  Qed.
 
 Lemma Two: forall(N N' W W' R R' N1: warvars) (l: instruction),
     DINO_ins N W R l N' W' R' -> subseq N' N1 -> WAR_ins N1 W R l W' R'.
   intros. induction H; try ((constructor; assumption) || (apply War_noRd; assumption)).
             (apply WAR_Checkpointed);
-              (repeat assumption); apply H0; unfold In; left; reflexivity.
-            apply WAR_Checkpointed_Arr; try assumption. apply (incl_app_lr H0).
+              (repeat assumption).
+            move / in_subseq : H0.
+            intros.
+            apply (H0 (inl x) (mem_head (inl x) N)).
+            apply WAR_Checkpointed_Arr; try assumption. apply (subseq_app_l H0).
 
 Qed.
 
@@ -257,12 +258,13 @@ Theorem DINO_WAR_correct: forall(N W R N': warvars) (c c': command),
     DINO N W R c c' N' -> (forall(N1: warvars), subseq N' N1 -> WARok N1 W R c').
   intros N W R c c' N' H. induction H; intros N0 Hincl.
   - eapply WAR_I. applys Two H Hincl.
-  - eapply WAR_Seq. applys Two H. apply onePointtwo in H0. eauto using incl_tran.
+  - eapply WAR_Seq. applys Two H. apply onePointtwo in H0.
+    apply (subseq_trans H0 Hincl).
     apply (IHDINO N0 Hincl).
   - eapply WAR_If; (try eassumption);
-      ((apply IHDINO1; apply incl_app_l in Hincl)
-       || (apply IHDINO2; apply incl_app_r in Hincl)); assumption.
-  - intros. apply WAR_CP. apply IHDINO. apply (incl_refl N').
+      ((apply IHDINO1; apply subseq_app_l in Hincl)
+       || (apply IHDINO2; apply subseq_app_r in Hincl)); assumption.
+  - intros. apply WAR_CP. apply IHDINO. apply (subseq_refl N').
 Qed.
 
 
@@ -276,16 +278,15 @@ Proof. intros. inversion H1. subst.
                 (CTrace_Empty (N1, V0, c0))
                 T); auto. 
        - intros l Hl. simpl.
-         assert (H6: not (In (loc_warvar l) (getdomain N0))) by
+        assert (H6: not (l \in (getdomain N0))) by
                apply (sub_disclude N0 N1 N2 l H H0 Hl).
          (*try appldis here*)
          apply H4 in Hl. destruct Hl.
          split.
-         + apply ((wt_subst_fstwt T) l H5).
-         + split.
-             - unfold remove. unfold in_loc_b. rewrite filter_false.
-                 assumption.
-             - intros contra. contradiction.
+         + apply (in_subseq (wt_subst_fstwt T) H5).
+         + split. unfold remove. simpl.
+           rewrite filter_predT. assumption.
+             - intros contra. discriminate contra. 
          + apply H6 in H5. contradiction.
 Qed.
 
@@ -299,7 +300,7 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
             (O: obseq) (c c': command),
             WARok N0 W R c ->
             multi_step_c (N, V, c) (N', V', c') O ->
-            not (In checkpoint O) ->
+            not (checkpoint \in O) ->
             exists(W' R': warvars), WARok N0 W' R' c'.
    intros.
   generalize_5 N N' V V' O.
@@ -335,13 +336,13 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
                                                             (Nsmall, Vsmall, smallcom)
                                                             (N', V', c')
                                                             Orest Wrest)
-                                                       /\ incl Orest O).
+                                                       /\ subseq Orest O).
         intros bigH. destruct bigH as [Wrest blah]. destruct blah as [Orest inhab]. destruct inhab as [inhab inclO].
         assert (Hmulti: multi_step_c
               (Nsmall, Vsmall, smallcom)
               (N', V', c') Orest) by (exists Wrest; assumption).
         eapply IHWARok; try assumption.
-        + intros contra. apply inclO in contra. apply H1 in contra. contradiction.
+        + intros contra. apply (in_subseq inclO) in contra. apply H1 in contra. contradiction.
           apply Hmulti.                          
         + eapply single_step_all. apply T.
       - intros contra. apply (empty_trace T) in contra. destruct contra as
@@ -368,13 +369,13 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
                                                             (Nsmall, Vsmall, smallcom)
                                                             (N', V', c')
                                                             Orest Wrest)
-                                                       /\ incl Orest O).
+                                                       /\ subseq Orest O).
         intros bigH. destruct bigH as [Wrest blah]. destruct blah as [Orest inhab]. destruct inhab as [inhab inclO].
         assert (Hmulti: multi_step_c
               (Nsmall, Vsmall, smallcom)
               (N', V', c') Orest) by (exists Wrest; assumption).
         eapply IHWARok1; try assumption.
-        + intros contra. apply inclO in contra. apply H2 in contra. contradiction.
+        + intros contra. apply (in_subseq inclO) in contra. apply H2 in contra. contradiction.
           apply Hmulti.                          
         + eapply single_step_all. apply T.
       - intros contra. apply (empty_trace T) in contra. destruct contra as
@@ -386,13 +387,13 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
                                                             (Nsmall, Vsmall, smallcom)
                                                             (N', V', c')
                                                             Orest Wrest)
-                                                       /\ incl Orest O).
+                                                       /\ subseq Orest O).
         intros bigH. destruct bigH as [Wrest blah]. destruct blah as [Orest inhab]. destruct inhab as [inhab inclO].
         assert (Hmulti: multi_step_c
               (Nsmall, Vsmall, smallcom)
               (N', V', c') Orest) by (exists Wrest; assumption).
         eapply IHWARok2; try assumption.
-        + intros contra. apply inclO in contra. apply H2 in contra. contradiction.
+        + intros contra. apply (in_subseq inclO) in contra. apply H2 in contra. contradiction.
           apply Hmulti.                          
         + eapply single_step_all. apply T.
       - intros contra. apply (empty_trace T) in contra. destruct contra as
@@ -480,4 +481,3 @@ Lemma 12.0: forall(N0 N1 N1': nvmem) (V V': vmem) (c0 c1 crem: command)
     iceval ((N0, V, c0), N1, V, c0) ((N0, V, c0), N1', V', c1) Osmall Wsmall ->
     
 
-Close Scope list_scope.

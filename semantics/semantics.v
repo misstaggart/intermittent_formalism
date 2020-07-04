@@ -737,29 +737,25 @@ Definition eqb_obs (o1: obs) (o2: obs) :=
 Lemma eqb_obs_true_iff : forall x y : obs,
     is_true(eqb_obs x y) <-> x = y.
 Proof.
-  case => [ R1 | |] [R2 | | ]. split.
-  simpl. by move/ eqP ->.
-  move ->. by apply/ eqP.
-  simpl. case / andP. by repeat move / eqP ->.
-  case. repeat move ->. unfold eqb_ro.
-apply / andP. by split. 
+  case => [ R1 | |] [R2 | | ]; split; simpl; try (intros H; discriminate H);
+  try auto.
+  + by move/ eqP ->.
+  + move => [H]. by rewrite H.
 Qed.
 
-Lemma eqro: Equality.axiom eqb_ro.
+Lemma eqobs: Equality.axiom eqb_obs.
 Proof.
   unfold Equality.axiom. intros.
-  destruct (eqb_ro x y) eqn:beq.
-  - constructor. apply eqb_ro_true_iff in beq. assumption.
-  -  constructor. intros contra. apply eqb_ro_true_iff in contra.
+  destruct (eqb_obs x y) eqn:beq.
+  - constructor. apply eqb_obs_true_iff in beq. assumption.
+  -  constructor. intros contra. apply eqb_obs_true_iff in contra.
      rewrite contra in beq. discriminate beq.
 Qed.
-Canonical ro_eqMixin := EqMixin eqro.
-Canonical ro_eqtype := Eval hnf in EqType ro ro_eqMixin.
+Canonical obs_eqMixin := EqMixin eqobs.
+Canonical obs_eqtype := Eval hnf in EqType obs obs_eqMixin.
 
 Notation obseq := (seq obs). (*observation sequence*)
 
-Check ([::] : list nat).
-(*....what*)
 
 (*helpers for configs*)
 Inductive single_com: context -> Prop :=

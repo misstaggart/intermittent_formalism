@@ -38,17 +38,17 @@ Open Scope type_scope.
 
 Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Type :=
   CTrace_Empty: forall(C: context),
-                 trace_c C C nil (nil, nil, nil)
+                 trace_c C C [::] ([::], [::], [::])
   | CTrace_Single: forall {C1 C2: context} {O: obseq} {W: the_write_stuff},
       cceval_w C1 O C2 W ->
       trace_c C1 C2 O W
 | CTrace_App: forall{C1 C2 Cmid: context} {O1 O2: obseq}
                {W1 W2: the_write_stuff},
     trace_c C1 Cmid O1 W1 -> (*steps first section*)
-    O1 <> List.nil -> (* forces empty step to use other constructors*)
-    O2 <> List.nil  ->
+    O1 <> [::] -> (* forces empty step to use other constructors*)
+    O2 <> [::]  ->
     trace_c Cmid C2 O2 W2 -> (*steps rest of program*)
-    trace_c C1 C2 (List.app O1 O2) (append_write W1 W2).
+    trace_c C1 C2 (O1 ++ O2) (append_write W1 W2).
 (*App makes for easy subtraces by allowing command in C2 not to be skip*)
 (*never actually need to append traces now that I have the write datatype
  consider a simpler type?*)
@@ -58,7 +58,7 @@ Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Type :=
 
 (*if you need the empty cat thing come back here*)
 Lemma empty_trace: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
-    trace_c C1 C2 O W -> O = List.nil -> C1 = C2 /\ W = emptysets.
+    trace_c C1 C2 O W -> O = [::] -> C1 = C2 /\ W = emptysets.
 Proof. intros. inversion X; subst.
        + split; reflexivity.
        + inversion H0.
@@ -105,8 +105,7 @@ Program Definition trace_append {C1 Cmid C2: context }
 (*clean up this ltac*)
 Ltac empty T2 :=apply empty_trace in T2; [destruct T2 as [f g ]; inversion f; subst; try reflexivity |
                                            reflexivity].
-Ltac empty2 T1 T2 := apply empty_trace in T1; [destruct T1 as [f g]; inversion g;
-                 subst; apply empty_trace in T2; [ destruct T2 as [h i]; inversion i;
+Ltac empty2 T1 T2 := apply empty_trace in T1; [destruct T1 as [f g]; inversion g;                 subst; apply empty_trace in T2; [ destruct T2 as [h i]; inversion i;
                  rewrite append_write_empty; reflexivity | reflexivity] | reflexivity].
 
 Ltac emptyl T2 :=apply empty_trace in T2; [destruct T2 as [f g ]; inversion g; subst; try reflexivity |
@@ -128,7 +127,7 @@ Next Obligation. split. intros wildcard contra. destruct contra. inversion H1.
   intermittent and continuous execution have been implemented in evals*)
 Inductive trace_i : iconf -> iconf -> obseq -> the_write_stuff -> Type :=
 iTrace_Empty: forall{C: iconf},
-                 trace_i C C nil (nil, nil, nil)
+                 trace_i C C [::] ([::], [::], [::])
 |iTrace_Single: forall{C1 C2: iconf} {O: obseq} {W: the_write_stuff},
                   iceval_w C1 O C2 W -> (*command in C2 is skip by def single_com, iceval_w*)
                   trace_i C1 C2 O W
@@ -173,7 +172,6 @@ Definition FstWt {C1 C2: context} {O: obseq} {W: the_write_stuff}
  V1 isn't used anywhere it's just to fill out the type
  N2, V2 is final state for intermittent, once again solely to fill out the type*)
 
-Open Scope list_scope.
 Inductive same_pt: nvmem -> vmem -> command -> command -> nvmem -> nvmem -> Prop:=
 same_mem: forall {N0 N1 Ncomp N2: nvmem}
                   {V0 V1 V2: vmem}
@@ -207,10 +205,10 @@ Inductive current_init_pt: nvmem -> vmem -> command -> nvmem -> nvmem -> nvmem -
                   {w: warvars}
                   (T: trace_c (Ni0, V, c) (Nend, Vend, (incheckpoint w);;crem) O W),
                   (getdomain N1) = (getdomain Nc0) 
-                  -> not (In checkpoint O) (*checks checkpoint T ends on is nearest checkpoint*)
+                  -> not (checkpoint \in O) (*checks checkpoint T ends on is nearest checkpoint*)
                  -> (forall(l: loc),
                       not((getmap N1) l = (getmap Nc0) l)
-                      -> (In l (getfstwt W)) \/ (In l (getdomain N)))
+                      -> (l \in (getfstwt W)) \/ (l \in (getdomain N)))
                  -> current_init_pt N V c Ni0 N1 Nc0.
 (*Definition 6*)
 (*concern: Typo in paper, N0, V0 is left out of invocation of Def 4*)
@@ -230,4 +228,3 @@ Inductive same_config: iconf -> context -> Prop :=
                 same_config ((N0, V0, c0), N1, V, c) (N2, V, c).
 
 Close Scope type_scope.
-Close Scope list_scope.

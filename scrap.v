@@ -300,17 +300,6 @@ Definition test (n: nat) :=
 
 
 
-(*used subtypes to enforce the fact that only some expressions are
- memory locations
-Definition elpred  := (fun x=> match x with
-                                        El (Array _ length) (Nat i) => (i <? length)
-                            | _ => false                                            
-                            end).
-(*elpred checks if index is a natural in bounds*)
-
-Notation el_old := {x: el_loc | elpred x}.
-
-Check SubType el.*)
 
 Inductive exp :=
   Var (x: smallvar) 
@@ -635,7 +624,7 @@ Notation "N '|!' w" := (restrict N w)
 Definition indomain_nvm (N: nvmem) (w: loc) :=
   w \in (getdomain N).
 
-(*equality type for seq loc*)
+(*equality type for seq loc
 
 Fixpoint eqb_warvars (w1: warvars) (w2: warvars) :=
   match w1, w2 with
@@ -660,7 +649,9 @@ Proof.
 Admitted.
 
 Canonical wv_eqMixin := EqMixin eqwv.
-Canonical wv_eqtype := Eval hnf in EqType warvars wv_eqMixin.
+Canonical wv_eqtype := Eval hnf in EqType warvars wv_eqMixin.*)
+
+Definition test1 = 
 
 Definition isdomain_nvm (N: nvmem) (w: warvars) :=
   (getdomain N) == w.
@@ -696,8 +687,33 @@ Inductive obs := (*observation*)
 | checkpoint.
 Coercion Obs : readobs >-> obs.
 
+(*equality type for obs*)
+Definition eqb_obs
 
-Notation obseq := (list obs). (*observation sequence*)
+
+Fixpoint eqb_obs (o1: warvars) (o2: warvars) :=
+  match o1, o2 with
+    Obs R1, Obs R2 => true
+  | (x::xs), (y::ys) => (x == y) && (eqb_warvars xs ys)
+  | _, _ => false 
+  end.
+
+Lemma eqb_wv_refl: forall y: warvars, is_true (eqb_warvars y y).
+  Admitted.
+
+Lemma eqb_wv_true_iff : forall x y : warvars,
+    is_true(eqb_warvars x y) <-> x = y.
+Proof.
+  intros. induction x.
+  + split. destruct y. simpl. auto.
+    unfold eqb_warvars. simpl. intros contra. discriminate contra.
+    move ->. Admitted.
+
+Lemma eqwv: Equality.axiom eqb_warvars.
+Proof.
+Admitted.
+
+Notation obseq := (seq obs). (*observation sequence*)
 
 Check ([::] : list nat).
 (*....what*)
@@ -974,7 +990,7 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
 | CP_Skip: forall(k: context) (N: nvmem)
          (V: vmem)
          (c: command),
-    iceval_w (k, N, V, (skip;;c)) [Obs NoObs] (k, N, V, c) (nil, nil, nil)
+    iceval_w (k, N, V, (skip;;c)) ((Obs NoObs)::nil) (k, N, V, c) (nil, nil, nil)
 |CP_Seq: forall (k: context)
          (N: nvmem) (N': nvmem)
          (V: vmem) (V': vmem)
@@ -982,20 +998,20 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
          (c: command)
          (o: obs)
          (W: the_write_stuff),
-    iceval_w (k, N, V, Ins l) [o] (k, N', V', Ins skip) W ->
-    iceval_w (k, N, V, (l;;c)) [o] (k, N', V', c) W (*ask arthur like with those two os just there*)
+    iceval_w (k, N, V, Ins l) (o::nil) (k, N', V', Ins skip) W ->
+    iceval_w (k, N, V, (l;;c)) (o::nil) (k, N', V', c) W (*ask arthur like with those two os just there*)
 |CP_If_T: forall(k: context) (N: nvmem) (V: vmem)
          (e: exp)
          (r: readobs)
          (c1 c2: command),
     eeval N V e r true -> 
-    iceval_w (k, N, V, (TEST e THEN c1 ELSE c2)) [Obs r] (k, N, V, c1) (nil, (readobs_loc r), nil)
+    iceval_w (k, N, V, (TEST e THEN c1 ELSE c2)) ((Obs r)::nil) (k, N, V, c1) (nil, (readobs_loc r), nil)
 |CP_If_F: forall(k: context) (N: nvmem) (V: vmem)
          (e: exp)
          (r: readobs)
          (c1 c2: command),
     eeval N V e r false ->
-    iceval_w (k, N, V, (TEST e THEN c1 ELSE c2)) [Obs r] (k, N, V, c2) (nil, (readobs_loc r), nil).
+    iceval_w (k, N, V, (TEST e THEN c1 ELSE c2)) ((Obs r)::nil) (k, N, V, c2) (nil, (readobs_loc r), nil).
 (*CP_Reboot: I took out the equals premise and instead built it
 into the types because I didn't wanit to define a context equality function*)
 
