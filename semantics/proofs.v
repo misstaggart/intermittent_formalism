@@ -441,13 +441,31 @@ Lemma stupid: forall {c: command} {w: warvars},
     by apply IHc.
 Qed.
 
-Lemma twelve0: forall(N0 N1 N1' NCP: nvmem) (V V' VCP: vmem) (c c' cCP: command) (w: warvars) (O1 OCP: obseq)
+
+(*the two below are taken for granted by the "configurations always make progress"
+ assumption, admitting it now, intend to fix it later*)
+
+(*termination case*)
+Lemma twelve00: forall(N0 N1 N1' NT: nvmem) (V V' VT: vmem) (c c' cCP: command) (w: warvars) (O1 OT: obseq)
+  (WT: the_write_stuff),
+   multi_step_i ((N0, V, c), N1, V, c) ((N0, V, c), N1', V', c') O1
+      -> not (checkpoint \in O1)
+      -> WARok (getdomain N0) [::] [::] c
+      -> subset_nvm N0 N1
+      -> trace_c (N1, V, c) (NT, VT, Ins skip) OT WT
+      ->not (checkpoint \in OT)
+      -> inhabited (trace_c ((N0 U! N1'), V, c) (NT, VT, Ins skip) OT WT).
+Admitted.
+
+(*checkpoint case*)
+Lemma twelve01: forall(N0 N1 N1' NCP: nvmem) (V V' VCP: vmem) (c c' cCP: command) (w: warvars) (O1 OCP: obseq)
   (WCP: the_write_stuff),
    multi_step_i ((N0, V, c), N1, V, c) ((N0, V, c), N1', V', c') O1
-      -> not (In checkpoint O1)
-      -> WARok (getdomain N0) [] [] c
+      -> not (checkpoint \in O1)
+      -> WARok (getdomain N0) [::] [::] c
       -> subset_nvm N0 N1
       -> trace_c (N1, V, c) (NCP, VCP, (incheckpoint w);; cCP) OCP WCP
+      ->not (checkpoint \in OCP)
       -> inhabited (trace_c ((N0 U! N1'), V, c) (NCP, VCP, (incheckpoint w);; cCP) OCP WCP).
   intros. rename X into T.
   destruct_ms H Ti WTi.
@@ -455,19 +473,20 @@ Lemma twelve0: forall(N0 N1 N1' NCP: nvmem) (V V' VCP: vmem) (c c' cCP: command)
   + rewrite (sub_update H2). constructor. assumption.
   + dependent induction i.
      - rewrite (sub_update H2). constructor. assumption.
-     - repeat rewrite (sub_update H2). constructor. assumption. (*weird that the reboot case is like this*)
+     - repeat rewrite (sub_update H2). constructor. assumption. 
      - exfalso. apply (stupid x).
      - 
        
-       (*x has been written to*)
+       (*x has been written to
   unfold multi_step_c in H.
-  destruct H.
+  destruct H.*)
+Admitted.
 
 
 Lemma twelve: forall(N0 N1 N1' N2: nvmem) (V V': vmem) (c c': command) (O: obseq),
            multi_step_i ((N0, V, c), N1, V, c) ((N0, V, c), N1', V', c') O ->
-           not In checkpoint O ->
-             WARok (getdomain N0) [] [] c ->
+           not (checkpoint \in O) ->
+             WARok (getdomain N0) [::] [::] c ->
              current_init_pt N0 V c N1 N1 N2 ->
              current_init_pt N0 V c (N0 U! N1') (N0 U! N1') N2.
 (*got some other assumptions here that you should add*)
