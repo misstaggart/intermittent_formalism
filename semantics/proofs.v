@@ -281,13 +281,13 @@ Proof. intros. inversion H1. subst.
         assert (H6: not (l \in (getdomain N0))) by
                apply (sub_disclude N0 N1 N2 l H H0 Hl).
          (*try appldis here*)
-         apply H4 in Hl. destruct Hl.
+         apply H5 in Hl. destruct Hl.
          split.
-         + apply (in_subseq (wt_subst_fstwt T) H5).
+         + apply (in_subseq (wt_subst_fstwt T) H7).
          + split. unfold remove. simpl.
            rewrite filter_predT. assumption.
              - intros contra. discriminate contra. 
-         + apply H6 in H5. contradiction.
+         + apply H6 in H7. contradiction.
 Qed.
 
 
@@ -488,10 +488,17 @@ Lemma twelve: forall(N0 N1 N1' N2: nvmem) (V V': vmem) (c c': command) (O: obseq
            not (checkpoint \in O) ->
              WARok (getdomain N0) [::] [::] c ->
              current_init_pt N0 V c N1 N1 N2 ->
+             subset_nvm N0 N1 ->
              current_init_pt N0 V c (N0 U! N1') (N0 U! N1') N2.
-(*got some other assumptions here that you should add*)
+Proof. intros. inversion H2. 
+       destruct H4. subst.
+       suffices:
+         (inhabited (trace_c ((N0 U! N1'), V, c) (Nend, Vend, Ins skip) O0 W)).
+       + case => Tc.
+         eapply valid_mem.
+         apply Tc. by left.
 
-
+inhabited (trace_c ((N0 U! N1'), V, c) (NT, VT, Ins skip) OT WT).
 
 Lemma 12.0: forall(N0 N1 N1': nvmem) (V V': vmem) (c0 c1 crem: command)
   (Obig Osmall: obseq) (Wbig Wsmall: the_write_stuff),

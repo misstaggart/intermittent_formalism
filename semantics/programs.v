@@ -177,11 +177,11 @@ same_mem: forall {N0 N1 Ncomp N2: nvmem}
                   {V0 V1 V2: vmem}
                   {c0 c1 crem: command}
                   {W1 W2: the_write_stuff}
-                  {w: warvars}
                   {O1 O2: obseq}
                   (T1: trace_c (N0, V0, c0) (N1, V1, c1) O1 W1)
-                  (T2: trace_c (N1, V1, c1) (N2, V2, ((incheckpoint w);; crem)) O2 W2),
-                  (getdomain N1) = (getdomain Ncomp) 
+                  (T2: trace_c (N1, V1, c1) (N2, V2, crem) O2 W2),
+    crem = skip \/ (exists(w: warvars) (crem2: command), crem = ((incheckpoint w);;crem2)) ->
+                  subseq (getdomain Ncomp) (getdomain Ncomp) 
                   -> not(checkpoint \in O1)
                   -> not (checkpoint \in O2) (*checks checkpoint T2 ends on is nearest checkpoint*)
                  -> (forall(l: loc),
@@ -203,8 +203,9 @@ Inductive current_init_pt: nvmem -> vmem -> command -> nvmem -> nvmem -> nvmem -
                   {W : the_write_stuff}
                   {O: obseq}
                   {w: warvars}
-                  (T: trace_c (Ni0, V, c) (Nend, Vend, (incheckpoint w);;crem) O W),
-                  (getdomain N1) = (getdomain Nc0) 
+                  (T: trace_c (Ni0, V, c) (Nend, Vend, crem) O W),
+    crem = skip \/ (exists(w: warvars) (crem2: command), crem = ((incheckpoint w);;crem2)) ->
+                 subseq (getdomain Nc0) (getdomain N1) 
                   -> not (checkpoint \in O) (*checks checkpoint T ends on is nearest checkpoint*)
                  -> (forall(l: loc),
                       not((getmap N1) l = (getmap Nc0) l)
