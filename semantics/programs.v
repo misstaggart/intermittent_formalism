@@ -1,6 +1,6 @@
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
-     Init.Datatypes Strings.String Program Init.Logic Lists.List.
+     Init.Datatypes Strings.String Program Init.Logic.
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq ssrnat.
 From Semantics Require Import algorithms lemmas_1.
@@ -184,8 +184,8 @@ same_mem: forall {N0 N1 Ncomp N2: nvmem}
                   (T1: trace_c (N0, V0, c0) (N1, V1, c1) O1 W1)
                   (T2: trace_c (N1, V1, c1) (N2, V2, ((incheckpoint w);; crem)) O2 W2),
                   (getdomain N1) = (getdomain Ncomp) 
-                  -> not(In checkpoint O1)
-                  -> not (In checkpoint O2) (*checks checkpoint T2 ends on is nearest checkpoint*)
+                  -> not(checkpoint \in O1)
+                  -> not (checkpoint \in O2) (*checks checkpoint T2 ends on is nearest checkpoint*)
                  -> (forall(l: loc),
                       not((getmap N1) l = (getmap Ncomp) l)
                       -> ((l \in (getwt W2)) /\ (l \in (getfstwt (append_write W1 W2))) /\ not (l \in (getwt W1))))

@@ -230,7 +230,7 @@ Qed.
 
 Lemma onePointone: forall(N N' W W' R R': warvars) (l: instruction),
     DINO_ins N W R l N' W' R' -> subseq N N'.
-Proof. intros. induction H; try((try apply incl_tl); apply (incl_refl N)).
+Proof. intros. induction H; try((try apply subseq_tl); apply (subseq_refl N)).
        apply incl_appr.
        apply incl_refl.
 Qed.

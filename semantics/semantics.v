@@ -635,7 +635,7 @@ Notation "N '|!' w" := (restrict N w)
 Definition indomain_nvm (N: nvmem) (w: loc) :=
   w \in (getdomain N).
 
-(*equality type for seq loc*)
+(*equality type for seq loc
 
 Fixpoint eqb_warvars (w1: warvars) (w2: warvars) :=
   match w1, w2 with
@@ -660,7 +660,12 @@ Proof.
 Admitted.
 
 Canonical wv_eqMixin := EqMixin eqwv.
-Canonical wv_eqtype := Eval hnf in EqType warvars wv_eqMixin.
+Canonical wv_eqtype := Eval hnf in EqType warvars wv_eqMixin.*)
+
+Definition test1 :warvars := [::inl( SV "h" nonvol)].
+Definition test2 :warvars := [::inl(SV "f" nonvol)].
+Compute test1 == test2.
+
 
 Definition isdomain_nvm (N: nvmem) (w: warvars) :=
   (getdomain N) == w.
@@ -686,7 +691,7 @@ Definition getcom (C: context) :=
     (_, _, out) => out end.
 
 Definition ro := loc * value. (*read observation*)
-Definition readobs := list ro.
+Definition readobs := seq ro.
 
 Notation NoObs := (nil : readobs).
 
@@ -696,8 +701,62 @@ Inductive obs := (*observation*)
 | checkpoint.
 Coercion Obs : readobs >-> obs.
 
+(*equality type for obs*)
+Definition eqb_ro (ro1: ro) (ro2: ro) :=
+  match ro1, ro2 with
+    (l1, v1), (l2, v2) => (l1 == l2) && (v1 == v2)
+  end.
 
-Notation obseq := (list obs). (*observation sequence*)
+Lemma eqb_ro_true_iff : forall x y : ro,
+    is_true(eqb_ro x y) <-> x = y.
+Proof.
+  case => [l1 v1] [l2 v2]. split.
+  simpl. case / andP. by repeat move / eqP ->.
+  case. repeat move ->. unfold eqb_ro.
+apply / andP. by split. 
+Qed.
+
+Lemma eqro: Equality.axiom eqb_ro.
+Proof.
+  unfold Equality.axiom. intros.
+  destruct (eqb_ro x y) eqn:beq.
+  - constructor. apply eqb_ro_true_iff in beq. assumption.
+  -  constructor. intros contra. apply eqb_ro_true_iff in contra.
+     rewrite contra in beq. discriminate beq.
+Qed.
+Canonical ro_eqMixin := EqMixin eqro.
+Canonical ro_eqtype := Eval hnf in EqType ro ro_eqMixin.
+
+Definition eqb_obs (o1: obs) (o2: obs) :=
+  match o1, o2 with
+    reboot, reboot => true
+  | checkpoint, checkpoint => true
+  | Obs R1, Obs R2 => R1 == R2
+  | _, _ => false end.
+
+Lemma eqb_obs_true_iff : forall x y : obs,
+    is_true(eqb_obs x y) <-> x = y.
+Proof.
+  case => [ R1 | |] [R2 | | ]. split.
+  simpl. by move/ eqP ->.
+  move ->. by apply/ eqP.
+  simpl. case / andP. by repeat move / eqP ->.
+  case. repeat move ->. unfold eqb_ro.
+apply / andP. by split. 
+Qed.
+
+Lemma eqro: Equality.axiom eqb_ro.
+Proof.
+  unfold Equality.axiom. intros.
+  destruct (eqb_ro x y) eqn:beq.
+  - constructor. apply eqb_ro_true_iff in beq. assumption.
+  -  constructor. intros contra. apply eqb_ro_true_iff in contra.
+     rewrite contra in beq. discriminate beq.
+Qed.
+Canonical ro_eqMixin := EqMixin eqro.
+Canonical ro_eqtype := Eval hnf in EqType ro ro_eqMixin.
+
+Notation obseq := (seq obs). (*observation sequence*)
 
 Check ([::] : list nat).
 (*....what*)

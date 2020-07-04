@@ -1,11 +1,9 @@
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
-     Init.Datatypes Lists.List Strings.String Program.
+     Init.Datatypes Strings.String Program.
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq.
-Import ListNotations.
 From Semantics Require Export semantics.
-Open Scope list_scope.
 (*relation determining what variables are read from when evaluating exp e
  *)
 (*N, V are irrespective as they'll
@@ -13,6 +11,8 @@ determine the values read, not the variables, just put them there for eeval to t
 Inductive rd: exp -> warvars -> Prop :=
     RD (e: exp) (N: nvmem) (V: vmem) (rs: readobs) (v: value):
       eeval N V e rs v -> rd e (readobs_loc rs).
+
+
 
 Inductive WAR_ins: warvars -> warvars -> warvars -> instruction -> warvars -> warvars -> Prop :=
 WAR_Skip: forall(N W R: warvars),
@@ -25,21 +25,21 @@ WAR_Skip: forall(N W R: warvars),
              (x: smallvar) (e: exp),
              isNV x -> (*checking x is nonvolatile*)
              (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
-             not(In (inl x) (R ++ Re)) 
+             not((inl x) \in (R ++ Re)) 
              -> WAR_ins N W R (asgn_sv x e) ((inl x)::W) (R ++ Re)
 | WAR_Checkpointed: forall(N W R Re: warvars)
              (x: smallvar) (e: exp),
              (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
              isNV x -> (*checking x is nonvolatile*)
-             In (inl x) (R ++ Re) ->
-             not(In (inl x) W) ->
-             (In (inl x) N ) ->
+             (inl x) \in (R ++ Re) ->
+             not((inl x) \in W) ->
+             ((inl x) \in N) ->
              WAR_ins N W R (asgn_sv x e) ((inl x)::W) (R ++ Re)
 | WAR_WT: forall(N W R Re: warvars)
              (x: smallvar) (e: exp),
              (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
-             In (inl x) (R ++ Re) ->
-             (In (inl x) W) ->
+             (inl x) \in (R ++ Re) ->
+             ((inl x) \in W) ->
              WAR_ins N W R (asgn_sv x e) W (R ++ Re)
 (*no restrictions on the parameter W,
  if make W really big, never enter the checkpointed case
@@ -50,15 +50,15 @@ WAR_Skip: forall(N W R: warvars),
                  (a: array) (e index: exp),
     (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
     (rd index Rindex) -> (*extra premise checking that Rindex is the list of values read when index is evaluated*)
-    not(incl (generate_locs a) (R ++ Re ++ Rindex)) ->
+    not(subseq (generate_locs a) (R ++ Re ++ Rindex)) ->
     WAR_ins N W R (asgn_arr a index e) ((generate_locs a) ++ W) (R ++ Re ++ Rindex) (*written set is modified but
                                                                         don't need to check if a is NV cuz all arrays are*)
 | WAR_Checkpointed_Arr: forall(N W R Re Rindex: warvars)
                  (a: array) (e index: exp),
     (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
     (rd index Rindex) -> (*extra premise checking that Rindex is the list of values read when index is evaluated*)
-    (incl (generate_locs a) (R ++ Re ++ Rindex)) ->
-    (incl (generate_locs a)  N) ->
+    (subseq (generate_locs a) (R ++ Re ++ Rindex)) ->
+    (subseq (generate_locs a)  N) ->
     WAR_ins N W R (asgn_arr a index e) ((generate_locs a) ++ W) (R ++ Re ++ Rindex)
 .
 
@@ -94,32 +94,32 @@ Inductive DINO_ins: warvars -> warvars -> warvars -> instruction
                   (x: smallvar) (e: exp),
              (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
              isNV x -> (*checking x is nonvolatile*)
-             not(In (inl x) (R ++ Re))
+             not((inl x) \in (R ++ Re))
              -> DINO_ins N W R (asgn_sv x e) N ((inl x)::W) (R ++ Re)
 | D_WAR_CP_Asgn: forall(N W R Re: warvars) (x: smallvar) (e: exp), (*Changed name to avoid duplication w D_WAR_CP below*)
              (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
              isNV x -> (*checking x is nonvolatile*)
-             In (inl x) (R ++ Re) ->
-             not(In (inl x) W) ->
+             (inl x) \in (R ++ Re) ->
+             not((inl x) \in W) ->
              DINO_ins N W R (asgn_sv x e)
                   ((inl x)::N) ((inl x)::W) (R ++ Re)
 | D_WAR_WtDom: forall(N W R Re: warvars) 
              (x: smallvar) (e: exp),
              (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
-             In (inl x) (R ++ Re) ->
-             (In (inl x) W) ->
+             (inl x) \in (R ++ Re) ->
+             ((inl x) \in W) ->
              DINO_ins N W R (asgn_sv x e) N W (R ++ Re)
 | D_WAR_Wt_Arr: forall(N W R Re Rindex: warvars)
                  (a: array) (e index: exp),
     (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
     (rd index Rindex) -> (*extra premise checking that Rindex is the list of values read when index is evaluated*)
-    not(incl (generate_locs a) (R ++ Re ++ Rindex)) ->
+    not(subseq (generate_locs a) (R ++ Re ++ Rindex)) ->
     DINO_ins N W R (asgn_arr a index e) N ((generate_locs a) ++ W) (R ++ Re ++ Rindex)
 | D_WAR_CP_Arr: forall(N W R Re Rindex: warvars)
                  (a: array) (e index: exp), 
     (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
     (rd index Rindex) -> (*extra premise checking that Rindex is the list of values read when index is evaluated*)
-                 incl (generate_locs a) (R ++ Re ++ Rindex) ->
+                subseq (generate_locs a) (R ++ Re ++ Rindex) ->
                  DINO_ins N W R (asgn_arr a index e)
              ((generate_locs a) ++ N) ((generate_locs a)++ W) (R ++ Re ++ Rindex)
 .
@@ -142,5 +142,4 @@ Inductive DINO: warvars -> warvars -> warvars -> command
 | D_WAR_CP: forall(N N' W R: warvars) (c c': command),
     DINO nil nil nil c c' N' ->
     DINO N W R ((incheckpoint nil);;c) ((incheckpoint N');;c') N.
- Close Scope list_scope.
 
