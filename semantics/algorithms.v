@@ -9,8 +9,8 @@ From Semantics Require Export semantics.
 (*N, V are irrespective as they'll
 determine the values read, not the variables, just put them there for eeval to typecheck*)
 Inductive rd: exp -> warvars -> Prop :=
-    RD (e: exp) (N: nvmem) (V: vmem) (rs: readobs) (v: value):
-      eeval N V e rs v -> rd e (readobs_loc rs).
+    RD: forall {e: exp} {N: nvmem} {V: vmem} {rs: readobs} {v: value},
+      eeval N V e rs v -> rd e (readobs_wvs rs).
 
 
 
