@@ -617,26 +617,29 @@ Qed.
 
 
 
-Lemma fifteen: forall{N0 N1 N1' N2: nvmem} {V V': vmem} {c c': command} {O: obseq} {W: the_write_stuff},
-             iceval_w ((N0, V, c), N1, V, c) O
-             ((N0, V, c), N1', V', c') W ->
-           not (checkpoint \in O) ->
-           not (reboot \in O) ->
-             WARok (getdomain N0) [::] [::] c ->
-             current_init_pt N0 V c N1 N1 N2 ->
+Lemma fifteen0: forall{N0 N1 N1' N2: nvmem} {V V': vmem} {il : instruction}
+                 {c': command} {o: obs} {W: the_write_stuff},
+             iceval_w ((N0, V, il;;c'), N1, V, Ins il) [::o]
+             ((N0, V, il;;c'), N1', V', Ins skip) W ->
+           not (checkpoint \in [::o]) ->
+           not (reboot \in [::o]) ->
+             WARok (getdomain N0) [::] [::] (il;;c') ->
+             current_init_pt N0 V (il;;c') N1 N1 N2 ->
              subset_nvm N0 N1 ->
-             current_init_pt N0 V c (N0 U! N1') (N0 U! N1') N2.
+             current_init_pt N0 V (il;; c') (N0 U! N1') (N0 U! N1') N2.
 intros. inversion H3. 
        destruct H5. subst.
        suffices:
-         (inhabited (trace_c ((N0 U! N1'), V, c) (Nend, Vend, Ins skip) O0 W)).
+         (inhabited (trace_c ((N0 U! N1'), V, (il;;c')) (Nend, Vend, Ins skip) O W)).
        + case => Tc.
          eapply valid_mem.
          apply Tc. by left.
-         assert (multi_step_i ((N0, V, c), N1, V, c)
-                              ((N0, V, c), N1', V', c') O).
+         assert (multi_step_i ((N0, V, (il;;c')), N1, V, (il;;c'))
+                              ((N0, V, (il;;c')), N1', V', c') [::o]).
          exists W. constructor.
-         apply (iTrace_Single H).
+         apply (iTrace_Single (CP_Seq
+                                 _ _ _ _ _ _ _ _ _
+                                 H)).
          apply (subseq_trans
                   (subseq_trans H6 (dom_gets_bigger
                                       H5)) (dom_gets_bigger_rb
@@ -666,6 +669,7 @@ intros. inversion H3.
            rewrite H9 in H5.
            left.
            dependent induction H.
+           (*original lemma 15 starts below*)
          + simpl in H5. exfalso.
              by apply H5.
          + exfalso. by apply H1.
@@ -746,7 +750,16 @@ intros. inversion H3.
          + discriminate H22.
 
 
-
+(*15 original theorem statement
+Lemma fifteen0: forall{N0 N1 N1' N2: nvmem} {V V': vmem} {c c': command} {O: obseq} {W: the_write_stuff},
+             iceval_w ((N0, V, c), N1, V, c) O
+             ((N0, V, c), N1', V', c') W ->
+           not (checkpoint \in O) ->
+           not (reboot \in O) ->
+             WARok (getdomain N0) [::] [::] c ->
+             current_init_pt N0 V c N1 N1 N2 ->
+             subset_nvm N0 N1 ->
+             current_init_pt N0 V c (N0 U! N1') (N0 U! N1') N2.*)
 
 Lemma twelve: forall(N0 N1 N1' N2: nvmem) (V V': vmem) (c c': command) (O: obseq),
            multi_step_i ((N0, V, c), N1, V, c) ((N0, V, c), N1', V', c') O ->
