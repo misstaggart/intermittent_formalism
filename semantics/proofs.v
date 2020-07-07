@@ -111,6 +111,56 @@ Lemma equal_index_arr: forall{a0 a: array} {i: 'I_(get_length a0)}
         destruct H. assumption.
 Qed.
 
+Lemma gen_locs_works: forall{a a0: array} {i: 'I_(get_length a0)}
+                           {v: value},
+    equal_index (El a0 i) a v -> (inr (El a0 i)) \in (generate_locs a).
+  intros. apply equal_index_arr in H. subst.
+  unfold generate_locs. unfold index_loc.
+  destruct a.
+  simpl in i.
+  simpl.  intros.
+  Check inE.
+  apply (map_f (fun i0 => inr (El (Array s l) i0)))
+  .
+  rewrite mem_enum.
+  reflexivity.
+Qed.
+(*ask arthur
+ HOW did reflexivity work just then*)
+ (* Check enum_mem.
+  rewrite enum_mem.
+  rewrite <- inE.
+  reflexivity.
+
+         i (enum
+                        (pred_of_simpl (T:='I_l)
+                           (pred_of_argType 'I_l)))
+
+suffices: (i \in enum
+                        (pred_of_simpl
+                           (T:='I_l)
+                           (pred_of_argType
+                              'I_l))).
+  suffices: 
+  rewrite <- inE.
+  induction i.
+    intros H.
+  destruct a. simpl.
+  simpl in H.
+  injection.
+  unfold enum in H.
+  unfold in_mem.
+  unfold in_mem in H.
+  unfold pred_of_mem.
+  unfold mem_seq_predType.
+  apply H.
+
+  unfold equal_index in H.
+        destruct v eqn: veq; try (exfalso; assumption).
+        destruct H. assumption.
+Qed.*)
+
+(*consider using map cat for the app thing*)
 Lemma determinism_e: forall{N: nvmem} {V: vmem} {e: exp} {r1 r2: readobs} {v1 v2: value},
     eeval N V e r1 v1 ->
     eeval N V e r2 v2 ->
@@ -521,6 +571,20 @@ Lemma updateone_sv: forall{N: nvmem} {x: smallvar} {v: value}
   exfalso. by apply H. 
   Qed.
 
+Lemma updateone_arr: forall{N: nvmem} {a: array} {v: value}
+             {i: el_loc} {l: loc},
+    not (((getmap (updateNV_arr N i a v)) l) = ((getmap N) l) ) ->
+               (l = (inr i)).
+  intros.
+  destruct (l == inr i) eqn: beq.
+  apply/ eqP : beq.
+  destruct N as [M D].
+  unfold updateNV_arr in H.
+  simpl in H.
+  unfold updatemap in H.
+  rewrite beq in H.
+  exfalso. by apply H. 
+  Qed.
 
 Lemma read_deterministic: forall{e: exp} {w1 w2: warvars},
                            rd e w1 ->
@@ -624,6 +688,58 @@ intros. inversion H3.
          + discriminate H22.
        - rewrite rememberme in H11. rewrite <- x in H11.
          apply (updateone_sv H11).
+       - exfalso. apply H11. by rewrite rememberme.
+       - simpl.
+         suffices: (l = (inr element)).
+       - intros Heq. subst.
+         suffices: ((inr element) \notin (readobs_wvs (r ++ ri))).
+         intros Hnin. rewrite Hnin. by rewrite mem_seq1.
+         + simpl in H5.
+           inversion H5; subst;
+             inversion H17; subst.
+           rewrite readobs_app_wvs.
+           apply RD in H.
+           apply RD in H0.
+           apply (read_deterministic H0) in H20.
+           apply (read_deterministic H) in H23.
+           rewrite H20. rewrite H23.
+           destruct (inr element \notin Re ++ Rindex) eqn: beq1; auto.
+           move/negPn: beq1 => beq1.
+           exfalso.
+           apply H24.
+           exists (inr element: loc).
+           split.
+           destruct element.
+           apply (gen_locs_works H1).
+           assumption.
+                    (*ask arthur
+                     if there is a better way than beq1
+                     also ask about why you have to destruct element
+                     to get the types to match...
+                     destruct should not change the type?*)
+        - (*problem is H11 and H25
+           nts inr element in genlocs A*)
+          suffices: (inr element \in D0).
+          rewrite H11. intros contra.
+          discriminate contra.
+          destruct element.
+          apply (in_subseq H25 (gen_locs_works H1)).
+          apply negbT in H11.
+          apply: H11.
+           inversion H20. inversion H23. subst.
+           intros contra.
+
+
+
+           exfalso. apply (negNVandV x0 H0 H21).
+           pose proof (read_deterministic H19 (RD H)) as rdeq.
+           rewrite <- rdeq.
+           simpl in H22.
+           apply not_true_is_false in H22.
+           apply (negbT H22).
+         + rewrite H24 in H10. discriminate H10.
+         + discriminate H22.
+
 
 
 

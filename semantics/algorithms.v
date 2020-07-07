@@ -50,7 +50,9 @@ WAR_Skip: forall(N W R: warvars),
                  (a: array) (e index: exp),
     (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
     (rd index Rindex) -> (*extra premise checking that Rindex is the list of values read when index is evaluated*)
-    not(subseq (generate_locs a) (R ++ Re ++ Rindex)) ->
+    not(intersect (generate_locs a) (R ++ Re ++ Rindex)) -> (*would be easier
+                                                        if you had intersection here
+                                                       ~subseq is weak *)
     WAR_ins N W R (asgn_arr a index e) ((generate_locs a) ++ W) (R ++ Re ++ Rindex) (*written set is modified but
                                                                         don't need to check if a is NV cuz all arrays are*)
 | WAR_Checkpointed_Arr: forall(N W R Re Rindex: warvars)
@@ -113,7 +115,7 @@ Inductive DINO_ins: warvars -> warvars -> warvars -> instruction
                  (a: array) (e index: exp),
     (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
     (rd index Rindex) -> (*extra premise checking that Rindex is the list of values read when index is evaluated*)
-    not(subseq (generate_locs a) (R ++ Re ++ Rindex)) ->
+    not(intersect (generate_locs a) (R ++ Re ++ Rindex)) ->
     DINO_ins N W R (asgn_arr a index e) N ((generate_locs a) ++ W) (R ++ Re ++ Rindex)
 | D_WAR_CP_Arr: forall(N W R Re Rindex: warvars)
                  (a: array) (e index: exp), 

@@ -18,8 +18,11 @@ Fixpoint member {A: Type} (eq: A -> A -> bool) (a: A)  (L: seq A) :=
   | x::xs => orb (eq a x) (member eq a xs)
   end.
 
-Definition prefix {A: Type} (O1: seq A) (O2: list A) :=
+Definition prefix {A: Type} (O1: seq A) (O2: seq A) :=
   exists(l: nat), O1 = take l O2.
+
+Definition intersect {A: eqType} (O1: seq A) (O2: seq A) :=
+  exists(l: A), l \in O1 /\ l \in O2.
 
 
 Definition bar := forall n: nat, n= 0.
@@ -1032,7 +1035,7 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
     iceval_w (k, N, V, Ins (asgn_arr a ei e))
            [:: Obs (ri++r)]
            (k, (updateNV_arr N element a v), V, Ins skip)
-           ([:: inr element], (readobs_wvs (cat ri r)), (remove  (readobs_wvs (cat ri r)) [:: inr element]))
+           ([:: inr element], (readobs_wvs (cat r ri)), (remove  (readobs_wvs (cat r ri)) [:: inr element]))
 | CP_Skip: forall(k: context) (N: nvmem)
          (V: vmem)
          (c: command),
