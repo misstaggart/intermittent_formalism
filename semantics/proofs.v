@@ -70,7 +70,7 @@ Lemma observe_checkpt: forall {N N': nvmem} {V V': vmem}
   dependent induction T.
   + left. reflexivity.
   +  inversion c0; subst. right.  apply(mem_head checkpoint).
-     inversion H10.
+     inversion H11.
   + destruct3 Cmid nmid vmid cmid. destruct (IHT1 N nmid V vmid c cmid w); subst; try reflexivity.
       - destruct (IHT2 nmid N' vmid V' c c' w); subst; try reflexivity;
           [left; reflexivity | right; apply (in_app_r H)].
@@ -206,16 +206,17 @@ Proof. intros C1 C2 C3 O1 O2 W1 W2 cc1 cc2. destruct C1 as [blah c]. destruct bl
        ; subst; try (exfalso; eapply (negNVandV x); assumption);
          try (destruct (determinism_e H H2); subst);
          try (exfalso; apply (H w); reflexivity);
-         try (exfalso; apply H0; reflexivity);
+         try (exfalso; (apply H1 || apply H0); reflexivity);
          try (destruct (determinism_e H H0); inversion H2);
-         try (apply IHcc1 in H3; destruct H3 as
+         try (apply IHcc1 in H5; destruct H5 as
              [onee rest]; destruct rest as [two threee];
               inversion onee; inversion two);
          try( 
  destruct (determinism_e H3 H); destruct (determinism_e H4 H0); subst;
    pose proof (equal_index_works H1 H5));
-         (subst;
-         split; [reflexivity | (split; reflexivity)]).
+         try (subst;
+              split; [reflexivity | (split; reflexivity)]).
+exfalso; apply H0; reflexivity. (*start here fix that line*)
 Qed.
 
 
@@ -508,7 +509,7 @@ Qed.
  assumption, admitting it now, intend to fix it later*)
 
 (*termination case*)
-Lemma twelve00: forall(N0 N1 N1' NT: nvmem) (V V' VT: vmem) (c c' cCP: command) (w: warvars) (O1 OT: obseq)
+Lemma twelve00: forall(N0 N1 N1' NT: nvmem) (V V' VT: vmem) (c c': command) (O1 OT: obseq)
   (WT: the_write_stuff),
    multi_step_i ((N0, V, c), N1, V, c) ((N0, V, c), N1', V', c') O1
       -> not (checkpoint \in O1)
@@ -625,12 +626,14 @@ Lemma fifteen: forall{N0 N1 N1' N2: nvmem} {V V': vmem} {c c': command} {O: obse
              subset_nvm N0 N1 ->
              current_init_pt N0 V c (N0 U! N1') (N0 U! N1') N2.
 intros. inversion H3. 
-       destruct H5. subst.
-       suffices:
-         (inhabited (trace_c ((N0 U! N1'), V, c) (Nend, Vend, Ins skip) O0 W0)).
-       + case => Tc.
+(*casing on skip with H5*)
+destruct H5. subst. assert(inhabited (trace_c ((N0 U! N1'), V, c) (Nend, Vend, Ins skip) O0 W0)) as T2.
+eapply twelve00.
+- exists W. constructor. apply (iTrace_Single H). assumption.
+  assumption. assumption. assumption. assumption.
+       + destruct T2 as [T2].
          eapply valid_mem.
-         apply Tc. by left.
+         apply T2. by left.
          assert (multi_step_i ((N0, V, c), N1, V, c)
                               ((N0, V, c), N1', V', c') O).
          exists W. constructor.
@@ -743,9 +746,23 @@ intros. inversion H3.
           rewrite rememberme in H12. rewrite <- x in H12.
           apply (updateone_arr H12).
       - exfalso. by apply H5.
-      -
-
-
+      - (*not convinced this case
+         is even legal cuz you have
+         l;;c' -> skip in one step c0*)
+        inversion c0; subst.
+        exfalso. by apply H7.
+        inversion H.
+        exfalso. by apply H21.
+        exfalso. by apply H5.
+        exfalso. by apply H5.
+        unfold append_write. simpl.
+        suffices: (l \in getfstwt W1).
+        apply/ in_subseq / prefix_subseq.
+        eapply IHT1; (try assumption); auto.
+        apply H.
+        assumption.
+        assumption.
+        assumption.
         discriminate H5.
           pose proof (equal_index_arr H24).
           subst.

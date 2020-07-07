@@ -952,6 +952,7 @@ CheckPoint: forall(N: nvmem)
 | Skip: forall(N: nvmem)
          (V: vmem)
          (c: command),
+    c <> skip -> (*disallowing equivalent reps*)
     cceval_w (N, V, (skip;;c)) ((Obs NoObs)::nil) (N, V, c) (nil, nil, nil)
 | Seq: forall (N N': nvmem)
          (V V': vmem)
@@ -961,6 +962,8 @@ CheckPoint: forall(N: nvmem)
          (W: the_write_stuff),
     (forall(w: warvars), l <> (incheckpoint w)) ->
     l <> skip ->
+    c <> (Ins skip) -> (*outlawing equivalent representations of programs
+                      with 10 billion skips at the end*)
     cceval_w (N, V, Ins l) (o::nil) (N', V', Ins skip) W ->
     cceval_w (N, V, (l;;c)) (o::nil) (N', V', c) W
    (*IP becomes obnoxious if you let checkpoint into the Seq case so I'm outlawing it
