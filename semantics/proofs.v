@@ -630,7 +630,7 @@ Lemma fifteen0: forall{N0 N1 N1' N2: nvmem} {V V': vmem} {il : instruction}
 intros. inversion H3. 
        destruct H5. subst.
        suffices:
-         (inhabited (trace_c ((N0 U! N1'), V, (il;;c')) (Nend, Vend, Ins skip) O W)).
+         (inhabited (trace_c ((N0 U! N1'), V, (il;;c')) (Nend, Vend, Ins skip) O W0)).
        + case => Tc.
          eapply valid_mem.
          apply Tc. by left.
@@ -670,26 +670,26 @@ intros. inversion H3.
            left.
            dependent induction H.
            (*original lemma 15 starts below*)
-         + simpl in H5. exfalso.
+        (* + simpl in H5. exfalso.
              by apply H5.
          + exfalso. by apply H1.
-         + exfalso. apply (stupid x).
+         + exfalso. apply (stupid x).*)
          + simpl.
            suffices: (l = (inl x0)).
        - intros Heq. subst.
          suffices: ((inl x0) \notin (readobs_wvs r)).
          intros Hnin. rewrite Hnin. by rewrite mem_seq1.
          + simpl in H4.
-           inversion H4; subst;
-           inversion H16; subst.
-           exfalso. apply (negNVandV x0 H0 H21).
-           pose proof (read_deterministic H19 (RD H)) as rdeq.
+           inversion H4; subst.
+           inversion H17; subst.
+           exfalso. apply (negNVandV x0 H0 H22).
+           pose proof (read_deterministic H20 (RD H)) as rdeq.
            rewrite <- rdeq.
-           simpl in H22.
-           apply not_true_is_false in H22.
-           apply (negbT H22).
-         + rewrite H24 in H10. discriminate H10.
-         + discriminate H22.
+           simpl in H23.
+           apply not_true_is_false in H23.
+           apply (negbT H23).
+         + rewrite H25 in H10. discriminate H10.
+         + discriminate H23.
        - rewrite rememberme in H11. rewrite <- x in H11.
          apply (updateone_sv H11).
        - exfalso. apply H11. by rewrite rememberme.
@@ -699,18 +699,18 @@ intros. inversion H3.
          suffices: ((inr element) \notin (readobs_wvs (r ++ ri))).
          intros Hnin. rewrite Hnin. by rewrite mem_seq1.
          + simpl in H5.
-           inversion H5; subst;
-             inversion H17; subst.
+           inversion H5; subst.
+             inversion H18; subst.
            rewrite readobs_app_wvs.
            apply RD in H.
            apply RD in H0.
-           apply (read_deterministic H0) in H20.
-           apply (read_deterministic H) in H23.
-           rewrite H20. rewrite H23.
+           apply (read_deterministic H0) in H21.
+           apply (read_deterministic H) in H24.
+           rewrite H21. rewrite H24.
            destruct (inr element \notin Re ++ Rindex) eqn: beq1; auto.
            move/negPn: beq1 => beq1.
            exfalso.
-           apply H24.
+           apply H25.
            exists (inr element: loc).
            split.
            destruct element.
@@ -727,10 +727,13 @@ intros. inversion H3.
           rewrite H11. intros contra.
           discriminate contra.
           destruct element.
-          apply (in_subseq H25 (gen_locs_works H1)).
+          apply (in_subseq H26 (gen_locs_works H1)).
           rewrite rememberme in H12. rewrite <- x in H12.
           apply (updateone_arr H12).
-      -    exfalso. by apply H5. 
++ move/ eqP : beq. move/ H8. 
+
+
+          exfalso. by apply H5.
           apply negbT in H11.
 
          
