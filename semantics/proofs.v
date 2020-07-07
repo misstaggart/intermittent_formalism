@@ -666,16 +666,13 @@ intros. inversion H3.
            left.
            (*inducting on N1' U! N0 --> skip
             to split up W0*)
-           dependent induction Tc.
+           dependent induction T.
        - inversion H. subst.
          exfalso. by apply H5.
        - dependent induction H.
          (*inducting on iceval to get relationship
           between N1 and N1'
-          also cases on c
-          even if i inducted on c here i would
-          still get ei in the command
-          might not eval to vio*)
+          should do this further up for a simpler IH?*)
         + simpl in H5. exfalso.
             by apply H5.
         +exfalso. by apply H1.
@@ -687,10 +684,10 @@ intros. inversion H3.
        - intros Heq. subst.
          suffices: ((inl x0) \notin (readobs_wvs r0)).
          intros Hnin. rewrite Hnin. by rewrite mem_seq1.
-         + simpl in H2.
-           inversion H2; subst;
+         + simpl in H4.
+           inversion H4; subst;
            inversion H16; subst.
-           exfalso. apply (negNVandV x0 H5 H24).
+           exfalso. apply (negNVandV x0 H21 H24).
            pose proof (read_deterministic H19 (RD H20)) as rdeq.
            rewrite <- rdeq.
            simpl in H25.
@@ -700,18 +697,21 @@ intros. inversion H3.
          + discriminate H25.
        - rewrite rememberme in H11. rewrite <- x in H11.
          apply (updateone_sv H11).
-       - subst. exfalso. apply (negNVandV x0 H5 H21).
+       - subst. exfalso. apply (negNVandV x0 H0 H21).
          exfalso. by apply H11. 
        - inversion c0; subst. simpl.
-         destruct element.
-         destruct element0.
+         destruct (determinism_e H22 H) as [Heq1 Heq2].
+         subst.
+         destruct (determinism_e H23 H0) as [Heq1 Heq2].
+         subst.
+         destruct (equal_index_works H1 H24).
          (*pose proof (determinism_e H22 H23) as Heq11.*)
-         suffices: (l = (inr element0)).
+         suffices: (l = (inr element)).
        - intros Heq. subst.
-         suffices: ((inr element0) \notin (readobs_wvs (r0 ++ ri0))).
+         suffices: ((inr element) \notin (readobs_wvs (r ++ ri))).
          intros Hnin. rewrite Hnin. by rewrite mem_seq1.
-         + simpl in H2.
-           inversion H2; subst;
+         + simpl in H5.
+           inversion H5; subst;
              inversion H17; subst.
            rewrite readobs_app_wvs.
            apply RD in H22.
@@ -719,12 +719,13 @@ intros. inversion H3.
            apply (read_deterministic H22) in H27.
            apply (read_deterministic H23) in H20.
            rewrite H20. rewrite H27.
-           destruct (inr element0 \notin Re ++ Rindex) eqn: beq1; auto.
+           destruct (inr element \notin Re ++ Rindex) eqn: beq1; auto.
            move/negPn: beq1 => beq1.
            exfalso.
            apply H28.
-           exists (inr element0: loc).
+           exists (inr element: loc).
            split.
+           destruct element.
            apply (gen_locs_works H24).
            assumption.
                     (*ask arthur
@@ -734,17 +735,22 @@ intros. inversion H3.
                      destruct should not change the type?*)
       - (*problem is H11 and H25
            nts inr element in genlocs A*)
-          suffices: (inr element0 \in D0).
+          suffices: (inr element \in D0).
           rewrite H11. intros contra.
           discriminate contra.
-          destruct element0.
+          destruct element.
           apply (in_subseq H29 (gen_locs_works H24)).
           rewrite rememberme in H12. rewrite <- x in H12.
-          destruct element. destruct element0.
+          apply (updateone_arr H12).
+      - exfalso. by apply H5.
+      -
+
+
+        discriminate H5.
           pose proof (equal_index_arr H24).
           subst.
           pose proof (equal_index_arr H9). subst.
-          apply (updateone_arr H12).
+          
 
 (*Lemma fifteen: forall{N0 N1 N1' N2: nvmem} {V V': vmem} {c c': command} {O: obseq} {W: the_write_stuff},
              iceval_w ((N0, V, c), N1, V, c) O
