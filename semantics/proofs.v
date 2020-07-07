@@ -717,14 +717,19 @@ intros. inversion H3.
                      also ask about why you have to destruct element
                      to get the types to match...
                      destruct should not change the type?*)
-        - (*problem is H11 and H25
+      - (*problem is H11 and H25
            nts inr element in genlocs A*)
           suffices: (inr element \in D0).
           rewrite H11. intros contra.
           discriminate contra.
           destruct element.
           apply (in_subseq H25 (gen_locs_works H1)).
+          rewrite rememberme in H12. rewrite <- x in H12.
+          apply (updateone_arr H12).
+      -    exfalso. by apply H5. 
           apply negbT in H11.
+
+         
           apply: H11.
            inversion H20. inversion H23. subst.
            intros contra.
