@@ -615,6 +615,158 @@ Lemma read_deterministic: forall{e: exp} {w1 w2: warvars},
  apply (RD H8). apply H8.
 Qed.
 
+Lemma fifteen: forall{N0 N1 N1' N2: nvmem} {V V': vmem} {c c': command} {O: obseq} {W: the_write_stuff},
+             iceval_w ((N0, V, c), N1, V, c) O
+             ((N0, V, c), N1', V', c') W ->
+           not (checkpoint \in O) ->
+           not (reboot \in O) ->
+             WARok (getdomain N0) [::] [::] c ->
+             current_init_pt N0 V c N1 N1 N2 ->
+             subset_nvm N0 N1 ->
+             current_init_pt N0 V c (N0 U! N1') (N0 U! N1') N2.
+intros. inversion H3. 
+       destruct H5. subst.
+       suffices:
+         (inhabited (trace_c ((N0 U! N1'), V, c) (Nend, Vend, Ins skip) O0 W0)).
+       + case => Tc.
+         eapply valid_mem.
+         apply Tc. by left.
+         assert (multi_step_i ((N0, V, c), N1, V, c)
+                              ((N0, V, c), N1', V', c') O).
+         exists W. constructor.
+         apply (iTrace_Single H).
+         apply (subseq_trans
+                  (subseq_trans H6 (dom_gets_bigger
+                                      H5)) (dom_gets_bigger_rb
+                                                    N0 N1')).
+         assumption.
+       - intros.
+         destruct (getmap N1 l == getmap N2 l) eqn: beq.
+           move/eqP :beq => beq. rewrite <- beq in H5.
+         + assert (not(l \in getdomain N0)).
+           unfold subset_nvm in H4. destruct H4 as [H41 H42].
+           intros contra. remember contra as contra1.
+           clear Heqcontra1. apply H42 in contra1.
+           destruct (sub_update N0 N1') as [blah HN1'].
+           apply HN1' in contra.
+           rewrite contra1 in contra.
+           symmetry in contra.
+           apply H5 in contra. contradiction.
+           destruct N0 as [M0 D0] eqn: N0eq.
+           destruct N1' as [M1' D1'] eqn: N1'eq.
+           assert (M1' = (getmap N1')) as rememberme.
+            by rewrite N1'eq. 
+           clear N0eq. 
+           unfold updatemaps in H5.
+           simpl in H5.
+           simpl in H9.
+           apply not_true_is_false in H9.
+           rewrite H9 in H5.
+           simpl.
+           left.
+           (*inducting on N1' U! N0 --> skip
+            to split up W0*)
+           dependent induction Tc.
+       - inversion H. subst.
+         exfalso. by apply H5.
+       - dependent induction H.
+         (*inducting on iceval to get relationship
+          between N1 and N1'
+          also cases on c
+          even if i inducted on c here i would
+          still get ei in the command
+          might not eval to vio*)
+        + simpl in H5. exfalso.
+            by apply H5.
+        +exfalso. by apply H1.
+        + exfalso. by apply H0.
+       - inversion c0. subst. simpl.
+(*inverting cceval N1' -> skip to get info
+ about W0 not given by trace induction*)
+           suffices: (l = (inl x0)).
+       - intros Heq. subst.
+         suffices: ((inl x0) \notin (readobs_wvs r0)).
+         intros Hnin. rewrite Hnin. by rewrite mem_seq1.
+         + simpl in H2.
+           inversion H2; subst;
+           inversion H16; subst.
+           exfalso. apply (negNVandV x0 H5 H24).
+           pose proof (read_deterministic H19 (RD H20)) as rdeq.
+           rewrite <- rdeq.
+           simpl in H25.
+           apply not_true_is_false in H25.
+           apply (negbT H25).
+         + rewrite H10 in H27. discriminate H27.
+         + discriminate H25.
+       - rewrite rememberme in H11. rewrite <- x in H11.
+         apply (updateone_sv H11).
+       - subst. exfalso. apply (negNVandV x0 H5 H21).
+         exfalso. by apply H11. 
+       - inversion c0; subst. simpl.
+         destruct element.
+         destruct element0.
+         (*pose proof (determinism_e H22 H23) as Heq11.*)
+         suffices: (l = (inr element0)).
+       - intros Heq. subst.
+         suffices: ((inr element0) \notin (readobs_wvs (r0 ++ ri0))).
+         intros Hnin. rewrite Hnin. by rewrite mem_seq1.
+         + simpl in H2.
+           inversion H2; subst;
+             inversion H17; subst.
+           rewrite readobs_app_wvs.
+           apply RD in H22.
+           apply RD in H23.
+           apply (read_deterministic H22) in H27.
+           apply (read_deterministic H23) in H20.
+           rewrite H20. rewrite H27.
+           destruct (inr element0 \notin Re ++ Rindex) eqn: beq1; auto.
+           move/negPn: beq1 => beq1.
+           exfalso.
+           apply H28.
+           exists (inr element0: loc).
+           split.
+           apply (gen_locs_works H24).
+           assumption.
+                    (*ask arthur
+                     if there is a better way than beq1
+                     also ask about why you have to destruct element
+                     to get the types to match...
+                     destruct should not change the type?*)
+      - (*problem is H11 and H25
+           nts inr element in genlocs A*)
+          suffices: (inr element0 \in D0).
+          rewrite H11. intros contra.
+          discriminate contra.
+          destruct element0.
+          apply (in_subseq H29 (gen_locs_works H24)).
+          rewrite rememberme in H12. rewrite <- x in H12.
+          destruct element. destruct element0.
+          pose proof (equal_index_arr H24).
+          subst.
+          pose proof (equal_index_arr H9). subst.
+          apply (updateone_arr H12).
+
+(*Lemma fifteen: forall{N0 N1 N1' N2: nvmem} {V V': vmem} {c c': command} {O: obseq} {W: the_write_stuff},
+             iceval_w ((N0, V, c), N1, V, c) O
+             ((N0, V, c), N1', V', c') W ->
+           not (checkpoint \in O) ->
+           not (reboot \in O) ->
+             WARok (getdomain N0) [::] [::] c ->
+             current_init_pt N0 V c N1 N1 N2 ->
+             subset_nvm N0 N1 ->
+             current_init_pt N0 V c (N0 U! N1') (N0 U! N1') N2.
+intros. inversion H3. 
+       destruct H5. subst.
+       suffices:
+         (inhabited (trace_c ((N0 U! N1'), V, c) (Nend, Vend, Ins skip) O0 W)).
+       Admitted.
+
+Lemma fifteen0:forall{N0 N1 N2: nvmem} {V V': vmem} {il : instruction}
+                {c': command} {o: obs} {W: the_write_stuff},
+           current_init_pt N0 V (Ins il) N1 N1 N2 ->
+WARok (getdomain N0) [::] [::] (il;;c') ->
+current_init_pt N0 V (il;;c') N1 N1 N2.
+  intros. .
 
 
 Lemma fifteen0: forall{N0 N1 N1' N2: nvmem} {V V': vmem} {il : instruction}
@@ -814,7 +966,7 @@ Proof. intros. inversion H3.
            simpl in H7.
            unfold is_true in H8.
            apply introF in H8. rewrite H8 in H4.
-           rewrite contra in H4.
+           rewrite contra in H4.*)
            
 
 

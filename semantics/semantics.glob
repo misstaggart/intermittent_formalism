@@ -1,4 +1,4 @@
-DIGEST 905de401ec85000b1447e001025d8511
+DIGEST 8f89ff1fc2b571f27a31ac1e544c736a
 FSemantics.semantics
 R70:78 Coq.Bool.Bool <> <> lib
 R80:87 Coq.Init.Nat <> <> lib
@@ -1674,8 +1674,8 @@ R29369:29371 Coq.Init.Datatypes <> inr constr
 R29373:29379 Semantics.semantics <> element var
 R29384:29394 Semantics.semantics <> readobs_wvs def
 R29397:29399 mathcomp.ssreflect.seq <> cat def
-R29404:29404 Semantics.semantics <> r var
-R29401:29402 Semantics.semantics <> ri var
+R29403:29404 Semantics.semantics <> ri var
+R29401:29401 Semantics.semantics <> r var
 R29410:29415 Semantics.semantics <> remove def
 R29442:29445 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_x_']' not
 R29457:29457 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_x_']' not
@@ -1683,8 +1683,8 @@ R29446:29448 Coq.Init.Datatypes <> inr constr
 R29450:29456 Semantics.semantics <> element var
 R29418:29428 Semantics.semantics <> readobs_wvs def
 R29431:29433 mathcomp.ssreflect.seq <> cat def
-R29438:29438 Semantics.semantics <> r var
-R29435:29436 Semantics.semantics <> ri var
+R29437:29438 Semantics.semantics <> ri var
+R29435:29435 Semantics.semantics <> r var
 R29309:29310 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R29337:29339 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R29341:29342 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
