@@ -625,12 +625,27 @@ Lemma fifteen: forall{N0 N1 N1' N2: nvmem} {V V': vmem} {c c': command} {O: obse
              current_init_pt N0 V c N1 N1 N2 ->
              subset_nvm N0 N1 ->
              current_init_pt N0 V c (N0 U! N1') (N0 U! N1') N2.
-intros. inversion H3. 
+  intros. inversion H3. subst. remember T as TN1.
+  clear HeqTN1.
+  dependent induction T; try (discriminate H22).
+  + destruct H5; subst.
+  - inversion H; subst.
+    pose proof (update_sub H4). rewrite H5.
+    assumption.
+    case H5 as [ w2 [crem2 Heq] ]. subst.
+    inversion H; subst.
+    pose proof (update_sub H4). rewrite H5.
+    assumption.
+    exfalso. by apply H0.
+    inversion H; subst.
+    exfalso. apply (stupid H16).
+    inversion H18.
 (*casing on skip with H5*)
 destruct H5. subst. assert(inhabited (trace_c ((N0 U! N1'), V, c) (Nend, Vend, Ins skip) O0 W0)) as T2.
 eapply twelve00.
 - exists W. constructor. apply (iTrace_Single H). assumption.
   assumption. assumption. assumption. assumption.
+  (*fix above*)
        + destruct T2 as [T2].
          eapply valid_mem.
          apply T2. by left.
@@ -669,9 +684,6 @@ eapply twelve00.
            left.
            (*inducting on N1' U! N0 --> skip
             to split up W0*)
-           dependent induction T.
-       - inversion H. subst.
-         exfalso. by apply H5.
        - dependent induction H.
          (*inducting on iceval to get relationship
           between N1 and N1'
@@ -680,17 +692,19 @@ eapply twelve00.
             by apply H5.
         +exfalso. by apply H1.
         + exfalso. by apply H0.
-       - inversion c0. subst. simpl.
-(*inverting cceval N1' -> skip to get info
+       - inversion c0; subst.
+(*inverting cceval N1 -> skip to get info
  about W0 not given by trace induction*)
            suffices: (l = (inl x0)).
-       - intros Heq. subst.
+       - intros Heq. subst. simpl.
          suffices: ((inl x0) \notin (readobs_wvs r0)).
          intros Hnin. rewrite Hnin. by rewrite mem_seq1.
          + simpl in H4.
            inversion H4; subst;
            inversion H16; subst.
-           exfalso. apply (negNVandV x0 H21 H24).
+           exfalso. apply (negNVandV x0 H0 H24).
+(*why double eeval relations here.. i think the
+ cceval and iceval*)
            pose proof (read_deterministic H19 (RD H20)) as rdeq.
            rewrite <- rdeq.
            simpl in H25.
@@ -702,7 +716,7 @@ eapply twelve00.
          apply (updateone_sv H11).
        - subst. exfalso. apply (negNVandV x0 H0 H21).
          exfalso. by apply H11. 
-       - inversion c0; subst. simpl.
+       - inversion c0; subst; simpl.
          destruct (determinism_e H22 H) as [Heq1 Heq2].
          subst.
          destruct (determinism_e H23 H0) as [Heq1 Heq2].
@@ -713,7 +727,8 @@ eapply twelve00.
        - intros Heq. subst.
          suffices: ((inr element) \notin (readobs_wvs (r ++ ri))).
          intros Hnin. rewrite Hnin. by rewrite mem_seq1.
-         + simpl in H5.
+         + 
+           simpl in H5.
            inversion H5; subst;
              inversion H17; subst.
            rewrite readobs_app_wvs.
@@ -749,16 +764,38 @@ eapply twelve00.
       - (*not convinced this case
          is even legal cuz you have
          l;;c' -> skip in one step c0*)
-        inversion c0; subst.
-        exfalso. by apply H7.
+        inversion c0; subst; try 
+       (exfalso; by apply H7);
+        try (exfalso; by apply H19);
+        try (exfalso; by apply H5).
+        exfalso; by apply H5.
+        exfalso; by apply H5.
+        (*fix the above*)
+        apply H8.
+          by move/ eqP : beq.
+          Focus 2.
+          destruct3 Cmid nmid vmid cmid.
+          eapply IHT1;
+            first (apply H);
+            (try assumption);
+            try reflexivity.
+          reflexivity.
+          assumption.
+          assumption.
+          assumption.
+          assumption.
+          assumption.
+
+
         inversion H.
         exfalso. by apply H21.
         exfalso. by apply H5.
         exfalso. by apply H5.
         unfold append_write. simpl.
-        suffices: (l \in getfstwt W1).
+        suffices: (l \in getfstwt W0).
+        intros. left. assumption.
         apply/ in_subseq / prefix_subseq.
-        eapply IHT1; (try assumption); auto.
+        eapply IHT1. (try assumption); auto.
         apply H.
         assumption.
         assumption.
