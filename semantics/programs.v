@@ -36,7 +36,7 @@ Open Scope type_scope.
 
 (*continuous traces*)
 
-Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Prop :=
+Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Type :=
   CTrace_Empty: forall(C: context),
                  trace_c C C [::] ([::], [::], [::])
   | CTrace_Single: forall {C1 C2: context} {O: obseq} {W: the_write_stuff},
@@ -55,7 +55,7 @@ Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Prop :=
 
 Print trace_c_ind.
 
-Theorem trace_c_ind_flex: forall
+(*Theorem trace_c_ind_flex: forall
          P : context ->
              context ->
              obseq ->
@@ -80,29 +80,27 @@ Theorem trace_c_ind_flex: forall
          (l : obseq)
          (p1 : the_write_stuff),
          trace_c p p0 l p1 -> P p p0 l p1.
-  Admitted.
+  Admitted.*)
 
 
 
 (*if you need the empty cat thing come back here*)
 Lemma empty_trace: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
     trace_c C1 C2 O W -> O = [::] -> C1 = C2 /\ W = emptysets.
-Proof. intros. dependent induction H. subst.
+Proof. intros. inversion X; subst.
        + split; reflexivity.
-       + inversion H; subst; try( split; reflexivity); try (inversion H2);
-           try (inversion H5); try (inversion H6);
-         try (inversion H3).
+       + inversion H0.
        + 
          exfalso.
-         move / nilP : H3 => H3.
-         unfold nilp in H3.
-         apply (elimT eqP) in H3.
-         rewrite (size_cat O1 O2) in H3.
-         move / eqP : H3.
+ move / nilP : H4 => H4.
+         unfold nilp in H4.
+         apply (elimT eqP) in H4.
+         rewrite (size_cat O1 O2) in H4.
+         move / eqP : H4.
          rewrite addn_eq0.
-         apply / andb_true_iff => H10.
-         destruct H10.
-         by move / nilP / H0 : H3.
+         apply / andb_true_iff => H.
+         destruct H.
+           by move / nilP / H0 : H.
 Qed.
 
 Lemma append_write_empty: forall{W: the_write_stuff},
