@@ -36,7 +36,7 @@ Open Scope type_scope.
 
 (*continuous traces*)
 
-Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Type :=
+Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Prop :=
   CTrace_Empty: forall(C: context),
                  trace_c C C [::] ([::], [::], [::])
   | CTrace_Single: forall {C1 C2: context} {O: obseq} {W: the_write_stuff},
@@ -87,20 +87,20 @@ Print trace_c_ind.
 (*if you need the empty cat thing come back here*)
 Lemma empty_trace: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
     trace_c C1 C2 O W -> O = [::] -> C1 = C2 /\ W = emptysets.
-Proof. intros. inversion X; subst.
+Proof. intros. inversion H; subst.
        + split; reflexivity.
-       + inversion H0.
+       + inversion H1.
        + 
          exfalso.
- move / nilP : H4 => H4.
-         unfold nilp in H4.
-         apply (elimT eqP) in H4.
-         rewrite (size_cat O1 O2) in H4.
-         move / eqP : H4.
+ move / nilP : H7 => H7.
+         unfold nilp in H7.
+         apply (elimT eqP) in H7.
+         rewrite (size_cat O1 O2) in H7.
+         move / eqP : H7.
          rewrite addn_eq0.
-         apply / andb_true_iff => H.
-         destruct H.
-           by move / nilP / H0 : H.
+         apply / andb_true_iff => H10.
+         destruct H10.
+         by move / nilP / H2 : H0.
 Qed.
 
 Lemma append_write_empty: forall{W: the_write_stuff},
@@ -167,6 +167,8 @@ iTrace_Empty: forall{C: iconf},
     O2 <> [::]  ->
     trace_i C1 C2 (O1 ++ O2) (append_write W1 W2).
 
+(*start here get rid of that
+ inhabited redundancy*)
 Definition multi_step_c (C1 C2: context) (O: obseq) :=
     exists W: the_write_stuff, inhabited (trace_c C1 C2 O W).
           
