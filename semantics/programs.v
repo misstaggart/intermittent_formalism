@@ -53,7 +53,34 @@ Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Prop :=
 (*never actually need to append traces now that I have the write datatype
  consider a simpler type?*)
 
+Print trace_c_ind.
 
+Theorem trace_c_ind_flex: forall
+         P : context ->
+             context ->
+             obseq ->
+             the_write_stuff -> Prop,
+       (forall C : context,
+        P C C [::] ([::], [::], [::])) ->
+       (forall (C1 C2 : context)
+          (O : obseq)
+          (W : the_write_stuff),
+        cceval_w C1 O C2 W -> P C1 C2 O W) ->
+       (forall (C1 C2 : context)
+          (O1 O2 : obseq)
+          (W1 W2 : the_write_stuff),
+      (exists(Cmid: context), trace_c C1 Cmid O1 W1 /\
+        P C1 Cmid O1 W1 /\ trace_c Cmid C2 O2 W2 /\
+        P Cmid C2 O2 W2) ->
+        O1 <> [::] ->
+        O2 <> [::] ->
+        P C1 C2 (O1 ++ O2)
+          (append_write W1 W2)) ->
+       forall (p p0 : context) 
+         (l : obseq)
+         (p1 : the_write_stuff),
+         trace_c p p0 l p1 -> P p p0 l p1.
+  Admitted.
 
 
 

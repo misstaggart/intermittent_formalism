@@ -629,11 +629,24 @@ Lemma fifteen: forall{N0 N1 N1' N2: nvmem} {V V': vmem} {c c': command} {O: obse
              current_init_pt N0 V c (N0 U! N1') (N0 U! N1') N2.
   intros. inversion H3. subst. remember T as TN1.
   clear HeqTN1.
-  dependent induction T; try (discriminate H22).
+  dependent induction T using trace_c_ind_flex; try (discriminate H22).
+  Focus 3.
   + destruct H5; subst.
   - inversion H; subst.
     pose proof (update_sub H4). rewrite H5.
     assumption.
+    (*
+or actually if you're thinking about this linearly
+with CMID as N1', taking first step off, then you do want to be using
+IH2..consider that
+doing normal induction did take away some of annoying restrictions
+but made bc automation harder, normal induction gave a WEIRD principle...
+linear induction might be best
+     p sure induction principle is broken
+cuz no restriction on CMID actually
+making trace smaller, try old format when goal
+     was showing something wasn't in FW set... with
+     new generality could be more promising*)
     case H5 as [ w2 [crem2 Heq] ]. subst.
     inversion H; subst.
     pose proof (update_sub H4). rewrite H5.
@@ -696,7 +709,8 @@ eapply twelve00.
         + exfalso. by apply H0.
        - inversion H5; subst.
 (*inverting cceval N1 -> skip to get info
- about W0 not given by trace induction*)
+ about W0 not given by trace induction
+ maybe induct on the cceval instead?*)
            suffices: (l = (inl x0)).
        - intros Heq. subst. simpl.
          suffices: ((inl x0) \notin (readobs_wvs r0)).
@@ -776,6 +790,14 @@ eapply twelve00.
         apply H9.
           by move/ eqP : beq.
           Focus 2.
+          case H5 as
+              [Cmid [T1 P1] ].
+          case P1 as
+              [P1 T2].
+          case T2 as
+              [T2 P2].
+          (*maybe dependent
+           induction is the problem?*)
           destruct3 Cmid nmid vmid cmid.
           eapply IHT1;
             first (apply H);
