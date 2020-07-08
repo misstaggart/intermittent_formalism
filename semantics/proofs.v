@@ -589,13 +589,23 @@ Lemma updateone_arr: forall{N: nvmem} {a: array} {v: value}
   exfalso. by apply H. 
   Qed.
 
-Lemma update_one: forall{K: context} {N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W R Fw: warvars}
+Lemma update_one: forall{N N0 Nend: nvmem} {V V0 Vend: vmem} {c c0 cend: command} {O: obseq} {W: the_write_stuff}
   {l: loc},
-    iceval_w (K, N, V, c) O (K, Nend, Vend, cend) (W, R, Fw) ->
+    iceval_w ((N0, V0, c0), N, V, c) O ((N0, V0, c0), Nend, Vend, cend) W ->
     (getmap N) l <> (getmap Nend) l ->
-    l \in W.
+    l \in (getwt W).
   intros.
   Admitted.
+
+Lemma wt_gets_bigger: forall{N N0 Nmid Nend: nvmem} {V V0 Vmid Vend: vmem} {c c0 cmid cend: command} {O0 O1: obseq} {W0 W1: the_write_stuff}
+  {l: loc},
+    iceval_w ((N0, V0, c0), N, V, c) O0 ((N0, V0, c0), Nmid, Vmid, cmid) W0 ->
+    trace_c (N, V, c) (Nend, Vend, cend) O1 W1 ->
+    O1 <> [::] ->
+    l \in (getwt W0) ->
+          l \in (getwt W1).
+  Admitted.
+
 
 Lemma read_deterministic: forall{e: exp} {w1 w2: warvars},
                            rd e w1 ->
@@ -631,7 +641,8 @@ Lemma negfwandw_means_r: forall{C Cend: context}  {O: obseq} {W: the_write_stuff
   {l: loc},
     trace_c C Cend O W ->
     l \notin (getfstwt W) -> l \in (getwt W) -> l \in (getrd W).
-  Admitted.
+Admitted.
+
 
 Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
                  {l: loc},
@@ -689,8 +700,9 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
            assert (M1' = (getmap N1')) as rememberme.
             by rewrite N1'eq. 
            assert (D0 = (getdomain N0)) as rememberme1.
-            by rewrite N0eq. 
-           clear N0eq. 
+             by rewrite N0eq.
+             remember N1'eq as stayput.
+             remember N0eq as stayput1.
            unfold updatemaps in H5.
            simpl in H5.
            simpl in H9.
@@ -738,10 +750,25 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          move/ negP : H7.
          rewrite mem_cat.
          case/ norP => Hor1 Hor2. assumption.
-         rewrite <- rememberme1. assumption.
+          assumption.
          assumption. assumption.
          (*this comes from fact that N1 steps to M1'
-          in one (H) but N1 l and M1' of l are different.. new theorem*)    eapply update_one.
+          in one (H) but N1 l and M1' of l are different.. new theorem*)
+         assert (W11 = (getwt W1)) as Hwt. by rewrite W1eq; auto.
+         rewrite Hwt.
+         destruct3 Cmid nmid vmid cmid.
+         eapply wt_gets_bigger.
+         apply H.
+         rewrite <- W1eq in T1.
+         apply T1.
+         assumption.
+         eapply update_one.
+         apply H.
+         rewrite rememberme in H5.
+        intros contra. apply H5. symmetry. assumption.
+           as Hwt.
+         rewrite H10.
+         eapply update_one.
          apply H.
          assumption.
                  assert (getdomain N0 = D0).
