@@ -589,6 +589,14 @@ Lemma updateone_arr: forall{N: nvmem} {a: array} {v: value}
   exfalso. by apply H. 
   Qed.
 
+Lemma update_one: forall{K: context} {N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W R Fw: warvars}
+  {l: loc},
+    iceval_w (K, N, V, c) O (K, Nend, Vend, cend) (W, R, Fw) ->
+    (getmap N) l <> (getmap Nend) l ->
+    l \in W.
+  intros.
+  Admitted.
+
 Lemma read_deterministic: forall{e: exp} {w1 w2: warvars},
                            rd e w1 ->
                            rd e w2 ->
@@ -648,14 +656,11 @@ Lemma fifteen: forall{N0 N1 N1' N2: nvmem} {V V': vmem} {c c': command} {O: obse
   destruct H5; subst. (*casing on skip*)
   +      eapply valid_mem.
 (*need to show N0 U! N1' can make it*)
-         - assert(inhabited (trace_c ((N0 U! N1'), V, c) (Nend, Vend, Ins skip) O0 W0)) as T2.
+         - assert(trace_c ((N0 U! N1'), V, c) (Nend, Vend, Ins skip) O0 W0) as T2.
 eapply twelve00.
    exists W. constructor. apply (iTrace_Single H). assumption.
    assumption. assumption. constructor. assumption. assumption.
-   inversion T2.
-   destruct T2 as [T2].
      apply T2. by left.
-  (*fix above*)
        - (*showing N2 subst N0 U! N1'*)
 assert (multi_step_i ((N0, V, c), N1, V, c)
                               ((N0, V, c), N1', V', c') O).
@@ -683,6 +688,8 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
            destruct N1' as [M1' D1'] eqn: N1'eq.
            assert (M1' = (getmap N1')) as rememberme.
             by rewrite N1'eq. 
+           assert (D0 = (getdomain N0)) as rememberme1.
+            by rewrite N0eq. 
            clear N0eq. 
            unfold updatemaps in H5.
            simpl in H5.
@@ -693,17 +700,17 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
            (*now have that l is not in D0*)
            left.
     (*inducting on T to split up W0*)
-       - dependent induction T; subst.
+       - dependent induction T.
          Focus 3.
-         destruct3 W1 W1 R1 Fw1.
-         destruct3 W2 W2 R2 Fw2.
+         destruct W1 as [ [W11 R1] Fw1] eqn: W1eq.
+         destruct W2 as [ [W22 R2] Fw2] eqn: W2eq.
          unfold append_write.
          simpl.
          suffices: (l \in Fw1).
          intros. rewrite mem_cat.
          apply (introT orP). by left.
          simpl in H8.
-         suffices: (l \in W1).
+         suffices: (l \in W11).
          intros HW1.
          destruct (l \in Fw1) eqn: FWeq; auto.
          apply negbT in FWeq.
@@ -712,23 +719,34 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          suffices: (is_true (l \in Fw1 ++ remove R1 Fw2) \/
        is_true (l \in D0)
                    ).
-         suffices: (is_true (l \notin Fw1 ++ remove R1 Fw2)).
-         intros H8app.
-         apply negbTE in H8app. rewrite H8app.
+         destruct (l \in Fw1 ++ remove R1 Fw2) eqn: deq.
+         rewrite mem_cat in deq.
+         move/ orP : deq.
+         case => Hin.
+          rewrite Hin in FWeq.
+         discriminate FWeq.
+         rewrite mem_filter in Hin.
+         case/ andP : Hin => [ contra blah ].
+         rewrite Hr in contra. discriminate contra.
          case => contra.
-               - assumption.
-               - rewrite H9 in contra. assumption.
-            + rewrite mem_cat.
-              apply (introT norP). split.
-              assumption.
-              rewrite mem_filter.
-              apply (introT nandP).
-              left. apply (introT negPn).
-           (*ask arthur how to use the views when you don't
-            have an assumption..writing introT is annoying*)
-              assumption.
-         - apply H8.
-           apply (introT eqP).
+         assumption.
+         rewrite H9 in contra. assumption.
+         right. rewrite rememberme1.
+         destruct3 Cmid nmid vmid cmid.
+         eapply fourteen; try (assumption).
+         apply T1.
+         move/ negP : H7.
+         rewrite mem_cat.
+         case/ norP => Hor1 Hor2. assumption.
+         rewrite <- rememberme1. assumption.
+         assumption. assumption.
+         (*this comes from fact that N1 steps to M1'
+          in one (H) but N1 l and M1' of l are different.. new theorem*)    eapply update_one.
+         apply H.
+         assumption.
+                 assert (getdomain N0 = D0).
+                               apply fourteen.
+                       
 
          [ contra1 contra2 ].
          move as [ contra1 contra2 ] => contra.
@@ -784,6 +802,8 @@ destruct H6. subst.          eapply valid_mem.
            destruct N0 as [M0 D0] eqn: N0eq.
            destruct N1' as [M1' D1'] eqn: N1'eq.
            assert (M1' = (getmap N1')) as rememberme.
+            by rewrite N1'eq. 
+           assert (M1 = (getmap N1')) as rememberme.
             by rewrite N1'eq. 
            clear N0eq. 
            unfold updatemaps in H6.
