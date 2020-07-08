@@ -720,64 +720,11 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
            left.
     (*inducting on T to split up W0*)
        - dependent induction T.
-       (*  Focus 3.
-         destruct W1 as [ [W11 R1] Fw1] eqn: W1eq.
-         destruct W2 as [ [W22 R2] Fw2] eqn: W2eq.
-         unfold append_write.
-         simpl.
-         suffices: (l \in Fw1).
-         intros. rewrite mem_cat.
-         apply (introT orP). by left.
-         simpl in H8.
-         suffices: (l \in W11).
-         intros HW1.
-         destruct (l \in Fw1) eqn: FWeq; auto.
-         apply negbT in FWeq.
-         pose proof (negfwandw_means_r T1 FWeq HW1) as Hr.
-         simpl in Hr.
-         suffices: (is_true (l \in Fw1 ++ remove R1 Fw2) \/
-       is_true (l \in D0)
-                   ).
-         destruct (l \in Fw1 ++ remove R1 Fw2) eqn: deq.
-         rewrite mem_cat in deq.
-         move/ orP : deq.
-         case => Hin.
-          rewrite Hin in FWeq.
-         discriminate FWeq.
-         rewrite mem_filter in Hin.
-         case/ andP : Hin => [ contra blah ].
-         rewrite Hr in contra. discriminate contra.
-         case => contra.
-         assumption.
-         rewrite H9 in contra. assumption.
-         right. rewrite rememberme1.
-         destruct3 Cmid nmid vmid cmid.
-         eapply fourteen; try (assumption).
-         apply T1.
-         move/ negP : H7.
-         rewrite mem_cat.
-         case/ norP => Hor1 Hor2. assumption.
-          assumption.
-         assumption. assumption.
-         (*this comes from fact that N1 steps to M1'
-          in one (H) but N1 l and M1' of l are different.. new theorem*)
-         assert (W11 = (getwt W1)) as Hwt. by rewrite W1eq; auto.
-         rewrite Hwt.
-         destruct3 Cmid nmid vmid cmid.
-         eapply wt_gets_bigger.
-         apply H.
-         rewrite <- W1eq in T1.
-         apply T1.
-         assumption.
-         eapply update_one.
-         apply H.
-         rewrite rememberme in H5.
-        intros contra. apply H5. symmetry. assumption.*)
          (*empty trace case*)
-       -  inversion H. subst.
++ inversion H. subst.
           exfalso. by apply H5.
           (*single trace case*)
-       - inversion H; subst; try (exfalso; by apply H5).
++ inversion H; subst; try (exfalso; by apply H5).
          (*have to invert the iceval cuz the cceval
           doesnt tell you directly about N1'*)
          pose proof (iceval_cceval H c0) as HW0.
@@ -845,50 +792,62 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          is even legal cuz you have
          l;;c' -> skip in one step c0*)
         inversion c0; subst; try 
-       (exfalso; by apply H0).
-        (*fix the above*)
-        apply H9.
-          by move/ eqP : beq.
-          Focus 2.
-          case H5 as
-              [Cmid [T1 P1] ].
-          case P1 as
-              [P1 T2].
-          case T2 as
-              [T2 P2].
-          (*maybe dependent
-           induction is the problem?*)
-          destruct3 Cmid nmid vmid cmid.
-          eapply IHT1;
-            first (apply H);
-            (try assumption);
-            try reflexivity.
-          reflexivity.
+                               (exfalso; by apply H0).
+        (*inductive case*)
+ + destruct W1 as [ [W11 R1] Fw1] eqn: W1eq.
+         destruct W2 as [ [W22 R2] Fw2] eqn: W2eq.
+         unfold append_write.
+         simpl.
+         suffices: (l \in Fw1).
+         intros. rewrite mem_cat.
+         apply (introT orP). by left.
+         simpl in H8.
+         suffices: (l \in W11).
+         intros HW1.
+         destruct (l \in Fw1) eqn: FWeq; auto.
+         apply negbT in FWeq.
+         pose proof (negfwandw_means_r T1 FWeq HW1) as Hr.
+         simpl in Hr.
+         suffices: (is_true (l \in Fw1 ++ remove R1 Fw2) \/
+       is_true (l \in D0)
+                   ).
+         destruct (l \in Fw1 ++ remove R1 Fw2) eqn: deq.
+         rewrite mem_cat in deq.
+         move/ orP : deq.
+         case => Hin.
+          rewrite Hin in FWeq.
+         discriminate FWeq.
+         rewrite mem_filter in Hin.
+         case/ andP : Hin => [ contra blah ].
+         rewrite Hr in contra. discriminate contra.
+         case => contra.
+         assumption.
+         rewrite H9 in contra. assumption.
+         right. rewrite rememberme1.
+         destruct3 Cmid nmid vmid cmid.
+         eapply fourteen; try (assumption).
+         apply T1.
+         move/ negP : H7.
+         rewrite mem_cat.
+         case/ norP => Hor1 Hor2. assumption.
           assumption.
-          assumption.
-          assumption.
-          assumption.
-          assumption.
-
-
-        inversion H.
-        exfalso. by apply H21.
-        exfalso. by apply H5.
-        exfalso. by apply H5.
-        unfold append_write. simpl.
-        suffices: (l \in getfstwt W0).
-        intros. left. assumption.
-        apply/ in_subseq / prefix_subseq.
-        eapply IHT1. (try assumption); auto.
-        apply H.
-        assumption.
-        assumption.
-        assumption.
-        discriminate H5.
-          pose proof (equal_index_arr H24).
-          subst.
-          pose proof (equal_index_arr H9). subst.
-          
+         assumption. assumption.
+         (*this comes from fact that N1 steps to M1'
+          in one (H) but N1 l and M1' of l are different.. new theorem*)
+         assert (W11 = (getwt W1)) as Hwt. by rewrite W1eq; auto.
+         rewrite Hwt.
+         destruct3 Cmid nmid vmid cmid.
+         eapply wt_gets_bigger.
+         apply H.
+         rewrite <- W1eq in T1.
+         apply T1.
+         assumption.
+         eapply update_one.
+         apply H.
+         rewrite rememberme in H5.
+         intros contra. apply H5. symmetry. assumption.
+(*N1 l != N2 l*)
++ apply H8. by move/ eqP : beq.
 
 (*Lemma fifteen: forall{N0 N1 N1' N2: nvmem} {V V': vmem} {c c': command} {O: obseq} {W: the_write_stuff},
              iceval_w ((N0, V, c), N1, V, c) O
