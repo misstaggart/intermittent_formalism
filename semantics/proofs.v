@@ -654,7 +654,14 @@ Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
     l \in (getdomain N0).
    Admitted. 
 
-Lemma fifteen: forall{N0 N1 N1' N2: nvmem} {V V': vmem} {c c': command} {O: obseq} {W: the_write_stuff},
+Lemma iceval_cceval: forall{k: context} {N Nend1 Nend2 : nvmem} {V Vend1 Vend2: vmem}
+                      {c cend1 cend2 : command} {O1 O2: obseq} {W1 W2: the_write_stuff},
+    iceval_w (k, N, V, c) O1 (k, Nend1, Vend1, cend1) W1 ->
+    cceval_w (N, V, c) O2 (Nend2, Vend2, cend2) W2 ->
+    Nend1 = Nend2 /\ Vend1 = Vend2 /\ cend1 = cend2 /\ W1 = W2.
+Admitted.
+
+    Lemma fifteen: forall{N0 N1 N1' N2: nvmem} {V V': vmem} {c c': command} {O: obseq} {W: the_write_stuff},
              iceval_w ((N0, V, c), N1, V, c) O
              ((N0, V, c), N1', V', c') W ->
            not (checkpoint \in O) ->
@@ -713,7 +720,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
            left.
     (*inducting on T to split up W0*)
        - dependent induction T.
-         Focus 3.
+       (*  Focus 3.
          destruct W1 as [ [W11 R1] Fw1] eqn: W1eq.
          destruct W2 as [ [W22 R2] Fw2] eqn: W2eq.
          unfold append_write.
@@ -765,170 +772,80 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          eapply update_one.
          apply H.
          rewrite rememberme in H5.
-        intros contra. apply H5. symmetry. assumption.
-           as Hwt.
-         rewrite H10.
-         eapply update_one.
-         apply H.
-         assumption.
-                 assert (getdomain N0 = D0).
-                               apply fourteen.
-                       
-
-         [ contra1 contra2 ].
-         move as [ contra1 contra2 ] => contra.
-         rewrite orb_false_l.
-         intros. rewrite H9 in x. assumption.
-         apply H8.
-        eapply IHT1. (try assumption).
-    pose proof (update_sub H4). rewrite H.
-    assumption.
-    exfalso. by apply H1.
-    exfalso. by apply H0.
-    (*
-or actually if you're thinking about this linearly
-with CMID as N1', taking first step off, then you do want to be using
-IH2
-doing normal induction did take away some of annoying restrictions
-but made bc automation harder, normal induction gave a WEIRD principle...
-linear induction might be best
-     p sure induction principle is broken
-cuz no restriction on CMID actually
-making trace smaller, try old format when goal
-     was showing something wasn't in FW set... with
-     new generality could be more promising
-    case H5 as [ w2 [crem2 Heq] ]. subst.
-    inversion H; subst.
-    pose proof (update_sub H4). rewrite H5.
-    assumption.
-    exfalso. by apply H0.
-    inversion H; subst.
-    exfalso. apply (stupid H16).
-    inversion H18.*)
-(*casing on skip with H5
-destruct H6. subst.          eapply valid_mem.
-         apply T2. by left.
-         assert (multi_step_i ((N0, V, c), N1, V, c)
-                              ((N0, V, c), N1', V', c') O).
-         exists W. constructor.
-         apply (iTrace_Single H).
-         apply (subseq_trans
-                  (subseq_trans H7 (dom_gets_bigger
-                                      H6)) (dom_gets_bigger_rb
-                                                    N0 N1')).
-         assumption.*)
-        -          + assert (not(l \in getdomain N0)).
-           unfold subset_nvm in H4. destruct H4 as [H41 H42].
-           intros contra. remember contra as contra1.
-           clear Heqcontra1. apply H42 in contra1.
-           destruct (sub_update N0 N1') as [blah HN1'].
-           apply HN1' in contra.
-           rewrite contra1 in contra.
-           symmetry in contra.
-           apply H6 in contra. contradiction.
-           destruct N0 as [M0 D0] eqn: N0eq.
-           destruct N1' as [M1' D1'] eqn: N1'eq.
-           assert (M1' = (getmap N1')) as rememberme.
-            by rewrite N1'eq. 
-           assert (M1 = (getmap N1')) as rememberme.
-            by rewrite N1'eq. 
-           clear N0eq. 
-           unfold updatemaps in H6.
-           simpl in H6.
-           simpl in H10.
-           apply not_true_is_false in H10.
-           rewrite H10 in H6.
-           simpl.
-           left.
-           (*inducting on N1' U! N0 --> skip
-            to split up W0*)
-       - dependent induction H.
-         (*inducting on iceval to get relationship
-          between N1 and N1'
-          should do this further up for a simpler IH?*)
-        + simpl in H6. exfalso.
-            by apply H6.
-        +exfalso. by apply H1.
-        + exfalso. by apply H0.
-       - inversion H5; subst.
-(*inverting cceval N1 -> skip to get info
- about W0 not given by trace induction
- maybe induct on the cceval instead?*)
-           suffices: (l = (inl x0)).
+        intros contra. apply H5. symmetry. assumption.*)
+         (*empty trace case*)
+       -  inversion H. subst.
+          exfalso. by apply H5.
+          (*single trace case*)
+       - inversion H; subst; try (exfalso; by apply H5).
+         (*have to invert the iceval cuz the cceval
+          doesnt tell you directly about N1'*)
+         pose proof (iceval_cceval H c0) as HW0.
+         destruct HW0 as [ HW1 [ HW2 [ Hw3 Hw4 ] ] ].
+         subst. simpl.
+           suffices: (l = (inl x)).
        - intros Heq. subst. simpl.
-         suffices: ((inl x0) \notin (readobs_wvs r0)).
+         suffices: ((inl x) \notin (readobs_wvs r)).
          intros Hnin. rewrite Hnin. by rewrite mem_seq1.
-         + simpl in H4.
-           inversion H4; subst;
-           inversion H17; subst.
-           exfalso. apply (negNVandV x0 H0 H25).
+         + simpl in H2.
+           inversion H2; subst;
+           inversion H14; subst.
+           exfalso. apply (negNVandV x H20 H22).
 (*why double eeval relations here.. i think the
  cceval and iceval*)
-           pose proof (read_deterministic H20 (RD H21)) as rdeq.
+           pose proof (read_deterministic H17 (RD H19)) as rdeq.
            rewrite <- rdeq.
-           simpl in H26.
-           apply not_true_is_false in H26.
-           apply (negbT H26).
-         + rewrite H11 in H28. discriminate H28.
-         + discriminate H26.
-       - rewrite rememberme in H12. rewrite <- x in H12.
-         apply (updateone_sv H12).
-       - subst. exfalso. apply (negNVandV x0 H0 H22).
-         exfalso. by apply H12. 
-       - inversion H5; subst; simpl.
-         destruct (determinism_e H23 H) as [Heq1 Heq2].
-         subst.
-         destruct (determinism_e H24 H0) as [Heq1 Heq2].
-         subst.
-         destruct (equal_index_works H1 H25).
+           simpl in H23.
+           apply not_true_is_false in H23.
+           apply (negbT H23).
+         + rewrite H9 in H25. discriminate H25.
+         + discriminate H23.
+       - apply (updateone_sv H5).
+       - pose proof (iceval_cceval H c0) as HW0.
+         destruct HW0 as [ HW1 [ HW2 [ Hw3 Hw4 ] ] ].
+         subst. simpl.
          (*pose proof (determinism_e H22 H23) as Heq11.*)
          suffices: (l = (inr element)).
        - intros Heq. subst.
          suffices: ((inr element) \notin (readobs_wvs (r ++ ri))).
          intros Hnin. rewrite Hnin. by rewrite mem_seq1.
          + 
-           simpl in H6.
-           inversion H6; subst;
-             inversion H18; subst.
+           simpl in H2.
+           inversion H2; subst;
+             inversion H14; subst.
            rewrite readobs_app_wvs.
-           apply RD in H23.
-           apply RD in H24.
-           apply (read_deterministic H23) in H28.
-           apply (read_deterministic H24) in H21.
-           rewrite H28. rewrite H21.
+           apply RD in H19.
+           apply RD in H20.
+           apply (read_deterministic H19) in H24.
+           apply (read_deterministic H20) in H17.
+           rewrite H24. rewrite H17.
            destruct (inr element \notin Re ++ Rindex) eqn: beq1; auto.
            move/negPn: beq1 => beq1.
            exfalso.
-           apply H29.
+           apply H25.
            exists (inr element: loc).
            split.
            destruct element.
-           apply (gen_locs_works H25).
+           apply (gen_locs_works H21).
            assumption.
                     (*ask arthur
                      if there is a better way than beq1
                      also ask about why you have to destruct element
                      to get the types to match...
                      destruct should not change the type?*)
-      - (*problem is H11 and H25
-           nts inr element in genlocs A*)
-          suffices: (inr element \in D0).
-          rewrite H12. intros contra.
+      - 
+          suffices: (inr element \in (getdomain N0)).
+          rewrite H9.
+          intros contra.
           discriminate contra.
           destruct element.
-          apply (in_subseq H30 (gen_locs_works H25)).
-          rewrite rememberme in H13. rewrite <- x in H13.
-          apply (updateone_arr H13).
-      - exfalso. by apply H6.
+          apply (in_subseq H26 (gen_locs_works H21)).
+          apply (updateone_arr H5).
       - (*not convinced this case
          is even legal cuz you have
          l;;c' -> skip in one step c0*)
-        inversion H5; subst; try 
-       (exfalso; by apply H8);
-        try (exfalso; by apply H20);
-        try (exfalso; by apply H6).
-        exfalso; by apply H6.
-        exfalso; by apply H6.
+        inversion c0; subst; try 
+       (exfalso; by apply H0).
         (*fix the above*)
         apply H9.
           by move/ eqP : beq.
