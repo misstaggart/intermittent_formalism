@@ -998,7 +998,8 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
                         (k, N, (reset V), Ins inreboot) (nil, nil, nil)
  | CP_Reboot: forall(N N': nvmem) (*see below*) (*N is the checkpointed one*)
                (V V': vmem) 
-               (c: command), 
+               (c: command),
+     c <> Ins inreboot ->
      iceval_w ((N, V, c), N', V', Ins inreboot)
             [:: reboot]
             ((N, V, c), (N U! N'), V, c) (nil, nil, nil)
