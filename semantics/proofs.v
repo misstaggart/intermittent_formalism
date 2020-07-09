@@ -813,12 +813,8 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
 (*N1 l != N2 l*)
 + apply H8. by move/ eqP : beq.
 
-(*N1 l != N2 l*)
- + apply H8. by move/ eqP : beq.
-
-
-
- (*checkpoint case*)
+ (*checkpoint case
+  consider doing the H5 casing later on so you have less boilerplate*)
  + destruct H5 as [wcp [crem2 cpeq] ]. subst.
    eapply valid_mem.
      assert(trace_c ((N0 U! N1'), V, c) (Nend, Vend, incheckpoint wcp;;
@@ -867,19 +863,51 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
            (*now have that l is not in D0*)
            left.
     (*inducting on T to split up W0*)
-       - dependent induction T; subst.
+       - inversion T; subst.
          (*empty trace case*)
            + 
            inversion H; subst; try (
                                    exfalso; by apply H5).
            exfalso. by apply (H20 wcp).
           (*single trace case*)
-           + inversion H; subst; try (exfalso; by (apply H5 || apply H10)).
-inversion H5.
-inversion H5.
-destruct (iceval_cceval H H5) as [Hc [He [Hf Hg] ] ].
-subst.
- destruct W0 as [ [W11 R1] Fw1] eqn: W1eq.
+           + destruct (iceval_cceval H H10) as [Hc [He [Hf Hg] ] ].
+  subst.
+  destruct W0 as [ [W11 R1] Fw1] eqn: W1eq.
+  simpl.
+         suffices: (l \in W11).
+         intros HW1.
+         destruct (l \in Fw1) eqn: FWeq; auto.
+         apply negbT in FWeq.
+         pose proof (negfwandw_means_r TN1 FWeq HW1) as Hr.
+         simpl in Hr.
+         suffices: (
+       is_true (l \in D0)
+                   ).
+         move => contra.
++ rewrite H9 in contra. discriminate contra.
+         rewrite rememberme1. eapply fourteen.
+         apply TN1.
+         (*why do i have two traces here
+          nvm it's the remember from the top*)
+         by move/ negP : H7.
+          assumption.
+         assumption. assumption.
+         (*this comes from fact that N1 steps to M1'
+          in one (H) but N1 l and M1' of l are different.. new theorem*)
+         assert (W11 = (getwt W0)) as Hwt. by rewrite W1eq; auto.
+         rewrite Hwt.
+         eapply wt_gets_bigger.
+         apply H.
+         rewrite <- W1eq in TN1.
+         apply TN1.
+         intros contra. subst.
+         inversion H10.
+         eapply update_one.
+         apply H.
+         intros contra. apply H5.
+         rewrite rememberme. symmetry. assumption.
+         (*inductive case*)
++ destruct W1 as [ [W11 R1] Fw1] eqn: W1eq.
          destruct W2 as [ [W22 R2] Fw2] eqn: W2eq.
          unfold append_write.
          simpl.
@@ -891,7 +919,7 @@ subst.
          intros HW1.
          destruct (l \in Fw1) eqn: FWeq; auto.
          apply negbT in FWeq.
-         pose proof (negfwandw_means_r T1 FWeq HW1) as Hr.
+         pose proof (negfwandw_means_r H10 FWeq HW1) as Hr.
          simpl in Hr.
          suffices: (is_true (l \in Fw1 ++ remove R1 Fw2) \/
        is_true (l \in D0)
@@ -907,12 +935,12 @@ subst.
          rewrite Hr in contra. discriminate contra.
          case => contra.
          assumption.
-         rewrite H10 in contra. assumption.
+         rewrite H9 in contra. assumption.
          right. rewrite rememberme1.
          destruct3 Cmid nmid vmid cmid.
          eapply fourteen; try (assumption).
-         apply T1.
-         move/ negP : H8.
+         apply H10.
+         move/ negP : H7.
          rewrite mem_cat.
          case/ norP => Hor1 Hor2. assumption.
           assumption.
@@ -924,15 +952,16 @@ subst.
          destruct3 Cmid nmid vmid cmid.
          eapply wt_gets_bigger.
          apply H.
-         rewrite <- W1eq in T1.
-         apply T1.
+         rewrite <- W1eq in H10.
+         apply H10.
          assumption.
          eapply update_one.
          apply H.
-         intros contra. apply H11.
+         intros contra. apply H5.
          rewrite rememberme. symmetry. assumption.
-
-
+(*N1 l != N2 l*)
++ apply H8. by move/ eqP : beq.
+  Unshelve. apply V1. apply w. apply V1. apply w.  Qed.
         (*Lemma fifteen: forall{N0 N1 N1' N2: nvmem} {V V': vmem} {c c': command} {O: obseq} {W: the_write_stuff},
              iceval_w ((N0, V, c), N1, V, c) O
              ((N0, V, c), N1', V', c') W ->
