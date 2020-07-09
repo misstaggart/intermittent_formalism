@@ -716,87 +716,49 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
            simpl.
            (*now have that l is not in D0*)
            left.
-    (*inducting on T to split up W0*)
-       - dependent induction T.
-         (*empty trace case*)
-+ subst. inversion H. subst.
+(*inducting on T to split up W0*)
+           inversion T; subst.
+           inversion H. subst.
           exfalso. by apply H5.
-          (*single trace case*)
-+ inversion H; subst; try (exfalso; by (apply H5 || apply H10)).
-         (*have to invert the iceval cuz the cceval
-          doesnt tell you directly about N1'*)
-  (*exfalso. by apply H10.
-  exfalso. rewrite (update_sub H4) in H10. by apply H10.
-  exfalso. apply (stupid H18).*)
-         pose proof (iceval_cceval H H5) as HW0.
-         destruct HW0 as [ HW1 [ HW2 [ Hw3 Hw4 ] ] ].
-         subst. simpl.
-           suffices: (l = (inl x)).
-       - intros Heq. subst. simpl.
-         suffices: ((inl x) \notin (readobs_wvs r)).
-         intros Hnin. rewrite Hnin. by rewrite mem_seq1.
-         + simpl in H2.
-           inversion H2; subst;
-           inversion H15; subst.
-           exfalso. apply (negNVandV x H21 H23).
-(*why double eeval relations here.. i think the
- cceval and iceval*)
-           pose proof (read_deterministic H18 (RD H20)) as rdeq.
-           rewrite <- rdeq.
-           simpl in H24.
-           apply not_true_is_false in H24.
-           apply (negbT H24).
-         + rewrite H9 in H26. discriminate H26.
-         + discriminate H24.
-       - apply (updateone_sv H10).
-       - pose proof (iceval_cceval H H5) as HW0.
-         destruct HW0 as [ HW1 [ HW2 [ Hw3 Hw4 ] ] ].
-         subst.
-         simpl.
-         (*pose proof (determinism_e H22 H23) as Heq11.*)
-         suffices: (l = (inr element)).
-       - intros Heq. subst.
-         suffices: ((inr element) \notin (readobs_wvs (r ++ ri))).
-         intros Hnin. rewrite Hnin. by rewrite mem_seq1.
-         + 
-           simpl in H2.
-           inversion H2; subst;
-             inversion H15; subst.
-           rewrite readobs_app_wvs.
-           apply RD in H20.
-           apply RD in H21.
-           apply (read_deterministic H20) in H25.
-           apply (read_deterministic H21) in H18.
-           rewrite H25. rewrite H18.
-           destruct (inr element \notin Re ++ Rindex) eqn: beq1; auto.
-           move/negPn: beq1 => beq1.
-           exfalso.
-           apply H26.
-           exists (inr element: loc).
-           split.
-           destruct element.
-           apply (gen_locs_works H22).
-           assumption.
-                    (*ask arthur
-                     if there is a better way than beq1
-                     also ask about why you have to destruct element
-                     to get the types to match...
-                     destruct should not change the type?*)
-      - 
-          suffices: (inr element \in (getdomain N0)).
-          rewrite H9.
-          intros contra.
-          discriminate contra.
-          destruct element.
-          apply (in_subseq H27 (gen_locs_works H22)).
-          apply (updateone_arr H10).
-      - (*not convinced this case
-         is even legal cuz you have
-         l;;c' -> skip in one step c0*)
-        inversion H5; subst; try 
-                               (exfalso; by apply H0).
-        (*inductive case*)
- + destruct W1 as [ [W11 R1] Fw1] eqn: W1eq.
+(*single trace case*)
++ destruct (iceval_cceval H H10) as [Hc [He [Hf Hg] ] ].
+  subst.
+  destruct W0 as [ [W11 R1] Fw1] eqn: W1eq.
+  simpl.
+         suffices: (l \in W11).
+         intros HW1.
+         destruct (l \in Fw1) eqn: FWeq; auto.
+         apply negbT in FWeq.
+         pose proof (negfwandw_means_r TN1 FWeq HW1) as Hr.
+         simpl in Hr.
+         suffices: (
+       is_true (l \in D0)
+                   ).
+         case => contra.
++ rewrite H9 in contra. discriminate contra.
+         rewrite rememberme1. eapply fourteen.
+         apply TN1.
+         (*why do i have two traces here
+          nvm it's the remember from the top*)
+         by move/ negP : H7.
+          assumption.
+         assumption. assumption.
+         (*this comes from fact that N1 steps to M1'
+          in one (H) but N1 l and M1' of l are different.. new theorem*)
+         assert (W11 = (getwt W0)) as Hwt. by rewrite W1eq; auto.
+         rewrite Hwt.
+         eapply wt_gets_bigger.
+         apply H.
+         rewrite <- W1eq in TN1.
+         apply TN1.
+         intros contra. subst.
+         inversion H10.
+         eapply update_one.
+         apply H.
+         intros contra. apply H5.
+         rewrite rememberme. symmetry. assumption.
+(*inductive case*)
++ destruct W1 as [ [W11 R1] Fw1] eqn: W1eq.
          destruct W2 as [ [W22 R2] Fw2] eqn: W2eq.
          unfold append_write.
          simpl.
@@ -808,7 +770,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          intros HW1.
          destruct (l \in Fw1) eqn: FWeq; auto.
          apply negbT in FWeq.
-         pose proof (negfwandw_means_r T1 FWeq HW1) as Hr.
+         pose proof (negfwandw_means_r H10 FWeq HW1) as Hr.
          simpl in Hr.
          suffices: (is_true (l \in Fw1 ++ remove R1 Fw2) \/
        is_true (l \in D0)
@@ -824,12 +786,12 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          rewrite Hr in contra. discriminate contra.
          case => contra.
          assumption.
-         rewrite H10 in contra. assumption.
+         rewrite H9 in contra. assumption.
          right. rewrite rememberme1.
          destruct3 Cmid nmid vmid cmid.
          eapply fourteen; try (assumption).
-         apply T1.
-         move/ negP : H8.
+         apply H10.
+         move/ negP : H7.
          rewrite mem_cat.
          case/ norP => Hor1 Hor2. assumption.
           assumption.
@@ -841,13 +803,16 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          destruct3 Cmid nmid vmid cmid.
          eapply wt_gets_bigger.
          apply H.
-         rewrite <- W1eq in T1.
-         apply T1.
+         rewrite <- W1eq in H10.
+         apply H10.
          assumption.
          eapply update_one.
          apply H.
-         intros contra. apply H11.
+         intros contra. apply H5.
          rewrite rememberme. symmetry. assumption.
+(*N1 l != N2 l*)
++ apply H8. by move/ eqP : beq.
+
 (*N1 l != N2 l*)
  + apply H8. by move/ eqP : beq.
 
