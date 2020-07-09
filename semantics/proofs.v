@@ -644,8 +644,10 @@ Lemma iceval_cceval: forall{k: context} {N Nend1 Nend2 : nvmem} {V Vend1 Vend2: 
                       {c cend1 cend2 : command} {O1 O2: obseq} {W1 W2: the_write_stuff},
     iceval_w (k, N, V, c) O1 (k, Nend1, Vend1, cend1) W1 ->
     cceval_w (N, V, c) O2 (Nend2, Vend2, cend2) W2 ->
-    Nend1 = Nend2 /\ Vend1 = Vend2 /\ cend1 = cend2 /\ W1 = W2.
-Admitted.
+    (Nend1 = N /\ Vend1 = V /\ cend1 = cend2 /\ W1 = emptysets) \/
+    (Nend1 = Nend2 /\ Vend1 = Vend2 /\ cend1 = cend2 /\ W1 = W2).
+ Admitted. 
+
 
 Lemma pf_idem : forall(N0 N Nend: nvmem) (V0 V Vend: vmem)
                       (c0 c: command) (O : obseq) (W : the_write_stuff),
@@ -721,8 +723,9 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
            inversion H. subst.
           exfalso. by apply H5.
 (*single trace case*)
-+ destruct (iceval_cceval H H10) as [Hc [He [Hf Hg] ] ].
-  subst.
++ destruct (iceval_cceval H H10) as [ [HN [HV [Hc Hw] ] ] | [HN [HV [Hc Hw] ] ] ]; subst.
+       - (*pf case*) exfalso. by apply H5.
+       - 
   destruct W0 as [ [W11 R1] Fw1] eqn: W1eq.
   simpl.
          suffices: (l \in W11).
@@ -870,10 +873,10 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
                                    exfalso; by apply H5).
            exfalso. by apply (H20 wcp).
           (*single trace case*)
-           + destruct (iceval_cceval H H10) as [Hc [He [Hf Hg] ] ].
-  subst.
-  destruct W0 as [ [W11 R1] Fw1] eqn: W1eq.
-  simpl.
+           + destruct (iceval_cceval H H10) as [ [HN [HV [Hc Hw] ] ] | [HN [HV [Hc Hw] ] ] ]; subst.
+             - exfalso. by apply H5.
+             - destruct W0 as [ [W11 R1] Fw1] eqn: W1eq.
+         simpl.
          suffices: (l \in W11).
          intros HW1.
          destruct (l \in Fw1) eqn: FWeq; auto.
