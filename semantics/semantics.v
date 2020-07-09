@@ -1051,6 +1051,10 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
          (c: command)
          (o: obs)
          (W: the_write_stuff),
+    (forall(w: warvars), l <> (incheckpoint w)) ->
+    l <> skip ->
+    c <> (Ins skip) -> (*outlawing equivalent representations of programs
+                      with 10 billion skips at the end*)
     iceval_w (k, N, V, Ins l) (o::nil) (k, N', V', Ins skip) W ->
     iceval_w (k, N, V, (l;;c)) (o::nil) (k, N', V', c) W (*ask arthur like with those two os just there*)
 |CP_If_T: forall(k: context) (N: nvmem) (V: vmem)

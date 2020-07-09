@@ -647,10 +647,10 @@ Lemma iceval_cceval: forall{k: context} {N Nend1 Nend2 : nvmem} {V Vend1 Vend2: 
     Nend1 = Nend2 /\ Vend1 = Vend2 /\ cend1 = cend2 /\ W1 = W2.
 Admitted.
 
-Lemma pf_idem : forall{k: context} {N Nend: nvmem} {V Vend: vmem}
-                      {c: command} {O : obseq} {W : the_write_stuff},
-        iceval_w (k, N, V, c) O
-                 (k, Nend, Vend, c) W -> N = Nend .
+Lemma pf_idem : forall(N0 N Nend: nvmem) (V0 V Vend: vmem)
+                      (c0 c: command) (O : obseq) (W : the_write_stuff),
+        iceval_w ((N0, V0, c0), N, V, c) O
+                 ((N0, V0, c0), Nend, Vend, c) W -> N = Nend.
   intros.
   dependent induction H; (try auto).
   + exfalso. by apply H. (*here is where reboot case happens*)
@@ -904,20 +904,14 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
     (*inducting on T to split up W0*)
        - dependent induction T; subst.
          (*empty trace case*)
-         + apply pf_idem in H.
-
+           + 
            inversion H; subst; try (
-  exfalso; by apply H5).
+                                   exfalso; by apply H5).
+           exfalso. by apply (H20 wcp).
           (*single trace case*)
-+ inversion H; subst.
-  exfalso. by apply H5.
-
-  try (exfalso; by (apply H5 || apply H10)).
++ inversion H; subst; try (exfalso; by (apply H5 || apply H10)).
          (*have to invert the iceval cuz the cceval
           doesnt tell you directly about N1'*)
-  (*exfalso. by apply H10.
-  exfalso. rewrite (update_sub H4) in H10. by apply H10.
-  exfalso. apply (stupid H18).*)
          pose proof (iceval_cceval H H5) as HW0.
          destruct HW0 as [ HW1 [ HW2 [ Hw3 Hw4 ] ] ].
          subst. simpl.
@@ -983,6 +977,9 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
       - (*not convinced this case
          is even legal cuz you have
          l;;c' -> skip in one step c0*)
+        pose proof (iceval_cceval H H5) as Heval.
+        destruct Heval as [ HN [ HV [ HC HW ] ] ].
+        subst.
         inversion H5; subst; try 
                                (exfalso; by apply H0).
         (*inductive case*)
