@@ -909,81 +909,12 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
                                    exfalso; by apply H5).
            exfalso. by apply (H20 wcp).
           (*single trace case*)
-+ inversion H; subst; try (exfalso; by (apply H5 || apply H10)).
-         (*have to invert the iceval cuz the cceval
-          doesnt tell you directly about N1'*)
-         pose proof (iceval_cceval H H5) as HW0.
-         destruct HW0 as [ HW1 [ HW2 [ Hw3 Hw4 ] ] ].
-         subst. simpl.
-           suffices: (l = (inl x)).
-       - intros Heq. subst. simpl.
-         suffices: ((inl x) \notin (readobs_wvs r)).
-         intros Hnin. rewrite Hnin. by rewrite mem_seq1.
-         + simpl in H2.
-           inversion H2; subst;
-           inversion H15; subst.
-           exfalso. apply (negNVandV x H21 H23).
-(*why double eeval relations here.. i think the
- cceval and iceval*)
-           pose proof (read_deterministic H18 (RD H20)) as rdeq.
-           rewrite <- rdeq.
-           simpl in H24.
-           apply not_true_is_false in H24.
-           apply (negbT H24).
-         + rewrite H9 in H26. discriminate H26.
-         + discriminate H24.
-       - apply (updateone_sv H10).
-       - pose proof (iceval_cceval H H5) as HW0.
-         destruct HW0 as [ HW1 [ HW2 [ Hw3 Hw4 ] ] ].
-         subst.
-         simpl.
-         (*pose proof (determinism_e H22 H23) as Heq11.*)
-         suffices: (l = (inr element)).
-       - intros Heq. subst.
-         suffices: ((inr element) \notin (readobs_wvs (r ++ ri))).
-         intros Hnin. rewrite Hnin. by rewrite mem_seq1.
-         + 
-           simpl in H2.
-           inversion H2; subst;
-             inversion H15; subst.
-           rewrite readobs_app_wvs.
-           apply RD in H20.
-           apply RD in H21.
-           apply (read_deterministic H20) in H25.
-           apply (read_deterministic H21) in H18.
-           rewrite H25. rewrite H18.
-           destruct (inr element \notin Re ++ Rindex) eqn: beq1; auto.
-           move/negPn: beq1 => beq1.
-           exfalso.
-           apply H26.
-           exists (inr element: loc).
-           split.
-           destruct element.
-           apply (gen_locs_works H22).
-           assumption.
-                    (*ask arthur
-                     if there is a better way than beq1
-                     also ask about why you have to destruct element
-                     to get the types to match...
-                     destruct should not change the type?*)
-      - 
-          suffices: (inr element \in (getdomain N0)).
-          rewrite H9.
-          intros contra.
-          discriminate contra.
-          destruct element.
-          apply (in_subseq H27 (gen_locs_works H22)).
-          apply (updateone_arr H10).
-      - (*not convinced this case
-         is even legal cuz you have
-         l;;c' -> skip in one step c0*)
-        pose proof (iceval_cceval H H5) as Heval.
-        destruct Heval as [ HN [ HV [ HC HW ] ] ].
-        subst.
-        inversion H5; subst; try 
-                               (exfalso; by apply H0).
-        (*inductive case*)
- + destruct W1 as [ [W11 R1] Fw1] eqn: W1eq.
+           + inversion H; subst; try (exfalso; by (apply H5 || apply H10)).
+inversion H5.
+inversion H5.
+destruct (iceval_cceval H H5) as [Hc [He [Hf Hg] ] ].
+subst.
+ destruct W0 as [ [W11 R1] Fw1] eqn: W1eq.
          destruct W2 as [ [W22 R2] Fw2] eqn: W2eq.
          unfold append_write.
          simpl.
