@@ -577,6 +577,11 @@ Definition getvalue (N: nvmem) (i: loc) :=
 
 
   (*updates domain and mapping function*)
+  (*start here consider defining the two below in terms of updatemaps
+   for more generality in proofs
+   actually dont do this cuz domain weirdness in updatemaps makes it so that
+   you'd have a nested if in update_arr which you'll need to use
+   in all the eval proofs*)
 Definition updateNV_sv (N: nvmem) (i: smallvar) (v: value) :=
   match N with NonVol m D =>
                NonVol (updatemap m (inl i) v) ((inl i):: D)  end.
@@ -952,7 +957,6 @@ CheckPoint: forall(N: nvmem)
 | Skip: forall(N: nvmem)
          (V: vmem)
          (c: command),
-    c <> skip -> (*disallowing equivalent reps*)
     cceval_w (N, V, (skip;;c)) ((Obs NoObs)::nil) (N, V, c) (nil, nil, nil)
 | Seq: forall (N N': nvmem)
          (V V': vmem)
@@ -962,8 +966,6 @@ CheckPoint: forall(N: nvmem)
          (W: the_write_stuff),
     (forall(w: warvars), l <> (incheckpoint w)) ->
     l <> skip ->
-    c <> (Ins skip) -> (*outlawing equivalent representations of programs
-                      with 10 billion skips at the end*)
     cceval_w (N, V, Ins l) (o::nil) (N', V', Ins skip) W ->
     cceval_w (N, V, (l;;c)) (o::nil) (N', V', c) W
    (*IP becomes obnoxious if you let checkpoint into the Seq case so I'm outlawing it
@@ -1053,8 +1055,6 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
          (W: the_write_stuff),
     (forall(w: warvars), l <> (incheckpoint w)) ->
     l <> skip ->
-    c <> (Ins skip) -> (*outlawing equivalent representations of programs
-                      with 10 billion skips at the end*)
     iceval_w (k, N, V, Ins l) (o::nil) (k, N', V', Ins skip) W ->
     iceval_w (k, N, V, (l;;c)) (o::nil) (k, N', V', c) W (*ask arthur like with those two os just there*)
 |CP_If_T: forall(k: context) (N: nvmem) (V: vmem)

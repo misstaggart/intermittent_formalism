@@ -70,7 +70,7 @@ Lemma observe_checkpt: forall {N N': nvmem} {V V': vmem}
   dependent induction T.
   + left. reflexivity.
   +  inversion H; subst. right.  apply(mem_head checkpoint).
-     inversion H12.
+     inversion H11.
   + destruct3 Cmid nmid vmid cmid. destruct (IHT1 N nmid V vmid c cmid w); subst; try reflexivity.
       - destruct (IHT2 nmid N' vmid V' c c' w); subst; try reflexivity;
           [left; reflexivity | right; apply (in_app_r H1)].
@@ -194,7 +194,7 @@ Proof. intros C1 C2 C3 O1 O2 W1 W2 cc1 cc2. destruct C1 as [blah c]. destruct bl
          try (exfalso; apply (H w); reflexivity);
          try (exfalso; (apply H1 || apply H0); reflexivity);
          try (destruct (determinism_e H H0); inversion H2);
-         try (apply IHcc1 in H5; destruct H5 as
+         try (apply IHcc1 in H3; destruct H3 as
              [onee rest]; destruct rest as [two threee];
               inversion onee; inversion two);
          try( 
@@ -202,7 +202,6 @@ Proof. intros C1 C2 C3 O1 O2 W1 W2 cc1 cc2. destruct C1 as [blah c]. destruct bl
    pose proof (equal_index_works H1 H5));
          try (subst;
               split; [reflexivity | (split; reflexivity)]).
-exfalso; apply H0; reflexivity. (*start here fix that line*)
 Qed.
 
 
@@ -473,14 +472,26 @@ or in the CP ....but N1 isn't updated w a CP.... need subset relation?
 but i do need to show that the write sets are the same
 easiest way to do that might be to show everything the same?*)
 
-Lemma update_sub: forall{N0 N1: nvmem},
+(*Lemma update_sub: forall{N0 N1: nvmem},
     subset_nvm N0 N1 ->
     (N0 U! N1) = N1.
-Admitted.
-
+  intros. destruct N0, N1. unfold updatemaps.
+  Admitted.
+    need functionalextensionality here
+     also need to remove duplicates from the appending
+     so that this actually holds
+     only used in 12.1 so not gonna worry about it for now
+ i think the strat is to not use nodups and isntead do
+ ++ (remove D1 D0) removing D1 from D0 before appending*)
 
 Lemma sub_update: forall(N0 N1: nvmem),
-    subset_nvm N0 (N0 U! N1). Admitted.
+    subset_nvm N0 (N0 U! N1).
+  intros.
+  destruct N0, N1.
+  unfold subset_nvm. split.
+  simpl. apply prefix_subseq.
+  intros. simpl. by rewrite H.
+  Qed.
 
 (*ask arthur how does inversion not cover this*)
 Lemma stupid: forall (c: command) (l: instruction),
@@ -516,7 +527,7 @@ Lemma twelve01: forall(N0 N1 N1' NCP: nvmem) (V V' VCP: vmem) (c c' cCP: command
       -> trace_c (N1, V, c) (NCP, VCP, (incheckpoint w);; cCP) OCP WCP
       ->not (checkpoint \in OCP)
       -> trace_c ((N0 U! N1'), V, c) (NCP, VCP, (incheckpoint w);; cCP) OCP WCP.
-  intros. rename H3 into T.
+  (*intros. rename H3 into T.
   destruct_ms H Ti WTi.
   dependent induction Ti. (*makes a diff here w remembering that N1 and N1' are the same*)
   + rewrite (update_sub H2).  assumption.
@@ -525,7 +536,7 @@ Lemma twelve01: forall(N0 N1 N1' NCP: nvmem) (V V' VCP: vmem) (c c' cCP: command
      - repeat rewrite (update_sub H2).  assumption. 
      - exfalso. eapply stupid in x. contradiction.
      - 
-       (*above might be a little broken bc you changed from type
+       above might be a little broken bc you changed from type
         to prop w/o checking*)
        (*x has been written to
   unfold multi_step_c in H.
@@ -533,17 +544,28 @@ Lemma twelve01: forall(N0 N1 N1' NCP: nvmem) (V V' VCP: vmem) (c c' cCP: command
 
 Admitted.
 
-
-Lemma dom_gets_bigger: forall{N1 N1': nvmem} {V V': vmem} {k: context}
-                        {c c': command} {O: obseq},
-      multi_step_i (k, N1, V, c) (k, N1', V', c') O ->
-   subseq (getdomain N1) (getdomain N1').
-  Admitted.
-
 Lemma dom_gets_bigger_rb: forall(N0 N1: nvmem),
     subseq (getdomain N1) (getdomain (N0 U! N1)).
   move => [m0 d0] [m1 d1]. simpl. apply suffix_subseq.
   Qed.
+
+Lemma dom_gets_bigger: forall{N1 N1': nvmem} {V V': vmem} {k0 k1: context}
+                        {c c': command} {O: obseq},
+      multi_step_i (k0, N1, V, c) (k1, N1', V', c') O ->
+   subseq (getdomain N1) (getdomain N1').
+  intros. destruct H as [w [T] ].
+  dependent induction T.
+  apply subseq_refl.
+  dependent induction i; try (apply subseq_refl); try
+                                                    apply dom_gets_bigger_rb.
+  destruct N1. unfold updateNV_sv. unfold getdomain.
+ apply (subseq_cons D (inl x)). 
+  destruct N1. unfold updateNV_arr. unfold getdomain.
+  apply (suffix_subseq (generate_locs a) D).
+  eapply IHi; (try reflexivity).
+  destruct Cmid as [ [ [ Kmid Nmid ] Vmid ] cmid].
+  eapply subseq_trans; [eapply IHT1 | eapply IHT2]; try reflexivity.
+Qed.
 
 Lemma updateone_sv: forall{N: nvmem} {x: smallvar} {v: value}
              {l: loc},
@@ -581,7 +603,10 @@ Lemma update_one: forall{N N0 Nend: nvmem} {V V0 Vend: vmem} {c c0 cend: command
     (getmap N) l <> (getmap Nend) l ->
     l \in (getwt W).
   intros.
-  Admitted.
+  dependent induction H; try (exfalso; by apply H0).
+Admitted.
+(*totally broken in the reboot case*)
+
 
 Lemma wt_gets_bigger: forall{N N0 Nmid Nend: nvmem} {V V0 Vmid Vend: vmem} {c c0 cmid cend: command} {O0 O1: obseq} {W0 W1: the_write_stuff}
   {l: loc},
@@ -627,8 +652,57 @@ Lemma negfwandw_means_r: forall{C Cend: context}  {O: obseq} {W: the_write_stuff
   {l: loc},
     trace_c C Cend O W ->
     l \notin (getfstwt W) -> l \in (getwt W) -> l \in (getrd W).
-Admitted.
-
+  intros. destruct3 W w rD fw.
+  dependent induction H.
+  + discriminate H1.
+  + induction H; (try discriminate H1);
+    simpl in H1;
+    simpl in H0;
+    simpl.
+    destruct (l \in readobs_wvs r) eqn: beq.
+    auto.
+    apply negbT in beq.
+    rewrite mem_seq1 in H1.
+    move/eqP: H1 => H1. subst.
+    rewrite beq in H0.
+    rewrite mem_seq1 in H0.
+    move/eqP: H0 => contra.
+    exfalso. by apply contra.
+    destruct (l \in readobs_wvs (r ++ ri)) eqn: beq.
+    auto.
+    rewrite mem_seq1 in H1.
+    move/eqP: H1 => H1. subst.
+    rewrite beq in H0.
+    rewrite mem_seq1 in H0.
+    move/eqP: H0 => contra.
+    exfalso. by apply contra.
+    apply IHcceval_w; assumption.
+    destruct W1 as [ [w1 rd1] fw1].
+    destruct W2 as [ [w2 rd2] fw2].
+    simpl in H3. simpl in H4.
+    simpl.
+    simpl in IHtrace_c1.
+    simpl in IHtrace_c2.
+    rewrite mem_cat.
+    apply (introT orP).
+    rewrite mem_cat in H3.
+    case/norP : H3 => [H31 H32].
+    rewrite mem_cat in H4.
+    move/ orP : H4 => H4.
+    destruct H4.
+  + left. eapply IHtrace_c1; try
+                               reflexivity; try assumption.
+  + destruct (l \in rd1) eqn: beq1.
+    - auto.
+      right.
+      rewrite mem_filter in H32.
+      move/ nandP : H32 => [H320 | H321].
+      rewrite beq1 in H320.
+      move/negPn : H320 => contra.
+      discriminate contra.
+    - eapply IHtrace_c2; try reflexivity;
+        try assumption.
+ Qed.
 
 Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
                  {l: loc},
@@ -638,18 +712,70 @@ Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
     l \notin (getfstwt W) ->
     l \in (getwt W) ->
     l \in (getdomain N0).
-   Admitted. 
+  intros.
+  Admitted.
+
 
 Lemma iceval_cceval: forall{k: context} {N Nend1 Nend2 : nvmem} {V Vend1 Vend2: vmem}
                       {c cend1 cend2 : command} {O1 O2: obseq} {W1 W2: the_write_stuff},
     iceval_w (k, N, V, c) O1 (k, Nend1, Vend1, cend1) W1 ->
     cceval_w (N, V, c) O2 (Nend2, Vend2, cend2) W2 ->
     (Nend1 = N /\ Vend1 = (reset V) /\ W1 = emptysets) \/
-    (Nend1 = Nend2 /\ Vend1 = Vend2 /\ cend1 = cend2 /\ W1 = W2).
+    (Nend1 = Nend2 /\ Vend1 = Vend2 /\ W1 = W2).
   intros.
-  dependent induction H.
-  split
+  move : cend2 H0.
+  dependent induction H; intros.
+  left. split; [reflexivity | split; reflexivity].
+  inversion H0.
+  inversion H0; subst. right.
+  split; [reflexivity | split; reflexivity ].
+  exfalso. by apply (H9 w).
+  inversion H2; subst. right.
+  destruct (determinism_e H H12). subst.
+  split; [reflexivity | split; reflexivity ].
+  exfalso. apply (negNVandV x H0 H13).
+inversion H2; subst. right.
+exfalso. apply (negNVandV x H13 H0).
+right.
+  destruct (determinism_e H H12). subst.
+  split; [reflexivity | split; reflexivity ].
+  right.
+  inversion H3; subst.
+  destruct (determinism_e H H14).
+  destruct (determinism_e H0 H15).
+  subst.
+  pose proof (equal_index_works H16 H1).
+  subst.
+  split; [reflexivity | split; reflexivity ].
+  right. inversion H0; subst.
+  split; [reflexivity | split; reflexivity ].
+  exfalso. by apply H10.
+  inversion H2; subst.
+  - exfalso. by apply (H w).
+  - exfalso. by apply H0.
+    eapply IHiceval_w.
+    reflexivity.
+    reflexivity.
+    apply H14.
+    right. inversion H0; subst;
+    destruct (determinism_e H H11); subst.
+    split; [reflexivity | split; reflexivity ].
+    inversion H2.
+    right. inversion H0; subst;
+    destruct (determinism_e H H11); subst.
+    inversion H2.
+    split; [reflexivity | split; reflexivity ].
+(*ask arthur how to do a recursive tactic
+ for dealing with big conjunctions*)
+Qed.
 
+(*
+Lemma iceval_cceval: forall{k: context} {N Nend1 Nend2 : nvmem} {V Vend1 Vend2: vmem}
+                      {c cend1 cend2 : command} {O1 O2: obseq} {W1 W2: the_write_stuff},
+    iceval_w (k, N, V, c) O1 (k, Nend1, Vend1, cend1) W1 ->
+    cceval_w (N, V, c) O2 (Nend2, Vend2, cend2) W2 ->
+    (Nend1 = N /\ Vend1 = (reset V) /\ W1 = emptysets) \/
+    (Nend1 = Nend2 /\ Vend1 = Vend2 /\ cend1 = cend2 /\ W1 = W2).*)
 
 Lemma pf_idem : forall(N0 N Nend: nvmem) (V0 V Vend: vmem)
                       (c0 c: command) (O : obseq) (W : the_write_stuff),
@@ -725,7 +851,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
            inversion H. subst.
           exfalso. by apply H5.
 (*single trace case*)
-+ destruct (iceval_cceval H H10) as [ [HN [HV [Hc Hw] ] ] | [HN [HV [Hc Hw] ] ] ]; subst.
++ destruct (iceval_cceval H H10) as [ [ HN [HV Hw] ] | [HN [HV Hw ] ] ]; subst.
        - (*pf case*) exfalso. by apply H5.
        - 
   destruct W0 as [ [W11 R1] Fw1] eqn: W1eq.
@@ -875,7 +1001,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
                                    exfalso; by apply H5).
            exfalso. by apply (H20 wcp).
           (*single trace case*)
-           + destruct (iceval_cceval H H10) as [ [HN [HV [Hc Hw] ] ] | [HN [HV [Hc Hw] ] ] ]; subst.
+           + destruct (iceval_cceval H H10) as [ [HN [HV Hw] ]  | [HN [HV Hw ] ] ]; subst.
              - exfalso. by apply H5.
              - destruct W0 as [ [W11 R1] Fw1] eqn: W1eq.
          simpl.
@@ -903,6 +1029,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          rewrite Hwt.
          eapply wt_gets_bigger.
          apply H.
+         (*for error 2 come here apply TN1. *)
          rewrite <- W1eq in TN1.
          apply TN1.
          intros contra. subst.
