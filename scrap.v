@@ -1,3 +1,4 @@
+
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Strings.String Program Logic.FunctionalExtensionality.
@@ -31,7 +32,7 @@ Lemma wt_subst_fstwt: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
     subseq (getfstwt W) (getwt W).
 Proof. intros C1 C2 O W T. induction T.
        + auto.
-       + induction c; auto; try (unfold getfstwt; unfold getwt;
+       + induction H; auto; try (unfold getfstwt; unfold getwt;
          apply filter_subseq).
        - simpl. apply (cat_subseq IHT1
                                     (subseq_trans
@@ -49,13 +50,13 @@ Proof.
   intros N N' V V' l c O W T. dependent induction T.
   + constructor.
   + reflexivity.
-  + inversion c0; subst; try(right; reflexivity).
+  + inversion H; subst; try(right; reflexivity).
   + destruct3 Cmid nmid vmid cmid.
     assert (cmid = l \/ cmid = skip).
     {
       apply (IHT1 N nmid V vmid l cmid); reflexivity.
     }
-  + inversion H; subst.
+  + inversion H1; subst.
        -  eapply IHT2; reflexivity.
        - right.
          destruct (IHT2 nmid N' vmid V' skip c); (reflexivity || assumption).
@@ -69,12 +70,12 @@ Lemma observe_checkpt: forall {N N': nvmem} {V V': vmem}
   intros N N' V V' c c' w O W T.
   dependent induction T.
   + left. reflexivity.
-  +  inversion c0; subst. right.  apply(mem_head checkpoint).
-     inversion H10.
+  +  inversion H; subst. right.  apply(mem_head checkpoint).
+     inversion H11.
   + destruct3 Cmid nmid vmid cmid. destruct (IHT1 N nmid V vmid c cmid w); subst; try reflexivity.
       - destruct (IHT2 nmid N' vmid V' c c' w); subst; try reflexivity;
-          [left; reflexivity | right; apply (in_app_r H)].
-      - right. apply (in_app_l H).
+          [left; reflexivity | right; apply (in_app_r H1)].
+      - right. apply (in_app_l H1).
 Qed.
 
 Lemma negNVandV: forall(x : smallvar), isNV x -> not (isV x).
@@ -103,6 +104,50 @@ Lemma equal_index_works: forall{e0 e1: el_loc} {a: array} {v: value},
           by apply ord_inj.
 Qed.
 
+Lemma equal_index_arr: forall{a0 a: array} {i: 'I_(get_length a0)}
+                           {v: value},
+    equal_index (El a0 i) a v -> a0 = a.
+        intros. unfold equal_index in H.
+        destruct v eqn: veq; try (exfalso; assumption).
+        destruct H. assumption.
+Qed.
+
+Lemma gen_locs_works: forall{a a0: array} {i: 'I_(get_length a0)}
+                           {v: value},
+    equal_index (El a0 i) a v -> (inr (El a0 i)) \in (generate_locs a).
+  intros. apply equal_index_arr in H. subst.
+  unfold generate_locs. unfold index_loc.
+  destruct a.
+  simpl in i.
+  simpl.  intros.
+  Check inE.
+  apply (map_f (fun i0 => inr (El (Array s l) i0)))
+  .
+  rewrite mem_enum.
+  reflexivity.
+Qed.
+(*ask arthur
+ HOW did reflexivity work just then*)
+  (*suffices: 
+  rewrite <- inE.
+  induction i.
+    intros H.
+  destruct a. simpl.
+  simpl in H.
+  injection.
+  unfold enum in H.
+  unfold in_mem.
+  unfold in_mem in H.
+  unfold pred_of_mem.
+  unfold mem_seq_predType.
+  apply H.
+
+  unfold equal_index in H.
+        destruct v eqn: veq; try (exfalso; assumption).
+        destruct H. assumption.
+Qed.*)
+
+(*consider using map cat for the app thing*)
 Lemma determinism_e: forall{N: nvmem} {V: vmem} {e: exp} {r1 r2: readobs} {v1 v2: value},
     eeval N V e r1 v1 ->
     eeval N V e r2 v2 ->
@@ -148,7 +193,7 @@ Proof. intros C1 C2 C3 O1 O2 W1 W2 cc1 cc2. destruct C1 as [blah c]. destruct bl
        ; subst; try (exfalso; eapply (negNVandV x); assumption);
          try (destruct (determinism_e H H2); subst);
          try (exfalso; apply (H w); reflexivity);
-         try (exfalso; apply H0; reflexivity);
+         try (exfalso; (apply H1 || apply H0); reflexivity);
          try (destruct (determinism_e H H0); inversion H2);
          try (apply IHcc1 in H3; destruct H3 as
              [onee rest]; destruct rest as [two threee];
@@ -156,8 +201,8 @@ Proof. intros C1 C2 C3 O1 O2 W1 W2 cc1 cc2. destruct C1 as [blah c]. destruct bl
          try( 
  destruct (determinism_e H3 H); destruct (determinism_e H4 H0); subst;
    pose proof (equal_index_works H1 H5));
-         (subst;
-         split; [reflexivity | (split; reflexivity)]).
+         try (subst;
+              split; [reflexivity | (split; reflexivity)]).
 Qed.
 
 
@@ -177,10 +222,10 @@ Lemma single_step_all: forall{C1 Cmid C3: context}
   remember T as Tsaved. clear HeqTsaved. (*make ltac for this*)
   dependent induction T; intros.
   + exfalso. apply OH. reflexivity.
-  + destruct c0 as [O1 rest]. destruct rest as [W1 c0]. exists emptysets (nil: obseq).
+  + destruct c as [O1 rest]. destruct rest as [W1 c0]. exists emptysets (nil: obseq).
     constructor. cut (C2 = Cmid).
     - intros Hmid. subst. constructor. apply CTrace_Empty.
-    - eapply determinism. apply c. apply c0.
+    - eapply determinism. apply H. apply c0.
     - apply sub0seq.
       + assert (Tfirst: exists Wrest Orest, inhabited (trace_c Cmid0 Cmid Orest Wrest)
                        /\ subseq Orest O1                           
@@ -205,7 +250,7 @@ Lemma trace_steps: forall{C1 C3: context}
       cceval_w C1 Osmall Csmall Wsmall.
 Proof. intros C1 C3 Obig Wbig T H. induction T.
        + exfalso. apply H. reflexivity.
-       + exists C2 O W. assumption. apply (IHT1 n).
+       + exists C2 O W. assumption. apply (IHT1 H0).
 Qed.
 
 Lemma seq_step: forall{N: nvmem} {V: vmem} {l: instruction} {c: command}
@@ -428,32 +473,28 @@ or in the CP ....but N1 isn't updated w a CP.... need subset relation?
 but i do need to show that the write sets are the same
 easiest way to do that might be to show everything the same?*)
 
-Lemma updateone_sv: forall(N: nvmem) (x: smallvar) (v: value)
-             (l: loc),
-               ((getmap N) l) != ((getmap (updateNV_sv N x v)) l) ->
-               (l == (inl x)).
-  intros.
-  destruct (l == inl x) eqn: beq; auto.
-  destruct N as [M D].
-  unfold updateNV_sv in H.
-  simpl in H.
-  unfold updatemap in H.
-  rewrite beq in H.
-  move/ eqP : H. auto.
-Qed.
-
-Lemma update_sub: forall{N0 N1: nvmem},
+(*Lemma update_sub: forall{N0 N1: nvmem},
     subset_nvm N0 N1 ->
     (N0 U! N1) = N1.
-Admitted.
+  intros. destruct N0, N1. unfold updatemaps.
+  Admitted.
+    need functionalextensionality here
+     also need to remove duplicates from the appending
+     so that this actually holds
+     only used in 12.1 so not gonna worry about it for now*)
 
-
-Lemma sub_update: forall{N0 N1: nvmem},
-    subset_nvm N0 (N0 U! N1). Admitted.
+Lemma sub_update: forall(N0 N1: nvmem),
+    subset_nvm N0 (N0 U! N1).
+  intros.
+  destruct N0, N1.
+  unfold subset_nvm. split.
+  simpl. apply prefix_subseq.
+  intros. simpl. by rewrite H.
+  Qed.
 
 (*ask arthur how does inversion not cover this*)
-Lemma stupid: forall {c: command} {w: warvars},
-    c <> ((incheckpoint w);; c).
+Lemma stupid: forall (c: command) (l: instruction),
+    c <> (l ;; c).
   move => c w contra.
   induction c; inversion contra.
     by apply IHc.
@@ -464,15 +505,15 @@ Qed.
  assumption, admitting it now, intend to fix it later*)
 
 (*termination case*)
-Lemma twelve00: forall(N0 N1 N1' NT: nvmem) (V V' VT: vmem) (c c' cCP: command) (w: warvars) (O1 OT: obseq)
+Lemma twelve00: forall(N0 N1 N1' NT: nvmem) (V V' VT: vmem) (c c': command) (O1 OT: obseq)
   (WT: the_write_stuff),
    multi_step_i ((N0, V, c), N1, V, c) ((N0, V, c), N1', V', c') O1
       -> not (checkpoint \in O1)
       -> WARok (getdomain N0) [::] [::] c
       -> subset_nvm N0 N1
-      -> trace_c (N1, V, c) (NT, VT, Ins skip) OT WT
+      -> inhabited (trace_c (N1, V, c) (NT, VT, Ins skip) OT WT)
       ->not (checkpoint \in OT)
-      -> inhabited (trace_c ((N0 U! N1'), V, c) (NT, VT, Ins skip) OT WT).
+      -> trace_c ((N0 U! N1'), V, c) (NT, VT, Ins skip) OT WT.
 Admitted.
 
 (*checkpoint case*)
@@ -484,20 +525,22 @@ Lemma twelve01: forall(N0 N1 N1' NCP: nvmem) (V V' VCP: vmem) (c c' cCP: command
       -> subset_nvm N0 N1
       -> trace_c (N1, V, c) (NCP, VCP, (incheckpoint w);; cCP) OCP WCP
       ->not (checkpoint \in OCP)
-      -> inhabited (trace_c ((N0 U! N1'), V, c) (NCP, VCP, (incheckpoint w);; cCP) OCP WCP).
-  intros. rename X into T.
+      -> trace_c ((N0 U! N1'), V, c) (NCP, VCP, (incheckpoint w);; cCP) OCP WCP.
+  (*intros. rename H3 into T.
   destruct_ms H Ti WTi.
   dependent induction Ti. (*makes a diff here w remembering that N1 and N1' are the same*)
-  + rewrite (update_sub H2). constructor. assumption.
+  + rewrite (update_sub H2).  assumption.
   + dependent induction i.
-     - rewrite (update_sub H2). constructor. assumption.
-     - repeat rewrite (update_sub H2). constructor. assumption. 
-     - exfalso. apply (stupid x).
+     - rewrite (update_sub H2). assumption.
+     - repeat rewrite (update_sub H2).  assumption. 
+     - exfalso. eapply stupid in x. contradiction.
      - 
-       
+       above might be a little broken bc you changed from type
+        to prop w/o checking*)
        (*x has been written to
   unfold multi_step_c in H.
   destruct H.*)
+
 Admitted.
 
 
@@ -512,35 +555,532 @@ Lemma dom_gets_bigger_rb: forall(N0 N1: nvmem),
   move => [m0 d0] [m1 d1]. simpl. apply suffix_subseq.
   Qed.
 
-Lemma twelve: forall(N0 N1 N1' N2: nvmem) (V V': vmem) (c c': command) (O: obseq),
-           multi_step_i ((N0, V, c), N1, V, c) ((N0, V, c), N1', V', c') O ->
+Lemma updateone_sv: forall{N: nvmem} {x: smallvar} {v: value}
+             {l: loc},
+    not (((getmap (updateNV_sv N x v)) l) = ((getmap N) l) ) ->
+               (l = (inl x)).
+  intros.
+  destruct (l == inl x) eqn: beq.
+  apply/ eqP : beq.
+  destruct N as [M D].
+  unfold updateNV_sv in H.
+  simpl in H.
+  unfold updatemap in H.
+  rewrite beq in H.
+  exfalso. by apply H. 
+  Qed.
+
+Lemma updateone_arr: forall{N: nvmem} {a: array} {v: value}
+             {i: el_loc} {l: loc},
+    not (((getmap (updateNV_arr N i a v)) l) = ((getmap N) l) ) ->
+               (l = (inr i)).
+  intros.
+  destruct (l == inr i) eqn: beq.
+  apply/ eqP : beq.
+  destruct N as [M D].
+  unfold updateNV_arr in H.
+  simpl in H.
+  unfold updatemap in H.
+  rewrite beq in H.
+  exfalso. by apply H. 
+  Qed.
+
+Lemma update_one: forall{N N0 Nend: nvmem} {V V0 Vend: vmem} {c c0 cend: command} {O: obseq} {W: the_write_stuff}
+  {l: loc},
+    iceval_w ((N0, V0, c0), N, V, c) O ((N0, V0, c0), Nend, Vend, cend) W ->
+    (getmap N) l <> (getmap Nend) l ->
+    l \in (getwt W).
+  intros.
+  Admitted.
+
+Lemma wt_gets_bigger: forall{N N0 Nmid Nend: nvmem} {V V0 Vmid Vend: vmem} {c c0 cmid cend: command} {O0 O1: obseq} {W0 W1: the_write_stuff}
+  {l: loc},
+    iceval_w ((N0, V0, c0), N, V, c) O0 ((N0, V0, c0), Nmid, Vmid, cmid) W0 ->
+    trace_c (N, V, c) (Nend, Vend, cend) O1 W1 ->
+    O1 <> [::] ->
+    l \in (getwt W0) ->
+          l \in (getwt W1).
+  Admitted.
+
+
+Lemma read_deterministic: forall{e: exp} {w1 w2: warvars},
+                           rd e w1 ->
+                           rd e w2 ->
+                           w1 = w2.
+  intros.
+ inversion H. inversion H0. subst. 
+  move: H0 H4. move: N0 V0 rs0 v0. dependent induction H1; intros.
+  + by inversion H4.
+  + inversion H4; subst. apply IHeeval1 in H8;
+                           
+                           apply IHeeval2 in H11;
+                        try(   rewrite (readobs_app_wvs r1 r2);
+    rewrite (readobs_app_wvs r0 r3);
+      by rewrite H8 H11);
+                        try ( eapply RD; (apply H11) || (apply H1_0) || (apply H1_)
+                            || (apply H8)).
+  + simpl. inversion H4; subst; simpl; auto.
+  + simpl. inversion H4; subst; simpl; auto.
+  + inversion H5. subst. rewrite (readobs_app_wvs rindex).
+    rewrite (readobs_app_wvs rindex0).
+    suffices: (readobs_wvs rindex) =(readobs_wvs rindex0).
+    move ->.
+    destruct element. destruct element0.
+ pose proof (equal_index_arr H2) as arreq. 
+ pose proof (equal_index_arr H12) as arreq1. by subst.
+ eapply IHeeval. apply (RD H1).
+ apply (RD H8). apply H8.
+Qed.
+
+
+Lemma negfwandw_means_r: forall{C Cend: context}  {O: obseq} {W: the_write_stuff}
+  {l: loc},
+    trace_c C Cend O W ->
+    l \notin (getfstwt W) -> l \in (getwt W) -> l \in (getrd W).
+  intros. destruct3 W w rD fw.
+  dependent induction H.
+  + discriminate H1.
+  + induction H; (try discriminate H1);
+    simpl in H1;
+    simpl in H0;
+    simpl.
+    destruct (l \in readobs_wvs r) eqn: beq.
+    auto.
+    apply negbT in beq.
+    rewrite mem_seq1 in H1.
+    move/eqP: H1 => H1. subst.
+    rewrite beq in H0.
+    rewrite mem_seq1 in H0.
+    move/eqP: H0 => contra.
+    exfalso. by apply contra.
+    destruct (l \in readobs_wvs (r ++ ri)) eqn: beq.
+    auto.
+    rewrite mem_seq1 in H1.
+    move/eqP: H1 => H1. subst.
+    rewrite beq in H0.
+    rewrite mem_seq1 in H0.
+    move/eqP: H0 => contra.
+    exfalso. by apply contra.
+    apply IHcceval_w; assumption.
+    destruct W1 as [ [w1 rd1] fw1].
+    destruct W2 as [ [w2 rd2] fw2].
+    simpl in H3. simpl in H4.
+    simpl.
+    simpl in IHtrace_c1.
+    simpl in IHtrace_c2.
+    rewrite mem_cat.
+    apply (introT orP).
+    rewrite mem_cat in H3.
+    case/norP : H3 => [H31 H32].
+    rewrite mem_cat in H4.
+    move/ orP : H4 => H4.
+    destruct H4.
+  + left. eapply IHtrace_c1; try
+                               reflexivity; try assumption.
+  + destruct (l \in rd1) eqn: beq1.
+    - auto.
+      right.
+      rewrite mem_filter in H32.
+      move/ nandP : H32 => [H320 | H321].
+      rewrite beq1 in H320.
+      move/negPn : H320 => contra.
+      discriminate contra.
+    - eapply IHtrace_c2; try reflexivity;
+        try assumption.
+ Qed.
+
+Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
+                 {l: loc},
+    trace_c (N, V, c) (Nend, Vend, cend) O W ->
+    checkpoint \notin O ->
+    WARok (getdomain N0) [::] [::] c ->
+    l \notin (getfstwt W) ->
+    l \in (getwt W) ->
+    l \in (getdomain N0).
+  intros.
+  Admitted.
+
+
+Lemma iceval_cceval: forall{k: context} {N Nend1 Nend2 : nvmem} {V Vend1 Vend2: vmem}
+                      {c cend1 cend2 : command} {O1 O2: obseq} {W1 W2: the_write_stuff},
+    iceval_w (k, N, V, c) O1 (k, Nend1, Vend1, cend1) W1 ->
+    cceval_w (N, V, c) O2 (Nend2, Vend2, cend2) W2 ->
+    (Nend1 = N /\ Vend1 = (reset V) /\ W1 = emptysets) \/
+    (Nend1 = Nend2 /\ Vend1 = Vend2 /\ W1 = W2).
+  intros.
+  move : cend2 H0.
+  dependent induction H; intros.
+  left. split; [reflexivity | split; reflexivity].
+  inversion H0.
+  inversion H0; subst. right.
+  split; [reflexivity | split; reflexivity ].
+  exfalso. by apply (H9 w).
+  inversion H2; subst. right.
+  destruct (determinism_e H H12). subst.
+  split; [reflexivity | split; reflexivity ].
+  exfalso. apply (negNVandV x H0 H13).
+inversion H2; subst. right.
+exfalso. apply (negNVandV x H13 H0).
+right.
+  destruct (determinism_e H H12). subst.
+  split; [reflexivity | split; reflexivity ].
+  right.
+  inversion H3; subst.
+  destruct (determinism_e H H14).
+  destruct (determinism_e H0 H15).
+  subst.
+  pose proof (equal_index_works H16 H1).
+  subst.
+  split; [reflexivity | split; reflexivity ].
+  right. inversion H0; subst.
+  split; [reflexivity | split; reflexivity ].
+  exfalso. by apply H10.
+  inversion H2; subst.
+  - exfalso. by apply (H w).
+  - exfalso. by apply H0.
+    eapply IHiceval_w.
+    reflexivity.
+    reflexivity.
+    apply H14.
+    right. inversion H0; subst;
+    destruct (determinism_e H H11); subst.
+    split; [reflexivity | split; reflexivity ].
+    inversion H2.
+    right. inversion H0; subst;
+    destruct (determinism_e H H11); subst.
+    inversion H2.
+    split; [reflexivity | split; reflexivity ].
+(*ask arthur how to do a recursive tactic
+ for dealing with big conjunctions*)
+Qed.
+
+(*
+Lemma iceval_cceval: forall{k: context} {N Nend1 Nend2 : nvmem} {V Vend1 Vend2: vmem}
+                      {c cend1 cend2 : command} {O1 O2: obseq} {W1 W2: the_write_stuff},
+    iceval_w (k, N, V, c) O1 (k, Nend1, Vend1, cend1) W1 ->
+    cceval_w (N, V, c) O2 (Nend2, Vend2, cend2) W2 ->
+    (Nend1 = N /\ Vend1 = (reset V) /\ W1 = emptysets) \/
+    (Nend1 = Nend2 /\ Vend1 = Vend2 /\ cend1 = cend2 /\ W1 = W2).*)
+
+Lemma pf_idem : forall(N0 N Nend: nvmem) (V0 V Vend: vmem)
+                      (c0 c: command) (O : obseq) (W : the_write_stuff),
+        iceval_w ((N0, V0, c0), N, V, c) O
+                 ((N0, V0, c0), Nend, Vend, c) W -> N = Nend.
+  intros.
+  dependent induction H; (try auto).
+  + exfalso. by apply H. (*here is where reboot case happens*)
+  + (*ask arthur how is this a thing? immune to inversion?*)
+    apply stupid in x. contradiction.
+ Qed.
+
+
+    Lemma fifteen: forall{N0 N1 N1' N2: nvmem} {V V': vmem} {c c': command} {O: obseq} {W: the_write_stuff},
+             iceval_w ((N0, V, c), N1, V, c) O
+             ((N0, V, c), N1', V', c') W ->
            not (checkpoint \in O) ->
+           not (reboot \in O) ->
              WARok (getdomain N0) [::] [::] c ->
              current_init_pt N0 V c N1 N1 N2 ->
              subset_nvm N0 N1 ->
              current_init_pt N0 V c (N0 U! N1') (N0 U! N1') N2.
-Proof. intros. inversion H2. 
-       destruct H4. subst.
-       suffices:
-         (inhabited (trace_c ((N0 U! N1'), V, c) (Nend, Vend, Ins skip) O0 W)).
-       + case => Tc.
-         eapply valid_mem.
-         apply Tc. by left.
+  intros. inversion H3. subst. remember T as TN1. clear HeqTN1.
+  destruct H5; subst. (*casing on skip*)
+  +      eapply valid_mem.
+(*need to show N0 U! N1' can make it*)
+         - assert(trace_c ((N0 U! N1'), V, c) (Nend, Vend, Ins skip) O0 W0) as T2.
+eapply twelve00.
+   exists W. constructor. apply (iTrace_Single H). assumption.
+   assumption. assumption. constructor. assumption. assumption.
+     apply T2. by left.
+       - (*showing N2 subst N0 U! N1'*)
+assert (multi_step_i ((N0, V, c), N1, V, c)
+                              ((N0, V, c), N1', V', c') O).
+         exists W. constructor.  apply (iTrace_Single H).
          apply (subseq_trans
-           (subseq_trans H5 (dom_gets_bigger H)) (dom_gets_bigger_rb
+                  (subseq_trans H6 (dom_gets_bigger
+                                      H5)) (dom_gets_bigger_rb
                                                     N0 N1')).
          assumption.
-       - intros.
-         destruct (getmap N1 l == getmap N2 l) eqn: beq.
-         + assert (not(l \in getdomain N0)).
-           move/eqP :beq => beq. rewrite <- beq in H4.
-           unfold subset_nvm in H3. destruct H3 as [H31 H32].
-           intros contra. apply H32 in contra.
-           unfold updatemaps in H4.
-           rewrite contra in H4.
+  (*casing on whether l is different in N1*)
+  intros. destruct (getmap N1 l == getmap N2 l) eqn: beq. (*casing on fw or not*)
+           move/eqP :beq => beq. rewrite <- beq in H5.
+           (*since they are equal but N1' is different on l, l
+            is not checkpointed*)
+           assert (not(l \in getdomain N0)).
+           unfold subset_nvm in H4. destruct H4 as [H41 H42].
+           intros contra. remember contra as contra1.
+           clear Heqcontra1. apply H42 in contra1.
+           destruct (sub_update N0 N1') as [blah HN1'].
+           apply HN1' in contra.
+           rewrite contra1 in contra.
+           symmetry in contra.
+           apply H5 in contra. contradiction.
+           destruct N0 as [M0 D0] eqn: N0eq.
+           destruct N1' as [M1' D1'] eqn: N1'eq.
+           assert (M1' = (getmap N1')) as rememberme.
+            by rewrite N1'eq. 
+           assert (D0 = (getdomain N0)) as rememberme1.
+             by rewrite N0eq.
+             remember N1'eq as stayput.
+             remember N0eq as stayput1.
+           unfold updatemaps in H5.
+           simpl in H5.
+           simpl in H9.
+           apply not_true_is_false in H9.
+           rewrite H9 in H5.
+           simpl.
+           (*now have that l is not in D0*)
+           left.
+(*inducting on T to split up W0*)
+           inversion T; subst.
+           inversion H. subst.
+          exfalso. by apply H5.
+(*single trace case*)
++ destruct (iceval_cceval H H10) as [ [ HN [HV Hw] ] | [HN [HV [Hc Hw] ] ] ]; subst.
+       - (*pf case*) exfalso. by apply H5.
+       - 
+  destruct W0 as [ [W11 R1] Fw1] eqn: W1eq.
+  simpl.
+         suffices: (l \in W11).
+         intros HW1.
+         destruct (l \in Fw1) eqn: FWeq; auto.
+         apply negbT in FWeq.
+         pose proof (negfwandw_means_r TN1 FWeq HW1) as Hr.
+         simpl in Hr.
+         suffices: (
+       is_true (l \in D0)
+                   ).
+         case => contra.
++ rewrite H9 in contra. discriminate contra.
+         rewrite rememberme1. eapply fourteen.
+         apply TN1.
+         (*why do i have two traces here
+          nvm it's the remember from the top*)
+         by move/ negP : H7.
+          assumption.
+         assumption. assumption.
+         (*this comes from fact that N1 steps to M1'
+          in one (H) but N1 l and M1' of l are different.. new theorem*)
+         assert (W11 = (getwt W0)) as Hwt. by rewrite W1eq; auto.
+         rewrite Hwt.
+         eapply wt_gets_bigger.
+         apply H.
+         rewrite <- W1eq in TN1.
+         apply TN1.
+         intros contra. subst.
+         inversion H10.
+         eapply update_one.
+         apply H.
+         intros contra. apply H5.
+         rewrite rememberme. symmetry. assumption.
+(*inductive case*)
++ destruct W1 as [ [W11 R1] Fw1] eqn: W1eq.
+         destruct W2 as [ [W22 R2] Fw2] eqn: W2eq.
+         unfold append_write.
+         simpl.
+         suffices: (l \in Fw1).
+         intros. rewrite mem_cat.
+         apply (introT orP). by left.
+         simpl in H8.
+         suffices: (l \in W11).
+         intros HW1.
+         destruct (l \in Fw1) eqn: FWeq; auto.
+         apply negbT in FWeq.
+         pose proof (negfwandw_means_r H10 FWeq HW1) as Hr.
+         simpl in Hr.
+         suffices: (is_true (l \in Fw1 ++ remove R1 Fw2) \/
+       is_true (l \in D0)
+                   ).
+         destruct (l \in Fw1 ++ remove R1 Fw2) eqn: deq.
+         rewrite mem_cat in deq.
+         move/ orP : deq.
+         case => Hin.
+          rewrite Hin in FWeq.
+         discriminate FWeq.
+         rewrite mem_filter in Hin.
+         case/ andP : Hin => [ contra blah ].
+         rewrite Hr in contra. discriminate contra.
+         case => contra.
+         assumption.
+         rewrite H9 in contra. assumption.
+         right. rewrite rememberme1.
+         destruct3 Cmid nmid vmid cmid.
+         eapply fourteen; try (assumption).
+         apply H10.
+         move/ negP : H7.
+         rewrite mem_cat.
+         case/ norP => Hor1 Hor2. assumption.
+          assumption.
+         assumption. assumption.
+         (*this comes from fact that N1 steps to M1'
+          in one (H) but N1 l and M1' of l are different.. new theorem*)
+         assert (W11 = (getwt W1)) as Hwt. by rewrite W1eq; auto.
+         rewrite Hwt.
+         destruct3 Cmid nmid vmid cmid.
+         eapply wt_gets_bigger.
+         apply H.
+         rewrite <- W1eq in H10.
+         apply H10.
+         assumption.
+         eapply update_one.
+         apply H.
+         intros contra. apply H5.
+         rewrite rememberme. symmetry. assumption.
+(*N1 l != N2 l*)
++ apply H8. by move/ eqP : beq.
+
+ (*checkpoint case
+  consider doing the H5 casing later on so you have less boilerplate*)
+ + destruct H5 as [wcp [crem2 cpeq] ]. subst.
+   eapply valid_mem.
+     assert(trace_c ((N0 U! N1'), V, c) (Nend, Vend, incheckpoint wcp;;
+          crem2) O0 W0) as T2.
+eapply twelve01.
+   exists W. constructor. apply (iTrace_Single H). assumption.
+   assumption. assumption.  assumption. assumption.
+     apply T2. right. exists wcp crem2. reflexivity.
+       - (*showing N2 subst N0 U! N1'*)
+assert (multi_step_i ((N0, V, c), N1, V, c)
+                              ((N0, V, c), N1', V', c') O).
+         exists W. constructor.  apply (iTrace_Single H).
+         apply (subseq_trans
+                  (subseq_trans H6 (dom_gets_bigger
+                                      H5)) (dom_gets_bigger_rb
+                                                    N0 N1')).
+         assumption.
+  (*casing on whether l is different in N1*)
+  intros. destruct (getmap N1 l == getmap N2 l) eqn: beq. (*casing on fw or not*)
+           move/eqP :beq => beq. rewrite <- beq in H5.
+           (*since they are equal but N1' is different on l, l
+            is not checkpointed*)
+           assert (not(l \in getdomain N0)).
+           unfold subset_nvm in H4. destruct H4 as [H41 H42].
+           intros contra. remember contra as contra1.
+           clear Heqcontra1. apply H42 in contra1.
+           destruct (sub_update N0 N1') as [blah HN1'].
+           apply HN1' in contra.
+           rewrite contra1 in contra.
+           symmetry in contra.
+           apply H5 in contra. contradiction.
+           destruct N0 as [M0 D0] eqn: N0eq.
+           destruct N1' as [M1' D1'] eqn: N1'eq.
+           assert (M1' = (getmap N1')) as rememberme.
+            by rewrite N1'eq. 
+           assert (D0 = (getdomain N0)) as rememberme1.
+             by rewrite N0eq.
+             remember N1'eq as stayput.
+             remember N0eq as stayput1.
+           unfold updatemaps in H5.
+           simpl in H5.
+           simpl in H9.
+           apply not_true_is_false in H9.
+           rewrite H9 in H5.
+           simpl.
+           (*now have that l is not in D0*)
+           left.
+    (*inducting on T to split up W0*)
+       - inversion T; subst.
+         (*empty trace case*)
+           + 
+           inversion H; subst; try (
+                                   exfalso; by apply H5).
+           exfalso. by apply (H20 wcp).
+          (*single trace case*)
+           + destruct (iceval_cceval H H10) as [ [HN [HV Hw] ]  | [HN [HV [Hc Hw] ] ] ]; subst.
+             - exfalso. by apply H5.
+             - destruct W0 as [ [W11 R1] Fw1] eqn: W1eq.
+         simpl.
+         suffices: (l \in W11).
+         intros HW1.
+         destruct (l \in Fw1) eqn: FWeq; auto.
+         apply negbT in FWeq.
+         pose proof (negfwandw_means_r TN1 FWeq HW1) as Hr.
+         simpl in Hr.
+         suffices: (
+       is_true (l \in D0)
+                   ).
+         move => contra.
++ rewrite H9 in contra. discriminate contra.
+         rewrite rememberme1. eapply fourteen.
+         apply TN1.
+         (*why do i have two traces here
+          nvm it's the remember from the top*)
+         by move/ negP : H7.
+          assumption.
+         assumption. assumption.
+         (*this comes from fact that N1 steps to M1'
+          in one (H) but N1 l and M1' of l are different.. new theorem*)
+         assert (W11 = (getwt W0)) as Hwt. by rewrite W1eq; auto.
+         rewrite Hwt.
+         eapply wt_gets_bigger.
+         apply H.
+         (*for error 2 come here apply TN1. *)
+         rewrite <- W1eq in TN1.
+         apply TN1.
+         intros contra. subst.
+         inversion H10.
+         eapply update_one.
+         apply H.
+         intros contra. apply H5.
+         rewrite rememberme. symmetry. assumption.
+         (*inductive case*)
++ destruct W1 as [ [W11 R1] Fw1] eqn: W1eq.
+         destruct W2 as [ [W22 R2] Fw2] eqn: W2eq.
+         unfold append_write.
+         simpl.
+         suffices: (l \in Fw1).
+         intros. rewrite mem_cat.
+         apply (introT orP). by left.
+         simpl in H8.
+         suffices: (l \in W11).
+         intros HW1.
+         destruct (l \in Fw1) eqn: FWeq; auto.
+         apply negbT in FWeq.
+         pose proof (negfwandw_means_r H10 FWeq HW1) as Hr.
+         simpl in Hr.
+         suffices: (is_true (l \in Fw1 ++ remove R1 Fw2) \/
+       is_true (l \in D0)
+                   ).
+         destruct (l \in Fw1 ++ remove R1 Fw2) eqn: deq.
+         rewrite mem_cat in deq.
+         move/ orP : deq.
+         case => Hin.
+          rewrite Hin in FWeq.
+         discriminate FWeq.
+         rewrite mem_filter in Hin.
+         case/ andP : Hin => [ contra blah ].
+         rewrite Hr in contra. discriminate contra.
+         case => contra.
+         assumption.
+         rewrite H9 in contra. assumption.
+         right. rewrite rememberme1.
+         destruct3 Cmid nmid vmid cmid.
+         eapply fourteen; try (assumption).
+         apply H10.
+         move/ negP : H7.
+         rewrite mem_cat.
+         case/ norP => Hor1 Hor2. assumption.
+          assumption.
+         assumption. assumption.
+         (*this comes from fact that N1 steps to M1'
+          in one (H) but N1 l and M1' of l are different.. new theorem*)
+         assert (W11 = (getwt W1)) as Hwt. by rewrite W1eq; auto.
+         rewrite Hwt.
+         destruct3 Cmid nmid vmid cmid.
+         eapply wt_gets_bigger.
+         apply H.
+         rewrite <- W1eq in H10.
+         apply H10.
+         assumption.
+         eapply update_one.
+         apply H.
+         intros contra. apply H5.
+         rewrite rememberme. symmetry. assumption.
+(*N1 l != N2 l*)
++ apply H8. by move/ eqP : beq.
+  Unshelve. apply V1. apply w. apply V1. apply w.  Qed.
            
 
-inhabited (trace_c ((N0 U! N1'), V, c) (NT, VT, Ins skip) OT WT).
 
 Lemma 12.0: forall(N0 N1 N1': nvmem) (V V': vmem) (c0 c1 crem: command)
   (Obig Osmall: obseq) (Wbig Wsmall: the_write_stuff),
@@ -548,4 +1088,3 @@ Lemma 12.0: forall(N0 N1 N1': nvmem) (V V': vmem) (c0 c1 crem: command)
     multistep_c ((N0, V, c0), N1, V, c0) ((N0, V, c0), N1', V', c)
     iceval ((N0, V, c0), N1, V, c0) ((N0, V, c0), N1', V', c1) Osmall Wsmall ->
     
-

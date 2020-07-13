@@ -509,11 +509,11 @@ Qed.
 Lemma twelve00: forall(N0 N1 N1' NT: nvmem) (V V' VT: vmem) (c c': command) (O1 OT: obseq)
   (WT: the_write_stuff),
    multi_step_i ((N0, V, c), N1, V, c) ((N0, V, c), N1', V', c') O1
-      -> not (checkpoint \in O1)
+      -> (checkpoint \notin O1)
       -> WARok (getdomain N0) [::] [::] c
       -> subset_nvm N0 N1
       -> inhabited (trace_c (N1, V, c) (NT, VT, Ins skip) OT WT)
-      ->not (checkpoint \in OT)
+      -> (checkpoint \notin OT)
       -> trace_c ((N0 U! N1'), V, c) (NT, VT, Ins skip) OT WT.
 Admitted.
 
@@ -521,11 +521,11 @@ Admitted.
 Lemma twelve01: forall(N0 N1 N1' NCP: nvmem) (V V' VCP: vmem) (c c' cCP: command) (w: warvars) (O1 OCP: obseq)
   (WCP: the_write_stuff),
    multi_step_i ((N0, V, c), N1, V, c) ((N0, V, c), N1', V', c') O1
-      -> not (checkpoint \in O1)
+      -> (checkpoint \notin O1)
       -> WARok (getdomain N0) [::] [::] c
       -> subset_nvm N0 N1
       -> trace_c (N1, V, c) (NCP, VCP, (incheckpoint w);; cCP) OCP WCP
-      ->not (checkpoint \in OCP)
+      -> (checkpoint \notin OCP)
       -> trace_c ((N0 U! N1'), V, c) (NCP, VCP, (incheckpoint w);; cCP) OCP WCP.
   (*intros. rename H3 into T.
   destruct_ms H Ti WTi.
@@ -604,14 +604,20 @@ Lemma update_one: forall{N N0 Nend: nvmem} {V V0 Vend: vmem} {c c0 cend: command
     reboot \notin O ->
     l \in (getwt W).
   intros.
-  dependent induction H; try (exfalso; by apply H0); simpl.
+  dependent induction H; try (exfalso; by (apply H0 ||
+                             apply H2)); simpl.
 (*start here use ssreflect to fix this garbage*)
   apply not_eq_sym in H2.
   apply updateone_sv in H2.
-subst. by apply subseq1.
-
-Admitted.
-(*totally broken in the reboot case*)
+  subst. by rewrite mem_seq1.
+  (*move/ not_eq_sym : H3.
+   ask arthur why is this not cooperating*)
+  apply not_eq_sym in H3.
+  apply updateone_arr in H3.
+  subst. by rewrite mem_seq1.
+  eapply IHiceval_w; try reflexivity; try
+  assumption.
+  Qed.
 
 
 Lemma wt_gets_bigger: forall{N N0 Nmid Nend: nvmem} {V V0 Vmid Vend: vmem} {c c0 cmid cend: command} {O0 O1: obseq} {W0 W1: the_write_stuff}
@@ -621,8 +627,20 @@ Lemma wt_gets_bigger: forall{N N0 Nmid Nend: nvmem} {V V0 Vmid Vend: vmem} {c c0
     O1 <> [::] ->
     l \in (getwt W0) ->
           l \in (getwt W1).
-  Admitted.
-
+  intros. dependent induction H0.
+  + exfalso. by apply H1.
+  + dependent induction H; try (rewrite in_nil in H2;
+                                discriminate H2).
+    simpl in H4.
+    rewrite mem_seq1 in H4.
+    inversion H0; subst.
+    simpl.
+    move/ eqP : H4 -> .
+      by rewrite mem_seq1.
+      exfalso. apply (negNVandV x H2 H15).
+      simpl in H4. rewrite in_nil in H4. discriminate H4.
+    by apply H2.
+    rewrite mem_seq0 in H2.
 
 Lemma read_deterministic: forall{e: exp} {w1 w2: warvars},
                            rd e w1 ->
@@ -704,7 +722,7 @@ Lemma negfwandw_means_r: forall{C Cend: context}  {O: obseq} {W: the_write_stuff
       rewrite mem_filter in H32.
       move/ nandP : H32 => [H320 | H321].
       rewrite beq1 in H320.
-      move/negPn : H320 => contra.
+     move/negPn : H320 => contra.
       discriminate contra.
     - eapply IHtrace_c2; try reflexivity;
         try assumption.
@@ -790,7 +808,7 @@ Lemma pf_idem : forall(N0 N Nend: nvmem) (V0 V Vend: vmem)
   intros.
   dependent induction H; (try auto).
   + exfalso. by apply H. (*here is where reboot case happens*)
-  + (*ask arthur how is this a thing? immune to inversion?*)
+  + 
     apply stupid in x. contradiction.
  Qed.
 
@@ -798,8 +816,8 @@ Lemma pf_idem : forall(N0 N Nend: nvmem) (V0 V Vend: vmem)
     Lemma fifteen: forall{N0 N1 N1' N2: nvmem} {V V': vmem} {c c': command} {O: obseq} {W: the_write_stuff},
              iceval_w ((N0, V, c), N1, V, c) O
              ((N0, V, c), N1', V', c') W ->
-           not (checkpoint \in O) ->
-           not (reboot \in O) ->
+             (checkpoint \notin O) ->
+             (reboot \notin O) ->
              WARok (getdomain N0) [::] [::] c ->
              current_init_pt N0 V c N1 N1 N2 ->
              subset_nvm N0 N1 ->
@@ -873,25 +891,17 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
                    ).
          case => contra.
 + rewrite H9 in contra. discriminate contra.
-         rewrite rememberme1. eapply fourteen.
-         apply TN1.
-         (*why do i have two traces here
-          nvm it's the remember from the top*)
-         by move/ negP : H7.
-          assumption.
-         assumption. assumption.
+         rewrite rememberme1. apply (fourteen TN1); assumption.
          (*this comes from fact that N1 steps to M1'
           in one (H) but N1 l and M1' of l are different.. new theorem*)
          assert (W11 = (getwt W0)) as Hwt. by rewrite W1eq; auto.
          rewrite Hwt.
-         eapply wt_gets_bigger.
-         apply H.
+         eapply (wt_gets_bigger H).
          rewrite <- W1eq in TN1.
          apply TN1.
          intros contra. subst.
          inversion H10.
-         eapply update_one.
-         apply H.
+         apply (update_one H); try assumption.
          intros contra. apply H5.
          rewrite rememberme. symmetry. assumption.
 (*inductive case*)
@@ -926,13 +936,9 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          rewrite H9 in contra. assumption.
          right. rewrite rememberme1.
          destruct3 Cmid nmid vmid cmid.
-         eapply fourteen; try (assumption).
-         apply H10.
-         move/ negP : H7.
-         rewrite mem_cat.
-         case/ norP => Hor1 Hor2. assumption.
-          assumption.
-         assumption. assumption.
+         apply (fourteen H10); try assumption.
+         rewrite mem_cat in H7.
+         case/ norP : H7 => Hor1 Hor2. assumption.
          (*this comes from fact that N1 steps to M1'
           in one (H) but N1 l and M1' of l are different.. new theorem*)
          assert (W11 = (getwt W1)) as Hwt. by rewrite W1eq; auto.
@@ -943,8 +949,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          rewrite <- W1eq in H10.
          apply H10.
          assumption.
-         eapply update_one.
-         apply H.
+         apply (update_one H); try assumption.
          intros contra. apply H5.
          rewrite rememberme. symmetry. assumption.
 (*N1 l != N2 l*)
@@ -1022,13 +1027,8 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
                    ).
          move => contra.
 + rewrite H9 in contra. discriminate contra.
-         rewrite rememberme1. eapply fourteen.
-         apply TN1.
-         (*why do i have two traces here
-          nvm it's the remember from the top*)
-         by move/ negP : H7.
-          assumption.
-         assumption. assumption.
+  rewrite rememberme1. apply (fourteen TN1); try
+                                               assumption.
          (*this comes from fact that N1 steps to M1'
           in one (H) but N1 l and M1' of l are different.. new theorem*)
          assert (W11 = (getwt W0)) as Hwt. by rewrite W1eq; auto.
@@ -1040,8 +1040,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          apply TN1.
          intros contra. subst.
          inversion H10.
-         eapply update_one.
-         apply H.
+         eapply (update_one H); try assumption.
          intros contra. apply H5.
          rewrite rememberme. symmetry. assumption.
          (*inductive case*)
@@ -1076,13 +1075,9 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          rewrite H9 in contra. assumption.
          right. rewrite rememberme1.
          destruct3 Cmid nmid vmid cmid.
-         eapply fourteen; try (assumption).
-         apply H10.
-         move/ negP : H7.
-         rewrite mem_cat.
-         case/ norP => Hor1 Hor2. assumption.
-          assumption.
-         assumption. assumption.
+         apply (fourteen H10); try assumption.
+         rewrite mem_cat in H7.
+         case/ norP : H7 => Hor1 Hor2. assumption.
          (*this comes from fact that N1 steps to M1'
           in one (H) but N1 l and M1' of l are different.. new theorem*)
          assert (W11 = (getwt W1)) as Hwt. by rewrite W1eq; auto.
@@ -1093,8 +1088,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          rewrite <- W1eq in H10.
          apply H10.
          assumption.
-         eapply update_one.
-         apply H.
+         apply (update_one H); try assumption.
          intros contra. apply H5.
          rewrite rememberme. symmetry. assumption.
 (*N1 l != N2 l*)
