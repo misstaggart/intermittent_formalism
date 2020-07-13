@@ -106,4 +106,8 @@ Proof. intros.
 
 Lemma readobs_app_wvs: forall(r1 r2: readobs),
     readobs_wvs (r1 ++ r2) = (readobs_wvs r1) ++ (readobs_wvs r2).
- Admitted.
+  intros.
+  induction r1.
+  + reflexivity.
+  + simpl. rewrite IHr1. by rewrite catA.
+  Qed.
