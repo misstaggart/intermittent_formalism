@@ -787,15 +787,29 @@ Lemma negfwandw_means_r: forall{C Cend: context}  {O: obseq} {W: the_write_stuff
 Lemma cceval_to_rd_sv: forall {N Nend: nvmem} {V Vend: vmem}
                       {e: exp} {x: smallvar} {O: obseq}
                       {W: the_write_stuff}
-                      {Re: warvars},
+                      {Re: warvars}
+  {cend: command},
     cceval_w (N, V, Ins (asgn_sv x e)) O
-        (Nend, Vend, Ins skip) W ->
+        (Nend, Vend, cend) W ->
     rd e Re ->
     (getrd W) = Re.
   intros.
   inversion H; subst; try(
-                          pose proof (read_deterministic H0 (RD H9)); by subst).
-  Qed.
+                          pose proof (read_deterministic H0 (RD H10)); by subst).
+Qed.
+
+Lemma extract_write_svnv: forall {N Nend: nvmem} {V Vend: vmem}
+                      {e: exp} {x: smallvar} {O: obseq}
+                      {W: the_write_stuff}
+  {cend: command},
+    cceval_w (N, V, Ins (asgn_sv x e)) O
+             (Nend, Vend, cend) W ->
+    (isNV x) ->
+    (getwt W) = [:: inl x].
+  intros.
+  inversion H; subst; try reflexivity.
+  exfalso. apply (negNVandV x H0 H11).
+Qed.
 
 Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
                  {l: loc},
@@ -816,18 +830,30 @@ Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
         + exfalso. apply (negNVandV x H16 H5).
         + rewrite in_nil in H3. discriminate H3.
      - (*nord case, x \in fstwt*)
-       inversion H; subst.
-       simpl in H3, H2.
-       rewrite mem_seq1 in H3. move/eqP : H3 => H3. subst.
-       (*showing r and Re are equal*)
-       pose proof (read_deterministic H5 (RD H16)). subst.
-       simpl in H6.
-       move/ negP : H6 => H6.
-       rewrite H6 in H2.
+       pose proof (cceval_to_rd_sv H H5). 
+       pose proof (negfwandw_means_r (CTrace_Single H)
+                                     H2 H3 ) as contra.
+       pose proof (extract_write_svnv H H4). rewrite H8 in H3.
+       rewrite mem_seq1 in H3.
+       move/ eqP: H3 => H3.
+       subst.
+       rewrite contra in H6.
+       exfalso. by apply H6.
+     - (*cp case*)
+       pose proof (extract_write_svnv H H5). rewrite H9 in H3.
+       rewrite mem_seq1 in H3.
+       move/ eqP: H3 => H3.
+       subst. assumption.
+     - rewrite in_nil in H6. discriminate H6.
+     - inversion H; subst. simpl in H2, H3.
+       rewrite mem_seq1 in H3.
+       move/ eqP: H3 => H3.
+       subst.
+       destruct (inr element  \notin readobs_wvs (r ++ ri)) eqn: beq.
+       rewrite beq in H2.
        rewrite mem_seq1 in H2.
-       exfalso. move/ eqP : H2. by apply.
-
-
+       exfalso.
+       move/ eqP : H2. by apply.
 
 (*
 Lemma iceval_cceval: forall{k: context} {N Nend1 Nend2 : nvmem} {V Vend1 Vend2: vmem}
