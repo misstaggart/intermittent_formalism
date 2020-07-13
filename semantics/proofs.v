@@ -601,9 +601,15 @@ Lemma update_one: forall{N N0 Nend: nvmem} {V V0 Vend: vmem} {c c0 cend: command
   {l: loc},
     iceval_w ((N0, V0, c0), N, V, c) O ((N0, V0, c0), Nend, Vend, cend) W ->
     (getmap N) l <> (getmap Nend) l ->
+    reboot \notin O ->
     l \in (getwt W).
   intros.
-  dependent induction H; try (exfalso; by apply H0).
+  dependent induction H; try (exfalso; by apply H0); simpl.
+(*start here use ssreflect to fix this garbage*)
+  apply not_eq_sym in H2.
+  apply updateone_sv in H2.
+subst. by apply subseq1.
+
 Admitted.
 (*totally broken in the reboot case*)
 
