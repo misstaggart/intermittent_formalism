@@ -619,29 +619,85 @@ Lemma update_one: forall{N N0 Nend: nvmem} {V V0 Vend: vmem} {c c0 cend: command
   assumption.
   Qed.
 
+Lemma iceval_cceval: forall{k: context} {N Nend1 Nend2 : nvmem} {V Vend1 Vend2: vmem}
+                      {c cend1 cend2 : command} {O1 O2: obseq} {W1 W2: the_write_stuff},
+    iceval_w (k, N, V, c) O1 (k, Nend1, Vend1, cend1) W1 ->
+    cceval_w (N, V, c) O2 (Nend2, Vend2, cend2) W2 ->
+    (Nend1 = N /\ Vend1 = (reset V) /\ W1 = emptysets /\ cend1 = Ins inreboot) \/
+    (Nend1 = Nend2 /\ Vend1 = Vend2 /\ W1 = W2).
+  intros.
+  move : cend2 H0.
+  dependent induction H; intros.
+  left. split; [reflexivity | split; [reflexivity | split; reflexivity] ].
+  inversion H0.
+  inversion H0; subst. right.
+  split; [reflexivity | split; reflexivity ].
+  exfalso. by apply (H9 w).
+  inversion H2; subst. right.
+  destruct (determinism_e H H12). subst.
+  split; [reflexivity | split; reflexivity ].
+  exfalso. apply (negNVandV x H0 H13).
+inversion H2; subst. right.
+exfalso. apply (negNVandV x H13 H0).
+right.
+  destruct (determinism_e H H12). subst.
+  split; [reflexivity | split; reflexivity ].
+  right.
+  inversion H3; subst.
+  destruct (determinism_e H H14).
+  destruct (determinism_e H0 H15).
+  subst.
+  pose proof (equal_index_works H16 H1).
+  subst.
+  split; [reflexivity | split; reflexivity ].
+  right. inversion H0; subst.
+  split; [reflexivity | split; reflexivity ].
+  exfalso. by apply H10.
+  inversion H2; subst.
+  - exfalso. by apply (H w).
+  - exfalso. by apply H0.
+    suffices:
+  (Nend1 = N /\
+  Vend1 = reset V /\ W = ([::], [::], [::]) /\ Ins skip = Ins inreboot \/
+   Nend1 = Nend2 /\ Vend1 = Vend2 /\ W = W2).
+    intros. right.
+    destruct x as [ [ contraN [ contraV [contraW contrac] ] ] | H5 ].
+    discriminate contrac. assumption.
+    eapply IHiceval_w; try reflexivity.
+    apply H14.
+    right. inversion H0; subst;
+    destruct (determinism_e H H11); subst.
+    split; [reflexivity | split; reflexivity ].
+    inversion H2.
+    right. inversion H0; subst;
+    destruct (determinism_e H H11); subst.
+    inversion H2.
+    split; [reflexivity | split; reflexivity ].
+(*ask arthur how to do a recursive tactic
+ for dealing with big conjunctions*)
+Qed.
 
-Lemma wt_gets_bigger: forall{N N0 Nmid Nend: nvmem} {V V0 Vmid Vend: vmem} {c c0 cmid cend: command} {O0 O1: obseq} {W0 W1: the_write_stuff}
+Lemma wt_gets_bigger: forall{N N0 N1 Nend: nvmem} {V V0 V1 Vend: vmem} {c c0 c1 cend: command} {O0 O1: obseq} {W0 W1: the_write_stuff}
   {l: loc},
-    iceval_w ((N0, V0, c0), N, V, c) O0 ((N0, V0, c0), Nmid, Vmid, cmid) W0 ->
+    iceval_w ((N0, V0, c0), N, V, c) O0 ((N0, V0, c0), N1, V1, c1) W0 ->
     trace_c (N, V, c) (Nend, Vend, cend) O1 W1 ->
     O1 <> [::] ->
     l \in (getwt W0) ->
           l \in (getwt W1).
   intros. dependent induction H0.
   + exfalso. by apply H1.
-  + dependent induction H; try (rewrite in_nil in H2;
-                                discriminate H2).
-    simpl in H4.
-    rewrite mem_seq1 in H4.
-    inversion H0; subst.
+  + pose proof (iceval_cceval H H0).
+    destruct H3 as [ [ contraN [ contraV [contraW contrac] ] ]  | [ Hn [ Hv Hw ] ] ]; subst.
+    rewrite in_nil in H2. discriminate H2. assumption.
+    destruct W1 as [ [w1 rd1] fw1].
+    destruct W2 as [ [w2 rd2] fw2].
     simpl.
-    move/ eqP : H4 -> .
-      by rewrite mem_seq1.
-      exfalso. apply (negNVandV x H2 H15).
-      simpl in H4. rewrite in_nil in H4. discriminate H4.
-    by apply H2.
-    rewrite mem_seq0 in H2.
-
+    rewrite mem_cat.
+    apply (introT orP). left.
+    destruct3 Cmid nmid vmid cmid.
+    eapply IHtrace_c1; try
+                         apply H; try reflexivity; try assumption.
+Qed.
 Lemma read_deterministic: forall{e: exp} {w1 w2: warvars},
                            rd e w1 ->
                            rd e w2 ->
@@ -740,58 +796,6 @@ Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
   Admitted.
 
 
-Lemma iceval_cceval: forall{k: context} {N Nend1 Nend2 : nvmem} {V Vend1 Vend2: vmem}
-                      {c cend1 cend2 : command} {O1 O2: obseq} {W1 W2: the_write_stuff},
-    iceval_w (k, N, V, c) O1 (k, Nend1, Vend1, cend1) W1 ->
-    cceval_w (N, V, c) O2 (Nend2, Vend2, cend2) W2 ->
-    (Nend1 = N /\ Vend1 = (reset V) /\ W1 = emptysets) \/
-    (Nend1 = Nend2 /\ Vend1 = Vend2 /\ W1 = W2).
-  intros.
-  move : cend2 H0.
-  dependent induction H; intros.
-  left. split; [reflexivity | split; reflexivity].
-  inversion H0.
-  inversion H0; subst. right.
-  split; [reflexivity | split; reflexivity ].
-  exfalso. by apply (H9 w).
-  inversion H2; subst. right.
-  destruct (determinism_e H H12). subst.
-  split; [reflexivity | split; reflexivity ].
-  exfalso. apply (negNVandV x H0 H13).
-inversion H2; subst. right.
-exfalso. apply (negNVandV x H13 H0).
-right.
-  destruct (determinism_e H H12). subst.
-  split; [reflexivity | split; reflexivity ].
-  right.
-  inversion H3; subst.
-  destruct (determinism_e H H14).
-  destruct (determinism_e H0 H15).
-  subst.
-  pose proof (equal_index_works H16 H1).
-  subst.
-  split; [reflexivity | split; reflexivity ].
-  right. inversion H0; subst.
-  split; [reflexivity | split; reflexivity ].
-  exfalso. by apply H10.
-  inversion H2; subst.
-  - exfalso. by apply (H w).
-  - exfalso. by apply H0.
-    eapply IHiceval_w.
-    reflexivity.
-    reflexivity.
-    apply H14.
-    right. inversion H0; subst;
-    destruct (determinism_e H H11); subst.
-    split; [reflexivity | split; reflexivity ].
-    inversion H2.
-    right. inversion H0; subst;
-    destruct (determinism_e H H11); subst.
-    inversion H2.
-    split; [reflexivity | split; reflexivity ].
-(*ask arthur how to do a recursive tactic
- for dealing with big conjunctions*)
-Qed.
 
 (*
 Lemma iceval_cceval: forall{k: context} {N Nend1 Nend2 : nvmem} {V Vend1 Vend2: vmem}
