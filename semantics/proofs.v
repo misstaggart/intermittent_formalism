@@ -784,6 +784,19 @@ Lemma negfwandw_means_r: forall{C Cend: context}  {O: obseq} {W: the_write_stuff
         try assumption.
  Qed.
 
+Lemma cceval_to_rd_sv: forall {N Nend: nvmem} {V Vend: vmem}
+                      {e: exp} {x: smallvar} {O: obseq}
+                      {W: the_write_stuff}
+                      {Re: warvars},
+    cceval_w (N, V, Ins (asgn_sv x e)) O
+        (Nend, Vend, Ins skip) W ->
+    rd e Re ->
+    (getrd W) = Re.
+  intros.
+  inversion H; subst; try(
+                          pose proof (read_deterministic H0 (RD H9)); by subst).
+  Qed.
+
 Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
                  {l: loc},
     trace_c (N, V, c) (Nend, Vend, cend) O W ->
@@ -793,7 +806,26 @@ Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
     l \in (getwt W) ->
     l \in (getdomain N0).
   intros.
-  Admitted.
+  dependent induction H.
+  rewrite in_nil in H3. discriminate H3.
+  dependent induction H1.
+  + inversion H1; subst.
+     - inversion H.
+     - (*vol case, x \notin getwt W*)
+    inversion H; subst.
+        + exfalso. apply (negNVandV x H16 H5).
+        + rewrite in_nil in H3. discriminate H3.
+     - (*nord case, x \in fstwt*)
+       inversion H; subst.
+       simpl in H3, H2.
+       rewrite mem_seq1 in H3. move/eqP : H3 => H3. subst.
+       (*showing r and Re are equal*)
+       pose proof (read_deterministic H5 (RD H16)). subst.
+       simpl in H6.
+       move/ negP : H6 => H6.
+       rewrite H6 in H2.
+       rewrite mem_seq1 in H2.
+       exfalso. move/ eqP : H2. by apply.
 
 
 
