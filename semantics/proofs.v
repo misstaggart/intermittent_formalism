@@ -861,7 +861,9 @@ Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
     move: H0 H1 H2 H3. move: Wstart Rstart.
     remember H as H01. clear HeqH01.
     dependent induction H01; intros;
-    try (rewrite in_nil in H3; discriminate H3).
+      try (rewrite in_nil in H3; discriminate H3);
+try (rewrite in_nil in H4; discriminate H4)
+    .
     
     (*inducting cceval*)
   + (*nonvol case*)
@@ -933,7 +935,7 @@ Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
     exfalso. by apply (H1 w).
     + (*seq case warok*)
     eapply WAR_I; apply H11; try assumption.
-
+    +
 
     Focus 6.
 (*inductive step*)
