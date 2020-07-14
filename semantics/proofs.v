@@ -871,7 +871,8 @@ move/ orP : H6 => [H61 | H62].
          simpl in H5. rewrite mem_cat in H5.
          move/ norP : H5 => [H51 H52].
          assumption.
-     + (*2nd half*)
+     + (*2nd half, NOT in first half ie not in W1
+        this is what you should be casing on at the top*)
          eapply IHtrace_c2; try reflexivity;
            try assumption.
          rewrite mem_cat in H3.
