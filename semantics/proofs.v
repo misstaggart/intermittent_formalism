@@ -994,7 +994,9 @@ destruct (l \in (getwt W1)) eqn: beq.
        move / norP : H5 => [H50 H51].
        rewrite <- remove_to_app in H51.
        assumption.
-       rewrite filter_cat in H52.
+       move/ orP : H6 => [H60 | H61].
+            - rewrite beq in H60. discriminate H60.
+            - assumption.
        suffices:
          (l \notin remove (Rstart) (getfstwt W1 ++ getfstwt W2))
 
