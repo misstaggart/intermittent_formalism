@@ -840,8 +840,8 @@ Lemma skip_empty: forall{N Nend: nvmem} {V Vend: vmem} {cend: command} {O: obseq
 
 Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
                  {l: loc} {Wstart Rstart: warvars},
-    WARok (getdomain N0) Wstart Rstart c ->
     trace_c (N, V, c) (Nend, Vend, cend) O W ->
+    WARok (getdomain N0) Wstart Rstart c ->
     checkpoint \notin O ->
     (*O <> [::] -> empty trace annoying and i dont think
                i have to deal w it*)
@@ -853,48 +853,87 @@ Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
                                           written to
                                           in which case can't
                                           say*)
-  intros. move: H1 H2 H3.
-  dependent induction H0. (*inducting on trace *)
+  intros. move: H0 H1 H2 H3.
+  dependent induction H; intros. (*inducting on trace *)
   + (*emoty trace*)
-    intros. exfalso. by apply H2.
+    intros. rewrite in_nil in H3. discriminate H3. 
   + (*single trace*)
-  dependent induction H; intros. (*inducting on warok*)
+    generalize dependent H.
+    move: H1 H2 H3. move: O N Nend V Vend cend W.
+  dependent induction H0; intros. (*inducting on warok*)
   + (*ins case*)
-    remember H0 as H01. clear HeqH01.
-    dependent induction H0. (*inducting cceval*)
-     - (*smallvar case*)
-       inversion H; subst. (*casing on vol*)
+    remember H as H01. clear HeqH01.
+    Focus 3.
+    dependent induction H01. (*inducting cceval*)
+     - (*nonvol case*)
+       inversion H0; subst. (*casing on warIns*)
      (*vol case, x \notin getwt W*)
-       +  exfalso. apply (negNVandV x H0 H13).
-     - (*nord case, x \in fstwt*)
-       (*showing l = x*)
-       simpl in H4.
-       rewrite mem_seq1 in H4.
-       move/ eqP : H4 => H4. subst.
-       
-       (*showing x notin FW(W)*)
-       simpl in H6.
-       rewrite mem_cat in H16.
+       +  exfalso. apply (negNVandV x H5 H13).
+       + (*nord case*)
+         (*showing l in rd W*)
+         pose proof (negfwandw_means_r (CTrace_Single H) H2 H3). simpl in H7.
+         (*showing x = l*)
+         simpl in H3.
+         rewrite mem_seq1 in H3.
+         move/ eqP : H3 => H3. subst.
+       (*showing x notin RD(W)*)
+         rewrite mem_cat in H16.
        move / negP / norP : H16 => [H160 H161].
-       pose proof (read_deterministic H13 (RD H2)). subst.
-       rewrite H161 in H6.
-       (*I don't use negfw and w...am I doing
-        more work than necessary?*)
-       rewrite mem_filter in H6.
-       move/ nandP : H6 => [H60 | H61].
-       rewrite H160 in H60. discriminate H60.
-       rewrite mem_seq1 in H61. exfalso.
-       move/ eqP : H61. by apply.
-     - (*CP case*)
-       rewrite mem_seq1 in H4.
-       move/ eqP : H4 => H4. subst.
-       assumption.
-     - (*written case*)
-     - rewrite in_nil in H6. discriminate H6.
-     - inversion H; subst. simpl in H2, H3.
+       pose proof (read_deterministic H13 (RD H6)). subst.
+       rewrite H7 in H161.
+       discriminate H161.
+     + (*CP case*)
        rewrite mem_seq1 in H3.
-       move/ eqP: H3 => H3.
+       move/ eqP : H3 => H3. subst. left.
+       assumption.
+     + (*written case*)
+       rewrite mem_seq1 in H3.
+       move/ eqP : H3 => H3. subst. right. assumption.
+     - (*vol case*)
+       simpl in H3. rewrite in_nil in H3. discriminate H3.
+     - (*array case*)
+       inversion H0; subst. (*casing on warIns*)
+       + (*nord arr*)
+         (*showing l in rd W*)
+         pose proof (negfwandw_means_r (CTrace_Single H) H2 H3) as Hrd. simpl in Hrd.
+         (*showing x = l*)
+         simpl in H3.
+         rewrite mem_seq1 in H3.
+         move/ eqP : H3 => H3. subst.
+       (*showing x notin RD(W)*)
+       exfalso.
+       apply H18.
+       exists (inr element: loc).
+       split.
+       destruct element.
+       (*change gen_locs_works
+        theorem statement start here
+        to fix need for destruct maybe*)
+       apply (gen_locs_works H5).
+       (*showing rd sets are same*)
+       pose proof
+            (read_deterministic (RD H4) H17).
+       pose proof
+            (read_deterministic (RD H7) H14).
        subst.
+       rewrite <- readobs_app_wvs.
+       rewrite mem_cat.
+       apply (introT orP).
+       right.
+       apply Hrd.
+     + (*CP array*)
+         destruct element.
+         rewrite mem_seq1 in H3.
+         move/eqP : H3 => H3. subst.
+         pose proof (equal_index_arr H5). subst.
+         left.
+         apply (in_subseq H19 (gen_locs_works H5)).
+     + (*CP warok*)
+       inversion H; subst. (*inverting cceval*)
+       rewrite in_nil in H3.
+       discriminate H3.
+       exfalso. by apply (H13 w).
+
 Focus 6.
 (*inductive step*)
 eapply IHcceval_w; try reflexivity; try assumption.
