@@ -824,6 +824,13 @@ Lemma extract_write_arr: forall {N Nend: nvmem} {V Vend: vmem}
   exists element. reflexivity.
 Qed.
 
+Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} {O: obseq} {W: the_write_stuff},
+    trace_c (N, V, c) (Nmid, Vmid, cmid) O W ->
+    checkpoint \notin O ->
+    WARok (getdomain N0) [::] [::] c ->
+    WARok (getdomain N0) [::] [::] cmid.
+  Admitted.
+
 Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
                  {l: loc},
     trace_c (N, V, c) (Nend, Vend, cend) O W ->
@@ -835,15 +842,50 @@ Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
   intros.
   dependent induction H.
   rewrite in_nil in H3. discriminate H3.
-  dependent induction H1.
-  + inversion H1; subst.
-     - inversion H.
-     - (*vol case, x \notin getwt W*)
-    inversion H; subst.
-        + exfalso. apply (negNVandV x H16 H5).
-        + rewrite in_nil in H3. discriminate H3.
+  dependent induction H; try (
+  rewrite in_nil in H3; discriminate H3).
+  + inversion H3; inversion H10; subst.
+     (*vol case, x \notin getwt W*)
+        + exfalso. apply (negNVandV x H0 H19).
      - (*nord case, x \in fstwt*)
-       pose proof (cceval_to_rd_sv H H5). 
+      (* pose proof (cceval_to_rd_sv H H5). *)
+       simpl in H4.
+Focus 6.
+(*inductive step*)
+eapply IHcceval_w; try reflexivity; try assumption.
+inversion H3; subst.
+exfalso. by apply (H w).
+eapply WAR_I. apply H11.
+(**)
+Focus 6.
+(*trace inductive step*)
+simpl in H6. rewrite mem_cat in H6.
+destruct3 Cmid nmid vmid cmid.
+move/ orP : H6 => [H61 | H62].
+       + (*x written in 1st half*)
+         eapply IHtrace_c1; try reflexivity;
+           try assumption.
+         rewrite mem_cat in H3.
+         move/ norP : H3 => [H31 H32].
+         assumption.
+         simpl in H5. rewrite mem_cat in H5.
+         move/ norP : H5 => [H51 H52].
+         assumption.
+     + (*2nd half*)
+         eapply IHtrace_c2; try reflexivity;
+           try assumption.
+         rewrite mem_cat in H3.
+         move/ norP : H3 => [H31 H32].
+         assumption.
+         simpl in H5. rewrite mem_cat in H5.
+         move/ norP : H5 => [H51 H52].
+         rewrite mem_cat in H3.
+         move/ norP : H3 => [H31 H32].
+         apply (warok_partial H H31 H4).
+         simpl in H5. rewrite mem_cat in H5.
+         move/ norP : H5 => [H51 H52].
+         assumption.
+(**)
        pose proof (negfwandw_means_r (CTrace_Single H)
                                      H2 H3 ) as contra.
        pose proof (extract_write_svnv H H4). rewrite H8 in H3.
