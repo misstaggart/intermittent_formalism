@@ -845,7 +845,7 @@ Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
     checkpoint \notin O ->
     (*O <> [::] -> empty trace annoying and i dont think
                i have to deal w it*)
-    l \notin (getfstwt W) -> (*l is not in FW for this trace*)
+    l \notin (remove Rstart (getfstwt W)) -> (*l not in OVERALL FW for this trace*)
     l \in (getwt W) -> (*l written to
                        IN THIS trace*)
     l \in (getdomain N0) \/ l \in Wstart. (*l is checkpointed
@@ -878,13 +878,16 @@ try (rewrite in_nil in H4; discriminate H4)
        +  exfalso. apply (negNVandV x H0 H13).
        + (*nord case*)
          (*showing l in rd W*)
+
+         rewrite mem_cat in H16.
+         move / negP / norP : H16 => [H160 H161].
+         rewrite mem_filter in H5.
+         rewrite negb_and in H5.
+         rewrite H160 in H5.
+         rewrite orFb in H5.
          pose proof (negfwandw_means_r (CTrace_Single H) H5 Hwt) as Hrd. simpl in Hrd.
        (*showing x notin RD(W)*)
-         rewrite mem_cat in H16.
-       move / negP / norP : H16 => [H160 H161].
-       pose proof (read_deterministic H13 (RD H2)). subst.
-       rewrite Hrd in H161.
-       discriminate H161.
+       pose proof (read_deterministic H13 (RD H2)). subst. rewrite Hrd in H161. discriminate H161.
      + (*CP case*)
         by left.
      + (*written case*)
@@ -901,6 +904,14 @@ try (rewrite in_nil in H4; discriminate H4)
        subst. (*casing on warIns*)
        + (*nord arr*)
          (*showing l in rd W*)
+         suffices: (inr element \notin Rstart).
+         - intros Hstart.
+        (* rewrite mem_cat in H22.
+         move / negP / norP : H16 => [H160 H161].*)
+         rewrite mem_filter in H6.
+         rewrite negb_and in H6.
+         rewrite Hstart in H6.
+         rewrite orFb in H6.
          pose proof (negfwandw_means_r (CTrace_Single H) H6 Hwt) as Hrd. simpl in Hrd.
        (*showing x notin RD(W)*)
        exfalso.
@@ -923,6 +934,15 @@ try (rewrite in_nil in H4; discriminate H4)
        apply (introT orP).
        right.
        apply Hrd.
+         - apply (introT negP).
+           intros contra. apply H22.
+           exists (inr element: loc).
+       split.
+       destruct element.
+       apply (gen_locs_works H1).
+       rewrite mem_cat.
+       apply (introT orP).
+      by left.
      + (*CP array*)
          destruct element.
          pose proof (equal_index_arr H1). subst.
