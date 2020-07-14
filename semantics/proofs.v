@@ -825,11 +825,11 @@ Lemma extract_write_arr: forall {N Nend: nvmem} {V Vend: vmem}
   exists element. reflexivity.
 Qed.
 
-Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} {O: obseq} {W: the_write_stuff},
+Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} {O: obseq} {W: the_write_stuff} {Wstart Rstart: warvars},
     trace_c (N, V, c) (Nmid, Vmid, cmid) O W ->
     checkpoint \notin O ->
-    WARok (getdomain N0) [::] [::] c ->
-    WARok (getdomain N0) [::] [::] cmid.
+    WARok (getdomain N0) Wstart Rstart c ->
+    WARok (getdomain N0) ((getwt W) ++ Wstart) (Rstart ++ (getrd W)) cmid.
   Admitted.
 
 Lemma skip_empty: forall{N Nend: nvmem} {V Vend: vmem} {cend: command} {O: obseq}
@@ -853,7 +853,7 @@ Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
                                           written to
                                           in which case can't
                                           say*)
-  intros. move: H0 H1 H2 H3.
+  intros. move: Wstart Rstart H0 H1 H2 H3.
   dependent induction H; intros. (*inducting on trace *)
   + (*emoty trace*)
     intros. rewrite in_nil in H3. discriminate H3. 
@@ -935,32 +935,38 @@ try (rewrite in_nil in H4; discriminate H4)
     exfalso. by apply (H1 w).
     + (*seq case warok*)
     eapply WAR_I; apply H11; try assumption.
-    +
-
-    Focus 6.
-(*inductive step*)
-eapply IHcceval_w; try reflexivity; try assumption.
-inversion H3; subst.
-exfalso. by apply (H w).
-eapply WAR_I. apply H11.
-(**)
-Focus 6.
-(*trace inductive step*)
+    + (*trace inductive step*)
 simpl in H6. rewrite mem_cat in H6.
 destruct3 Cmid nmid vmid cmid.
-move/ orP : H6 => [H61 | H62].
+destruct (l \in (getwt W1)) eqn: beq.
        + (*x written in 1st half*)
          eapply IHtrace_c1; try reflexivity;
            try assumption.
-         rewrite mem_cat in H3.
-         move/ norP : H3 => [H31 H32].
+         apply H3.
+         rewrite mem_cat in H4.
+         move/ norP : H4 => [H41 H42].
          assumption.
          simpl in H5. rewrite mem_cat in H5.
          move/ norP : H5 => [H51 H52].
          assumption.
      + (*2nd half, NOT in first half ie not in W1
         this is what you should be casing on at the top*)
-         eapply IHtrace_c2; try reflexivity;
+         rewrite mem_cat in H4.
+         move/ norP : H4 => [H41 H42].
+       suffices:
+         (is_true (l \in getdomain N0) \/ is_true (l \in (getwt W1) ++ Wstart)).
+          - move => [Case1 | Case2].
+          - by left.
+          - right. rewrite mem_cat in Case2.
+            move / orP : Case2 => [contra | yes].
+            - rewrite contra in beq. discriminate beq.
+            - assumption.
+       eapply IHtrace_c2; try reflexivity.
+        Check warok_partial. 
+        apply (warok_partial H H41 H3).
+        assumption.
+       reflexivity. reflexivity.
+       try reflexivity;
            try assumption.
          rewrite mem_cat in H3.
          move/ norP : H3 => [H31 H32].
@@ -969,7 +975,6 @@ move/ orP : H6 => [H61 | H62].
          move/ norP : H5 => [H51 H52].
          rewrite mem_cat in H3.
          move/ norP : H3 => [H31 H32].
-         apply (warok_partial H H31 H4).
          simpl in H5. rewrite mem_cat in H5.
          move/ norP : H5 => [H51 H52].
          assumption.
