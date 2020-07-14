@@ -832,21 +832,29 @@ Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} 
   Admitted.
 
 Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
-                 {l: loc},
+                 {l: loc} {Wstart Rstart: warvars},
     trace_c (N, V, c) (Nend, Vend, cend) O W ->
     checkpoint \notin O ->
-    WARok (getdomain N0) [::] [::] c ->
-    l \notin (getfstwt W) ->
-    l \in (getwt W) ->
+    O <> [::] -> (*empty trace annoying and i dont think
+               i have to deal w it*)
+    WARok (getdomain N0) Wstart Rstart c ->
+    l \notin (remove Rstart (getfstwt W)) ->
+    l \in ((getwt W) ++ Wstart) ->
     l \in (getdomain N0).
-  intros.
-  dependent induction H.
-  rewrite in_nil in H3. discriminate H3.
-  dependent induction H; try (
-  rewrite in_nil in H3; discriminate H3).
-  + inversion H3; inversion H10; subst.
+  intros. move: H0 H1 H2 H3.
+  dependent induction H; intros.
+  + (*empty trace*) exfalso. by apply H1.
++ (*single trace*)
+  dependent induction H. (*inducting on cceval*)
+  (*try (
+                             rewrite in_nil in H3; discriminate H3).
+*)
+  - (*cp case*)
+    rewrite mem_seq1 in H0. exfalso. move / eqP : H0. by apply.
+  - (*smallvar case*)
+    inversion H5; inversion H11; subst.
      (*vol case, x \notin getwt W*)
-        + exfalso. apply (negNVandV x H0 H19).
+        + exfalso. apply (negNVandV x H0 H20).
      - (*nord case, x \in fstwt*)
       (* pose proof (cceval_to_rd_sv H H5). *)
        simpl in H4.
