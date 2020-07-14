@@ -27,6 +27,7 @@ Qed.
 
 
 Lemma wt_subst_fstwt: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
+      (* pose proof (cceval_to_rd_sv H H5). *)
   trace_c C1 C2 O W ->
     subseq (getfstwt W) (getwt W).
 Proof. intros C1 C2 O W T. induction T.
@@ -831,33 +832,69 @@ Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} 
     WARok (getdomain N0) [::] [::] cmid.
   Admitted.
 
+Lemma skip_empty: forall{N Nend: nvmem} {V Vend: vmem} {cend: command} {O: obseq}
+                   {W: the_write_stuff},
+    trace_c (N, V, Ins skip) (Nend, Vend, cend) O W -> O = [::].
+  Admitted.
+
+
 Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
                  {l: loc} {Wstart Rstart: warvars},
+    WARok (getdomain N0) Wstart Rstart c ->
     trace_c (N, V, c) (Nend, Vend, cend) O W ->
     checkpoint \notin O ->
-    O <> [::] -> (*empty trace annoying and i dont think
+    (*O <> [::] -> empty trace annoying and i dont think
                i have to deal w it*)
-    WARok (getdomain N0) Wstart Rstart c ->
-    l \notin (remove Rstart (getfstwt W)) ->
-    l \in ((getwt W) ++ Wstart) ->
-    l \in (getdomain N0).
-  intros. move: H0 H1 H2 H3.
-  dependent induction H; intros.
-  + (*empty trace*) exfalso. by apply H1.
-+ (*single trace*)
-  dependent induction H. (*inducting on cceval*)
-  (*try (
-                             rewrite in_nil in H3; discriminate H3).
-*)
-  - (*cp case*)
-    rewrite mem_seq1 in H0. exfalso. move / eqP : H0. by apply.
-  - (*smallvar case*)
-    inversion H5; inversion H11; subst.
+    l \notin (getfstwt W) -> (*l is not in FW for this trace*)
+    l \in (getwt W) -> (*l written to
+                       IN THIS trace*)
+    l \in (getdomain N0) \/ l \in Wstart. (*l is checkpointed
+                                          or l was already
+                                          written to
+                                          in which case can't
+                                          say*)
+  intros. move: H1 H2 H3.
+  dependent induction H0. (*inducting on trace *)
+  + (*emoty trace*)
+    intros. exfalso. by apply H2.
+  + (*single trace*)
+  dependent induction H; intros. (*inducting on warok*)
+  + (*ins case*)
+    remember H0 as H01. clear HeqH01.
+    dependent induction H0. (*inducting cceval*)
+     - (*smallvar case*)
+       inversion H; subst. (*casing on vol*)
      (*vol case, x \notin getwt W*)
-        + exfalso. apply (negNVandV x H0 H20).
+       +  exfalso. apply (negNVandV x H0 H13).
      - (*nord case, x \in fstwt*)
-      (* pose proof (cceval_to_rd_sv H H5). *)
+       (*showing l = x*)
        simpl in H4.
+       rewrite mem_seq1 in H4.
+       move/ eqP : H4 => H4. subst.
+       
+       (*showing x notin FW(W)*)
+       simpl in H6.
+       rewrite mem_cat in H16.
+       move / negP / norP : H16 => [H160 H161].
+       pose proof (read_deterministic H13 (RD H2)). subst.
+       rewrite H161 in H6.
+       (*I don't use negfw and w...am I doing
+        more work than necessary?*)
+       rewrite mem_filter in H6.
+       move/ nandP : H6 => [H60 | H61].
+       rewrite H160 in H60. discriminate H60.
+       rewrite mem_seq1 in H61. exfalso.
+       move/ eqP : H61. by apply.
+     - (*CP case*)
+       rewrite mem_seq1 in H4.
+       move/ eqP : H4 => H4. subst.
+       assumption.
+     - (*written case*)
+     - rewrite in_nil in H6. discriminate H6.
+     - inversion H; subst. simpl in H2, H3.
+       rewrite mem_seq1 in H3.
+       move/ eqP: H3 => H3.
+       subst.
 Focus 6.
 (*inductive step*)
 eapply IHcceval_w; try reflexivity; try assumption.
@@ -895,14 +932,6 @@ move/ orP : H6 => [H61 | H62].
          move/ norP : H5 => [H51 H52].
          assumption.
 (**)
-       pose proof (negfwandw_means_r (CTrace_Single H)
-                                     H2 H3 ) as contra.
-       pose proof (extract_write_svnv H H4). rewrite H8 in H3.
-       rewrite mem_seq1 in H3.
-       move/ eqP: H3 => H3.
-       subst.
-       rewrite contra in H6.
-       exfalso. by apply H6.
      - (*cp case*)
        pose proof (extract_write_svnv H H5). rewrite H9 in H3.
        rewrite mem_seq1 in H3.
@@ -955,6 +984,21 @@ Lemma iceval_cceval: forall{k: context} {N Nend1 Nend2 : nvmem} {V Vend1 Vend2: 
     cceval_w (N, V, c) O2 (Nend2, Vend2, cend2) W2 ->
     (Nend1 = N /\ Vend1 = (reset V) /\ W1 = emptysets) \/
     (Nend1 = Nend2 /\ Vend1 = Vend2 /\ cend1 = cend2 /\ W1 = W2).*)
+    pose proof (skip_empty H0). exfalso. by apply H2.
+    (*skip case, inverting trace*) exfalso.
+    dependent induction H0.
+    + by apply H2.
+    + inversion H0.
+  + (*empty trace*) exfalso. by apply H1.
++ (*single trace*)
+  dependent induction H. (*inducting on cceval*)
+  (*try (
+                             rewrite in_nil in H3; discriminate H3).
+*)
+  - (*cp case*)
+    rewrite mem_seq1 in H0. exfalso. move / eqP : H0. by apply.
+  - (*smallvar case*)
+    inversion H5; inversion H11; subst.
 
 Lemma pf_idem : forall(N0 N Nend: nvmem) (V0 V Vend: vmem)
                       (c0 c: command) (O : obseq) (W : the_write_stuff),

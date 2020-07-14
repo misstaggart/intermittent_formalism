@@ -20,6 +20,7 @@ WAR_Skip: forall(N W R: warvars),
 | WAR_Vol: forall(N W R Re: warvars) (x: smallvar) (e: exp), (*rule for writing to volatile variables: does not change written set or check checkpoint*)
              (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
              isV x -> (*x is volatile*)
+             (inl x) \notin W -> (*ensuring parameters are well formed*)
              WAR_ins N W R (asgn_sv x e) W (R ++ Re)
 | WAR_NoRd: forall(N W R Re: warvars)
              (x: smallvar) (e: exp),
@@ -91,6 +92,7 @@ Inductive DINO_ins: warvars -> warvars -> warvars -> instruction
 | D_WAR_Vol: forall(N W R Re: warvars) (x: smallvar) (e: exp), (*rule for writing to volatile variables: does not change written set or check checkpoint*)
              (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
              isV x -> (*x is volatile*)
+             (inl x) \notin W ->
              DINO_ins N W R (asgn_sv x e) N W (R ++ Re)
 | D_WAR_Written: forall(N W R Re: warvars)
                   (x: smallvar) (e: exp),
