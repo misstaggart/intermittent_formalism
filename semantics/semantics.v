@@ -326,7 +326,7 @@ Inductive exp :=
 Coercion Val : value >-> exp.
 Coercion Var : smallvar >-> exp.
 Notation "a '[[' e ']]'" := (Element (a) (e))
-                              (at level 100, right associativity).
+                              (at level 40, right associativity).
 
 Coercion El_loc : el_loc >-> exp.
 
@@ -531,7 +531,7 @@ Inductive command :=
 | ITE (e: exp) (c1: command) (c2: command).
 
 Notation "l ';;' c" := (Seqcom l c)
-                         (at level 100).
+  (at level 41, right associativity).
 
 Notation "'TEST' e 'THEN' c1 'ELSE' c2 " := (ITE e c1 c2)
                                               (at level 100).

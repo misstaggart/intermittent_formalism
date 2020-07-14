@@ -811,6 +811,19 @@ Lemma extract_write_svnv: forall {N Nend: nvmem} {V Vend: vmem}
   exfalso. apply (negNVandV x H0 H11).
 Qed.
 
+
+Lemma extract_write_arr: forall {N Nend: nvmem} {V Vend: vmem}
+                      {e ei: exp} {a: array} {O: obseq}
+                      {W: the_write_stuff}
+  {cend: command},
+    cceval_w (N, V, Ins (asgn_arr a ei e)) O
+             (Nend, Vend, cend) W ->
+   exists(element: el_loc), (getwt W) = [:: inr element].
+  intros.
+  inversion H; subst.
+  exists element. reflexivity.
+Qed.
+
 Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
                  {l: loc},
     trace_c (N, V, c) (Nend, Vend, cend) O W ->
@@ -854,7 +867,36 @@ Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
        rewrite mem_seq1 in H2.
        exfalso.
        move/ eqP : H2. by apply.
-
+       move/negbT /negPn : beq => Hin.
+       pose proof
+            (read_deterministic (RD H18) H4).
+       pose proof
+            (read_deterministic (RD H17) H5).
+       subst.
+       exfalso.
+       apply H6.
+       exists (inr element: loc).
+       split.
+       destruct element.
+       (*change gen_locs_works
+        theorem statement start here
+        to fix need for destruct maybe*)
+       apply (gen_locs_works H19).
+       rewrite <- readobs_app_wvs.
+       apply Hin.
+       + (*CP case*)
+         inversion H; subst. simpl in H2, H3.
+         destruct element.
+         rewrite mem_seq1 in H3.
+         move/eqP : H3 => Hin. subst.
+         pose proof (equal_index_arr H20). subst.
+         apply (in_subseq H7 (gen_locs_works H20)).
+       + (*CP case warOk*)
+         - inversion H; subst.
+         rewrite in_nil in H3. discriminate H3.
+         - exfalso. by apply (H13 w). 
+       rewrite beq in H2.
+       rewrite mem_seq1 in H2.
 (*
 Lemma iceval_cceval: forall{k: context} {N Nend1 Nend2 : nvmem} {V Vend1 Vend2: vmem}
                       {c cend1 cend2 : command} {O1 O2: obseq} {W1 W2: the_write_stuff},
