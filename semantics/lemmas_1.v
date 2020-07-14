@@ -128,9 +128,14 @@ Lemma remove_to_app: forall (L1 L2 L3: warvars),
                                                  (filter
                                                  (fun x => x \notin L2)
                                                   L1).
+
   (*use
 Lemma filter_predI
 predI is conjunction
    *)
   Admitted.
+
+Lemma filter_empty: forall{A: Type} (L1: seq A),
+    remove [::] L1 = L1.
+  intros. apply filter_predT.
 

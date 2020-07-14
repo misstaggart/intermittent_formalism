@@ -839,7 +839,7 @@ Lemma skip_empty: forall{N Nend: nvmem} {V Vend: vmem} {cend: command} {O: obseq
 
 
 Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
-                 {l: loc} {Wstart Rstart: warvars},
+                  {Wstart Rstart: warvars} (l: loc),
     trace_c (N, V, c) (Nend, Vend, cend) O W ->
     WARok (getdomain N0) Wstart Rstart c ->
     checkpoint \notin O ->
@@ -997,91 +997,8 @@ destruct (l \in (getwt W1)) eqn: beq.
        move/ orP : H6 => [H60 | H61].
             - rewrite beq in H60. discriminate H60.
             - assumption.
-       suffices:
-         (l \notin remove (Rstart) (getfstwt W1 ++ getfstwt W2))
+Qed.
 
-       rewrite mem_cat in H5.
-       reflexivity. reflexivity.
-       try reflexivity;
-           try assumption.
-         rewrite mem_cat in H3.
-         move/ norP : H3 => [H31 H32].
-         assumption.
-         simpl in H5. rewrite mem_cat in H5.
-         move/ norP : H5 => [H51 H52].
-         rewrite mem_cat in H3.
-         move/ norP : H3 => [H31 H32].
-         simpl in H5. rewrite mem_cat in H5.
-         move/ norP : H5 => [H51 H52].
-         assumption.
-(**)
-     - (*cp case*)
-       pose proof (extract_write_svnv H H5). rewrite H9 in H3.
-       rewrite mem_seq1 in H3.
-       move/ eqP: H3 => H3.
-       subst. assumption.
-     - rewrite in_nil in H6. discriminate H6.
-     - inversion H; subst. simpl in H2, H3.
-       rewrite mem_seq1 in H3.
-       move/ eqP: H3 => H3.
-       subst.
-       destruct (inr element  \notin readobs_wvs (r ++ ri)) eqn: beq.
-       rewrite beq in H2.
-       rewrite mem_seq1 in H2.
-       exfalso.
-       move/ eqP : H2. by apply.
-       move/negbT /negPn : beq => Hin.
-       pose proof
-            (read_deterministic (RD H18) H4).
-       pose proof
-            (read_deterministic (RD H17) H5).
-       subst.
-       exfalso.
-       apply H6.
-       exists (inr element: loc).
-       split.
-       destruct element.
-       (*change gen_locs_works
-        theorem statement start here
-        to fix need for destruct maybe*)
-       apply (gen_locs_works H19).
-       rewrite <- readobs_app_wvs.
-       apply Hin.
-       + (*CP case*)
-         inversion H; subst. simpl in H2, H3.
-         destruct element.
-         rewrite mem_seq1 in H3.
-         move/eqP : H3 => Hin. subst.
-         pose proof (equal_index_arr H20). subst.
-         apply (in_subseq H7 (gen_locs_works H20)).
-       + (*CP case warOk*)
-         - inversion H; subst.
-         rewrite in_nil in H3. discriminate H3.
-         - exfalso. by apply (H13 w). 
-       rewrite beq in H2.
-       rewrite mem_seq1 in H2.
-(*
-Lemma iceval_cceval: forall{k: context} {N Nend1 Nend2 : nvmem} {V Vend1 Vend2: vmem}
-                      {c cend1 cend2 : command} {O1 O2: obseq} {W1 W2: the_write_stuff},
-    iceval_w (k, N, V, c) O1 (k, Nend1, Vend1, cend1) W1 ->
-    cceval_w (N, V, c) O2 (Nend2, Vend2, cend2) W2 ->
-    (Nend1 = N /\ Vend1 = (reset V) /\ W1 = emptysets) \/
-    (Nend1 = Nend2 /\ Vend1 = Vend2 /\ cend1 = cend2 /\ W1 = W2).*)
-    pose proof (skip_empty H0). exfalso. by apply H2.
-    (*skip case, inverting trace*) exfalso.
-    dependent induction H0.
-    + by apply H2.
-    + inversion H0.
-  + (*empty trace*) exfalso. by apply H1.
-+ (*single trace*)
-  dependent induction H. (*inducting on cceval*)
-  (*try (
-                             rewrite in_nil in H3; discriminate H3).
-*)
-  - (*cp case*)
-    rewrite mem_seq1 in H0. exfalso. move / eqP : H0. by apply.
-  - (*smallvar case*)
-    inversion H5; inversion H11; subst.
 
 Lemma pf_idem : forall(N0 N Nend: nvmem) (V0 V Vend: vmem)
                       (c0 c: command) (O : obseq) (W : the_write_stuff),
@@ -1173,7 +1090,23 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
                    ).
          case => contra.
 + rewrite H9 in contra. discriminate contra.
-         rewrite rememberme1. apply (fourteen TN1); assumption.
+  rewrite rememberme1.
+  suffices: (is_true (l \in getdomain (NonVol M0 D0)) \/
+             is_true (l \in [::])).
+  - move => [yes | contra]. assumption.
+  rewrite in_nil in contra. discriminate contra.
+  -
+    apply (fourteen l TN1 H2); try assumption.
+    (*ask arthur why this doesn't work...is it
+     cuz it's inside a function?*)
+    assert (remove [::] (getfstwt (W11, R1, Fw1)) = Fw1).
+    simpl.
+    unfold remove.
+    unfold filter.
+    rewrite in_nil.
+    rewrite filter_predT.
+  rewrite 
+  apply (fourteen TN1); assumption.
          (*this comes from fact that N1 steps to M1'
           in one (H) but N1 l and M1' of l are different.. new theorem*)
          assert (W11 = (getwt W0)) as Hwt. by rewrite W1eq; auto.
