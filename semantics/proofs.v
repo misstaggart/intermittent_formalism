@@ -954,7 +954,9 @@ try (rewrite in_nil in H4; discriminate H4)
     + (*CP case warok*)
     exfalso. by apply (H1 w).
     + (*seq case warok*)
-    eapply WAR_I; apply H11; try assumption.
+      eapply WAR_I; apply H11; try assumption.
+      assumption.
+      (*clean up above*)
     + (*trace inductive step*)
 simpl in H6. rewrite mem_cat in H6.
 destruct3 Cmid nmid vmid cmid.
@@ -966,9 +968,8 @@ destruct (l \in (getwt W1)) eqn: beq.
          rewrite mem_cat in H4.
          move/ norP : H4 => [H41 H42].
          assumption.
-         simpl in H5. rewrite mem_cat in H5.
-         move/ norP : H5 => [H51 H52].
-         assumption.
+         simpl in H5.
+         apply (remove_app_l H5).
      + (*2nd half, NOT in first half ie not in W1
         this is what you should be casing on at the top*)
          rewrite mem_cat in H4.
@@ -981,10 +982,23 @@ destruct (l \in (getwt W1)) eqn: beq.
             move / orP : Case2 => [contra | yes].
             - rewrite contra in beq. discriminate beq.
             - assumption.
-       eapply IHtrace_c2; try reflexivity.
-        Check warok_partial. 
-        apply (warok_partial H H41 H3).
-        assumption.
+       eapply IHtrace_c2; try reflexivity; try
+        apply (warok_partial H H41 H3); try
+                                          assumption.
+       unfold append_write in H5.
+       simpl in H5.
+       unfold remove in H5.
+       rewrite filter_cat in H5.
+       unfold remove.
+       rewrite mem_cat in H5.
+       move / norP : H5 => [H50 H51].
+       rewrite <- remove_to_app in H51.
+       assumption.
+       rewrite filter_cat in H52.
+       suffices:
+         (l \notin remove (Rstart) (getfstwt W1 ++ getfstwt W2))
+
+       rewrite mem_cat in H5.
        reflexivity. reflexivity.
        try reflexivity;
            try assumption.
