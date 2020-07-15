@@ -987,7 +987,8 @@ CheckPoint: forall(N: nvmem)
     cceval_w (N, V, (TEST e THEN c1 ELSE c2)) ((Obs r)::nil) (N, V, c2) (nil, (readobs_wvs r), nil).
 
 Definition append_write (W1 W2: the_write_stuff) :=
-  ((getwt W1) ++ (getwt W2), (getrd W1) ++ (getrd W2), (getfstwt W1) ++ (remove (getrd W1) (getfstwt W2))).
+  ((getwt W2) ++ (getwt W1) , (getrd W2) ++ (getrd W1),  (remove (getrd W1) (getfstwt W2))
+                                         ++ (getfstwt W1)).
 (************************************************************)
 
 (**********intermittent execution semantics*************************)

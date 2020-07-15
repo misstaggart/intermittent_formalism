@@ -80,8 +80,8 @@ Inductive WARok: warvars -> warvars -> warvars -> command -> Prop:=
             (e: exp)
             (c1 c2: command),
      (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
-     WARok N W (R ++ Re) c1 ->
-     WARok N W (R ++ Re) c2 ->
+     WARok N W (Re ++ R) c1 ->
+     WARok N W (Re ++ R) c2 ->
      WARok N W R (TEST e THEN c1 ELSE c2)
 .
 
@@ -140,8 +140,8 @@ Inductive DINO: warvars -> warvars -> warvars -> command
     DINO N W R (l;;c) (l;;c') N''
 | D_WAR_If: forall(N N1 N2 W R Re: warvars) (c1 c1' c2 c2': command) (e: exp),
              (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
-     DINO N W (R ++ Re) c1 c1' N1 ->
-     DINO N W (R ++ Re) c2 c2' N2 ->
+     DINO N W (Re ++ R) c1 c1' N1 ->
+     DINO N W (Re ++ R) c2 c2' N2 ->
      DINO N W R (TEST e THEN c1 ELSE c2) (TEST e THEN c1' ELSE c2') (N1 ++ N2)
 | D_WAR_CP: forall(N N' W R: warvars) (c c': command),
     DINO nil nil nil c c' N' ->

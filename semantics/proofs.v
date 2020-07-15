@@ -34,10 +34,10 @@ Proof. intros C1 C2 O W T. induction T.
        + auto.
        + induction H; auto; try (unfold getfstwt; unfold getwt;
          apply filter_subseq).
-       - simpl. apply (cat_subseq IHT1
-                                    (subseq_trans
+       - simpl. apply (cat_subseq (subseq_trans
                                     (filter_subseq _ _ )
-                                    IHT2)).
+                                    IHT2) IHT1
+                                    ).
 Qed.
 
 
@@ -331,7 +331,7 @@ Proof. intros. inversion H1. subst.
          split.
          + apply (in_subseq (wt_subst_fstwt T) H7).
          + split. unfold remove. simpl.
-           rewrite filter_predT. assumption.
+           rewrite filter_predT. rewrite cats0. assumption.
              - intros contra. discriminate contra. 
          + apply H6 in H7. contradiction.
 Qed.
@@ -694,7 +694,7 @@ Lemma wt_gets_bigger: forall{N N0 N1 Nend: nvmem} {V V0 V1 Vend: vmem} {c c0 c1 
     destruct W2 as [ [w2 rd2] fw2].
     simpl.
     rewrite mem_cat.
-    apply (introT orP). left.
+    apply (introT orP). right.
     destruct3 Cmid nmid vmid cmid.
     eapply IHtrace_c1; try
                          apply H; try reflexivity; try assumption.
@@ -767,15 +767,12 @@ Lemma negfwandw_means_r: forall{C Cend: context}  {O: obseq} {W: the_write_stuff
     rewrite mem_cat.
     apply (introT orP).
     rewrite mem_cat in H3.
-    case/norP : H3 => [H31 H32].
+    case/norP : H3 => [H32 H31].
     rewrite mem_cat in H4.
-    move/ orP : H4 => H4.
-    destruct H4.
-  + left. eapply IHtrace_c1; try
-                               reflexivity; try assumption.
+    move/ orP : H4 => [H40 | H41].
   + destruct (l \in rd1) eqn: beq1.
     - auto.
-      right.
+      left.
       rewrite mem_filter in H32.
       move/ nandP : H32 => [H320 | H321].
       rewrite beq1 in H320.
@@ -783,6 +780,8 @@ Lemma negfwandw_means_r: forall{C Cend: context}  {O: obseq} {W: the_write_stuff
       discriminate contra.
     - eapply IHtrace_c2; try reflexivity;
         try assumption.
+  + right. eapply IHtrace_c1; try
+                               reflexivity; try assumption.
  Qed.
 
 Lemma cceval_to_rd_sv: forall {N Nend: nvmem} {V Vend: vmem}
@@ -812,6 +811,18 @@ Lemma extract_write_svnv: forall {N Nend: nvmem} {V Vend: vmem}
   exfalso. apply (negNVandV x H0 H11).
 Qed.
 
+Lemma extract_write_svv: forall {N Nend: nvmem} {V Vend: vmem}
+                      {e: exp} {x: smallvar} {O: obseq}
+                      {W: the_write_stuff}
+  {cend: command},
+    cceval_w (N, V, Ins (asgn_sv x e)) O
+             (Nend, Vend, cend) W ->
+    (isV x) ->
+    (getwt W) = [:: ].
+  intros.
+  inversion H; subst; try reflexivity.
+  exfalso. apply (negNVandV x H11 H0).
+Qed.
 
 Lemma extract_write_arr: forall {N Nend: nvmem} {V Vend: vmem}
                       {e ei: exp} {a: array} {O: obseq}
@@ -841,6 +852,12 @@ Lemma cceval_steps: forall{N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
         c = cmid.
 Admitted.
 
+Lemma cceval_steps_ins: forall{N Nmid: nvmem} {V Vmid: vmem} {cmid: command}
+                   {O: obseq} {W: the_write_stuff} {l: instruction},
+
+        cceval_w (N, V, Ins l) O (Nmid, Vmid, cmid) W ->
+        cmid = Ins skip.
+Admitted.
 (*doesn't this just follow immediately
  from construction of W', R' in WARins?*)
 Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} {O: obseq} {W: the_write_stuff} {Wstart Rstart: warvars},
@@ -857,19 +874,30 @@ Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} 
     move: H H0.
     move: cmid W N V Nmid Vmid O.*)
     dependent induction H1.
-    (*inductive step cceval*)
-    Focus 3.
+  - (*ins case, getting skip for last com of cceval*)
+    pose proof (cceval_steps_ins H). subst. eapply WAR_I. constructor.
+  - (*CP case*)
+    inversion H; subst.
+      - exfalso. rewrite mem_seq1 in H0. move/ eqP :H0.
+      by apply.
+      - exfalso. by apply (H11 w).
+  - (*seq case*) 
     intros.
     destruct (war_cceval H H2). subst.
     pose proof (cceval_steps H). subst. assumption.
+  - (*if case*)
+    inversion H; subst; 
+    pose proof (read_deterministic H1 (RD H12));
+    subst; assumption.
     (*inductive case trace*)
-    Focus 4.
     destruct3 Cmid nmid vmid cmiddle.
     simpl.
     repeat rewrite <- catA.
-    eapply IHtrace_c1; try reflexivity.
-    rewrite <- catA.
- Admitted.
+    rewrite mem_cat in H3.
+    move/ norP : H3 => [H31 H32].
+    eapply IHtrace_c2; try reflexivity; try assumption.
+    eapply IHtrace_c1; try reflexivity; try assumption.
+Qed.
     (*wts
      W' = W0 ++ W
      R' = R ++ getrd W0*)

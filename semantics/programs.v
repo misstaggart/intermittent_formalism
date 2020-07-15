@@ -115,7 +115,7 @@ Lemma append_write_empty_l: forall{W: the_write_stuff},
     append_write emptysets W = W.
 Proof. intros. simpl. unfold append_write. simpl.
        unfold remove. simpl.
-       rewrite filter_predT. 
+       rewrite filter_predT. repeat rewrite cats0. 
        apply undo_gets.
 Qed.
 
@@ -146,7 +146,8 @@ Next Obligation. empty T1. Qed.
 Next Obligation. emptyl T1. rewrite append_write_empty_l. reflexivity. Qed. 
 Next Obligation. empty T2. Qed.
 Next Obligation. by rewrite cats0. Qed.
-Next Obligation. emptyl T2. rewrite append_write_empty. reflexivity. Qed.
+Next Obligation. emptyl T2. Qed.
+                 (*rewrite append_write_empty. reflexivity.*) 
 Next Obligation. split. intros wildcard contra. destruct contra. inversion H1.
                  intros contra. destruct contra. inversion H1. Qed.
 
