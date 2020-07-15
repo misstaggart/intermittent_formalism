@@ -557,13 +557,13 @@ Lemma dom_gets_bigger: forall{N1 N1': nvmem} {V V': vmem} {k0 k1: context}
   intros. destruct H as [w [T] ].
   dependent induction T.
   apply subseq_refl.
-  dependent induction i; try (apply subseq_refl); try
+  dependent induction H; try (apply subseq_refl); try
                                                     apply dom_gets_bigger_rb.
   destruct N1. unfold updateNV_sv. unfold getdomain.
  apply (subseq_cons D (inl x)). 
   destruct N1. unfold updateNV_arr. unfold getdomain.
   apply (suffix_subseq (generate_locs a) D).
-  eapply IHi; (try reflexivity).
+  eapply IHiceval_w; (try reflexivity).
   destruct Cmid as [ [ [ Kmid Nmid ] Vmid ] cmid].
   eapply subseq_trans; [eapply IHT1 | eapply IHT2]; try reflexivity.
 Qed.
