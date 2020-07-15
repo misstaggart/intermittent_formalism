@@ -114,7 +114,7 @@ Inductive DINO_ins: warvars -> warvars -> warvars -> instruction
              (inl x) \in (Re ++ R) ->
                          ((inl x) \in W) ->
                          isNV x ->
-             DINO_ins N W R (asgn_sv x e) N (x::W) (Re ++ R)
+             DINO_ins N W R (asgn_sv x e) N ((inl x) ::W) (Re ++ R)
 | D_WAR_Wt_Arr: forall(N W R Re Rindex: warvars)
                  (a: array) (e index: exp),
     (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)

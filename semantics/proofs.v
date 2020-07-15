@@ -858,11 +858,11 @@ Lemma war_cceval: forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
     rewrite H5. inversion H16; subst;
     pose proof (read_deterministic H4 (RD H17));
     subst; split; reflexivity. (*CP case*)
- - inversion H; subst. pose proof (extract_write_svnv H14 H0).
-    rewrite H5. inversion H16; subst;
-    pose proof (read_deterministic H4 (RD H17));
+ - inversion H; subst. pose proof (extract_write_svnv H15 H2).
+    rewrite H4. inversion H15; subst;
+    pose proof (read_deterministic H3 (RD H16));
     subst; split; reflexivity. (*CP case*)
-
+Admitted.
 
 
 
