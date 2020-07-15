@@ -154,7 +154,7 @@ Next Obligation. split. intros wildcard contra. destruct contra. inversion H1.
 (*intermittent traces*)
  (*the same as trace_c bar types as differences between
   intermittent and continuous execution have been implemented in evals*)
-Inductive trace_i : iconf -> iconf -> obseq -> the_write_stuff -> Type :=
+Inductive trace_i : iconf -> iconf -> obseq -> the_write_stuff -> Prop :=
 iTrace_Empty: forall{C: iconf},
                  trace_i C C [::] ([::], [::], [::])
 |iTrace_Single: forall{C1 C2: iconf} {O: obseq} {W: the_write_stuff},
@@ -167,6 +167,18 @@ iTrace_Empty: forall{C: iconf},
     O1 <> [::] -> (* forces empty step to use other constructors*)
     O2 <> [::]  ->
     trace_i C1 C2 (O1 ++ O2) (append_write W1 W2).
+
+(*Lemma reboot_ind:
+  forall(C1: iconf) (C2: iconf) (O: obseq) (W: the_write_stuff)
+  (forall x: T, (forall y: T, f y < f x -> P y) -> P x) -> forall x: T, P x.
+Proof. intros H. intros x.
+       assert (forall n: nat, f x <= n -> P x).
+       {
+         intros n H1.
+         induction n as [ | n' IHn].
+         + eapply H. intros y H2. omega.
+
+       }*)
 
 (*start here get rid of that
  inhabited redundancy*)
@@ -258,5 +270,6 @@ Inductive same_config: iconf -> context -> Prop :=
                 same_pt N0 V0 c0 c N1 N2 -> (*nvms are extensionally the same by same_pt
                                           vms and cs are intensionally the same by types*)
                 same_config ((N0, V0, c0), N1, V, c) (N2, V, c).
+
 
 Close Scope type_scope.
