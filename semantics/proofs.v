@@ -830,7 +830,17 @@ Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} 
     checkpoint \notin O ->
     WARok (getdomain N0) Wstart Rstart c ->
     WARok (getdomain N0) ((getwt W) ++ Wstart) (Rstart ++ (getrd W)) cmid.
-  Admitted.
+  intros.
+  dependent induction H.
+  + simpl. rewrite cats0. assumption.
+    (*inducting cceval*)
+    dependent induction H.
+    Focus 6.
+    (*inductive cceval step*)
+    inversion H3; subst.
+  - (*cp case*) exfalso. by apply (H w).
+    eapply IHcceval_w; try reflexivity.
+
 
 Lemma skip_empty: forall{N Nend: nvmem} {V Vend: vmem} {cend: command} {O: obseq}
                    {W: the_write_stuff},
