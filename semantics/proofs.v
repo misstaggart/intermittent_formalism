@@ -831,7 +831,7 @@ Lemma war_cceval: forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
 
         cceval_w (N, V, l;;c) O (Nmid, Vmid, cmid) W ->
         WAR_ins (getdomain N0) Wstart Rstart l W' R' ->
-        ( W' = (getwt W) ++ Wstart) /\ (R' = Rstart ++ (getrd W)).
+        ( W' = (getwt W) ++ Wstart) /\ (R' =  (getrd W) ++ Rstart).
 Admitted.
 
 Lemma cceval_steps: forall{N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
@@ -852,7 +852,7 @@ Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} 
   move: H1.
   move : Wstart Rstart.
   dependent induction H; intros.
-  + simpl. rewrite cats0. assumption.
+  + simpl.  assumption.
     (*inducting warok
     move: H H0.
     move: cmid W N V Nmid Vmid O.*)
@@ -864,10 +864,11 @@ Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} 
     pose proof (cceval_steps H). subst. assumption.
     (*inductive case trace*)
     Focus 4.
+    destruct3 Cmid nmid vmid cmiddle.
     simpl.
-    rewrite catA.
+    repeat rewrite <- catA.
+    eapply IHtrace_c1; try reflexivity.
     rewrite <- catA.
-    eapply IHtrace_c2.
  Admitted.
     (*wts
      W' = W0 ++ W
