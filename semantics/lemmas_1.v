@@ -135,7 +135,7 @@ predI is conjunction
    *)
   Admitted.
 
-Lemma filter_empty: forall{A: Type} (L1: seq A),
+Lemma remove_empty: forall(L1: warvars),
     remove [::] L1 = L1.
-  intros. apply filter_predT.
+  intros. apply filter_predT. Qed.
 

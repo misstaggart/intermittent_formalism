@@ -1097,16 +1097,10 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
   rewrite in_nil in contra. discriminate contra.
   -
     apply (fourteen l TN1 H2); try assumption.
+    (*rewrite filter_predT.*)
+    rewrite remove_empty. assumption.
     (*ask arthur why this doesn't work...is it
      cuz it's inside a function?*)
-    assert (remove [::] (getfstwt (W11, R1, Fw1)) = Fw1).
-    simpl.
-    unfold remove.
-    unfold filter.
-    rewrite in_nil.
-    rewrite filter_predT.
-  rewrite 
-  apply (fourteen TN1); assumption.
          (*this comes from fact that N1 steps to M1'
           in one (H) but N1 l and M1' of l are different.. new theorem*)
          assert (W11 = (getwt W0)) as Hwt. by rewrite W1eq; auto.
