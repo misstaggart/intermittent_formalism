@@ -847,9 +847,11 @@ Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} 
     trace_c (N, V, c) (Nmid, Vmid, cmid) O W ->
     checkpoint \notin O ->
     WARok (getdomain N0) Wstart Rstart c ->
-    WARok (getdomain N0) ((getwt W) ++ Wstart) (Rstart ++ (getrd W)) cmid.
+    WARok (getdomain N0) ((getwt W) ++ Wstart) ((getrd W) ++ Rstart) cmid.
   intros.
-  dependent induction H.
+  move: H1.
+  move : Wstart Rstart.
+  dependent induction H; intros.
   + simpl. rewrite cats0. assumption.
     (*inducting warok
     move: H H0.
@@ -860,6 +862,12 @@ Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} 
     intros.
     destruct (war_cceval H H2). subst.
     pose proof (cceval_steps H). subst. assumption.
+    (*inductive case trace*)
+    Focus 4.
+    simpl.
+    rewrite catA.
+    rewrite <- catA.
+    eapply IHtrace_c2.
  Admitted.
     (*wts
      W' = W0 ++ W
