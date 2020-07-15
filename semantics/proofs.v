@@ -879,14 +879,15 @@ Lemma cceval_steps: forall{N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
 
         cceval_w (N, V, l;;c) O (Nmid, Vmid, cmid) W ->
         c = cmid.
-Admitted.
+intros. inversion H; subst; try reflexivity. Qed.
+
 
 Lemma cceval_steps_ins: forall{N Nmid: nvmem} {V Vmid: vmem} {cmid: command}
                    {O: obseq} {W: the_write_stuff} {l: instruction},
 
         cceval_w (N, V, Ins l) O (Nmid, Vmid, cmid) W ->
         cmid = Ins skip.
-Admitted.
+intros. inversion H; subst; try reflexivity. Qed.
 (*doesn't this just follow immediately
  from construction of W', R' in WARins?*)
 Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} {O: obseq} {W: the_write_stuff} {Wstart Rstart: warvars},
