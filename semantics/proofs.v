@@ -1193,7 +1193,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          simpl.
          suffices: (l \in Fw1).
          intros. rewrite mem_cat.
-         apply (introT orP). by left.
+         apply (introT orP). by right.
          simpl in H8.
          suffices: (l \in W11).
          intros HW1.
@@ -1342,7 +1342,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          simpl.
          suffices: (l \in Fw1).
          intros. rewrite mem_cat.
-         apply (introT orP). by left.
+         apply (introT orP). by right.
          simpl in H8.
          suffices: (l \in W11).
          intros HW1.
@@ -1395,10 +1395,10 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
            
 
 
-Lemma 12.0: forall(N0 N1 N1': nvmem) (V V': vmem) (c0 c1 crem: command)
+(*Lemma 12.0: forall(N0 N1 N1': nvmem) (V V': vmem) (c0 c1 crem: command)
   (Obig Osmall: obseq) (Wbig Wsmall: the_write_stuff),
     WARok N0 [] [] [] c0 ->
     multistep_c ((N0, V, c0), N1, V, c0) ((N0, V, c0), N1', V', c)
-    iceval ((N0, V, c0), N1, V, c0) ((N0, V, c0), N1', V', c1) Osmall Wsmall ->
+    iceval ((N0, V, c0), N1, V, c0) ((N0, V, c0), N1', V', c1) Osmall Wsmall ->*)
     
 
