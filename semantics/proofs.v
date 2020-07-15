@@ -825,6 +825,24 @@ Lemma extract_write_arr: forall {N Nend: nvmem} {V Vend: vmem}
   exists element. reflexivity.
 Qed.
 
+Lemma war_cceval: forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
+                   {l: instruction}
+                   {O: obseq} {W: the_write_stuff} {Wstart Rstart W' R': warvars},
+
+        cceval_w (N, V, l;;c) O (Nmid, Vmid, cmid) W ->
+        WAR_ins (getdomain N0) Wstart Rstart l W' R' ->
+        ( W' = (getwt W) ++ Wstart) /\ (R' = Rstart ++ (getrd W)).
+Admitted.
+
+Lemma cceval_steps: forall{N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
+                   {O: obseq} {W: the_write_stuff} {l: instruction},
+
+        cceval_w (N, V, l;;c) O (Nmid, Vmid, cmid) W ->
+        c = cmid.
+Admitted.
+
+(*doesn't this just follow immediately
+ from construction of W', R' in WARins?*)
 Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} {O: obseq} {W: the_write_stuff} {Wstart Rstart: warvars},
     trace_c (N, V, c) (Nmid, Vmid, cmid) O W ->
     checkpoint \notin O ->
@@ -833,13 +851,24 @@ Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} 
   intros.
   dependent induction H.
   + simpl. rewrite cats0. assumption.
-    (*inducting cceval*)
-    dependent induction H.
-    Focus 6.
-    (*inductive cceval step*)
-    inversion H3; subst.
-  - (*cp case*) exfalso. by apply (H w).
-    eapply IHcceval_w; try reflexivity.
+    (*inducting warok
+    move: H H0.
+    move: cmid W N V Nmid Vmid O.*)
+    dependent induction H1.
+    (*inductive step cceval*)
+    Focus 3.
+    intros.
+    destruct (war_cceval H H2). subst.
+    pose proof (cceval_steps H). subst. assumption.
+ Admitted.
+    (*wts
+     W' = W0 ++ W
+     R' = R ++ getrd W0*)
+    (*inductive cceval step
+    inversion H3; subst.*)
+  (* - cp case exfalso. by apply (H w).
+    eapply IHcceval_w; try reflexivity.*)
+
 
 
 Lemma skip_empty: forall{N Nend: nvmem} {V Vend: vmem} {cend: command} {O: obseq}
