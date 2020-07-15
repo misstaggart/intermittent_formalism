@@ -615,7 +615,7 @@ Lemma update_one: forall{N N0 Nend: nvmem} {V V0 Vend: vmem} {c c0 cend: command
    ask arthur why is this not cooperating*)
   apply not_eq_sym in H3.
   apply updateone_arr in H3.
-  subst. by rewrite mem_seq1.
+  subst. destruct element. by pose proof (gen_locs_works H1).
   eapply IHiceval_w; try reflexivity; try
   assumption.
   Qed.
@@ -751,12 +751,10 @@ Lemma negfwandw_means_r: forall{C Cend: context}  {O: obseq} {W: the_write_stuff
     exfalso. by apply contra.
     destruct (l \in readobs_wvs (r ++ ri)) eqn: beq.
     auto.
-    rewrite mem_seq1 in H1.
-    move/eqP: H1 => H1. subst.
-    rewrite beq in H0.
-    rewrite mem_seq1 in H0.
-    move/eqP: H0 => contra.
-    exfalso. by apply contra.
+    rewrite mem_filter in H0.
+    move/ nandP : H0 => [contra1 | contra2].
+           + by move/ negPn : contra1.
+           + rewrite H1 in contra2. discriminate contra2.
     apply IHcceval_w; assumption.
     destruct W1 as [ [w1 rd1] fw1].
     destruct W2 as [ [w2 rd2] fw2].
@@ -830,10 +828,10 @@ Lemma extract_write_arr: forall {N Nend: nvmem} {V Vend: vmem}
   {cend: command},
     cceval_w (N, V, Ins (asgn_arr a ei e)) O
              (Nend, Vend, cend) W ->
-   exists(element: el_loc), (getwt W) = [:: inr element].
+   (getwt W) = (generate_locs a).
   intros.
   inversion H; subst.
-  exists element. reflexivity.
+   reflexivity.
 Qed.
 
 Lemma war_cceval: forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
@@ -858,10 +856,11 @@ Lemma war_cceval: forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
     rewrite H5. inversion H16; subst;
     pose proof (read_deterministic H4 (RD H17));
     subst; split; reflexivity. (*CP case*)
- - inversion H; subst. pose proof (extract_write_svnv H15 H2).
+ -
+   (*inversion H; subst. pose proof (extract_write_svnv H15 H2).
     rewrite H4. inversion H15; subst;
     pose proof (read_deterministic H3 (RD H16));
-    subst; split; reflexivity. (*CP case*)
+    subst; split; reflexivity. *)
 Admitted.
 
 
@@ -990,14 +989,16 @@ try (rewrite in_nil in H4; discriminate H4)
        discriminate H6.
      - (*array case*)
     (*showing x = l*)
-    remember H7 as Hwt. clear HeqHwt. 
-         rewrite mem_seq1 in H7.
-         move/ eqP : H7 => H7. subst.
-       inversion H4; inversion H11;
+       remember H7 as Hwt. clear HeqHwt.
+       simpl in H7.
+       simpl in H6.
+       (*  rewrite mem_seq1 in H7.
+         move/ eqP : H7 => H7. subst.*)
+       inversion H4; inversion H12;
        subst. (*casing on warIns*)
        + (*nord arr*)
          (*showing l in rd W*)
-         suffices: (inr element \notin Rstart).
+         suffices: (l \notin Rstart).
          - intros Hstart.
         (* rewrite mem_cat in H22.
          move / negP / norP : H16 => [H160 H161].*)
@@ -1008,19 +1009,18 @@ try (rewrite in_nil in H4; discriminate H4)
          pose proof (negfwandw_means_r (CTrace_Single H) H6 Hwt) as Hrd. simpl in Hrd.
        (*showing x notin RD(W)*)
        exfalso.
-       apply H22.
-       exists (inr element: loc).
+       apply H23.
+       exists (l : loc).
        split.
-       destruct element.
+       apply Hwt.
        (*change gen_locs_works
         theorem statement start here
         to fix need for destruct maybe*)
-       apply (gen_locs_works H1).
        (*showing rd sets are same*)
        pose proof
-            (read_deterministic (RD H0) H18).
+            (read_deterministic (RD H0) H19).
        pose proof
-            (read_deterministic (RD H3) H21).
+            (read_deterministic (RD H3) H22).
        subst.
        rewrite catA.
        rewrite <- readobs_app_wvs.
@@ -1029,11 +1029,11 @@ try (rewrite in_nil in H4; discriminate H4)
        left.
        apply Hrd.
          - apply (introT negP).
-           intros contra. apply H22.
-           exists (inr element: loc).
+           intros contra. apply H23.
+           exists (l : loc).
        split.
        destruct element.
-       apply (gen_locs_works H1).
+       apply Hwt.
        rewrite catA.
        rewrite mem_cat.
        apply (introT orP).
@@ -1042,7 +1042,7 @@ try (rewrite in_nil in H4; discriminate H4)
          destruct element.
          pose proof (equal_index_arr H1). subst.
          left.
-         apply (in_subseq H23 (gen_locs_works H1)).
+         apply (in_subseq H24 H7).
  - (*seq case*)
     eapply IHH01; try apply H01; try reflexivity; try assumption.
     inversion H2; subst. (*invert WARok to get warins*)

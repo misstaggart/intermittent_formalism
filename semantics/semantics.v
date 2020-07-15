@@ -952,7 +952,7 @@ CheckPoint: forall(N: nvmem)
     cceval_w (N, V, Ins (asgn_arr a ei e))
            ((Obs (cat ri r)) :: nil)
            ((updateNV_arr N element a v), V, Ins skip)
-           ([:: inr element], (readobs_wvs (cat r ri)), (remove (readobs_wvs (cat r ri)) [:: inr element]))
+           ((generate_locs a), (readobs_wvs (cat r ri)), (remove (readobs_wvs (cat r ri)) (generate_locs a)))
 (*valuability and inboundedness of vindex are checked in sameindex*)
 | Skip: forall(N: nvmem)
          (V: vmem)
@@ -1042,7 +1042,7 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
     iceval_w (k, N, V, Ins (asgn_arr a ei e))
            [:: Obs (ri++r)]
            (k, (updateNV_arr N element a v), V, Ins skip)
-           ([:: inr element], (readobs_wvs (cat r ri)), (remove  (readobs_wvs (cat r ri)) [:: inr element]))
+           ((generate_locs a), (readobs_wvs (cat r ri)), (remove  (readobs_wvs (cat r ri)) (generate_locs a)))
 | CP_Skip: forall(k: context) (N: nvmem)
          (V: vmem)
          (c: command),
