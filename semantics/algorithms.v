@@ -40,8 +40,9 @@ WAR_Skip: forall(N W R: warvars),
              (x: smallvar) (e: exp),
              (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
              (inl x) \in (Re ++ R) ->
-             ((inl x) \in W) ->
-             WAR_ins N W R (asgn_sv x e) W (Re ++ R)
+                         ((inl x) \in W) ->
+             isNV x -> (*checking x is nonvolatile*)
+             WAR_ins N W R (asgn_sv x e) ((inl x) ::W) (Re ++ R)
 (*no restrictions on the parameter W,
  if make W really big, never enter the checkpointed case
  and check N for anything
@@ -111,8 +112,9 @@ Inductive DINO_ins: warvars -> warvars -> warvars -> instruction
              (x: smallvar) (e: exp),
              (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)
              (inl x) \in (Re ++ R) ->
-             ((inl x) \in W) ->
-             DINO_ins N W R (asgn_sv x e) N W (Re ++ R)
+                         ((inl x) \in W) ->
+                         isNV x ->
+             DINO_ins N W R (asgn_sv x e) N (x::W) (Re ++ R)
 | D_WAR_Wt_Arr: forall(N W R Re Rindex: warvars)
                  (a: array) (e index: exp),
     (rd e Re) -> (*extra premise checking that Re is the list of values read when e is evaluated*)

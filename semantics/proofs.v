@@ -843,7 +843,29 @@ Lemma war_cceval: forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
         cceval_w (N, V, l;;c) O (Nmid, Vmid, cmid) W ->
         WAR_ins (getdomain N0) Wstart Rstart l W' R' ->
         ( W' = (getwt W) ++ Wstart) /\ (R' =  (getrd W) ++ Rstart).
-Admitted.
+  intros. dependent induction H0.
+  - (*skip case*) inversion H; subst. split; reflexivity.
+    exfalso. by apply H10.
+  - inversion H; subst. pose proof (extract_write_svv H14 H0).
+    rewrite H3. inversion H14; subst;
+    pose proof (read_deterministic H2 (RD H15));
+    subst; split; reflexivity. (*vol case*)
+ - inversion H; subst. pose proof (extract_write_svnv H14 H2).
+    rewrite H3. inversion H14; subst;
+    pose proof (read_deterministic H0 (RD H15));
+    subst; split; reflexivity. (*nord case*)
+ -inversion H; subst. pose proof (extract_write_svnv H16 H0).
+    rewrite H5. inversion H16; subst;
+    pose proof (read_deterministic H4 (RD H17));
+    subst; split; reflexivity. (*CP case*)
+ - inversion H; subst. pose proof (extract_write_svnv H14 H0).
+    rewrite H5. inversion H16; subst;
+    pose proof (read_deterministic H4 (RD H17));
+    subst; split; reflexivity. (*CP case*)
+
+
+
+
 
 Lemma cceval_steps: forall{N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
                    {O: obseq} {W: the_write_stuff} {l: instruction},
