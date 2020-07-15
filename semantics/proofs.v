@@ -908,12 +908,6 @@ Qed.
 
 
 
-Lemma skip_empty: forall{N Nend: nvmem} {V Vend: vmem} {cend: command} {O: obseq}
-                   {W: the_write_stuff},
-    trace_c (N, V, Ins skip) (Nend, Vend, cend) O W -> O = [::].
-  Admitted.
-
-
 Lemma fourteen: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
                   {Wstart Rstart: warvars} (l: loc),
     trace_c (N, V, c) (Nend, Vend, cend) O W ->
@@ -959,11 +953,12 @@ try (rewrite in_nil in H4; discriminate H4)
          move / negP / norP : H16 => [H160 H161].
          rewrite mem_filter in H5.
          rewrite negb_and in H5.
-         rewrite H160 in H5.
+         simpl in H5.
+         rewrite H161 in H5.
          rewrite orFb in H5.
          pose proof (negfwandw_means_r (CTrace_Single H) H5 Hwt) as Hrd. simpl in Hrd.
        (*showing x notin RD(W)*)
-       pose proof (read_deterministic H13 (RD H2)). subst. rewrite Hrd in H161. discriminate H161.
+       pose proof (read_deterministic H13 (RD H2)). subst. rewrite Hrd in H160. discriminate H160.
      + (*CP case*)
         by left.
      + (*written case*)
@@ -1005,10 +1000,11 @@ try (rewrite in_nil in H4; discriminate H4)
        pose proof
             (read_deterministic (RD H3) H21).
        subst.
+       rewrite catA.
        rewrite <- readobs_app_wvs.
        rewrite mem_cat.
        apply (introT orP).
-       right.
+       left.
        apply Hrd.
          - apply (introT negP).
            intros contra. apply H22.
@@ -1016,9 +1012,10 @@ try (rewrite in_nil in H4; discriminate H4)
        split.
        destruct element.
        apply (gen_locs_works H1).
+       rewrite catA.
        rewrite mem_cat.
        apply (introT orP).
-      by left.
+      by right.
      + (*CP array*)
          destruct element.
          pose proof (equal_index_arr H1). subst.
@@ -1045,7 +1042,7 @@ destruct (l \in (getwt W1)) eqn: beq.
          move/ norP : H4 => [H41 H42].
          assumption.
          simpl in H5.
-         apply (remove_app_l H5).
+         apply (remove_app_r H5).
      + (*2nd half, NOT in first half ie not in W1
         this is what you should be casing on at the top*)
          rewrite mem_cat in H4.
@@ -1068,11 +1065,11 @@ destruct (l \in (getwt W1)) eqn: beq.
        unfold remove.
        rewrite mem_cat in H5.
        move / norP : H5 => [H50 H51].
-       rewrite <- remove_to_app in H51.
+       rewrite <- remove_to_app in H50.
        assumption.
        move/ orP : H6 => [H60 | H61].
-            - rewrite beq in H60. discriminate H60.
             - assumption.
+            - rewrite beq in H61. discriminate H61.
 Qed.
 
 

@@ -112,9 +112,9 @@ Lemma readobs_app_wvs: forall(r1 r2: readobs),
   + simpl. rewrite IHr1. by rewrite catA.
   Qed.
 
-Lemma remove_app_l: forall {L1 L2 L3: warvars} {l : loc},
+Lemma remove_app_r: forall {L1 L2 L3: warvars} {l : loc},
     l \notin remove L3 (L1 ++ L2)
-    -> l \notin remove L3 L1.
+    -> l \notin remove L3 L2.
   Admitted.
 
 (*Lemma remove_app_dbl: forall {L1 L2 L3 L4: warvars} {l : loc},
@@ -124,7 +124,7 @@ Admitted.*)
 
 Lemma remove_to_app: forall (L1 L2 L3: warvars),
 
-    filter (fun x => x \notin L3 ++ L2) L1 = filter (fun x => x \notin L3)
+    filter (fun x => x \notin L2 ++ L3) L1 = filter (fun x => x \notin L3)
                                                  (filter
                                                  (fun x => x \notin L2)
                                                   L1).
