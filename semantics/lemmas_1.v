@@ -1,6 +1,6 @@
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
-     Init.Datatypes Strings.String Program.
+     Init.Datatypes Strings.String Program Logic.FunctionalExtensionality.
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq.
 From TLC Require Import LibTactics.
@@ -115,7 +115,17 @@ Lemma readobs_app_wvs: forall(r1 r2: readobs),
 Lemma remove_app_r: forall {L1 L2 L3: warvars} {l : loc},
     l \notin remove L3 (L1 ++ L2)
     -> l \notin remove L3 L2.
-  Admitted.
+  intros.
+  rewrite mem_filter.
+  rewrite mem_filter in H.
+  apply (introT nandP).
+  rewrite mem_cat in H.
+  move / nandP : H => [H1 | H2].
+  by left.
+  move/ norP : H2 => [H21 H22].
+    by right.
+    Qed.
+
 
 (*Lemma remove_app_dbl: forall {L1 L2 L3 L4: warvars} {l : loc},
     l \notin remove L3 (L1 ++ L2)
@@ -133,7 +143,19 @@ Lemma remove_to_app: forall (L1 L2 L3: warvars),
 Lemma filter_predI
 predI is conjunction
    *)
-  Admitted.
+  intros. rewrite - filter_predI.
+  unfold predI.
+  (*ask arthur*)
+  (*suffices: ((fun (x: loc) => x \notin L2 ++ L3) = (fun (x: loc) => x \notin L3 && x \notin L3))*)
+Admitted.
+
+Lemma annoying: forall (L1 L2 L3: warvars),
+(fun (x: loc) => x \notin L2 ++ L3) = (fun (x: loc) => x \notin L3 && x \notin L3).
+
+  (* rewrite <- negb_or.
+     maybe problem is that x is free
+   *)
+
 
 Lemma remove_empty: forall(L1: warvars),
     remove [::] L1 = L1.
