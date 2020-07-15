@@ -1145,7 +1145,13 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          rewrite H9 in contra. assumption.
          right. rewrite rememberme1.
          destruct3 Cmid nmid vmid cmid.
-         apply (fourteen H10); try assumption.
+  suffices: (is_true (l \in getdomain (NonVol M0 D0)) \/
+             is_true (l \in [::])).
+  - move => [yes | contra]. assumption.
+  rewrite in_nil in contra. discriminate contra.
+  -
+    apply (fourteen l H10 H2); try (rewrite remove_empty);
+      try assumption.
          rewrite mem_cat in H7.
          case/ norP : H7 => Hor1 Hor2. assumption.
          (*this comes from fact that N1 steps to M1'
@@ -1236,10 +1242,14 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
                    ).
          move => contra.
 + rewrite H9 in contra. discriminate contra.
-  rewrite rememberme1. apply (fourteen TN1); try
-                                               assumption.
-         (*this comes from fact that N1 steps to M1'
-          in one (H) but N1 l and M1' of l are different.. new theorem*)
+  suffices: (is_true (l \in getdomain (NonVol M0 D0)) \/
+             is_true (l \in [::])).
+             - move => [yes | contra]. assumption.
+               rewrite in_nil in contra. discriminate contra.
+             -
+               apply (fourteen l TN1 H2); try assumption.
+               rewrite remove_empty. assumption.
+(*this comes from fact that N1 steps to M1' in one (H) but N1 l and M1' of l are different.. new theorem*)
          assert (W11 = (getwt W0)) as Hwt. by rewrite W1eq; auto.
          rewrite Hwt.
          eapply wt_gets_bigger.
@@ -1284,7 +1294,13 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          rewrite H9 in contra. assumption.
          right. rewrite rememberme1.
          destruct3 Cmid nmid vmid cmid.
-         apply (fourteen H10); try assumption.
+  suffices: (is_true (l \in getdomain (NonVol M0 D0)) \/
+             is_true (l \in [::])).
+  - move => [yes | contra]. assumption.
+  rewrite in_nil in contra. discriminate contra.
+  -
+    apply (fourteen l H10 H2); try (rewrite remove_empty);
+      try assumption.
          rewrite mem_cat in H7.
          case/ norP : H7 => Hor1 Hor2. assumption.
          (*this comes from fact that N1 steps to M1'
