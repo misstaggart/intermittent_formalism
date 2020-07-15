@@ -834,6 +834,8 @@ Lemma extract_write_arr: forall {N Nend: nvmem} {V Vend: vmem}
    reflexivity.
 Qed.
 
+(*probs should have inducted over
+ cceval instead of warok below, clean up*)
 Lemma war_cceval: forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
                    {l: instruction}
                    {O: obseq} {W: the_write_stuff} {Wstart Rstart W' R': warvars},
@@ -856,13 +858,19 @@ Lemma war_cceval: forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
     rewrite H5. inversion H16; subst;
     pose proof (read_deterministic H4 (RD H17));
     subst; split; reflexivity. (*CP case*)
- -
-   (*inversion H; subst. pose proof (extract_write_svnv H15 H2).
+ - inversion H; subst. pose proof (extract_write_svnv H15 H2).
     rewrite H4. inversion H15; subst;
     pose proof (read_deterministic H3 (RD H16));
-    subst; split; reflexivity. *)
-Admitted.
-
+    subst; split; reflexivity. (*written to case*)
+ - (*nrd arr case*) inversion H; subst; inversion H14; subst. simpl. rewrite readobs_app_wvs. rewrite catA.
+   pose proof (read_deterministic H2 (RD H16)).
+   pose proof (read_deterministic H0 (RD H15)).
+   subst. split; reflexivity.
+ - inversion H; subst; inversion H15; subst. simpl. rewrite readobs_app_wvs. rewrite catA.
+   pose proof (read_deterministic H3 (RD H17)).
+   pose proof (read_deterministic H0 (RD H16)).
+   subst. split; reflexivity.
+Qed.
 
 
 
