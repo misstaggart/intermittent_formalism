@@ -168,26 +168,47 @@ iTrace_Empty: forall{C: iconf},
     O2 <> [::]  ->
     trace_i C1 C2 (O1 ++ O2) (append_write W1 W2).
 
-(*Lemma reboot_ind:
+Open Scope nat_scope.
+
+(*count function*)
+
+Definition crbs (O: obseq) :=
+  count_mem reboot O.
+
+Definition count_reboots {C1 C2: iconf} {O: obseq} {W: the_write_stuff}
+           (T: trace_i C1 C2 O W) :=
+  crbs O.
+
+Lemma reboot_ind:
   forall(C1: iconf) (C2: iconf) (O: obseq) (W: the_write_stuff)
-  (forall x: T, (forall y: T, f y < f x -> P y) -> P x) -> forall x: T, P x.
-Proof. intros H. intros x.
-       assert (forall n: nat, f x <= n -> P x).
-       {
-         intros n H1.
-         induction n as [ | n' IHn].
-         + eapply H. intros y H2. omega.
+  (P: (trace_i C1 C2 O W) -> Prop),
+  (forall x: trace_i C1 C2 O W, (forall y: trace_i C1 C2 O W,
+                               (count_reboots y) <
+                               (count_reboots x) -> P y) -> P x) -> forall x: trace_i C1 C2 O W, P x.
+Proof. intros.
+       suffices: (forall n: nat, count_reboots x <= n -> P x).
+       intros H1.
+       apply (H1 (count_reboots x)). auto.
+       intros n.
+       move: x.
+         induction n as [ | n' IHn]; intros.
+       + eapply H. intros y H2.
+         rewrite leqn0 in H0.
+         move/ eqP : H0 => H0. rewrite H0 in H2.
+         discriminate H2.
+         eapply H. intros y Hy.
+         apply IHn.
+         apply: leq_trans Hy H0.
+         Qed.
 
-       }*)
+Close Scope nat_scope.
 
-(*start here get rid of that
- inhabited redundancy*)
 Definition multi_step_c (C1 C2: context) (O: obseq) :=
-    exists W: the_write_stuff, inhabited (trace_c C1 C2 O W).
+    exists W: the_write_stuff, trace_c C1 C2 O W.
           
 
 Definition multi_step_i (C1 C2: iconf) (O: obseq) :=
-    exists W: the_write_stuff, inhabited (trace_i C1 C2 O W).
+    exists W: the_write_stuff, trace_i C1 C2 O W.
 (*more trace helpers*)
 
 Definition Wt {C1 C2: context} {O: obseq} {W: the_write_stuff}

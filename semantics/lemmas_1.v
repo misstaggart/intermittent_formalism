@@ -132,11 +132,6 @@ Lemma remove_app_r: forall {L1 L2 L3: warvars} {l : loc},
     -> l \notin remove (L3 ++ L4) L1.
 Admitted.*)
 
-Lemma annoying: forall (L1 L2 L3: warvars),
-(fun (x: loc) => x \notin L2 ++ L3) = (fun (x: loc) => (x \notin L3) && (x \notin L2)).
-  intros. (extensionality x). rewrite <- negb_or.
-  rewrite mem_cat. by rewrite orb_comm.
-Qed.
 
 Lemma remove_to_app: forall (L1 L2 L3: warvars),
 
@@ -150,13 +145,13 @@ Lemma filter_predI
 predI is conjunction
    *)
   intros. rewrite - filter_predI.
-  unfold predI.
-  rewrite (annoying L1 L2 L3).
-  (*ask arthur what that extra x is doing out there and
-   how reflexivity worked*)
-  reflexivity.
+  under eq_filter => x do rewrite mem_cat negb_or
+                                 andb_comm.
+                         reflexivity.
+  (*under eq_filter => x. rewrite mem_cat. over.
+  under eq_filter => x do rewrite mem_cat negb_or.
+                         Check eq_filter.*)
   (*suffices: (fun (x: loc) => x \notin L2 ++ L3) = (fun (x: loc) => x \notin L3 && x \notin L3)*)
-  (*ask arthur why the above complains*)
 Qed.
   (* rewrite <- negb_or.
      maybe problem is that x is free

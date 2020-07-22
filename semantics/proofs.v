@@ -2,7 +2,7 @@ Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Strings.String Program Logic.FunctionalExtensionality.
 Require Export Coq.Strings.String.
-From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq fintype.
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq fintype ssrnat.
 From TLC Require Import LibTactics LibLogic.
 From Semantics Require Export programs semantics algorithms lemmas_1
 lemmas_0. (*shouldn't have to import both of these*)
@@ -123,11 +123,8 @@ Lemma gen_locs_works: forall{a a0: array} {i: 'I_(get_length a0)}
   Check inE.
   apply (map_f (fun i0 => inr (El (Array s l) i0)))
   .
-  rewrite mem_enum.
-  reflexivity.
+  by rewrite mem_enum.
 Qed.
-(*ask arthur
- HOW did reflexivity work just then*)
   (*suffices: 
   rewrite <- inE.
   induction i.
@@ -213,7 +210,7 @@ Lemma single_step_all: forall{C1 Cmid C3: context}
     trace_c C1 C3 Obig Wbig ->
     Obig <> [::] ->
     (exists (O1: obseq) (W1: the_write_stuff), cceval_w C1 O1 Cmid W1) ->
-    exists(Wrest: the_write_stuff) (Orest: obseq), inhabited (trace_c Cmid C3 Orest Wrest)
+    exists(Wrest: the_write_stuff) (Orest: obseq), trace_c Cmid C3 Orest Wrest
 /\ subseq Orest Obig
 .
   intros C1 Cmid C3 Obig Wbig T OH c.
@@ -224,17 +221,16 @@ Lemma single_step_all: forall{C1 Cmid C3: context}
   + exfalso. apply OH. reflexivity.
   + destruct c as [O1 rest]. destruct rest as [W1 c0]. exists emptysets (nil: obseq).
     constructor. cut (C2 = Cmid).
-    - intros Hmid. subst. constructor. apply CTrace_Empty.
+    - intros Hmid. subst. constructor. 
     - eapply determinism. apply H. apply c0.
     - apply sub0seq.
-      + assert (Tfirst: exists Wrest Orest, inhabited (trace_c Cmid0 Cmid Orest Wrest)
+      + assert (Tfirst: exists Wrest Orest,  (trace_c Cmid0 Cmid Orest Wrest)
                        /\ subseq Orest O1                           
                ) by (apply IHT1; try assumption).
         destruct Tfirst as [Wrest rest]. destruct rest as [Orest T0mid]. destruct T0mid as [T0mid incl1].
-        destruct T0mid as [T0mid].
-   exists (append_write Wrest W2) (Orest ++ O2). destruct Orest; split; (try constructor).
-    - simpl. apply empty_trace in T0mid. destruct T0mid as [l r].
-      subst. rewrite append_write_empty_l. assumption.
+        exists (append_write Wrest W2) (Orest ++ O2). destruct Orest; split.
+    - simpl. apply empty_trace in T0mid. destruct T0mid.
+      subst. rewrite append_write_empty_l; auto.
       reflexivity.
     - simpl. apply suffix_subseq.
     - eapply CTrace_App. apply T0mid. intros contra. inversion contra.
@@ -314,7 +310,7 @@ Theorem DINO_WAR_correct: forall(N W R N': warvars) (c c': command),
 Qed.
 
 
-Lemma eight: forall(N0 N1 N2: nvmem) (V0: vmem) (c0: command),
+Lemma eight: forall{N0 N1 N2: nvmem} {V0: vmem} {c0: command},
               (subset_nvm N0 N1) ->
               (subset_nvm N0 N2) ->
               current_init_pt N0 V0 c0 N1 N1 N2 ->
@@ -352,17 +348,17 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
   generalize_5 N N' V V' O.
   remember H as warok. clear Heqwarok.
   induction H; intros.
-  +  destruct_ms H0 T Wr.
+  +  destruct H0 as [ Wr T ].
     cut (c' = Ins l \/ c' = skip).
   - intros Hdis. destruct Hdis as [Hins | Hskip]; subst; exists W R.
     + apply warok.
     + eapply WAR_I. apply WAR_Skip.
   - apply trace_stops in T. assumption.
-  + intros. destruct_ms H0 T WT. remember T as T1. clear HeqT1.
+  + intros. destruct H0 as [ WT T ]. remember T as T1. clear HeqT1.
         apply observe_checkpt in T. destruct T as [eq | contra].
     - subst. exists W R. apply warok.
     - apply H1 in contra. contradiction.
-+ destruct_ms H2 T WT; subst.
++ destruct H2 as [ WT T ]; subst.
       assert (Dis: (l ;; c) = c' \/ not ((l;;c) = c'))
           by (apply classic). destruct Dis.
     - subst. exists W R. assumption.
@@ -377,13 +373,13 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
         destruct Csmall as [blah1 smallcom]. destruct blah1 as [Nsmall Vsmall].
         remember c1 as c11. clear Heqc11.
         apply seq_step in c11. unfold getcom in c11. subst.
-        cut (exists(Wrest: the_write_stuff) (Orest: obseq), inhabited
-                                                         (trace_c
+        cut (exists(Wrest: the_write_stuff) (Orest: obseq), 
+                                                         trace_c
                                                             (Nsmall, Vsmall, smallcom)
                                                             (N', V', c')
-                                                            Orest Wrest)
+                                                            Orest Wrest
                                                        /\ subseq Orest O).
-        intros bigH. destruct bigH as [Wrest blah]. destruct blah as [Orest inhab]. destruct inhab as [inhab inclO].
+        move => [Wrest [ Orest [Tsmall inclO] ] ].
         assert (Hmulti: multi_step_c
               (Nsmall, Vsmall, smallcom)
               (N', V', c') Orest) by (exists Wrest; assumption).
@@ -394,7 +390,7 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
       - intros contra. apply (empty_trace T) in contra. destruct contra as
             [contra blah]. inversion contra. subst. apply H2. reflexivity.
         exists Osmall Wsmall. assumption.
- + destruct_ms H3 T WT; subst. remember (TEST e THEN c1 ELSE c2) as bigif.
+ + destruct H3 as [WT T]; subst. remember (TEST e THEN c1 ELSE c2) as bigif.
    assert (Dis: bigif = c' \/
                 bigif <> c')
      by (apply classic). destruct Dis.
@@ -410,13 +406,13 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
         remember cc as cc1. clear Heqcc1. rewrite Heqbigif in cc1.
         apply if_step in cc1. destruct cc1 as [tcase | fcase].
         - unfold getcom in tcase. subst.
-        cut (exists(Wrest: the_write_stuff) (Orest: obseq), inhabited
+        cut (exists(Wrest: the_write_stuff) (Orest: obseq), 
                                                          (trace_c
                                                             (Nsmall, Vsmall, smallcom)
                                                             (N', V', c')
                                                             Orest Wrest)
                                                        /\ subseq Orest O).
-        intros bigH. destruct bigH as [Wrest blah]. destruct blah as [Orest inhab]. destruct inhab as [inhab inclO].
+        move => [Wrest [ Orest [Tsmall inclO] ] ].
         assert (Hmulti: multi_step_c
               (Nsmall, Vsmall, smallcom)
               (N', V', c') Orest) by (exists Wrest; assumption).
@@ -428,13 +424,13 @@ Lemma ten: forall(N0 W R: warvars) (N N': nvmem) (V V': vmem)
             [contra blah]. inversion contra. subst. apply H3. reflexivity.
         exists Osmall Wsmall. assumption.
       - unfold getcom in fcase. subst.
-        cut (exists(Wrest: the_write_stuff) (Orest: obseq), inhabited
+        cut (exists(Wrest: the_write_stuff) (Orest: obseq), 
                                                          (trace_c
                                                             (Nsmall, Vsmall, smallcom)
                                                             (N', V', c')
                                                             Orest Wrest)
                                                        /\ subseq Orest O).
-        intros bigH. destruct bigH as [Wrest blah]. destruct blah as [Orest inhab]. destruct inhab as [inhab inclO].
+        move => [Wrest [ Orest [Tsmall inclO] ] ].
         assert (Hmulti: multi_step_c
               (Nsmall, Vsmall, smallcom)
               (N', V', c') Orest) by (exists Wrest; assumption).
@@ -554,7 +550,7 @@ Lemma dom_gets_bigger: forall{N1 N1': nvmem} {V V': vmem} {k0 k1: context}
                         {c c': command} {O: obseq},
       multi_step_i (k0, N1, V, c) (k1, N1', V', c') O ->
    subseq (getdomain N1) (getdomain N1').
-  intros. destruct H as [w [T] ].
+  intros. destruct H as [w T].
   dependent induction T.
   apply subseq_refl.
   dependent induction H; try (apply subseq_refl); try
@@ -629,7 +625,8 @@ Lemma iceval_cceval: forall{k: context} {N Nend1 Nend2 : nvmem} {V Vend1 Vend2: 
   intros.
   move : cend2 H0.
   dependent induction H; intros.
-  left. split; [reflexivity | split; [reflexivity | split; reflexivity] ].
+  left. (*do! [split]. by [].*)
+  split; [reflexivity | split; [reflexivity | split; reflexivity] ].
   inversion H0.
   inversion H0; subst. right.
   split; [reflexivity | split; reflexivity ].
@@ -1022,9 +1019,6 @@ try (rewrite in_nil in H4; discriminate H4)
        exists (l : loc).
        split.
        apply Hwt.
-       (*change gen_locs_works
-        theorem statement start here
-        to fix need for destruct maybe*)
        (*showing rd sets are same*)
        pose proof
             (read_deterministic (RD H0) H19).
@@ -1074,8 +1068,7 @@ destruct (l \in (getwt W1)) eqn: beq.
          assumption.
          simpl in H5.
          apply (remove_app_r H5).
-     + (*2nd half, NOT in first half ie not in W1
-        this is what you should be casing on at the top*)
+     + (*2nd half, NOT in first half *)
          rewrite mem_cat in H4.
          move/ norP : H4 => [H41 H42].
        suffices:
@@ -1131,13 +1124,15 @@ Lemma pf_idem : forall(N0 N Nend: nvmem) (V0 V Vend: vmem)
 (*need to show N0 U! N1' can make it*)
          - assert(trace_c ((N0 U! N1'), V, c) (Nend, Vend, Ins skip) O0 W0) as T2.
 eapply twelve00.
-   exists W. constructor. apply (iTrace_Single H). assumption.
+   exists W. apply (iTrace_Single H). assumption.
    assumption. assumption. constructor. assumption. assumption.
      apply T2. by left.
-       - (*showing N2 subst N0 U! N1'*)
+       - (*showing N2 subst N0 U! N1'
+          Ignore this bullet: I forgot to take out this part of the
+          relation after our last meeting*)
 assert (multi_step_i ((N0, V, c), N1, V, c)
                               ((N0, V, c), N1', V', c') O).
-         exists W. constructor.  apply (iTrace_Single H).
+         exists W.  apply (iTrace_Single H).
          apply (subseq_trans
                   (subseq_trans H6 (dom_gets_bigger
                                       H5)) (dom_gets_bigger_rb
@@ -1173,7 +1168,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
            simpl.
            (*now have that l is not in D0*)
            left.
-(*inducting on T to split up W0*)
+(*inverting T to split up W0*)
            inversion T; subst.
            inversion H. subst.
           exfalso. by apply H5.
@@ -1203,8 +1198,6 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
     apply (fourteen l TN1 H2); try assumption.
     (*rewrite filter_predT.*)
     rewrite remove_empty. assumption.
-    (*ask arthur why this doesn't work...is it
-     cuz it's inside a function?*)
          (*this comes from fact that N1 steps to M1'
           in one (H) but N1 l and M1' of l are different.. new theorem*)
          assert (W11 = (getwt W0)) as Hwt. by rewrite W1eq; auto.
@@ -1217,7 +1210,11 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          apply (update_one H); try assumption.
          intros contra. apply H5.
          rewrite rememberme. symmetry. assumption.
-(*inductive case*)
+(*larger trace case; exact same reasoning
+ significant potential for
+ decreasing boilerplate if I just proved
+ that fstwt set grows as trace gets bigger,
+ used first IH*)
 + destruct W1 as [ [W11 R1] Fw1] eqn: W1eq.
          destruct W2 as [ [W22 R2] Fw2] eqn: W2eq.
          unfold append_write.
@@ -1281,13 +1278,13 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
      assert(trace_c ((N0 U! N1'), V, c) (Nend, Vend, incheckpoint wcp;;
           crem2) O0 W0) as T2.
 eapply twelve01.
-   exists W. constructor. apply (iTrace_Single H). assumption.
+   exists W. apply (iTrace_Single H). assumption.
    assumption. assumption.  assumption. assumption.
      apply T2. right. exists wcp crem2. reflexivity.
        - (*showing N2 subst N0 U! N1'*)
 assert (multi_step_i ((N0, V, c), N1, V, c)
                               ((N0, V, c), N1', V', c') O).
-         exists W. constructor.  apply (iTrace_Single H).
+         exists W.   apply (iTrace_Single H).
          apply (subseq_trans
                   (subseq_trans H6 (dom_gets_bigger
                                       H5)) (dom_gets_bigger_rb
@@ -1366,7 +1363,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          eapply (update_one H); try assumption.
          intros contra. apply H5.
          rewrite rememberme. symmetry. assumption.
-         (*inductive case*)
+         (*big trace case*)
 + destruct W1 as [ [W11 R1] Fw1] eqn: W1eq.
          destruct W2 as [ [W22 R2] Fw2] eqn: W2eq.
          unfold append_write.
@@ -1433,3 +1430,46 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
     iceval ((N0, V, c0), N1, V, c0) ((N0, V, c0), N1', V', c1) Osmall Wsmall ->*)
     
 
+    Lemma eleven: forall{N0 N1 Nmid Nend N2: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
+                   {O1 Orem: obseq} {W1 Wrem: the_write_stuff},
+        trace_i ((N0, V, c), N1, V, c) ((N0, V, c), Nmid, Vmid, cmid) O1 W1 ->
+             (checkpoint \notin O1) ->
+             subset_nvm N0 N1 ->
+             subset_nvm N0 N2 ->
+             current_init_pt N0 V c N1 N1 N2 ->
+             WARok (getdomain N0) [::] [::] c ->
+             trace_i ((N0, V, c), Nmid, Vmid, cmid) ((N0, V, c), Nend, Vend, cend) Orem Wrem ->
+             (* Sigma -> Sigma'
+configs can always make progress assumption*)
+             (checkpoint \notin Orem) ->
+             (reboot \notin Orem) ->
+             ((cend = Ins skip) \/ exists(w: warvars) (cend2: command), cend = (incheckpoint w);; cend2) ->
+             (exists(O2: obseq) (sigma: context) (Wc:
+                                            the_write_stuff),
+                 trace_c (N2, V, c) sigma O2 Wc /\
+                         (*write SETS have to be the same
+                          but write lists do not,
+                          can add that extra specificity
+                          if I need it*)
+             same_config ((N0, V, c), Nmid, Vmid, cmid) (*Sigma ~ sigma*)
+                         sigma /\
+             trace_c sigma (Nend, Vend, cend) Orem Wrem  /\ (*sigma -> Sigma'-*)
+             (*same obs, write as "intermittent" execution*)
+             O1 ++ Orem <= O2 ++ Orem).
+      intros.
+      (*inducting on reboots in start => Sigma*)
+      + induction H using reboot_ind.
+        destruct ((count_reboots H) == O) eqn: BC.
+        move/ eqP / count_memPn : BC => BC.
+        (*base case*)
+        + pose proof (eight H1 H2 H3).
+
+
+
+
+                     iceval_w ((N0, V, c), N1, V, c) O
+             ((N0, V, c), N1', V', c') W ->
+             (reboot \notin O) ->
+             WARok (getdomain N0) [::] [::] c ->
+             current_init_pt N0 V c N1 N1 N2 ->
+             current_init_pt N0 V c (N0 U! N1') (N0 U! N1') N2.
