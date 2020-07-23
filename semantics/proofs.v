@@ -1440,10 +1440,17 @@ cuz no reboots
  which is fine
  cuz empty trace*)
 
+Lemma ctrace_deterministic: forall{N Nend1 Nend2: nvmem} {V Vend1 Vend2: vmem} {c cend: command}
+                   {O1 O2: obseq} {W1 W2: the_write_stuff},
+        trace_c (N, V, c) (Nend1, Vend1, cend) O1 W1 ->
+        trace_c (N, V, c) (Nend2, Vend2, cend) O2 W2 ->
+        Nend1 = Nend2 /\ Vend1 = Vend2 /\ O1 = O2 /\ W1 = W2.
+  Admitted.
 
-    Lemma sixteen: forall{N0 N1 Nend N2 Nstart: nvmem} {Vstart V V1 Vend: vmem} {c c1 cend: command}
+
+    Lemma sixteen: forall{N0 N1 Nend N2 Nstart: nvmem} {V V1 Vend: vmem} {c c1 cend: command}
                    {Ostart O : obseq} {Wstart W: the_write_stuff},
-        trace_i ((N0, V, c), Nstart, Vstart, c) ((N0, V, c), N1, V1, c1) Ostart Wstart -> (*initialize
+        trace_i ((N0, V, c), Nstart, V, c) ((N0, V, c), N1, V1, c1) Ostart Wstart -> (*initialize
                                                                                               starting
                                                                                               write sets
                                                                                               point*)
@@ -1454,7 +1461,7 @@ cuz no reboots
              (reboot \notin O) ->
              WARok (getdomain N0) [::] [::] c ->
              same_pt (N0 U! N1) V c c1 N1 N2 ->
-           exists(Nend2: nvmem),(trace_c (N2, V, c) (Nend2, Vend, cend) O W /\
+           exists(Nend2: nvmem),(trace_c (N2, V1, c1) (Nend2, Vend, cend) O W /\
              same_pt (N0 U! Nend) V c cend Nend Nend2).
       Admitted.
 
@@ -1503,10 +1510,22 @@ configs can always make progress assumption*)
             (* destruct H8 as [H80 | H81].*)
              subst.
              split.
-             + pose proof (eight H1 H2 H3) as Height.
-               repeat rewrite cats0 in Hwarok.
+             + 
+               destruct (sixteen H H0 BC H5 H6 H7 H4 Hsp) as [Nend2 [Tc2 Hspend] ].
+ose proof (eight H1 H2 H3) as Height.
                Check sixteen.
-destruct (sixteen H H0 BC H5 H6 H7 H4 Hsp) as [Nmid2 Hspend].
+               inversion Hsp. subst.
+               Check itrace_ctrace.
+               pose proof (itrace_ctrace H5 H7) as Tc3.
+               destruct (ctrace_deterministic )
+               ctrace_det
+               (*worry about H11 in a second*)
+               suffices: Nend = Nend2.
+               move => Heq. subst. assumption.
+               inversion Hspend. subst.
+               destruct H8 as [H81 | H82].
+               destruct H10 as [H101 | H102].
+               subst.
 (*wiggle with samept and the fact that cend
  is \/ by H8*)
 

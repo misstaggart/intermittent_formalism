@@ -1440,6 +1440,15 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
              same_pt N1 V c cend Nend1 Nend2).
       Admitted.
 
+    Lemma sixteen: forall{N0 N1 Nend1 N2: nvmem} {V Vend: vmem} {c cend: command}
+                   {O : obseq} {W: the_write_stuff},
+        trace_i ((N0, V, c), N1, V, c) ((N0, V, c), Nend1, Vend, cend) O W ->
+             (checkpoint \notin O) ->
+             (reboot \notin O) ->
+             same_pt Nstart V c c N1 N2 ->
+           exists(Nend2: nvmem),  (trace_c (N2, V, c) (Nend2, Vend, cend) O W /\
+             same_pt (N0 U! Nend1) V c cend Nend1 Nend2).
+      Admitted.
     Lemma eleven: forall{N0 N1 Nmid Nend N2: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
                    {O1 Orem: obseq} {W1 Wrem: the_write_stuff},
         trace_i ((N0, V, c), N1, V, c) ((N0, V, c), Nmid, Vmid, cmid) O1 W1 ->
