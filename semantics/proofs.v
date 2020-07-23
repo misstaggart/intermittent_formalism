@@ -1506,8 +1506,9 @@ configs can always make progress assumption*)
              + pose proof (eight H1 H2 H3) as Height.
                repeat rewrite cats0 in Hwarok.
                Check sixteen.
-destruct (sixteen H H0 BC H5 H6 H7 H4 Hsp) as [Tc2 Hspend].
-
+destruct (sixteen H H0 BC H5 H6 H7 H4 Hsp) as [Nmid2 Hspend].
+(*wiggle with samept and the fact that cend
+ is \/ by H8*)
 
 
                      iceval_w ((N0, V, c), N1, V, c) O
