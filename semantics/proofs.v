@@ -1428,7 +1428,35 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
     WARok N0 [] [] [] c0 ->
     multistep_c ((N0, V, c0), N1, V, c0) ((N0, V, c0), N1', V', c)
     iceval ((N0, V, c0), N1, V, c0) ((N0, V, c0), N1', V', c1) Osmall Wsmall ->*)
-    
+
+Lemma itrace_ctrace: forall{N0 N1 Nend1: nvmem} {V V' Vend: vmem} {c c' cend: command}
+                   {O : obseq} {W: the_write_stuff},
+        trace_i ((N0, V, c), N1, V', c') ((N0, V, c), Nend1, Vend, cend) O W ->
+        (reboot \notin O) ->
+        trace_c (N1, V', c') (Nend1, Vend, cend) O W.
+  Admitted.
+(*if there is a PF it would have to be the last thing
+cuz no reboots
+ which is fine
+ cuz empty trace*)
+
+
+    Lemma sixteen: forall{N0 N1 Nend N2 Nstart: nvmem} {Vstart V V1 Vend: vmem} {c c1 cend: command}
+                   {Ostart O : obseq} {Wstart W: the_write_stuff},
+        trace_i ((N0, V, c), Nstart, Vstart, c) ((N0, V, c), N1, V1, c1) Ostart Wstart -> (*initialize
+                                                                                              starting
+                                                                                              write sets
+                                                                                              point*)
+             (checkpoint \notin Ostart) ->
+             (reboot \notin Ostart) ->
+        trace_i ((N0, V, c), N1, V1, c1) ((N0, V, c), Nend, Vend, cend) O W ->
+             (checkpoint \notin O) ->
+             (reboot \notin O) ->
+             WARok (getdomain N0) [::] [::] c ->
+             same_pt (N0 U! N1) V c c1 N1 N2 ->
+           exists(Nend2: nvmem),(trace_c (N2, V, c) (Nend2, Vend, cend) O W /\
+             same_pt (N0 U! Nend) V c cend Nend Nend2).
+      Admitted.
 
     Lemma eleven: forall{N0 N1 Nmid Nend N2: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
                    {O1 Orem: obseq} {W1 Wrem: the_write_stuff},
@@ -1462,8 +1490,23 @@ configs can always make progress assumption*)
         destruct ((count_reboots H) == O) eqn: BC.
         move/ eqP / count_memPn : BC => BC.
         (*base case*)
-        + pose proof (eight H1 H2 H3).
-
+      +
+        suffices: exists(Nmid2: nvmem),
+          (trace_c (N2, V, c) (Nmid2, Vmid, cmid) O1 W1 /\
+           same_pt (N0 U! Nmid) V c cmid Nmid Nmid2).
+      - move => [Nmid2 [Tc1 Hsp] ].
+        exists O1 (Nmid2, Vmid, cmid) W1. split.
+        + assumption.
+        + split.
+           - constructor. assumption.
+           - (*trying to use 16 instead of 17*)
+            (* destruct H8 as [H80 | H81].*)
+             subst.
+             split.
+             + pose proof (eight H1 H2 H3) as Height.
+               repeat rewrite cats0 in Hwarok.
+               Check sixteen.
+destruct (sixteen H H0 BC H5 H6 H7 H4 Hsp) as [Tc2 Hspend].
 
 
 

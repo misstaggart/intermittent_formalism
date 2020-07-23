@@ -1,3 +1,4 @@
+
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Strings.String Program Logic.FunctionalExtensionality.
@@ -310,7 +311,7 @@ Theorem DINO_WAR_correct: forall(N W R N': warvars) (c c': command),
 Qed.
 
 
-Lemma eight: forall(N0 N1 N2: nvmem) (V0: vmem) (c0: command),
+Lemma eight: forall{N0 N1 N2: nvmem} {V0: vmem} {c0: command},
               (subset_nvm N0 N1) ->
               (subset_nvm N0 N2) ->
               current_init_pt N0 V0 c0 N1 N1 N2 ->
@@ -1428,7 +1429,16 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
     WARok N0 [] [] [] c0 ->
     multistep_c ((N0, V, c0), N1, V, c0) ((N0, V, c0), N1', V', c)
     iceval ((N0, V, c0), N1, V, c0) ((N0, V, c0), N1', V', c1) Osmall Wsmall ->*)
-    
+
+    Lemma sixteen: forall{N0 N1 Nend1 N2: nvmem} {V Vend: vmem} {c cend: command}
+                   {O : obseq} {W: the_write_stuff},
+        trace_i ((N0, V, c), N1, V, c) ((N0, V, c), Nend1, Vend, cend) O W ->
+             (checkpoint \notin O) ->
+             (reboot \notin O) ->
+             same_pt N1 V c c N1 N2 ->
+           exists(Nend2: nvmem),  (trace_c (N2, V, c) (Nend2, Vend, cend) O W /\
+             same_pt N1 V c cend Nend1 Nend2).
+      Admitted.
 
     Lemma eleven: forall{N0 N1 Nmid Nend N2: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
                    {O1 Orem: obseq} {W1 Wrem: the_write_stuff},
@@ -1461,7 +1471,8 @@ configs can always make progress assumption*)
       + induction H using reboot_ind.
         destruct ((count_reboots H) == O) eqn: BC.
         move/ eqP / count_memPn : BC => BC.
-        pose proof (eight )
+        (*base case*)
+        + pose proof (eight H1 H2 H3).
 
 
 

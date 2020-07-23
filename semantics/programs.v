@@ -288,7 +288,7 @@ Inductive same_config: iconf -> context -> Prop :=
   SameConfig: forall(N0 N1 N2: nvmem)
                 (V0 V: vmem)
                 (c0 c: command),
-                same_pt N0 V0 c0 c N1 N2 -> (*nvms are extensionally the same by same_pt
+                same_pt (N0 U! N1) V0 c0 c N1 N2 -> (*nvms are extensionally the same by same_pt
                                           vms and cs are intensionally the same by types*)
                 same_config ((N0, V0, c0), N1, V, c) (N2, V, c).
 
