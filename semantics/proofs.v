@@ -2,7 +2,7 @@ Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Strings.String Program Logic.FunctionalExtensionality.
 Require Export Coq.Strings.String.
-From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq fintype ssrnat.
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq fintype ssrnat ssrfun.
 From TLC Require Import LibTactics LibLogic.
 From Semantics Require Export programs semantics algorithms lemmas_1
 lemmas_0. (*shouldn't have to import both of these*)
@@ -1463,7 +1463,14 @@ Lemma ctrace_deterministic: forall{N Nend1 Nend2: nvmem} {V Vend1 Vend2: vmem} {
              same_pt (N0 U! N1) V c c1 N1 N2 ->
            exists(Nend2: nvmem),(trace_c (N2, V1, c1) (Nend2, Vend, cend) O W /\
              same_pt (N0 U! Nend) V c cend Nend Nend2).
+    Admitted.
+
+    Lemma dom_eq: forall(N0 N1: nvmem),
+        (getmap N0) =1 (getmap N1) ->
+        N0 = N1.
       Admitted.
+
+
 
     Lemma eleven: forall{N0 N1 Nmid Nend N2: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
                    {O1 Orem: obseq} {W1 Wrem: the_write_stuff},
@@ -1512,6 +1519,12 @@ configs can always make progress assumption*)
              split.
              + 
                destruct (sixteen H H0 BC H5 H6 H7 H4 Hsp) as [Nend2 [Tc2 Hspend] ].
+               suffices: Nend = Nend2.
+               move=> Heq. subst. assumption.
+           - inversion Hspend. subst.
+             apply dom_eq.
+             intros l.
+             extensionality.
 ose proof (eight H1 H2 H3) as Height.
                Check sixteen.
                inversion Hsp. subst.
