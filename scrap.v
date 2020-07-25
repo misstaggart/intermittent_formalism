@@ -1,9 +1,8 @@
-
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Strings.String Program Logic.FunctionalExtensionality.
 Require Export Coq.Strings.String.
-From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq fintype ssrnat.
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq fintype ssrnat ssrfun.
 From TLC Require Import LibTactics LibLogic.
 From Semantics Require Export programs semantics algorithms lemmas_1
 lemmas_0. (*shouldn't have to import both of these*)
@@ -1430,25 +1429,54 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
     multistep_c ((N0, V, c0), N1, V, c0) ((N0, V, c0), N1', V', c)
     iceval ((N0, V, c0), N1, V, c0) ((N0, V, c0), N1', V', c1) Osmall Wsmall ->*)
 
-    Lemma sixteen: forall{N0 N1 Nend1 N2: nvmem} {V Vend: vmem} {c cend: command}
+Lemma itrace_ctrace: forall{N0 N1 Nend1: nvmem} {V V' Vend: vmem} {c c' cend: command}
                    {O : obseq} {W: the_write_stuff},
-        trace_i ((N0, V, c), N1, V, c) ((N0, V, c), Nend1, Vend, cend) O W ->
+        trace_i ((N0, V, c), N1, V', c') ((N0, V, c), Nend1, Vend, cend) O W ->
+        (reboot \notin O) ->
+        trace_c (N1, V', c') (Nend1, Vend, cend) O W.
+  Admitted.
+(*if there is a PF it would have to be the last thing
+cuz no reboots
+ which is fine
+ cuz empty trace*)
+
+Lemma skiptrace_empty:forall{N Nend: nvmem} {V Vend: vmem} {cend: command}
+                   {O : obseq} {W: the_write_stuff},
+    trace_c (N, V, Ins skip) (Nend, Vend, cend) O W -> O = [::].
+  Admitted.
+
+Lemma ctrace_deterministic: forall{N Nend1 Nend2: nvmem} {V Vend1 Vend2: vmem} {c cend: command}
+                   {O1 O2: obseq} {W1 W2: the_write_stuff},
+        trace_c (N, V, c) (Nend1, Vend1, cend) O1 W1 ->
+        trace_c (N, V, c) (Nend2, Vend2, cend) O2 W2 ->
+        Nend1 = Nend2 /\ Vend1 = Vend2 /\ O1 = O2 /\ W1 = W2.
+  Admitted.
+
+
+    Lemma sixteen: forall{N0 N1 Nend N2 Nstart: nvmem} {V V1 Vend: vmem} {c c1 cend: command}
+                   {Ostart O : obseq} {Wstart W: the_write_stuff},
+        trace_i ((N0, V, c), Nstart, V, c) ((N0, V, c), N1, V1, c1) Ostart Wstart -> (*initialize
+                                                                                              starting
+                                                                                              write sets
+                                                                                              point*)
+             (checkpoint \notin Ostart) ->
+             (reboot \notin Ostart) ->
+        trace_i ((N0, V, c), N1, V1, c1) ((N0, V, c), Nend, Vend, cend) O W ->
              (checkpoint \notin O) ->
              (reboot \notin O) ->
-             same_pt N1 V c c N1 N2 ->
-           exists(Nend2: nvmem),  (trace_c (N2, V, c) (Nend2, Vend, cend) O W /\
-             same_pt N1 V c cend Nend1 Nend2).
+             WARok (getdomain N0) [::] [::] c ->
+             same_pt (N0 U! N1) V c c1 N1 N2 ->
+           exists(Nend2: nvmem),(trace_c (N2, V1, c1) (Nend2, Vend, cend) O W /\
+             same_pt (N0 U! Nend) V c cend Nend Nend2).
+    Admitted.
+
+    Lemma dom_eq: forall(N0 N1: nvmem),
+        (getmap N0) =1 (getmap N1) ->
+        N0 = N1.
       Admitted.
 
-    Lemma sixteen: forall{N0 N1 Nend1 N2: nvmem} {V Vend: vmem} {c cend: command}
-                   {O : obseq} {W: the_write_stuff},
-        trace_i ((N0, V, c), N1, V, c) ((N0, V, c), Nend1, Vend, cend) O W ->
-             (checkpoint \notin O) ->
-             (reboot \notin O) ->
-             same_pt Nstart V c c N1 N2 ->
-           exists(Nend2: nvmem),  (trace_c (N2, V, c) (Nend2, Vend, cend) O W /\
-             same_pt (N0 U! Nend1) V c cend Nend1 Nend2).
-      Admitted.
+
+
     Lemma eleven: forall{N0 N1 Nmid Nend N2: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
                    {O1 Orem: obseq} {W1 Wrem: the_write_stuff},
         trace_i ((N0, V, c), N1, V, c) ((N0, V, c), Nmid, Vmid, cmid) O1 W1 ->
@@ -1481,9 +1509,78 @@ configs can always make progress assumption*)
         destruct ((count_reboots H) == O) eqn: BC.
         move/ eqP / count_memPn : BC => BC.
         (*base case*)
-        + pose proof (eight H1 H2 H3).
+      +
+        suffices: exists(Nmid2: nvmem),
+          (trace_c (N2, V, c) (Nmid2, Vmid, cmid) O1 W1 /\
+           same_pt (N0 U! Nmid) V c cmid Nmid Nmid2).
+      - move => [Nmid2 [Tc1 Hsp] ].
+        exists O1 (Nmid2, Vmid, cmid) W1. split.
+        + assumption.
+        + split.
+           - constructor. assumption.
+           - (*trying to use 16 instead of 17*)
+            (* destruct H8 as [H80 | H81].*)
+             subst.
+             split.
+             + 
+               destruct (sixteen H H0 BC H5 H6 H7 H4 Hsp) as [Nend2 [Tc2 Hspend] ].
+               suffices: Nend = Nend2.
+               move=> Heq. subst. assumption.
+           - inversion Hspend. subst.
+             apply dom_eq.
+             intros l.
+             apply: eqP.
+             apply: negPn.
+             (*start here why didn't normal apply work*)
+             apply (introT negP).
+             move/ eqP => contra.
+             apply H14 in contra.
+             destruct contra as [contra0 [contra1 contra2] ].
+             (*now showing that W2 is empty*)
+             destruct H10 as [H100 | H101];
+               destruct H8 as [H81 | H82]; subst.
+           - (*both skip case*)
+             pose proof (skiptrace_empty T2) as Ho. subst.
+             destruct (empty_trace T2); auto. subst.
+             (*ask arthur how the above works with applying it
+              for you sort of*)
+
+             rewrite in_nil in contra0.
+             discriminate contra0.
+             destruct H82 as [w [cend2 Hcendeq] ].
+             subst.
+             pose proof (observe_checkpt T2) as
+                 [contra3 | contra3].
+             discriminate contra3.
+             move/ negP : H13. by apply.
 
 
+               in_nil in contra0.
+             discriminate contra0.
+             inversion H8.
+
+             apply: negP.
+             apply negbT.
+             apply: negP.
+             (*should be a way to combine those two start here*)
+              introT negPn (elimT eqP)
+             extensionality.
+ose proof (eight H1 H2 H3) as Height.
+               Check sixteen.
+               inversion Hsp. subst.
+               Check itrace_ctrace.
+               pose proof (itrace_ctrace H5 H7) as Tc3.
+               destruct (ctrace_deterministic )
+               ctrace_det
+               (*worry about H11 in a second*)
+               suffices: Nend = Nend2.
+               move => Heq. subst. assumption.
+               inversion Hspend. subst.
+               destruct H8 as [H81 | H82].
+               destruct H10 as [H101 | H102].
+               subst.
+(*wiggle with samept and the fact that cend
+ is \/ by H8*)
 
 
                      iceval_w ((N0, V, c), N1, V, c) O

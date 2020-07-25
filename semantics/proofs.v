@@ -1440,6 +1440,11 @@ cuz no reboots
  which is fine
  cuz empty trace*)
 
+Lemma skiptrace_empty:forall{N Nend: nvmem} {V Vend: vmem} {cend: command}
+                   {O : obseq} {W: the_write_stuff},
+    trace_c (N, V, Ins skip) (Nend, Vend, cend) O W -> O = [::].
+  Admitted.
+
 Lemma ctrace_deterministic: forall{N Nend1 Nend2: nvmem} {V Vend1 Vend2: vmem} {c cend: command}
                    {O1 O2: obseq} {W1 W2: the_write_stuff},
         trace_c (N, V, c) (Nend1, Vend1, cend) O1 W1 ->
@@ -1524,6 +1529,41 @@ configs can always make progress assumption*)
            - inversion Hspend. subst.
              apply dom_eq.
              intros l.
+             apply: eqP.
+             apply: negPn.
+             (*start here why didn't normal apply work*)
+             apply (introT negP).
+             move/ eqP => contra.
+             apply H14 in contra.
+             destruct contra as [contra0 [contra1 contra2] ].
+             (*now showing that W2 is empty*)
+             destruct H10 as [H100 | H101];
+               destruct H8 as [H81 | H82]; subst.
+           - (*both skip case*)
+             pose proof (skiptrace_empty T2) as Ho. subst.
+             destruct (empty_trace T2); auto. subst.
+             (*ask arthur how the above works with applying it
+              for you sort of*)
+
+             rewrite in_nil in contra0.
+             discriminate contra0.
+             destruct H82 as [w [cend2 Hcendeq] ].
+             subst.
+             pose proof (observe_checkpt T2) as
+                 [contra3 | contra3].
+             discriminate contra3.
+             move/ negP : H13. by apply.
+             apply skiptrace_empty in T2. subst.
+
+               in_nil in contra0.
+             discriminate contra0.
+             inversion H8.
+
+             apply: negP.
+             apply negbT.
+             apply: negP.
+             (*should be a way to combine those two start here*)
+              introT negPn (elimT eqP)
              extensionality.
 ose proof (eight H1 H2 H3) as Height.
                Check sixteen.
