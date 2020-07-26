@@ -469,12 +469,14 @@ or in the CP ....but N1 isn't updated w a CP.... need subset relation?
 but i do need to show that the write sets are the same
 easiest way to do that might be to show everything the same?*)
 
-(*Lemma update_sub: forall{N0 N1: nvmem},
+(*ask arthur is this supported by finite domain
+ type*)
+Lemma update_sub: forall{N0 N1: nvmem},
     subset_nvm N0 N1 ->
     (N0 U! N1) = N1.
   intros. destruct N0, N1. unfold updatemaps.
   Admitted.
-    need functionalextensionality here
+   (* need functionalextensionality here
      also need to remove duplicates from the appending
      so that this actually holds
      only used in 12.1 so not gonna worry about it for now
@@ -1504,6 +1506,7 @@ configs can always make progress assumption*)
       intros.
       (*inducting on reboots in start => Sigma*)
       + induction H using reboot_ind.
+        (*ask arthur is this how reboots should go*)
         destruct ((count_reboots H) == O) eqn: BC.
         move/ eqP / count_memPn : BC => BC.
         (*base case*)
@@ -1520,7 +1523,7 @@ configs can always make progress assumption*)
             (* destruct H8 as [H80 | H81].*)
              subst.
              split.
-       + 
+             + 
                destruct (sixteen H H0 BC H5 H6 H7 H4 Hsp) as [Nend2 [Tc2 Hspend] ].
                suffices: Nend = Nend2.
                move=> Heq. subst. assumption.
@@ -1551,18 +1554,19 @@ configs can always make progress assumption*)
              rewrite in_nil in contra0. discriminate contra0.
                by apply: (negP H13).
       + exists (size (O1 ++ Orem)). rewrite* take_size.
-(*ask arthur what is ~ and *?*)
+   - eapply sixteen; try eapply iTrace_Empty; try
+        (*how is auto too stupid to solve this*)
+                                                (by rewrite in_nil); try assumption. apply H.
+     (* start here
+pretty cool that this works given the theorem statement of
+update_sub rewrite - {1} (update_sub H1).*)
+     rewrite {1} (update_sub H1).
+     eapply eight; try apply H1; try assumption.
+     (*base case done!*)
+        (*ask arthur is this rewrite ssreflect*)
 
-
-
-
-
-
-
-
-               (*garbage*)
+        
              destruct H10 as [H100 | H101].
-             subst.
            - (*both skip case*)
              pose proof (skiptrace_empty T2). subst.
              destruct (empty_trace T2); auto. subst.
@@ -1609,4 +1613,4 @@ ose proof (eight H1 H2 H3) as Height.
              (reboot \notin O) ->
              WARok (getdomain N0) [::] [::] c ->
              current_init_pt N0 V c N1 N1 N2 ->
-             current_init_pt N0 V c (N0 U! N1') (N0 U! N1') N2.
+             current_init_pt N0 V c (N0 U! N1') (N0 U! N1')
