@@ -1470,7 +1470,8 @@ Lemma ctrace_deterministic: forall{N Nend1 Nend2: nvmem} {V Vend1 Vend2: vmem} {
              same_pt (N0 U! N1) V c c1 N1 N2 ->
            exists(Nend2: nvmem),(trace_c (N2, V1, c1) (Nend2, Vend, cend) O W /\
              same_pt (N0 U! Nend) V c cend Nend Nend2).
-    Admitted.
+      intros. Admitted.
+
 
     Lemma dom_eq: forall(N0 N1: nvmem),
         (getmap N0) =1 (getmap N1) ->
@@ -1524,7 +1525,8 @@ configs can always make progress assumption*)
              subst.
              split.
              + 
-               destruct (sixteen H H0 BC H5 H6 H7 H4 Hsp) as [Nend2 [Tc2 Hspend] ].
+               destruct (sixteen H H0 BC H5 H6 H7 H4 Hsp)
+                 as [Nend2 [Tc2 Hspend] ].
                suffices: Nend = Nend2.
                move=> Heq. subst. assumption.
            - inversion Hspend. subst.
