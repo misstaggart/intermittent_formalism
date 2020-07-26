@@ -1454,15 +1454,10 @@ Lemma ctrace_deterministic: forall{N Nend1 Nend2: nvmem} {V Vend1 Vend2: vmem} {
         Nend1 = Nend2 /\ Vend1 = Vend2 /\ O1 = O2 /\ W1 = W2.
   Admitted.
 
-
-    Lemma sixteen: forall{N0 N1 Nend N2 Nstart: nvmem} {V V1 Vend: vmem} {c c1 cend: command}
-                   {Ostart O : obseq} {Wstart W: the_write_stuff},
-        trace_i ((N0, V, c), Nstart, V, c) ((N0, V, c), N1, V1, c1) Ostart Wstart -> (*initialize
-                                                                                              starting
-                                                                                              write sets
-                                                                                              point*)
-             (checkpoint \notin Ostart) ->
-             (reboot \notin Ostart) ->
+(*starting point in terms only of current mem so don't need to parameterize it,
+ don't need to induct over length of starting trace!*)
+    Lemma sixteen: forall{N0 N1 Nend N2: nvmem} {V V1 Vend: vmem} {c c1 cend: command}
+                   {O : obseq} {W: the_write_stuff},
         trace_i ((N0, V, c), N1, V1, c1) ((N0, V, c), Nend, Vend, cend) O W ->
              (checkpoint \notin O) ->
              (reboot \notin O) ->
@@ -1524,8 +1519,9 @@ configs can always make progress assumption*)
             (* destruct H8 as [H80 | H81].*)
              subst.
              split.
-             + 
-               destruct (sixteen H H0 BC H5 H6 H7 H4 Hsp)
+             +
+               Check sixteen.
+               destruct (sixteen  H5 H6 H7 H4 Hsp)
                  as [Nend2 [Tc2 Hspend] ].
                suffices: Nend = Nend2.
                move=> Heq. subst. assumption.
