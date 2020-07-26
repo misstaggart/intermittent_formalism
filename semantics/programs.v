@@ -252,7 +252,7 @@ same_mem: forall {N0 N1 Ncomp N2: nvmem}
                   (T1: trace_c (N0, V0, c0) (N1, V1, c1) O1 W1)
                   (T2: trace_c (N1, V1, c1) (N2, V2, crem) O2 W2),
     crem = skip \/ (exists(w: warvars) (crem2: command), crem = ((incheckpoint w);;crem2)) ->
-                  subseq (getdomain Ncomp) (getdomain Ncomp) 
+                  subseq (getdomain Ncomp) (getdomain Ncomp) (*start here fix this*) 
                   -> (checkpoint \notin O1)
                   -> (checkpoint \notin O2) (*checks checkpoint T2 ends on is nearest checkpoint*)
                  -> (forall(l: loc),
