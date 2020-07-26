@@ -1475,8 +1475,6 @@ Lemma ctrace_deterministic: forall{N Nend1 Nend2: nvmem} {V Vend1 Vend2: vmem} {
         N0 = N1.
       Admitted.
 
-
-
     Lemma eleven: forall{N0 N1 Nmid Nend N2: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
                    {O1 Orem: obseq} {W1 Wrem: the_write_stuff},
         trace_i ((N0, V, c), N1, V, c) ((N0, V, c), Nmid, Vmid, cmid) O1 W1 ->
@@ -1522,7 +1520,7 @@ configs can always make progress assumption*)
             (* destruct H8 as [H80 | H81].*)
              subst.
              split.
-             + 
+       + 
                destruct (sixteen H H0 BC H5 H6 H7 H4 Hsp) as [Nend2 [Tc2 Hspend] ].
                suffices: Nend = Nend2.
                move=> Heq. subst. assumption.
@@ -1537,24 +1535,47 @@ configs can always make progress assumption*)
              apply H14 in contra.
              destruct contra as [contra0 [contra1 contra2] ].
              (*now showing that W2 is empty*)
-             destruct H10 as [H100 | H101];
                destruct H8 as [H81 | H82]; subst.
-           - (*both skip case*)
-             pose proof (skiptrace_empty T2) as Ho. subst.
-             destruct (empty_trace T2); auto. subst.
+             pose proof (skiptrace_empty T2). subst.
+             apply empty_trace in T2; auto. destruct T2 as [Heq1 Heq2]. subst.
              (*ask arthur how the above works with applying it
               for you sort of*)
+             rewrite in_nil in contra0. discriminate contra0.
+             destruct H82 as [w [cend2 Heqcend] ]. subst.
+             pose proof (observe_checkpt T2) as
+                 [contra3 | contra3].
+             subst.
+             apply empty_trace_sc in T2.
+             destruct T2 as [blah [blah1 [blah2 blah3] ] ].
+             subst.
+             rewrite in_nil in contra0. discriminate contra0.
+               by apply: (negP H13).
+      + exists (size (O1 ++ Orem)). rewrite* take_size.
+(*ask arthur what is ~ and *?*)
 
-             rewrite in_nil in contra0.
-             discriminate contra0.
+
+
+
+
+
+
+
+               (*garbage*)
+             destruct H10 as [H100 | H101].
+             subst.
+           - (*both skip case*)
+             pose proof (skiptrace_empty T2). subst.
+             destruct (empty_trace T2); auto. subst.
+
              destruct H82 as [w [cend2 Hcendeq] ].
              subst.
              pose proof (observe_checkpt T2) as
                  [contra3 | contra3].
              discriminate contra3.
              move/ negP : H13. by apply.
-             apply skiptrace_empty in T2. subst.
-
+             pose proof (skiptrace_empty T2). subst.
+             apply empty_trace in T2. destruct T2 as [Heq1 Heq2].
+             subst. rewrite in+nil in contra
                in_nil in contra0.
              discriminate contra0.
              inversion H8.

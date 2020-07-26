@@ -103,6 +103,13 @@ Proof. intros. inversion H; subst.
          by move / nilP / H2 : H0.
 Qed.
 
+(*use trace_steps, cceval_steps, cceval_steps ins*)
+Lemma empty_trace_sc:
+  forall{N1 N2: nvmem} {V1 V2: vmem} {c: command} {O: obseq} {W: the_write_stuff},
+    trace_c (N1, V1, c) (N2, V2, c) O W -> O = [::] /\ N1 = N2 /\ V1 = V2 /\ W = emptysets.
+  Admitted.
+
+
 Lemma append_write_empty: forall{W: the_write_stuff},
     append_write W emptysets = W.
 Proof. intros. simpl. unfold append_write. simpl.
