@@ -469,12 +469,14 @@ or in the CP ....but N1 isn't updated w a CP.... need subset relation?
 but i do need to show that the write sets are the same
 easiest way to do that might be to show everything the same?*)
 
-(*Lemma update_sub: forall{N0 N1: nvmem},
+(*ask arthur is this supported by finite domain
+ type*)
+Lemma update_sub: forall{N0 N1: nvmem},
     subset_nvm N0 N1 ->
     (N0 U! N1) = N1.
   intros. destruct N0, N1. unfold updatemaps.
   Admitted.
-    need functionalextensionality here
+   (* need functionalextensionality here
      also need to remove duplicates from the appending
      so that this actually holds
      only used in 12.1 so not gonna worry about it for now
@@ -1452,15 +1454,29 @@ Lemma ctrace_deterministic: forall{N Nend1 Nend2: nvmem} {V Vend1 Vend2: vmem} {
         Nend1 = Nend2 /\ Vend1 = Vend2 /\ O1 = O2 /\ W1 = W2.
   Admitted.
 
+Lemma nineteen: forall{Nstart N1 Nend N2: nvmem} {V V1 Vend: vmem} {c cend: command}
+                 {l: instruction}
+                   {O : obseq} {W: the_write_stuff} {z: loc},
+             same_pt Nstart V c (Ins l) N1 N2 ->
+             cceval_w (N1, V1, (Ins l)) O (Nend, Vend, cend) W ->
+             z \in (getrd W) -> (*z was read immediately cuz trace is only 1
+                                thing long*)
+                   (getmap N1) z = (getmap N2) z. (*since z isnt in FW of trace from Ins l to skip*)
+Admitted.
 
-    Lemma sixteen: forall{N0 N1 Nend N2 Nstart: nvmem} {V V1 Vend: vmem} {c c1 cend: command}
-                   {Ostart O : obseq} {Wstart W: the_write_stuff},
-        trace_i ((N0, V, c), Nstart, V, c) ((N0, V, c), N1, V1, c1) Ostart Wstart -> (*initialize
-                                                                                              starting
-                                                                                              write sets
-                                                                                              point*)
-             (checkpoint \notin Ostart) ->
-             (reboot \notin Ostart) ->
+Lemma twenty:
+forall{N0 N1: nvmem} {V0 V1: vmem} {e: exp} {r0 r1: readobs} {v0 v1: value},
+  eeval N0 V0 e r0 v0 ->
+              eeval N1 V1 e r1 v1 ->
+              (forall(z: loc), z \in (readobs_wvs r0) -> (getmap N0) z = (getmap N1) z) ->
+              v0 = v1.
+  intros. Admitted.
+
+
+(*starting point in terms only of current mem so don't need to parameterize it,
+ don't need to induct over length of starting trace!*)
+    Lemma sixteen: forall{N0 N1 Nend N2: nvmem} {V V1 Vend: vmem} {c c1 cend: command}
+                   {O : obseq} {W: the_write_stuff},
         trace_i ((N0, V, c), N1, V1, c1) ((N0, V, c), Nend, Vend, cend) O W ->
              (checkpoint \notin O) ->
              (reboot \notin O) ->
@@ -1468,14 +1484,25 @@ Lemma ctrace_deterministic: forall{N Nend1 Nend2: nvmem} {V Vend1 Vend2: vmem} {
              same_pt (N0 U! N1) V c c1 N1 N2 ->
            exists(Nend2: nvmem),(trace_c (N2, V1, c1) (Nend2, Vend, cend) O W /\
              same_pt (N0 U! Nend) V c cend Nend Nend2).
-    Admitted.
+      intros.
+      dependent induction H.
+      (*empty trace case*)
+      + exists N2. split. eapply CTrace_Empty.
+        assumption.
+        (*single intermittent step case*)
+      + induction c1.
+        (*induct on instruction to get correct map*)
+        induction l.
+      - (*skip*) inversion H; subst. by exfalso.
+      -
+        (*apply 19*)
 
+
+      (*ask arthur i want this enforced at the type level*)
     Lemma dom_eq: forall(N0 N1: nvmem),
         (getmap N0) =1 (getmap N1) ->
         N0 = N1.
       Admitted.
-
-
 
     Lemma eleven: forall{N0 N1 Nmid Nend N2: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
                    {O1 Orem: obseq} {W1 Wrem: the_write_stuff},
@@ -1506,6 +1533,7 @@ configs can always make progress assumption*)
       intros.
       (*inducting on reboots in start => Sigma*)
       + induction H using reboot_ind.
+        (*ask arthur is this how reboots should go*)
         destruct ((count_reboots H) == O) eqn: BC.
         move/ eqP / count_memPn : BC => BC.
         (*base case*)
@@ -1522,8 +1550,10 @@ configs can always make progress assumption*)
             (* destruct H8 as [H80 | H81].*)
              subst.
              split.
-             + 
-               destruct (sixteen H H0 BC H5 H6 H7 H4 Hsp) as [Nend2 [Tc2 Hspend] ].
+             +
+               Check sixteen.
+               destruct (sixteen  H5 H6 H7 H4 Hsp)
+                 as [Nend2 [Tc2 Hspend] ].
                suffices: Nend = Nend2.
                move=> Heq. subst. assumption.
            - inversion Hspend. subst.
@@ -1537,24 +1567,48 @@ configs can always make progress assumption*)
              apply H14 in contra.
              destruct contra as [contra0 [contra1 contra2] ].
              (*now showing that W2 is empty*)
-             destruct H10 as [H100 | H101];
                destruct H8 as [H81 | H82]; subst.
-           - (*both skip case*)
-             pose proof (skiptrace_empty T2) as Ho. subst.
-             destruct (empty_trace T2); auto. subst.
+             pose proof (skiptrace_empty T2). subst.
+             apply empty_trace in T2; auto. destruct T2 as [Heq1 Heq2]. subst.
              (*ask arthur how the above works with applying it
               for you sort of*)
+             rewrite in_nil in contra0. discriminate contra0.
+             destruct H82 as [w [cend2 Heqcend] ]. subst.
+             pose proof (observe_checkpt T2) as
+                 [contra3 | contra3].
+             subst.
+             apply empty_trace_sc in T2.
+             destruct T2 as [blah [blah1 [blah2 blah3] ] ].
+             subst.
+             rewrite in_nil in contra0. discriminate contra0.
+               by apply: (negP H13).
+      + exists (size (O1 ++ Orem)). rewrite* take_size.
+   - eapply sixteen; try eapply iTrace_Empty; try
+        (*how is auto too stupid to solve this*)
+                                                (by rewrite in_nil); try assumption. apply H.
+     (* start here
+pretty cool that this works given the theorem statement of
+update_sub rewrite - {1} (update_sub H1).*)
+     rewrite {1} (update_sub H1).
+     eapply eight; try apply H1; try assumption.
+     (*base case done!*)
+        (*ask arthur is this rewrite ssreflect*)
 
-             rewrite in_nil in contra0.
-             discriminate contra0.
+        
+             destruct H10 as [H100 | H101].
+           - (*both skip case*)
+             pose proof (skiptrace_empty T2). subst.
+             destruct (empty_trace T2); auto. subst.
+
              destruct H82 as [w [cend2 Hcendeq] ].
              subst.
              pose proof (observe_checkpt T2) as
                  [contra3 | contra3].
              discriminate contra3.
              move/ negP : H13. by apply.
-
-
+             pose proof (skiptrace_empty T2). subst.
+             apply empty_trace in T2. destruct T2 as [Heq1 Heq2].
+             subst. rewrite in+nil in contra
                in_nil in contra0.
              discriminate contra0.
              inversion H8.
@@ -1588,4 +1642,4 @@ ose proof (eight H1 H2 H3) as Height.
              (reboot \notin O) ->
              WARok (getdomain N0) [::] [::] c ->
              current_init_pt N0 V c N1 N1 N2 ->
-             current_init_pt N0 V c (N0 U! N1') (N0 U! N1') N2.
+             current_init_pt N0 V c (N0 U! N1') (N0 U! N1')

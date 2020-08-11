@@ -996,6 +996,7 @@ Definition append_write (W1 W2: the_write_stuff) :=
 (*accumlates write data as continuous relation does*)
 Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
   CP_PowerFail: forall(k: context) (N: nvmem) (V: vmem) (c: command),
+    c <> (Ins skip) -> (*can't have a power fail if you've terminated*)
                  iceval_w (k, N, V, c)
                         nil
                         (k, N, (reset V), Ins inreboot) (nil, nil, nil)

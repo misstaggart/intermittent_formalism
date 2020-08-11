@@ -1454,6 +1454,25 @@ Lemma ctrace_deterministic: forall{N Nend1 Nend2: nvmem} {V Vend1 Vend2: vmem} {
         Nend1 = Nend2 /\ Vend1 = Vend2 /\ O1 = O2 /\ W1 = W2.
   Admitted.
 
+Lemma nineteen: forall{Nstart N1 Nend N2: nvmem} {V V1 Vend: vmem} {c cend: command}
+                 {l: instruction}
+                   {O : obseq} {W: the_write_stuff} {z: loc},
+             same_pt Nstart V c (Ins l) N1 N2 ->
+             cceval_w (N1, V1, (Ins l)) O (Nend, Vend, cend) W ->
+             z \in (getrd W) -> (*z was read immediately cuz trace is only 1
+                                thing long*)
+                   (getmap N1) z = (getmap N2) z. (*since z isnt in FW of trace from Ins l to skip*)
+Admitted.
+
+Lemma twenty:
+forall{N0 N1: nvmem} {V0 V1: vmem} {e: exp} {r0 r1: readobs} {v0 v1: value},
+  eeval N0 V0 e r0 v0 ->
+              eeval N1 V1 e r1 v1 ->
+              (forall(z: loc), z \in (readobs_wvs r0) -> (getmap N0) z = (getmap N1) z) ->
+              v0 = v1.
+  intros. Admitted.
+
+
 (*starting point in terms only of current mem so don't need to parameterize it,
  don't need to induct over length of starting trace!*)
     Lemma sixteen: forall{N0 N1 Nend N2: nvmem} {V V1 Vend: vmem} {c c1 cend: command}
@@ -1465,9 +1484,22 @@ Lemma ctrace_deterministic: forall{N Nend1 Nend2: nvmem} {V Vend1 Vend2: vmem} {
              same_pt (N0 U! N1) V c c1 N1 N2 ->
            exists(Nend2: nvmem),(trace_c (N2, V1, c1) (Nend2, Vend, cend) O W /\
              same_pt (N0 U! Nend) V c cend Nend Nend2).
-      intros.  
+      intros.
+      dependent induction H.
+      (*empty trace case*)
+      + exists N2. split. eapply CTrace_Empty.
+        assumption.
+        (*single intermittent step case*)
+      + induction c1.
+        (*induct on instruction to get correct map*)
+        induction l.
+      - (*skip*) inversion H; subst. by exfalso.
+      -
+        exists((updateNV_sv N2 x v))
+        (*apply 19*)
 
 
+      (*ask arthur i want this enforced at the type level*)
     Lemma dom_eq: forall(N0 N1: nvmem),
         (getmap N0) =1 (getmap N1) ->
         N0 = N1.
