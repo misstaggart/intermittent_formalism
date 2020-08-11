@@ -78,6 +78,14 @@ Lemma observe_checkpt: forall {N N': nvmem} {V V': vmem}
       - right. apply (in_app_l H1).
 Qed.
 
+Lemma observe_rb:forall {C0 C1: context} {N N': nvmem} {V V': vmem}
+                     {c': command} 
+                    {O: obseq} {W: the_write_stuff},
+    trace_i (C0, N, V, (Ins inreboot)) (C1, N', V', c') O W ->
+    c' = (Ins inreboot) \/ reboot \in O.
+  Admitted.
+
+
 Lemma negNVandV: forall(x : smallvar), isNV x -> not (isV x).
 Proof. unfold isNV. unfold isV.
        unfold isNV_b. unfold isV_b.
@@ -1477,7 +1485,7 @@ forall{N0 N1: nvmem} {V0 V1: vmem} {e: exp} {r0 r1: readobs} {v0 v1: value},
  don't need to induct over length of starting trace!*)
     Lemma sixteen: forall{N0 N1 Nend N2: nvmem} {V V1 Vend: vmem} {c c1 cend: command}
                    {O : obseq} {W: the_write_stuff},
-        trace_i ((N0, V, c), N1, V1, c1) ((N0, V, c), Nend, Vend, cend) O W ->
+        trace_i ((N0, V, c), N1, V1, c1) ((N0, V, c), Nend, Vend, cend) O W -> cend <> (Ins inreboot) ->
              (checkpoint \notin O) ->
              (reboot \notin O) ->
              WARok (getdomain N0) [::] [::] c ->
@@ -1490,12 +1498,16 @@ forall{N0 N1: nvmem} {V0 V1: vmem} {e: exp} {r0 r1: readobs} {v0 v1: value},
       + exists N2. split. eapply CTrace_Empty.
         assumption.
         (*single intermittent step case*)
-      + induction c1.
+      + dependent induction H.
+Admitted.
+        (*kind of weird that the restarting actually takes
+         2 steps with this RB step in the middle,
+         maybe easier if we handled restarting in the base case?*)
         (*induct on instruction to get correct map*)
-        induction l.
+        (*induction l.
       - (*skip*) inversion H; subst. by exfalso.
       -
-        exists((updateNV_sv N2 x v))
+        exists((updateNV_sv N2 x v))*)
         (*apply 19*)
 
 
@@ -1552,8 +1564,13 @@ configs can always make progress assumption*)
              subst.
              split.
              +
+               assert (cend <> (Ins inreboot)) as Hcend.
+               - intros contra. subst.
+                 destruct H8 as [contra1 | [b1 [b2 contra2] ] ].
+                 discriminate contra1.
+                 discriminate contra2.
                Check sixteen.
-               destruct (sixteen  H5 H6 H7 H4 Hsp)
+               destruct (sixteen H5 Hcend H6 H7 H4 Hsp)
                  as [Nend2 [Tc2 Hspend] ].
                suffices: Nend = Nend2.
                move=> Heq. subst. assumption.
@@ -1586,7 +1603,13 @@ configs can always make progress assumption*)
       + exists (size (O1 ++ Orem)). rewrite* take_size.
    - eapply sixteen; try eapply iTrace_Empty; try
         (*how is auto too stupid to solve this*)
-                                                (by rewrite in_nil); try assumption. apply H.
+                                                (by rewrite in_nil); try assumption. apply H. intros contra. subst.
+     pose proof (observe_rb H5) as contra.
+     destruct contra as [contra1 | contra2]; subst.
+     destruct H8 as [contra1 | [b1 [b2 contra2] ] ].
+     discriminate contra1. discriminate contra2.
+     move/negP : H7.
+     by apply.
      (* start here
 pretty cool that this works given the theorem statement of
 update_sub rewrite - {1} (update_sub H1).*)
