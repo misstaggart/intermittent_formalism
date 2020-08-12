@@ -1602,6 +1602,16 @@ configs can always make progress assumption*)
              O1 ++ Orem <= O2 ++ Orem).
   Admitted.
 
+      Lemma obseq_readobs: forall{O: obseq}
+                            {N1 N2: nvmem}
+                            {V1 V2: vmem}
+                            {c1 c2: command}
+                            {W: the_write_stuff},
+trace_c (N1, V1, c1) (N2, V2, c2) O
+        W ->
+checkpoint \notin O ->
+exists(o: readobs), O = [::Obs o].
+Admitted.
 
     Lemma eleven: forall{N0 N1 Nmid Nend N2: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
                    {O1 Orem: obseq} {W1 Wrem: the_write_stuff},
@@ -1620,7 +1630,10 @@ configs can always make progress assumption*)
              (exists(O2: obseq) (sigma: context) (Wc:
                                             the_write_stuff),
                  trace_c (N2, V, c) sigma O2 Wc /\
-                         (*write SETS have to be the same
+                 checkpoint \notin O2 /\ (*cuz its taking
+                                         the same path as N1 to
+                                         cmid*)
+                 (*write SETS have to be the same
                           but write lists do not,
                           can add that extra specificity
                           if I need it*)
@@ -1628,12 +1641,13 @@ configs can always make progress assumption*)
                          sigma /\
              trace_c sigma (Nend, Vend, cend) Orem Wrem  /\ (*sigma -> Sigma'-*)
              (*same obs, write as "intermittent" execution*)
-             (O1 ++ Orem <=m O2 ++ Orem).
+             (O1 ++ Orem <=m O2 ++ Orem)).
       intros.
       apply trace_convert in H.
       dependent induction H.
       2: {
-      suffices: (exists O3 sigma Wc,
+        suffices: (exists O3 sigma Wc,
+                      is_true (checkpoint \notin O3) /\
                trace_c (N2, V, c) sigma O3 Wc /\
                same_config
                  (N0, V, c, Nmid, Vmid, cmid)
@@ -1641,9 +1655,17 @@ configs can always make progress assumption*)
                trace_c sigma (Nend, Vend, cend)
                  Orem Wrem /\
                O2 ++ Orem <= O3 ++ Orem).
-      intros [O3 [sigma [Wc [Hc1 [Hc2 [Hc3 Hc4] ] ] ] ] ].
+        intros [O3 [sigma [Wc [Hc1 [Hc2 [Hc3 [ Hc4 Hc5 ]
+                   ] ] ] ] ] ].
       exists O3, sigma, Wc.
       repeat (try split); try assumption.
+      destruct3 sigma Ns Vs cs.
+      pose proof (obseq_readobs Hc2 Hc1) as [o3 Ho3].
+      pose proof (obseq_readobs Hc4 H9) as [o4 Ho4].
+      pose proof (obseq_readobs H H1) as [o1 Ho1].
+      subst.
+      rewrite {2} catA.
+      apply RB_Ind.
 
      (* ask arthur.. seriously?
 pose proof (and4 Hc1 Hc2 Hc3 Hc4) as Hc.*)

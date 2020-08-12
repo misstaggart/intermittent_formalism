@@ -812,7 +812,8 @@ prefix of O2*)
 Inductive prefix_seq: obseq -> obseq -> Prop :=
   RB_Base: forall(O: readobs), prefix_seq [:: Obs O] [:: Obs O]
 | RB_Ind: forall(O1 O2: readobs) (O1': obseq),
-    O1 <= O2 -> prefix_seq O1' [:: Obs O2] -> prefix_seq ([:: Obs O1] ++ [:: reboot] ++ O1') [:: Obs O2].
+    O1 <= O2 -> prefix_seq O1' [:: Obs O2] ->
+    prefix_seq ([:: Obs O1] ++ [:: reboot] ++ O1') [:: Obs O2].
 
 Notation "S <=m T" := (prefix_seq S T) (at level 100).
 (* Where
@@ -825,11 +826,11 @@ O2 is a read observation seq,
 prefix_frag determines if each ro seq in O1 is a prefix of some FRAGMENT of O2
 (where the fragments are separated by the positioning of the checkpoints in O1)
  *)
-Inductive prefix_fragment: obseq -> readobs -> Prop :=
-  CP_Base: forall(O1: obseq) (O2: readobs), prefix_seq O1 O2 -> prefix_fragment O1 O2
+Inductive prefix_fragment: obseq -> obseq -> Prop :=
+  CP_Base: forall(O1: obseq) (O2: readobs), prefix_seq O1 [::Obs O2] -> prefix_fragment O1 [::Obs O2]
 | CP_IND: forall(O1 O1': obseq) (O2 O2': readobs),
-    prefix_seq O1 O2 -> prefix_fragment O1' O2' ->
-   prefix_fragment (O1 ++ [:: checkpoint] ++ O1') (O2 ++ O2'). 
+    prefix_seq O1 [:: Obs O2] -> prefix_fragment O1' [:: Obs O2'] ->
+   prefix_fragment (O1 ++ [:: checkpoint] ++ O1') ([:: Obs O2] ++ [::checkpoint] ++ [:: Obs O2']). 
 
 (***************************************************************)
 
