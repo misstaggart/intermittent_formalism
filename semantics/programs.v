@@ -243,7 +243,7 @@ Definition FstWt {C1 C2: context} {O: obseq} {W: the_write_stuff}
  V1 isn't used anywhere it's just to fill out the type
  N2, V2 is final state for intermittent, once again solely to fill out the type*)
 
-Inductive same_pt: nvmem -> vmem -> command -> command -> nvmem -> nvmem -> Prop:=
+Inductive same_pt: nvmem -> vmem -> command -> command -> nvmem -> vmem -> nvmem -> Prop:=
 same_mem: forall {N0 N1 Ncomp N2: nvmem}
                   {V0 V1 V2: vmem}
                   {c0 c1 crem: command}
@@ -258,7 +258,7 @@ same_mem: forall {N0 N1 Ncomp N2: nvmem}
                  -> (forall(l: loc),
                       not((getmap N1) l = (getmap Ncomp) l)
                       -> ((l \in (getwt W2)) /\ (l \in (getfstwt (append_write W1 W2))) /\ not (l \in (getwt W1))))
-                  -> same_pt N0 V0 c0 c1 N1 Ncomp.
+                  -> same_pt N0 V0 c0 c1 N1 V1 Ncomp.
 (*Definition 5*)
 (*Nc0 is starting nvm for cont
 Ni0 is starting nvm for intermittent
@@ -295,7 +295,7 @@ Inductive same_config: iconf -> context -> Prop :=
   SameConfig: forall(N0 N1 N2: nvmem)
                 (V0 V: vmem)
                 (c0 c: command),
-                same_pt (N0 U! N1) V0 c0 c N1 N2 -> (*nvms are extensionally the same by same_pt
+                same_pt (N0 U! N1) V0 c0 c N1 V N2 -> (*nvms are extensionally the same by same_pt
                                           vms and cs are intensionally the same by types*)
                 same_config ((N0, V0, c0), N1, V, c) (N2, V, c).
 

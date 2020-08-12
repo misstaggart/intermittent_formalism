@@ -918,7 +918,7 @@ CheckPoint: forall(N: nvmem)
              (checkpoint:: nil)
              (N, V, c)
              (nil, nil, nil)
-| NV_Assign: forall(x: smallvar) (N: nvmem) (V: vmem) (e: exp) (r: readobs) (v: value),
+| NV_Assign: forall{x: smallvar} {N: nvmem} {V: vmem} {e: exp} {r: readobs} {v: value},
     eeval N V e r v ->
     isNV(x) -> (*checks x is correct type for NV memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)

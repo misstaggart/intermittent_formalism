@@ -162,3 +162,6 @@ Lemma remove_empty: forall(L1: warvars),
     remove [::] L1 = L1.
   intros. apply filter_predT. Qed.
 
+Lemma and_or_elim: forall{A B C: Prop},
+    (A \/ B) -> (B \/ C) -> not(A /\ C) -> B.
+  Admitted.
