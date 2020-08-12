@@ -175,6 +175,49 @@ iTrace_Empty: forall{C: iconf},
     O2 <> [::]  ->
     trace_i C1 C2 (O1 ++ O2) (append_write W1 W2).
 
+Inductive trace_i1: iconf -> iconf -> obseq -> the_write_stuff -> Prop :=
+  iTrace_Cont: forall {Cc: context} {N N1: nvmem} {V V1: vmem} {c c1: command}
+                 {O: obseq} {W: the_write_stuff},
+    trace_c (N, V, c) (N1, V1, c1) O W ->
+    checkpoint \notin O ->
+    trace_i1 (Cc, N, V, c) (Cc, N1, V1, c1) O W
+  iTrace_RB: forall{N0 N Nrb Nend: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
+                 {O1 O2: obseq} {W1 W2: the_write_stuff},
+    trace_c (N, V, cstart) (Nmid, Vmid, cmid) O1 W1 -> (*first section of trace w
+                                                       no reboots*)
+    trace_i1 ((N0, V, c), N0 U! Nmid, V, c) ((N0, V, c), Nend, Vend, cend) O2 W2 ->
+    (*last section of trace with reboots*)
+    checkpoint \notin O1 ->
+    checkpoint \notin O2 ->
+    trace_i1 ((N0, V, c), N, V, cstart) ((N0, V, c), Nend, Vend, cend)
+             (O1 ++ [reboot] ++ O2)
+             (append_write W1 W2)
+    iTrace_CP: trace_i1 ((Nc0, Vc0, cc0), N0, V0, c0) ((Nc0, Vc0, cc0), Nmid, Vmid,
+                                                               (inscheckpoint w);;crem) O1 W1 (*1st
+                                                                                               checkpointed section*)
+                        -> checkpoint \notin O1
+                        -> trace_i1 (((Nc0 |! w), Vmid, crem), Nmid, Vmid, crem)
+                                   ((Nc1, Vc1, cc1), Nend, Vend, cend) O2 W2
+                        -> trace_i1 ((Nc0, Vc0, cc0), N0, V0, c0)
+                                   ((Nc1, Vc1, cc1), Nend, Vend, cend)
+                                   O1 ++ [checkpoint] ++ O2
+                                  (append_write W1 W2).
+(*cant define it in terms of continuous (actually you can if you
+prove it equivalent to other def)
+ *)
+.
+(*cons to the front*)
+|iTrace_Single: forall{C1 C2: iconf} {O: obseq} {W: the_write_stuff},
+                  iceval_w C1 O C2 W -> (*command in C2 is skip by def single_com, iceval_w*)
+                  trace_i C1 C2 O W
+| iTrace_App: forall{C1 C2 Cmid: iconf} {O1 O2: obseq}
+         {W1 W2: the_write_stuff},
+    trace_i C1 Cmid O1 W1 -> (*steps first section*)
+    trace_i Cmid C2 O2 W2 -> (*steps rest of program*)
+    O1 <> [::] -> (* forces empty step to use other constructors*)
+    O2 <> [::]  ->
+    trace_i C1 C2 (O1 ++ O2) (append_write W1 W2).
+
 Open Scope nat_scope.
 
 (*count function*)
@@ -281,7 +324,7 @@ Inductive current_init_pt: nvmem -> vmem -> command -> nvmem -> nvmem -> nvmem -
                  -> (forall(l: loc),
                       not((getmap N1) l = (getmap Nc0) l)
                       -> (l \in (getfstwt W)) \/ (l \in (getdomain N)))
-                 -> current_init_pt N V c Ni0 N1 Nc0.
+                 -> current_init_pt N V c Ni0 Nc0.
 (*Definition 6*)
 (*concern: Typo in paper, N0, V0 is left out of invocation of Def 4*)
 (*(N0, V0, c0) is checkpoint state at time c1
@@ -295,7 +338,7 @@ Inductive same_config: iconf -> context -> Prop :=
   SameConfig: forall(N0 N1 N2: nvmem)
                 (V0 V: vmem)
                 (c0 c: command),
-                same_pt (N0 U! N1) V0 c0 c N1 V N2 -> (*nvms are extensionally the same by same_pt
+                same_pt (N0 U! N1) V0 c0 c N1 N2 -> (*nvms are extensionally the same by same_pt
                                           vms and cs are intensionally the same by types*)
                 same_config ((N0, V0, c0), N1, V, c) (N2, V, c).
 
