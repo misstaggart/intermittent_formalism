@@ -78,6 +78,14 @@ Lemma observe_checkpt: forall {N N': nvmem} {V V': vmem}
       - right. apply (in_app_l H1).
 Qed.
 
+Lemma observe_rb:forall {C0 C1: context} {N N': nvmem} {V V': vmem}
+                     {c': command} 
+                    {O: obseq} {W: the_write_stuff},
+    trace_i (C0, N, V, (Ins inreboot)) (C1, N', V', c') O W ->
+    c' = (Ins inreboot) \/ reboot \in O.
+  Admitted.
+
+
 Lemma negNVandV: forall(x : smallvar), isNV x -> not (isV x).
 Proof. unfold isNV. unfold isV.
        unfold isNV_b. unfold isV_b.
@@ -174,7 +182,7 @@ Proof. intros N V e r1 r2 v1 v2 H. move: r2 v2. (*ask arthur; does GD not do wha
 
 (*I try to use the same names in all branches for automation
  and it tells me "name" already used!*)
-Lemma determinism: forall{C1 C2 C3: context} {O1 O2: obseq} {W1 W2: the_write_stuff},
+Lemma determinism_c: forall{C1 C2 C3: context} {O1 O2: obseq} {W1 W2: the_write_stuff},
     cceval_w C1 O1 C2 W1 ->
     cceval_w C1 O2 C3 W2 ->
     C2 = C3 /\ O1 = O2 /\ W1 = W2.
@@ -222,7 +230,7 @@ Lemma single_step_all: forall{C1 Cmid C3: context}
   + destruct c as [O1 rest]. destruct rest as [W1 c0]. exists emptysets (nil: obseq).
     constructor. cut (C2 = Cmid).
     - intros Hmid. subst. constructor. 
-    - eapply determinism. apply H. apply c0.
+    - eapply determinism_c. apply H. apply c0.
     - apply sub0seq.
       + assert (Tfirst: exists Wrest Orest,  (trace_c Cmid0 Cmid Orest Wrest)
                        /\ subseq Orest O1                           
@@ -677,7 +685,13 @@ right.
  for dealing with big conjunctions*)
 Qed.
 
-Lemma wt_gets_bigger: forall{N N0 N1 Nend: nvmem} {V V0 V1 Vend: vmem} {c c0 c1 cend: command} {O0 O1: obseq} {W0 W1: the_write_stuff}
+Lemma cceval_iceval: forall {N Nend : nvmem} {V Vend: vmem}
+                      {c cend: command} {O: obseq} {W: the_write_stuff},
+    cceval_w (N, V, c) O (Nend, Vend, cend) W ->
+    (forall(k: context), iceval_w (k, N, V, c) O (k, Nend, Vend, cend) W).
+Admitted.
+
+  Lemma wt_gets_bigger: forall{N N0 N1 Nend: nvmem} {V V0 V1 Vend: vmem} {c c0 c1 cend: command} {O0 O1: obseq} {W0 W1: the_write_stuff}
   {l: loc},
     iceval_w ((N0, V0, c0), N, V, c) O0 ((N0, V0, c0), N1, V1, c1) W0 ->
     trace_c (N, V, c) (Nend, Vend, cend) O1 W1 ->
@@ -1456,29 +1470,28 @@ Lemma ctrace_deterministic: forall{N Nend1 Nend2: nvmem} {V Vend1 Vend2: vmem} {
 
 Lemma nineteen: forall{Nstart N1 Nend N2: nvmem} {V V1 Vend: vmem} {c cend: command}
                  {l: instruction}
-                   {O : obseq} {W: the_write_stuff} {z: loc},
+                   {O : obseq} {W: the_write_stuff},
              same_pt Nstart V c (Ins l) N1 N2 ->
              cceval_w (N1, V1, (Ins l)) O (Nend, Vend, cend) W ->
-             z \in (getrd W) -> (*z was read immediately cuz trace is only 1
+            ( forall(z: loc), z \in (getrd W) -> (*z was read immediately cuz trace is only 1
                                 thing long*)
-                   (getmap N1) z = (getmap N2) z. (*since z isnt in FW of trace from Ins l to skip*)
+                   (getmap N1) z = (getmap N2) z). (*since z isnt in FW of trace from Ins l to skip*)
 Admitted.
 
 Lemma twenty:
-forall{N0 N1: nvmem} {V0 V1: vmem} {e: exp} {r0 r1: readobs} {v0 v1: value},
+forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
   eeval N0 V0 e r0 v0 ->
-              eeval N1 V1 e r1 v1 ->
               (forall(z: loc), z \in (readobs_wvs r0) -> (getmap N0) z = (getmap N1) z) ->
-              v0 = v1.
+              eeval N1 V0 e r0 v0.
   intros. Admitted.
 
 
 (*starting point in terms only of current mem so don't need to parameterize it,
  don't need to induct over length of starting trace!*)
-    Lemma sixteen: forall{N0 N1 Nend N2: nvmem} {V V1 Vend: vmem} {c c1 cend: command}
+    Lemma sixteen: forall{N0 N1 Nend N2 : nvmem} {V V1 Vend: vmem} {c c1 cend: command}
                    {O : obseq} {W: the_write_stuff},
-        trace_i ((N0, V, c), N1, V1, c1) ((N0, V, c), Nend, Vend, cend) O W ->
-             (checkpoint \notin O) ->
+        trace_i ((N0, V, c), N1, V1, c1) ((N0, V, c), Nend, Vend, cend) O W -> cend <> (Ins inreboot) ->
+        (checkpoint \notin O) ->
              (reboot \notin O) ->
              WARok (getdomain N0) [::] [::] c ->
              same_pt (N0 U! N1) V c c1 N1 N2 ->
@@ -1490,12 +1503,68 @@ forall{N0 N1: nvmem} {V0 V1: vmem} {e: exp} {r0 r1: readobs} {v0 v1: value},
       + exists N2. split. eapply CTrace_Empty.
         assumption.
         (*single intermittent step case*)
-      + induction c1.
+      + remember H as Hiceval.
+        clear HeqHiceval.
+        (*show arthur the ridiculous error message
+         that i get if i take this out*)
+        dependent induction H. (*induct iceval
+                                to get length of step*)
+        - (*pf*) by exfalso.
+        - (*rb*) exfalso. move/negP :H2.
+            by apply.
+        - (*cp*) exfalso. move/negP: H1. by apply.
+        - (*nv*) exists((updateNV_sv N2 x v)).
+          pose proof (NV_Assign H H0 H1) as Hcceval.
+          pose proof (iceval_cceval Hiceval Hcceval) as [ [ contraN [ contraV [contraW contrac] ] ]  | [ Hn [ Hv Hw ] ] ]; subst.
+          discriminate contrac.
+          Check nineteen.
+          pose proof (nineteen H6 Hcceval) as Hloceq.
+          Check twenty.
+          pose proof (twenty H Hloceq) as Heval2.
+          pose proof (NV_Assign Heval2 H0 H1) as Hcceval2.
+          split.
+            - by apply CTrace_Single.
+            - eapply same_mem.
+              Check single_step_all.
+              (*consider is there any point to the
+               multistep part*)
+              Check twelve00.
+              suffices: (multi_step_i
+                          (N0, V, c, N1, Vend, Ins (asgn_sv x e))
+                          (N0, V, c, updateNV_sv N1 x v, Vend, Ins skip) [:: Obs r]).
+            - intros Hm.
+              inversion H6. subst.
+              (*NTS crem = skip*)
+              pose proof (trace_stops T2) as Hrem.
+              pose proof (trace_append T1 T2) as Tend.
+              pose proof (and_or_elim Hrem H7).
+              assert (~
+        (crem = Ins (asgn_sv x e) /\
+         (exists w crem2, crem = incheckpoint w;; crem2))).
+              intros [contra1 [b1 [b2 contra2] ] ].
+              subst. discriminate contra2.
+              apply H12 in H13. subst.
+              (*weird that im trying to wiggle around
+               initializing Vend*)
+              Check twelve00.
+              Admitted.
+           (*     pose proof (twelve00 Hm H3 H5
+                           )
+              apply (iTrace_Single Hiceval) .
+(*ask arthur can i use exist in a function
+ sort of way*)
+              suffices: (trace_c updateNV_sv N1 x v, V, c)
+              pose proof (single_step_all
+                         (CTrace_Single Hcceval))
+        (*kind of weird that the restarting actually takes
+         2 steps with this RB step in the middle,
+         maybe easier if we handled restarting in the base case?*)
         (*induct on instruction to get correct map*)
         induction l.
       - (*skip*) inversion H; subst. by exfalso.
       -
-        (*apply 19*)
+        exists((updateNV_sv N2 x v))
+        (*apply 19*)*)
 
 
       (*ask arthur i want this enforced at the type level*)
@@ -1532,8 +1601,8 @@ configs can always make progress assumption*)
              O1 ++ Orem <= O2 ++ Orem).
       intros.
       (*inducting on reboots in start => Sigma*)
-      + induction H using reboot_ind.
-        (*ask arthur is this how reboots should go*)
+      + dependent induction H using reboot_ind.
+        (*ask arthur bad induction principl here ):*)
         destruct ((count_reboots H) == O) eqn: BC.
         move/ eqP / count_memPn : BC => BC.
         (*base case*)
@@ -1551,8 +1620,13 @@ configs can always make progress assumption*)
              subst.
              split.
              +
-               Check sixteen.
-               destruct (sixteen  H5 H6 H7 H4 Hsp)
+               assert (cend <> (Ins inreboot)) as Hcend.
+               - intros contra. subst.
+                 destruct H8 as [contra1 | [b1 [b2 contra2] ] ].
+                 discriminate contra1.
+                 discriminate contra2.
+                 Check sixteen.
+               destruct (sixteen H5 Hcend H6 H7 H4 Hsp)
                  as [Nend2 [Tc2 Hspend] ].
                suffices: Nend = Nend2.
                move=> Heq. subst. assumption.
@@ -1585,15 +1659,26 @@ configs can always make progress assumption*)
       + exists (size (O1 ++ Orem)). rewrite* take_size.
    - eapply sixteen; try eapply iTrace_Empty; try
         (*how is auto too stupid to solve this*)
-                                                (by rewrite in_nil); try assumption. apply H.
+                                                (by rewrite in_nil); try assumption. apply H. intros contra. subst.
+     pose proof (observe_rb H5) as contra.
+     destruct contra as [contra1 | contra2]; subst.
+     destruct H8 as [contra1 | [b1 [b2 contra2] ] ].
+     discriminate contra1. discriminate contra2.
+     move/negP : H7.
+     by apply.
      (* start here
 pretty cool that this works given the theorem statement of
 update_sub rewrite - {1} (update_sub H1).*)
      rewrite {1} (update_sub H1).
      eapply eight; try apply H1; try assumption.
+(*IH is NOT general enough*)
+     Lemma split_rb: forall{N0, N1, Nend: nvmem}
+                      {V}
+
      (*base case done!*)
         (*ask arthur is this rewrite ssreflect*)
 
+     
         
              destruct H10 as [H100 | H101].
            - (*both skip case*)

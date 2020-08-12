@@ -1573,6 +1573,36 @@ forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
         N0 = N1.
       Admitted.
 
+Lemma eleven_bc: forall{N0 N1 Nmid Nend N2: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
+                   {O1 Orem: obseq} {W1 Wrem: the_write_stuff},
+        trace_i ((N0, V, c), N1, V, c) ((N0, V, c), Nmid, Vmid, cmid) O1 W1 ->
+        (checkpoint \notin O1) ->
+        (reboot \notin O1) ->
+             subset_nvm N0 N1 ->
+             subset_nvm N0 N2 ->
+             current_init_pt N0 V c N1 N1 N2 ->
+             WARok (getdomain N0) [::] [::] c ->
+             trace_i ((N0, V, c), Nmid, Vmid, cmid) ((N0, V, c), Nend, Vend, cend) Orem Wrem ->
+             (* Sigma -> Sigma'
+configs can always make progress assumption*)
+             (checkpoint \notin Orem) ->
+             (reboot \notin Orem) ->
+             ((cend = Ins skip) \/ exists(w: warvars) (cend2: command), cend = (incheckpoint w);; cend2) ->
+             (exists(O2: obseq) (sigma: context) (Wc:
+                                            the_write_stuff),
+                 trace_c (N2, V, c) sigma O2 Wc /\
+                         (*write SETS have to be the same
+                          but write lists do not,
+                          can add that extra specificity
+                          if I need it*)
+             same_config ((N0, V, c), Nmid, Vmid, cmid) (*Sigma ~ sigma*)
+                         sigma /\
+             trace_c sigma (Nend, Vend, cend) Orem Wrem  /\ (*sigma -> Sigma'-*)
+             (*same obs, write as "intermittent" execution*)
+             O1 ++ Orem <= O2 ++ Orem).
+  Admitted.
+
+
     Lemma eleven: forall{N0 N1 Nmid Nend N2: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
                    {O1 Orem: obseq} {W1 Wrem: the_write_stuff},
         trace_i ((N0, V, c), N1, V, c) ((N0, V, c), Nmid, Vmid, cmid) O1 W1 ->
@@ -1600,9 +1630,61 @@ configs can always make progress assumption*)
              (*same obs, write as "intermittent" execution*)
              O1 ++ Orem <= O2 ++ Orem).
       intros.
+      apply trace_convert in H.
+      dependent induction H.
+      2: {
+      suffices: (exists O3 sigma Wc,
+               trace_c (N2, V, c) sigma O3 Wc /\
+               same_config
+                 (N0, V, c, Nmid, Vmid, cmid)
+                 sigma /\
+               trace_c sigma (Nend, Vend, cend)
+                 Orem Wrem /\
+               O2 ++ Orem <= O3 ++ Orem).
+      intros [O3 [sigma [Wc [Hc1 [Hc2 [Hc3 Hc4] ] ] ] ] ].
+      exists O3, sigma, Wc.
+      repeat (try split); try assumption.
+      split; try (split; assumption); try assumption.
+     (* ask arthur.. seriously?
+pose proof (and4 Hc1 Hc2 Hc3 Hc4) as Hc.*)
+      (* ask arthur
+what is the star for rewrite - and_assoc in Hconj*)
+
+
+
+        }
+
+
+    Lemma eleven1: forall{N0 N1 Nmid Nend N2: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
+                   {O1 Orem: obseq} {W1 Wrem: the_write_stuff},
+        trace_i ((N0, V, c), N1, V, c) ((N0, V, c), Nmid, Vmid, cmid) O1 W1 ->
+             (checkpoint \notin O1) ->
+             subset_nvm N0 N1 ->
+             subset_nvm N0 N2 ->
+             current_init_pt N0 V c N1 N1 N2 ->
+             WARok (getdomain N0) [::] [::] c ->
+             trace_i ((N0, V, c), Nmid, Vmid, cmid) ((N0, V, c), Nend, Vend, cend) Orem Wrem ->
+             (* Sigma -> Sigma'
+configs can always make progress assumption*)
+             (checkpoint \notin Orem) ->
+             (reboot \notin Orem) ->
+             ((cend = Ins skip) \/ exists(w: warvars) (cend2: command), cend = (incheckpoint w);; cend2) ->
+             (exists(O2: obseq) (sigma: context) (Wc:
+                                            the_write_stuff),
+                 trace_c (N2, V, c) sigma O2 Wc /\
+                         (*write SETS have to be the same
+                          but write lists do not,
+                          can add that extra specificity
+                          if I need it*)
+             same_config ((N0, V, c), Nmid, Vmid, cmid) (*Sigma ~ sigma*)
+                         sigma /\
+             trace_c sigma (Nend, Vend, cend) Orem Wrem  /\ (*sigma -> Sigma'-*)
+             (*same obs, write as "intermittent" execution*)
+             O1 ++ Orem <= O2 ++ Orem).
+      intros.
       (*inducting on reboots in start => Sigma*)
-      + induction H using reboot_ind.
-        (*ask arthur is this how reboots should go*)
+      + dependent induction H using reboot_ind.
+        (*ask arthur bad induction principl here ):*)
         destruct ((count_reboots H) == O) eqn: BC.
         move/ eqP / count_memPn : BC => BC.
         (*base case*)
@@ -1671,6 +1753,10 @@ pretty cool that this works given the theorem statement of
 update_sub rewrite - {1} (update_sub H1).*)
      rewrite {1} (update_sub H1).
      eapply eight; try apply H1; try assumption.
+(*IH is NOT general enough*)
+     Lemma split_rb: forall{N0, N1, Nend: nvmem}
+                      {V}
+
      (*base case done!*)
         (*ask arthur is this rewrite ssreflect*)
 
