@@ -1664,7 +1664,7 @@ configs can always make progress assumption*)
       pose proof (obseq_readobs Hc4 H9) as [o4 Ho4].
       pose proof (obseq_readobs H H1) as [o1 Ho1].
       subst.
-      rewrite {2} catA.
+      repeat rewrite - catA.
       apply RB_Ind.
 
      (* ask arthur.. seriously?

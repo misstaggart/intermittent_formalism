@@ -702,10 +702,10 @@ Definition readobs := seq ro.
 Notation NoObs := (nil : readobs).
 
 Inductive obs := (*observation*)
-  Obs (r: readobs)
+  Obs (r: ro)
 | reboot
 | checkpoint.
-Coercion Obs : readobs >-> obs.
+Coercion Obs : ro >-> obs.
 
 (*equality type for obs*)
 Definition eqb_ro (ro1: ro) (ro2: ro) :=
@@ -810,10 +810,18 @@ and O2 is a read observation seq,
 prefix_seq determines if each ro seq in O1 is a valid
 prefix of O2*)
 Inductive prefix_seq: obseq -> obseq -> Prop :=
-  RB_Base: forall(O: readobs), prefix_seq [:: Obs O] [:: Obs O]
-| RB_Ind: forall(O1 O2: readobs) (O1': obseq),
-    O1 <= O2 -> prefix_seq O1' [:: Obs O2] ->
-    prefix_seq ([:: Obs O1] ++ [:: reboot] ++ O1') [:: Obs O2].
+  RB_Base: forall(O: obseq),
+    reboot \notin O -> checkpoint \notin O ->
+    prefix_seq O O 
+| RB_Ind: forall(O1 O2: obseq) (O1': obseq),
+    prefix_seq O1' O2 -> (*enforces that O2 has no reboots or checkpoints*)
+    O1 <= O2 -> (*enforces that O1 has no reboots or CPs*)
+    prefix_seq (O1 ++ [:: reboot] ++ O1') O2.
+
+Theorem ps_correct: forall(O1 O2: obseq),
+    prefix_seq O1 O2 ->
+    checkpoint \notin O1 /\ reboot \notin O2 /\ checkpoint \notin O2.
+  Admitted.
 
 Notation "S <=m T" := (prefix_seq S T) (at level 100).
 (* Where
@@ -827,10 +835,10 @@ prefix_frag determines if each ro seq in O1 is a prefix of some FRAGMENT of O2
 (where the fragments are separated by the positioning of the checkpoints in O1)
  *)
 Inductive prefix_fragment: obseq -> obseq -> Prop :=
-  CP_Base: forall(O1: obseq) (O2: readobs), prefix_seq O1 [::Obs O2] -> prefix_fragment O1 [::Obs O2]
-| CP_IND: forall(O1 O1': obseq) (O2 O2': readobs),
-    prefix_seq O1 [:: Obs O2] -> prefix_fragment O1' [:: Obs O2'] ->
-   prefix_fragment (O1 ++ [:: checkpoint] ++ O1') ([:: Obs O2] ++ [::checkpoint] ++ [:: Obs O2']). 
+  CP_Base: forall(O1: obseq) (O2: obseq), prefix_seq O1 O2 -> prefix_fragment O1 O2 
+| CP_IND: forall(O1 O1': obseq) (O2 O2': obseq),
+    prefix_seq O1 O2 -> prefix_fragment O1' O2' ->
+   prefix_fragment (O1 ++ [:: checkpoint] ++ O1') (O2 ++ [::checkpoint] ++ O2'). 
 
 (***************************************************************)
 
