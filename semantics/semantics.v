@@ -809,11 +809,12 @@ where each continguous read observation seq is separated from those adjacent to 
 and O2 is a read observation seq,
 prefix_seq determines if each ro seq in O1 is a valid
 prefix of O2*)
-Inductive prefix_seq: obseq -> readobs -> Prop :=
-  RB_Base: forall(O: readobs), prefix_seq [:: Obs O] O
+Inductive prefix_seq: obseq -> obseq -> Prop :=
+  RB_Base: forall(O: readobs), prefix_seq [:: Obs O] [:: Obs O]
 | RB_Ind: forall(O1 O2: readobs) (O1': obseq),
-    O1 <= O2 -> prefix_seq O1' O2 -> prefix_seq ([:: Obs O1] ++ [:: reboot] ++ O1') O2.
+    O1 <= O2 -> prefix_seq O1' [:: Obs O2] -> prefix_seq ([:: Obs O1] ++ [:: reboot] ++ O1') [:: Obs O2].
 
+Notation "S <=m T" := (prefix_seq S T) (at level 100).
 (* Where
 O1 is a sequence of ((read observation seq sequences), where
 each continguous read observation seq is separated from those adjacent to it

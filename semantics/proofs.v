@@ -1628,7 +1628,7 @@ configs can always make progress assumption*)
                          sigma /\
              trace_c sigma (Nend, Vend, cend) Orem Wrem  /\ (*sigma -> Sigma'-*)
              (*same obs, write as "intermittent" execution*)
-             O1 ++ Orem <= O2 ++ Orem).
+             (O1 ++ Orem <=m O2 ++ Orem).
       intros.
       apply trace_convert in H.
       dependent induction H.
@@ -1644,7 +1644,7 @@ configs can always make progress assumption*)
       intros [O3 [sigma [Wc [Hc1 [Hc2 [Hc3 Hc4] ] ] ] ] ].
       exists O3, sigma, Wc.
       repeat (try split); try assumption.
-      split; try (split; assumption); try assumption.
+
      (* ask arthur.. seriously?
 pose proof (and4 Hc1 Hc2 Hc3 Hc4) as Hc.*)
       (* ask arthur
