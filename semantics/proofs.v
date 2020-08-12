@@ -1613,6 +1613,23 @@ checkpoint \notin O ->
 exists(o: readobs), O = [::Obs o].
 Admitted.
 
+Lemma hacky: forall(o3 o4: readobs),
+                    [:: Obs o3] ++ [:: Obs o4] =
+              [:: Obs (o3 ++ o4)].
+Admitted.
+
+      Lemma can_make_progress: forall(N: nvmem) (V: vmem)
+                                (c: command),
+                                  exists(Nend: nvmem) (Vend: vmem)
+                                   (cend: command)
+                                   (O: obseq)
+                                  (W: the_write_stuff),
+                                    trace_c (N, V, c) (Nend, Vend, cend) O W /\
+(cend = Ins skip \/
+        (exists w cend2,
+            cend = incheckpoint w;; cend2)).
+        Admitted.
+
     Lemma eleven: forall{N0 N1 Nmid Nend N2: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
                    {O1 Orem: obseq} {W1 Wrem: the_write_stuff},
         trace_i ((N0, V, c), N1, V, c) ((N0, V, c), Nmid, Vmid, cmid) O1 W1 ->
@@ -1665,7 +1682,19 @@ configs can always make progress assumption*)
       pose proof (obseq_readobs H H1) as [o1 Ho1].
       subst.
       repeat rewrite - catA.
+      rewrite~ (hacky o3 o4).
       apply RB_Ind.
+      Check eleven_bc.
+      assert (reboot \notin [:: Obs o1]) as Ho1.
+      apply (introT negP).
+      rewrite mem_seq1. move/eqP => contra. discriminate contra. 
+      Check eleven_bc.
+
+
+
+pose proof (eleven_bc (iTrace_Cont H) Ho1 H1 H4 H5
+           H6 H7 H8)
+
 
      (* ask arthur.. seriously?
 pose proof (and4 Hc1 Hc2 Hc3 Hc4) as Hc.*)
