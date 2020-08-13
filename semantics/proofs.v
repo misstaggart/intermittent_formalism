@@ -1574,7 +1574,8 @@ forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
       Admitted.
 
 Lemma eleven_bc: forall{N0 N1 Nmid Nend N2: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
-                   {O1 Orem: obseq} {W1 Wrem: the_write_stuff},
+                  {O1 Orem: obseq} {W1 Wrem: the_write_stuff},
+        (*need the N0 here cuz of same config*)
         trace_i ((N0, V, c), N1, V, c) ((N0, V, c), Nmid, Vmid, cmid) O1 W1 ->
         (checkpoint \notin O1) ->
         (reboot \notin O1) ->
@@ -1591,6 +1592,9 @@ configs can always make progress assumption*)
              (exists(O2: obseq) (sigma: context) (Wc:
                                             the_write_stuff),
                  trace_c (N2, V, c) sigma O2 Wc /\
+                 checkpoint \notin O2 /\ (*cuz its taking
+                                         the same path as N1 to
+                                         cmid*)
                          (*write SETS have to be the same
                           but write lists do not,
                           can add that extra specificity
@@ -1629,6 +1633,22 @@ Admitted.
         (exists w cend2,
             cend = incheckpoint w;; cend2)).
         Admitted.
+
+Lemma same_nearest_CP: forall{Ns Nend1 Nend2: nvmem} {Vs Vend1
+                                            Vend2: vmem}
+                {c cend1 cend2: command} {O1 O2: obseq}
+                {W1 W2: the_write_stuff},
+    trace_c (Ns, Vs, c) (Nend1, Vend1, cend1) O1 W1 ->
+    checkpoint \notin O1 ->
+    (cend1 = Ins skip \/
+     (exists w1 crem1, cend1 = incheckpoint w1;; crem1))
+      (*start here make that into a prop*) ->
+    trace_c (Ns, Vs, c) (Nend2, Vend2, cend2) O2 W2 ->
+    checkpoint \notin O2 -> 
+    (cend2 = Ins skip \/
+     (exists w2 crem2, cend2 = incheckpoint w2;; crem2))
+   -> cend1 = cend2.
+Admitted.
 
     Lemma eleven: forall{N0 N1 Nmid Nend N2: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
                    {O1 Orem: obseq} {W1 Wrem: the_write_stuff},
@@ -1700,14 +1720,28 @@ configs can always make progress assumption*)
       rewrite mem_cat negb_orb in H3.
       move/ andP : H3 => [H31 H32].
       Check eleven_bc.
-      pose proof (eleven_bc (iTrace_Cont H) H31 Ho1 H4 H5 H6 H7
-                            (iTrace_Cont Tendc)
+      pose proof (iTrace_Cont N0 V c H H31) as Hi.
+      pose proof (iTrace_Cont N0 V c Tendc Hcend1) as Tendci.
+      (*consider having two directions for trace_Convertso that
+       you can combine this*)
+      apply trace_convert in Hi. apply trace_convert in Tendci.
+      pose proof (eleven_bc Hi H31 Ho1 H4 H5 H6 H7
+                           Tendci 
                             Hcend1 Hoend
-                            Hcend2).
+                            Hcend2)
+      as [O31 [ [ [Ns1 Vs1] cs1]  [Wc1 [Hc11 [Hc21 [Hc31  [Hc41 Hc51] ]
+         ] ] ] ] ].
+      pose proof (trace_append Hc11 Hc41) as Hc2end1.
+      pose proof (trace_append Hc2 Hc4) as Hc2end.
+      assert (checkpoint \notin [:: Obs o3] ++ [:: Obs o4])
+      as Hcp1.
+      .
 
+      pose proof (same_nearest_CP Hc2end Hc21 H11 Hc2end1 Hoend Hcend2).
+apply (ctrace_deterministic Hc2end1) in Hc2end.
+(*use H11, Hcend2*)
 
-
-pose proof (eleven_bc (iTrace_Cont H) Ho1 H1 H4 H5
+      pose proof (eleven_bc (iTrace_Cont H) Ho1 H1 H4 H5
            H6 H7 H8)
 
 

@@ -176,11 +176,12 @@ iTrace_Empty: forall{C: iconf},
     trace_i C1 C2 (O1 ++ O2) (append_write W1 W2).
 
 Inductive trace_i1: iconf -> iconf -> obseq -> the_write_stuff -> Prop :=
-  iTrace_Cont: forall {Cc: context} {N N1: nvmem} {V V1: vmem} {c c1: command}
+  iTrace_Cont: forall(N0: nvmem) (V0: vmem) (c0: command)
+    {N N1: nvmem} {V V1: vmem} {c c1: command}
                  {O: obseq} {W: the_write_stuff},
     trace_c (N, V, c) (N1, V1, c1) O W ->
     checkpoint \notin O ->
-    trace_i1 (Cc, N, V, c) (Cc, N1, V1, c1) O W
+    trace_i1 ((N0, V0, c0), N, V, c) ((N0, V0, c0), N1, V1, c1) O W
  | iTrace_RB: forall{N0 N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cstart cmid cend: command}
                  {O1 O2: obseq} {W1 W2: the_write_stuff},
     trace_c (N, V, cstart) (Nmid, Vmid, cmid) O1 W1 -> (*first section of trace w
