@@ -1621,8 +1621,72 @@ configs can always make progress assumption*)
                          sigma /\
              trace_c sigma (Nend, Vend, cend) Orem Wrem (*sigma -> Sigma'-*)
              (*same obs, write as "intermittent" execution*)
-          ).
-  Admitted.
+             ).
+  intros.
+        suffices: exists(Nmid2: nvmem),
+          (trace_c (N2, V, c) (Nmid2, Vmid, cmid) O1 W1 /\
+           same_pt (N0 U! Nmid) V c cmid Nmid Nmid2).
+      - move => [Nmid2 [Tc1 Hsp] ].
+        exists (Nmid2, Vmid, cmid) W1. split.
+        + assumption.
+        + split.
+           - constructor. assumption.
+           - (*trying to use 16 instead of 17*)
+            (* destruct H8 as [H80 | H81].*)
+           (*  subst.
+             split.
+             +*)
+               assert (cend <> (Ins inreboot)) as Hcend.
+               - intros contra. subst.
+                 destruct H9 as [contra1 | [b1 [b2 contra2] ] ].
+                 discriminate contra1.
+                 discriminate contra2.
+                 Check sixteen.
+               destruct (sixteen H6 Hcend H7 H8 H5 Hsp)
+                 as [Nend2 [Tc2 Hspend] ].
+               suffices: Nend = Nend2.
+               move=> Heq. subst. assumption.
+           - inversion Hspend. subst.
+             apply dom_eq.
+             intros l.
+             apply: eqP.
+             apply: negPn.
+             (*start here why didn't normal apply work*)
+             apply (introT negP).
+             move/ eqP => contra.
+             apply H14 in contra.
+             destruct contra as [contra0 [contra1 contra2] ].
+             (*now showing that W2 is empty*)
+               destruct H9 as [H81 | H82]; subst.
+             pose proof (skiptrace_empty T2). subst.
+             apply empty_trace in T2; auto. destruct T2 as [Heq1 Heq2]. subst.
+             (*ask arthur how the above works with applying it
+              for you sort of*)
+             rewrite in_nil in contra0. discriminate contra0.
+             destruct H82 as [w [cend2 Heqcend] ]. subst.
+             pose proof (observe_checkpt T2) as
+                 [contra3 | contra3].
+             subst.
+             apply empty_trace_sc in T2.
+             destruct T2 as [blah [blah1 [blah2 blah3] ] ].
+             subst.
+             rewrite in_nil in contra0. discriminate contra0.
+               by apply: (negP H13).
+   - eapply sixteen; try eapply iTrace_Empty; try
+        (*how is auto too stupid to solve this*)
+                                                (by rewrite in_nil); try assumption. apply H. intros contra. subst.
+     pose proof (observe_rb H6) as contra.
+     destruct contra as [contra1 | contra2]; subst.
+     destruct H9 as [contra1 | [b1 [b2 contra2] ] ].
+     discriminate contra1. discriminate contra2.
+     move/negP : H8.
+     by apply.
+     (* start here
+pretty cool that this works given the theorem statement of
+update_sub rewrite - {1} (update_sub H1).*)
+     rewrite {1} (update_sub H2).
+     eapply eight; try apply H2; try assumption.
+     Qed.
 
       Lemma obseq_readobs: forall{O: obseq}
                             {N1 N2: nvmem}
@@ -1808,7 +1872,7 @@ what is the star for rewrite - and_assoc in Hconj*)
         }
 
 
-    Lemma eleven1: forall{N0 N1 Nmid Nend N2: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
+ (*   Lemma eleven1: forall{N0 N1 Nmid Nend N2: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
                    {O1 Orem: obseq} {W1 Wrem: the_write_stuff},
         trace_i ((N0, V, c), N1, V, c) ((N0, V, c), Nmid, Vmid, cmid) O1 W1 ->
              (checkpoint \notin O1) ->
@@ -1962,4 +2026,4 @@ ose proof (eight H1 H2 H3) as Height.
              (reboot \notin O) ->
              WARok (getdomain N0) [::] [::] c ->
              current_init_pt N0 V c N1 N1 N2 ->
-             current_init_pt N0 V c (N0 U! N1') (N0 U! N1')
+             current_init_pt N0 V c (N0 U! N1') (N0 U! N1')*)
