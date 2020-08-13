@@ -1734,15 +1734,28 @@ configs can always make progress assumption*)
       pose proof (trace_append Hc11 Hc41) as Hc2end1.
       pose proof (trace_append Hc2 Hc4) as Hc2end.
       assert (checkpoint \notin [:: Obs o3] ++ [:: Obs o4])
-      as Hcp1.
-      .
-
-      pose proof (same_nearest_CP Hc2end Hc21 H11 Hc2end1 Hoend Hcend2).
-apply (ctrace_deterministic Hc2end1) in Hc2end.
+        as Hcp1.
+      apply (introT negP). intros contra.
+      rewrite mem_cat in contra.
+      move/orP : contra => [contra1 | contra2].
+      move/negP : Hc1. by apply.
+      move/negP : H9. by apply.
+      assert (checkpoint \notin (O31 ++ [:: Obs oend]))
+        as Hcp2.
+      apply (introT negP). intros contra.
+      rewrite mem_cat in contra.
+      move/orP : contra => [contra1 | contra2].
+      move/negP : Hc21. by apply.
+      move/negP : Hcend1. by apply.
+      pose proof (same_nearest_CP Hc2end Hcp1 H11 Hc2end1 Hcp2 Hcend2).
+      subst.
+      apply (ctrace_deterministic Hc2end1) in Hc2end.
+      (*split up Hc2end
+Hc51 should give it
+weird that o1 ++ oend <= o3 ++ o4, check that
+       *)
 (*use H11, Hcend2*)
 
-      pose proof (eleven_bc (iTrace_Cont H) Ho1 H1 H4 H5
-           H6 H7 H8)
 
 
      (* ask arthur.. seriously?
