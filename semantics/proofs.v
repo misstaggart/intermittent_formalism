@@ -1589,21 +1589,18 @@ configs can always make progress assumption*)
              (checkpoint \notin Orem) ->
              (reboot \notin Orem) ->
              ((cend = Ins skip) \/ exists(w: warvars) (cend2: command), cend = (incheckpoint w);; cend2) ->
-             (exists(O2: obseq) (sigma: context) (Wc:
+             (exists(sigma: context) (Wc:
                                             the_write_stuff),
-                 trace_c (N2, V, c) sigma O2 Wc /\
-                 checkpoint \notin O2 /\ (*cuz its taking
-                                         the same path as N1 to
-                                         cmid*)
+                 trace_c (N2, V, c) sigma O1 Wc /\
                          (*write SETS have to be the same
                           but write lists do not,
                           can add that extra specificity
                           if I need it*)
              same_config ((N0, V, c), Nmid, Vmid, cmid) (*Sigma ~ sigma*)
                          sigma /\
-             trace_c sigma (Nend, Vend, cend) Orem Wrem  /\ (*sigma -> Sigma'-*)
+             trace_c sigma (Nend, Vend, cend) Orem Wrem (*sigma -> Sigma'-*)
              (*same obs, write as "intermittent" execution*)
-             O1 ++ Orem = O2 ++ Orem).
+          ).
   Admitted.
 
       Lemma obseq_readobs: forall{O: obseq}
@@ -1691,7 +1688,7 @@ configs can always make progress assumption*)
                  sigma /\
                trace_c sigma (Nend, Vend, cend)
                  Orem Wrem /\
-               O2 ++ Orem <= O3 ++ Orem).
+               (O2 ++ Orem <=m O3 ++ Orem)).
         intros [O3 [sigma [Wc [Hc1 [Hc2 [Hc3 [ Hc4 Hc5 ]
                    ] ] ] ] ] ].
       exists O3, sigma, Wc.
@@ -1704,6 +1701,7 @@ configs can always make progress assumption*)
       repeat rewrite - catA.
       rewrite~ (hacky o3 o4).
       apply RB_Ind.
+      (*2nd goal should come out of Hc5*)
       Check eleven_bc.
       assert (reboot \notin [:: Obs o1]) as Ho1.
       apply (introT negP).
@@ -1729,9 +1727,9 @@ configs can always make progress assumption*)
                            Tendci 
                             Hcend1 Hoend
                             Hcend2)
-      as [O31 [ [ [Ns1 Vs1] cs1]  [Wc1 [Hc11 [Hc21 [Hc31  [Hc41 Hc51] ]
-         ] ] ] ] ].
-      pose proof (trace_append Hc11 Hc41) as Hc2end1.
+      as [ [ [Ns1 Vs1] cs1]  [Wc1 [Hc11 [Hc21 Hc31]
+         ] ] ].
+      pose proof (trace_append Hc11 Hc31) as Hc2end1.
       pose proof (trace_append Hc2 Hc4) as Hc2end.
       assert (checkpoint \notin [:: Obs o3] ++ [:: Obs o4])
         as Hcp1.
@@ -1740,17 +1738,22 @@ configs can always make progress assumption*)
       move/orP : contra => [contra1 | contra2].
       move/negP : Hc1. by apply.
       move/negP : H9. by apply.
-      assert (checkpoint \notin (O31 ++ [:: Obs oend]))
+      assert (checkpoint \notin ([:: Obs o1] ++ [:: Obs oend]))
         as Hcp2.
       apply (introT negP). intros contra.
       rewrite mem_cat in contra.
       move/orP : contra => [contra1 | contra2].
-      move/negP : Hc21. by apply.
+      move/negP : H31. by apply.
       move/negP : Hcend1. by apply.
-      pose proof (same_nearest_CP Hc2end Hcp1 H11 Hc2end1 Hcp2 Hcend2).
-      subst.
+      pose proof (same_nearest_CP Hc2end Hcp1 H11 Hc2end1 Hcp2 Hcend2). subst.
       apply (ctrace_deterministic Hc2end1) in Hc2end.
-      destruct Hc2end as [e1 [e2 [e3 e4] ] ]. subst. rewrite e3 in Hc51.
+      destruct Hc2end as [e1 [e2 [e3 e4] ] ]. subst.
+      exists (size o1).
+      repeat rewrite hacky in e3.
+      inversion e3. subst.
+        by rewrite take_size_cat.
+        by rewrite hacky in Hc5.
+      rewrite e3 in Hc51.
       repeat rewrite hacky in Hc51.
       inversion Hc51.
 (* ask arthur am i stupid or this should do something
