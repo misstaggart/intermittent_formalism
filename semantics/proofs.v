@@ -1438,6 +1438,17 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
   Unshelve. apply V1. apply w. apply V1. apply w.  Qed.
            
 
+    (*15 but multi step*)
+    Lemma twelve: forall{N0 N1 N1' N2: nvmem} {V V': vmem} {c c': command} {O: obseq} {W: the_write_stuff},
+             trace_i ((N0, V, c), N1, V, c)
+             ((N0, V, c), N1', V', c') O W ->
+             (checkpoint \notin O) ->
+             (reboot \notin O) ->
+             WARok (getdomain N0) [::] [::] c ->
+             current_init_pt N0 V c N1 N1 N2 ->
+             subset_nvm N0 N1 ->
+             current_init_pt N0 V c (N0 U! N1') (N0 U! N1') N2.
+      Admitted.
 
 (*Lemma 12.0: forall(N0 N1 N1': nvmem) (V V': vmem) (c0 c1 crem: command)
   (Obig Osmall: obseq) (Wbig Wsmall: the_write_stuff),
@@ -1681,22 +1692,27 @@ configs can always make progress assumption*)
       dependent induction H.
       2: {
         suffices: (exists O3 sigma Wc,
-                      is_true (checkpoint \notin O3) /\
                trace_c (N2, V, c) sigma O3 Wc /\
+                      is_true (checkpoint \notin O3) /\
                same_config
                  (N0, V, c, Nmid, Vmid, cmid)
                  sigma /\
                trace_c sigma (Nend, Vend, cend)
                  Orem Wrem /\
                (O2 ++ Orem <=m O3 ++ Orem)).
-        intros [O3 [sigma [Wc [Hc1 [Hc2 [Hc3 [ Hc4 Hc5 ]
+      - intros [O3 [sigma [Wc [Hc1 [Hc2 [Hc3 [ Hc4 Hc5 ]
                    ] ] ] ] ] ].
       exists O3, sigma, Wc.
       repeat (try split); try assumption.
       destruct3 sigma Ns Vs cs.
-      pose proof (obseq_readobs Hc2 Hc1) as [o3 Ho3].
+      pose proof (obseq_readobs Hc1 Hc2) as [o3 Ho3].
       pose proof (obseq_readobs Hc4 H9) as [o4 Ho4].
       pose proof (obseq_readobs H H1) as [o1 Ho1].
+      (*dont think obseq_readobs is actually true
+       because the trace doesnt append consecutive read observations together*
+      why do i even need the above
+       to get it to match the structure of RB_IND w a singleton on the
+       right. if i didnt bunch readobs up into one list, wouldnt need*)
       subst.
       repeat rewrite - catA.
       rewrite~ (hacky o3 o4).
@@ -1730,13 +1746,13 @@ configs can always make progress assumption*)
       as [ [ [Ns1 Vs1] cs1]  [Wc1 [Hc11 [Hc21 Hc31]
          ] ] ].
       pose proof (trace_append Hc11 Hc31) as Hc2end1.
-      pose proof (trace_append Hc2 Hc4) as Hc2end.
+      pose proof (trace_append Hc1 Hc4) as Hc2end.
       assert (checkpoint \notin [:: Obs o3] ++ [:: Obs o4])
         as Hcp1.
       apply (introT negP). intros contra.
       rewrite mem_cat in contra.
       move/orP : contra => [contra1 | contra2].
-      move/negP : Hc1. by apply.
+      move/negP : Hc2. by apply.
       move/negP : H9. by apply.
       assert (checkpoint \notin ([:: Obs o1] ++ [:: Obs oend]))
         as Hcp2.
@@ -1752,10 +1768,10 @@ configs can always make progress assumption*)
       repeat rewrite hacky in e3.
       inversion e3. subst.
         by rewrite take_size_cat.
-        by rewrite hacky in Hc5.
-      rewrite e3 in Hc51.
-      repeat rewrite hacky in Hc51.
-      inversion Hc51.
+          by rewrite hacky in Hc5.
+      - eapply IHtrace_i1; try reflexivity; try assumption.
+        apply sub_update.
+        (*i think this is 12*)
 (* ask arthur am i stupid or this should do something
  unfold prefix Hc51*)
 
