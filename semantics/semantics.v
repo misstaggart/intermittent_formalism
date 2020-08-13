@@ -4,6 +4,7 @@ From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype fintype seq.
 From Semantics Require Import lemmas_0.
+From extructures Require Import ord fset fmap.
 
 (*basic seq functions that I couldn't find in a library*)
 Fixpoint eq_seqs {A: Type} (L1: seq A) (L2: seq A) (eq: A -> A -> Prop) :=
@@ -809,6 +810,10 @@ where each continguous read observation seq is separated from those adjacent to 
 and O2 is a read observation seq,
 prefix_seq determines if each ro seq in O1 is a valid
 prefix of O2*)
+
+blah <=m [:: Obs R1] ++ [::Obs R2]
+       
+ [::O]  <=m     [::Obs R1, Obs R2]
 Inductive prefix_seq: obseq -> obseq -> Prop :=
   RB_Base: forall(O: readobs), prefix_seq [:: Obs O] [:: Obs O]
 | RB_Ind: forall(O1 O2: readobs) (O1': obseq),
