@@ -1603,7 +1603,7 @@ configs can always make progress assumption*)
                          sigma /\
              trace_c sigma (Nend, Vend, cend) Orem Wrem  /\ (*sigma -> Sigma'-*)
              (*same obs, write as "intermittent" execution*)
-             O1 ++ Orem <= O2 ++ Orem).
+             O1 ++ Orem = O2 ++ Orem).
   Admitted.
 
       Lemma obseq_readobs: forall{O: obseq}
@@ -1750,11 +1750,15 @@ configs can always make progress assumption*)
       pose proof (same_nearest_CP Hc2end Hcp1 H11 Hc2end1 Hcp2 Hcend2).
       subst.
       apply (ctrace_deterministic Hc2end1) in Hc2end.
+      destruct Hc2end as [e1 [e2 [e3 e4] ] ]. subst. rewrite e3 in Hc51.
+      repeat rewrite hacky in Hc51.
+      inversion Hc51.
+(* ask arthur am i stupid or this should do something
+ unfold prefix Hc51*)
+
       (*split up Hc2end
 Hc51 should give it
-weird that o1 ++ oend <= o3 ++ o4, check that
        *)
-(*use H11, Hcend2*)
 
 
 
