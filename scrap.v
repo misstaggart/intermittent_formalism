@@ -1,21 +1,10 @@
+
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Strings.String Program Sumbool.
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype fintype seq.
-From extructures Require Import ord fset fmap.
-
-Check {fmap nat -> nat}.
-Definition foo : {fmap nat -> nat} := emptym.
-
-Lemma Test (n: nat): foo n = None.
-  by rewrite /foo emptymE.
-Qed.
-
-(*
-
- *)
-
+From Semantics Require Import lemmas_0.
 
 (*basic seq functions that I couldn't find in a library*)
 Fixpoint eq_seqs {A: Type} (L1: seq A) (L2: seq A) (eq: A -> A -> Prop) :=
@@ -822,18 +811,9 @@ and O2 is a read observation seq,
 prefix_seq determines if each ro seq in O1 is a valid
 prefix of O2*)
 Inductive prefix_seq: obseq -> obseq -> Prop :=
-  RB_Base: forall(O: readobs), prefix_seq [:: Obs O] [:: Obs O]
+  RB_Base: forall(O: readobs), prefix_seq [:: Obs O] O
 | RB_Ind: forall(O1 O2: readobs) (O1': obseq),
-    O1 <= O2 -> prefix_seq O1' [:: Obs O2] ->
-    prefix_seq ([:: Obs O1] ++ [:: reboot] ++ O1') [:: Obs O2].
-
-Notation "S <=m T" := (prefix_seq S T) (at level 100).
-
-(* For when I change the types
-Theorem ps_correct: forall(O1 O2: obseq),
-    prefix_seq O1 O2 ->
-    checkpoint \notin O1 /\ reboot \notin O2 /\ checkpoint \notin O2.
-  Admitted.*)
+    O1 <= O2 -> prefix_seq O1' O2 -> prefix_seq ([:: Obs O1] ++ [:: reboot] ++ O1') O2.
 
 Notation "S <=m T" := (prefix_seq S T) (at level 100).
 (* Where
@@ -846,11 +826,12 @@ O2 is a read observation seq,
 prefix_frag determines if each ro seq in O1 is a prefix of some FRAGMENT of O2
 (where the fragments are separated by the positioning of the checkpoints in O1)
  *)
-Inductive prefix_fragment: obseq -> obseq -> Prop :=
-  CP_Base: forall(O1: obseq) (O2: obseq), prefix_seq O1 O2 -> prefix_fragment O1 O2 
-| CP_IND: forall(O1 O1': obseq) (O2 O2': obseq),
+Inductive prefix_fragment: obseq -> readobs -> Prop :=
+  CP_Base: forall(O1: obseq) (O2: readobs), prefix_seq O1 O2 -> prefix_fragment O1 O2
+| CP_IND: forall(O1 O1': obseq) (O2 O2': readobs),
     prefix_seq O1 O2 -> prefix_fragment O1' O2' ->
-   prefix_fragment (O1 ++ [:: checkpoint] ++ O1') (O2 ++ [::checkpoint] ++ O2'). 
+   prefix_fragment (O1 ++ [:: checkpoint] ++ O1') (O2 ++ O2'). 
+
 (***************************************************************)
 
 
@@ -860,7 +841,7 @@ Inductive prefix_fragment: obseq -> obseq -> Prop :=
 Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
   VAL: forall(N: nvmem) (V: vmem) (v: value),
     (isvaluable v) -> (*extra premise to check if v is valuable*)
-    eeval N V v [::] v
+    eeval N V v NoObs v
 | BINOP: forall(N: nvmem) (V: vmem)
           (e1: exp) (e2: exp)
           (r1: readobs) (r2: readobs)
