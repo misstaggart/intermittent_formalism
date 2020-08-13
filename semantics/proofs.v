@@ -85,6 +85,16 @@ Lemma observe_rb:forall {C0 C1: context} {N N': nvmem} {V V': vmem}
     c' = (Ins inreboot) \/ reboot \in O.
   Admitted.
 
+(*consider another type where reboot is the principle break
+ between continuous and intermittent
+ and then you wouldnt need this guy*)
+Lemma neg_observe_rb: forall {N N': nvmem} {V V': vmem}
+                     {c c': command} 
+                    {O: obseq} {W: the_write_stuff},
+    trace_c (N, V, c) (N', V', c') O W ->
+    reboot \notin O.
+Admitted.
+
 
 Lemma negNVandV: forall(x : smallvar), isNV x -> not (isV x).
 Proof. unfold isNV. unfold isV.
@@ -1771,6 +1781,13 @@ configs can always make progress assumption*)
           by rewrite hacky in Hc5.
       - eapply IHtrace_i1; try reflexivity; try assumption.
         apply sub_update.
+        Check twelve.
+        (*might make my life easier to have 12 take in a continuous trace*)
+        pose proof (iTrace_Cont N0 V c H H1) as T12.
+        apply trace_convert in T12.
+        eapply (twelve T12 H1
+                       (neg_observe_rb H)
+                       H7 H6 H4).
         (*i think this is 12*)
 (* ask arthur am i stupid or this should do something
  unfold prefix Hc51*)
