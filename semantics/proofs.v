@@ -1624,7 +1624,7 @@ Admitted.
                                    (cend: command)
                                    (O: obseq)
                                   (W: the_write_stuff),
-                                    trace_c (N, V, c) (Nend, Vend, cend) O W /\
+                                    trace_c (N, V, c) (Nend, Vend, cend) O W /\ checkpoint \notin O /\
 (cend = Ins skip \/
         (exists w cend2,
             cend = incheckpoint w;; cend2)).
@@ -1687,8 +1687,23 @@ configs can always make progress assumption*)
       Check eleven_bc.
       assert (reboot \notin [:: Obs o1]) as Ho1.
       apply (introT negP).
-      rewrite mem_seq1. move/eqP => contra. discriminate contra. 
+      rewrite mem_seq1. move/eqP => contra. discriminate contra.
+      pose proof (can_make_progress Nmid0 Vmid0 cmid0) as
+          [Nend1 [Vend1 [cend1 [Oend1 [Wend1 [Tendc [Hcend1
+                 Hcend2]  ] ] ] ] ] ].
+      pose proof (obseq_readobs Tendc Hcend1) as [oend Hoend].
+      subst.
+      assert (reboot \notin [:: Obs oend]) as Hoend.
+      apply (introT negP).
+      rewrite mem_seq1. move/eqP => contra. discriminate contra.
       Check eleven_bc.
+      rewrite mem_cat negb_orb in H3.
+      move/ andP : H3 => [H31 H32].
+      Check eleven_bc.
+      pose proof (eleven_bc (iTrace_Cont H) H31 Ho1 H4 H5 H6 H7
+                            (iTrace_Cont Tendc)
+                            Hcend1 Hoend
+                            Hcend2).
 
 
 
