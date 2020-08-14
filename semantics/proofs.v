@@ -1602,11 +1602,11 @@ Lemma sixteen: forall{Nstart N0 N1 Nend N2 : nvmem} {V Vstart V1 Vend: vmem}
                 by move/eqP : contra2.
               (*make Hcceval into a continuous trace,
                combine it with H2*)
+pose proof (trace_append H2 (CTrace_Single Hcceval)) as Tcs2e.
                 assert (multi_step_i (N0, Vstart, c, Nstart,
                                      Vstart, c)
                                      (N0, Vstart, c, (updateNV_sv N1 x v), Vend, Ins skip) (Ostart ++ [:: Obs r])) as Ts2e.
-pose proof (ctrace_itrace c (trace_append H2
-                                                 (CTrace_Single Hcceval))).
+pose proof (ctrace_itrace c Tcs2e).
 exists (append_write Wstart
              ([:: inl x],
              readobs_wvs r,
@@ -1616,7 +1616,7 @@ exists (append_write Wstart
 eapply H16.
                 Check twelve00.
               pose proof (
-                     twelve00 Ts2e Hcp H7 H3  Ts2e Hcp
+                     twelve00 Ts2e Hcp H7 H3 Tcs2e Hcp
                    ).
               (*start here you'd think there'd be some
                sort of reboots req for first trace in twelve00*)
