@@ -3,6 +3,7 @@ From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Strings.String Program Sumbool.
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype fintype seq.
+From extructures Require Import ord fset fmap.
 From Semantics Require Import lemmas_0.
 
 (*basic seq functions that I couldn't find in a library*)
@@ -699,13 +700,13 @@ Definition getcom (C: context) :=
 Definition ro := loc * value. (*read observation*)
 Definition readobs := seq ro.
 
-Notation NoObs := (nil : readobs).
+Notation NoRdObs := (nil : readobs).
 
 Inductive obs := (*observation*)
-  Obs (r: readobs)
+  RdObs (r: readobs)
 | reboot
 | checkpoint.
-Coercion Obs : readobs >-> obs.
+Coercion RdObs : readobs >-> obs.
 
 (*equality type for obs*)
 Definition eqb_ro (ro1: ro) (ro2: ro) :=
@@ -737,7 +738,7 @@ Definition eqb_obs (o1: obs) (o2: obs) :=
   match o1, o2 with
     reboot, reboot => true
   | checkpoint, checkpoint => true
-  | Obs R1, Obs R2 => R1 == R2
+  | RdObs R1, Obs R2 => R1 == R2
   | _, _ => false end.
 
 Lemma eqb_obs_true_iff : forall x y : obs,
@@ -810,10 +811,15 @@ and O2 is a read observation seq,
 prefix_seq determines if each ro seq in O1 is a valid
 prefix of O2*)
 Inductive prefix_seq: obseq -> obseq -> Prop :=
-  RB_Base: forall(O: readobs), prefix_seq [:: Obs O] [:: Obs O]
-| RB_Ind: forall(O1 O2: readobs) (O1': obseq),
-    O1 <= O2 -> prefix_seq O1' [:: Obs O2] ->
-    prefix_seq ([:: Obs O1] ++ [:: reboot] ++ O1') [:: Obs O2].
+  RB_Base: forall(O: obsseq),
+    reboot \notin O -> checkpoint \notin O ->
+    prefix_seq O O
+| RB_Ind: forall(O1 O2: obseq) (O1': obseq),
+    reboot \notin O1 -> checkpoint \notin O1 ->
+    reboot \notin O2 -> checkpoint \notin O2 ->
+    checkpoint \notin O1' ->
+    O1 <= O2 -> prefix_seq O1' O2 ->
+    prefix_seq (O1 ++ [:: reboot] ++ O1') O2.
 
 Notation "S <=m T" := (prefix_seq S T) (at level 100).
 
@@ -932,7 +938,7 @@ CheckPoint: forall(N: nvmem)
     isNV(x) -> (*checks x is correct type for NV memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     cceval_w (N, V, Ins (asgn_sv x e))
-             (Obs r :: nil)
+             (RdObs r :: nil)
              ((updateNV_sv N x v), V, Ins skip)
              ([:: inl x],  (readobs_wvs r), (remove (readobs_wvs r) [:: inl x]))
 | V_Assign: forall(x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
@@ -940,7 +946,7 @@ CheckPoint: forall(N: nvmem)
     isV(x) -> (*checks x is correct type for V memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     cceval_w (N, (Vol mapV), Ins (asgn_sv x e)) 
-             (Obs r :: nil)
+             (RdObs r :: nil)
              (N, (Vol ((inl x) |-> v ; mapV)), Ins skip)
              (nil,  (readobs_wvs r), nil)
 | Assign_Arr: forall (N: nvmem) (V: vmem)
@@ -959,14 +965,14 @@ CheckPoint: forall(N: nvmem)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     cceval_w (N, V, Ins (asgn_arr a ei e))
-           ((Obs (cat ri r)) :: nil)
+           ((RdObs (cat ri r)) :: nil)
            ((updateNV_arr N element a v), V, Ins skip)
            ((generate_locs a), (readobs_wvs (cat r ri)), (remove (readobs_wvs (cat r ri)) (generate_locs a)))
 (*valuability and inboundedness of vindex are checked in sameindex*)
 | Skip: forall(N: nvmem)
          (V: vmem)
          (c: command),
-    cceval_w (N, V, (skip;;c)) ((Obs NoObs)::nil) (N, V, c) (nil, nil, nil)
+    cceval_w (N, V, (skip;;c)) ((RdObs NoObs)::nil) (N, V, c) (nil, nil, nil)
 | Seq: forall (N N': nvmem)
          (V V': vmem)
          (l: instruction)
@@ -986,14 +992,14 @@ CheckPoint: forall(N: nvmem)
          (r: readobs)
          (c1 c2: command),
     eeval N V e r true -> (*yuh doy not writing anything in eeval*)
-    cceval_w (N, V, (TEST e THEN c1 ELSE c2)) ((Obs r)::nil) (N, V, c1) (nil, (readobs_wvs r), nil)
+    cceval_w (N, V, (TEST e THEN c1 ELSE c2)) ((RdObs r)::nil) (N, V, c1) (nil, (readobs_wvs r), nil)
 | If_F: forall(N: nvmem)
          (V: vmem)
          (e: exp)
          (r: readobs)
          (c1 c2: command),
     eeval N V e r false ->
-    cceval_w (N, V, (TEST e THEN c1 ELSE c2)) ((Obs r)::nil) (N, V, c2) (nil, (readobs_wvs r), nil).
+    cceval_w (N, V, (TEST e THEN c1 ELSE c2)) ((RdObs r)::nil) (N, V, c2) (nil, (readobs_wvs r), nil).
 
 Definition append_write (W1 W2: the_write_stuff) :=
   ((getwt W2) ++ (getwt W1) , (getrd W2) ++ (getrd W1),  (remove (getrd W1) (getfstwt W2))
@@ -1025,7 +1031,7 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
     isNV(x) -> (*checks x is correct type for NV memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     iceval_w (k, N, V, Ins (asgn_sv x e))
-           [:: Obs r]
+           [:: RdObs r]
            (k, (updateNV_sv N x v), V, Ins skip)
            ([:: inl x],  (readobs_wvs r), (remove (readobs_wvs r) [:: inl x]))
 | CP_V_Assign: forall(k: context) (x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
@@ -1033,7 +1039,7 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
     isV(x) -> (*checks x is correct type for V memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     iceval_w (k, N, (Vol mapV), Ins (asgn_sv x e))
-           [:: Obs r]
+           [:: RdObs r]
            (k, N, (Vol ((inl x) |-> v ; mapV)), Ins skip)
              (nil,  (readobs_wvs r), nil)
 | CP_Assign_Arr: forall (k: context) (N: nvmem) (V: vmem)
@@ -1050,13 +1056,13 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
     equal_index element a vi ->
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     iceval_w (k, N, V, Ins (asgn_arr a ei e))
-           [:: Obs (ri++r)]
+           [:: RdObs (ri++r)]
            (k, (updateNV_arr N element a v), V, Ins skip)
            ((generate_locs a), (readobs_wvs (cat r ri)), (remove  (readobs_wvs (cat r ri)) (generate_locs a)))
 | CP_Skip: forall(k: context) (N: nvmem)
          (V: vmem)
          (c: command),
-    iceval_w (k, N, V, (skip;;c)) ((Obs NoObs)::nil) (k, N, V, c) (nil, nil, nil)
+    iceval_w (k, N, V, (skip;;c)) ((RdObs NoObs)::nil) (k, N, V, c) (nil, nil, nil)
 |CP_Seq: forall (k: context)
          (N: nvmem) (N': nvmem)
          (V: vmem) (V': vmem)
@@ -1073,13 +1079,13 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
          (r: readobs)
          (c1 c2: command),
     eeval N V e r true -> 
-    iceval_w (k, N, V, (TEST e THEN c1 ELSE c2)) ((Obs r)::nil) (k, N, V, c1) (nil, (readobs_wvs r), nil)
+    iceval_w (k, N, V, (TEST e THEN c1 ELSE c2)) ((RdObs r)::nil) (k, N, V, c1) (nil, (readobs_wvs r), nil)
 |CP_If_F: forall(k: context) (N: nvmem) (V: vmem)
          (e: exp)
          (r: readobs)
          (c1 c2: command),
     eeval N V e r false ->
-    iceval_w (k, N, V, (TEST e THEN c1 ELSE c2)) ((Obs r)::nil) (k, N, V, c2) (nil, (readobs_wvs r), nil).
+    iceval_w (k, N, V, (TEST e THEN c1 ELSE c2)) ((RdObs r)::nil) (k, N, V, c2) (nil, (readobs_wvs r), nil).
 (*CP_Reboot: I took out the equals premise and instead built it
 into the types because I didn't wanit to define a context equality function*)
 

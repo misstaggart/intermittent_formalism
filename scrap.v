@@ -1655,6 +1655,11 @@ eapply H16.
         exists((updateNV_sv N2 x v))
         (*apply 19*)*)
 
+Lemma update_mask N1 N2: forall{x: smallvar} {v: value} {l: loc},
+   (getmap (updateNV_sv N1 x v)) l <>
+                          (getmap (updateNV_sv N2 x v)) l ->
+   (getmap N1) l <> (getmap N2) l.
+  Admitted.
 
       (*ask arthur i want this enforced at the type level*)
     Lemma dom_eq: forall(N0 N1: nvmem),
