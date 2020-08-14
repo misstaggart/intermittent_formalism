@@ -1539,6 +1539,10 @@ Lemma trace_ins1 N1 N2 V1 V2 O W: forall(l: instruction),
   cceval_w(N1, V1, Ins l) O
           (N2, V2, Ins skip) W.
   Admitted.
+            Lemma same_update N1 N2 x v:
+              getmap (updateNV_sv N1 x v) (inl x) =
+            getmap (updateNV_sv N2 x v) (inl x).
+              Admitted.
 (*starting point in terms only of current mem so don't need to parameterize it,
  don't need to induct over length of starting trace!*)
 Lemma sixteen: forall{Nstart N0 N1 Nend N2 : nvmem} {V V1 Vend: vmem}
@@ -1651,10 +1655,11 @@ eapply H16.
           simpl.
      (*showing N1 =1 N2*)
         - intros l contra.
+          remember contra as contra1. clear Heqcontra1.
           apply update_mask in contra.
           apply H14 in contra.
           remember T2 as T21. clear HeqT21.
-          move/trace_stops: T21 => [contra1 | contra2]; subst.
+          move/trace_stops: T21 => [c1 | c2]; subst.
           move/empty_trace_sc :T2 =>
           [b1 [b2 [b3 b4] ] ]. subst.
           simpl in contra.
@@ -1662,6 +1667,13 @@ eapply H16.
           exfalso. rewrite in_nil in c1.
             by move: c1.
             apply trace_ins1 in T2.
+            inversion T2; subst.
+            simpl in contra. move: contra => [c1 c2]. rewrite mem_seq1 in c1. move/ eqP :c1 => c1. subst.
+            exfalso. apply contra1.
+            apply same_update. simpl in contra.
+            move: contra => [c1 c2]. rewrite in_nil in c1.
+            discriminate c1. intros contra2. discriminate contra2.
+            (*NV case done*)
             (*consider making a separate proof for the instruction
              case so you dont have to do this reasoning 500 times
              start here*)
@@ -1669,8 +1681,6 @@ eapply H16.
 (*start here you'd think there'd be some
                sort of reboots req for first trace in twelve00*)
 
-
-              Admitted.
            (*     pose proof (twelve00 Hm H3 H5
                            )
               apply (iTrace_Single Hiceval) .
