@@ -7,11 +7,13 @@ From TLC Require Import LibTactics LibLogic.
 From Semantics Require Export programs semantics algorithms lemmas_1
 lemmas_0. (*shouldn't have to import both of these*)
 
+Implicit Types N: nvmem.
+
 Open Scope type_scope.
 
 
 (*lemmas for the lemmas; not in paper*)
-Lemma sub_disclude: forall(N0 N1 N2: nvmem) (l: loc),
+Lemma sub_disclude N0 N1 N2:  forall(l: loc),
                      subset_nvm N0 N1 ->
                      subset_nvm N0 N2 ->
                      not ((getmap N1) l = (getmap N2) l)
@@ -523,13 +525,13 @@ Qed.
  assumption, admitting it now, intend to fix it later*)
 
 (*termination case*)
-Lemma twelve00: forall(N0 N1 N1' NT: nvmem) (V V' VT: vmem) (c c': command) (O1 OT: obseq)
-  (WT: the_write_stuff),
+Lemma twelve00: forall{N0 N1 N1' NT: nvmem} {V V' VT: vmem} {c c': command} {O1 OT: obseq}
+  {WT: the_write_stuff},
    multi_step_i ((N0, V, c), N1, V, c) ((N0, V, c), N1', V', c') O1
       -> (checkpoint \notin O1)
       -> WARok (getdomain N0) [::] [::] c
       -> subset_nvm N0 N1
-      -> inhabited (trace_c (N1, V, c) (NT, VT, Ins skip) OT WT)
+      -> trace_c (N1, V, c) (NT, VT, Ins skip) OT WT
       -> (checkpoint \notin OT)
       -> trace_c ((N0 U! N1'), V, c) (NT, VT, Ins skip) OT WT.
 Admitted.
@@ -1149,9 +1151,11 @@ Lemma pf_idem : forall(N0 N Nend: nvmem) (V0 V Vend: vmem)
   +      eapply valid_mem.
 (*need to show N0 U! N1' can make it*)
          - assert(trace_c ((N0 U! N1'), V, c) (Nend, Vend, Ins skip) O0 W0) as T2.
-eapply twelve00.
-   exists W. apply (iTrace_Single H). assumption.
-   assumption. assumption. constructor. assumption. assumption.
+           eapply twelve00.
+           (*recent ask arthur won't let me put a semicolon!
+           *)
+   exists W; try (apply (iTrace_Single H)). assumption.
+   assumption. assumption. assumption. assumption.
      apply T2. by left.
        - (*showing N2 subst N0 U! N1'
           Ignore this bullet: I forgot to take out this part of the
@@ -1472,10 +1476,20 @@ Lemma itrace_ctrace: forall{N0 N1 Nend1: nvmem} {V V' Vend: vmem} {c c' cend: co
         (reboot \notin O) ->
         trace_c (N1, V', c') (Nend1, Vend, cend) O W.
   Admitted.
+
+Lemma ctrace_itrace: forall(c: command) {N1 Nend1: nvmem} {V' Vend: vmem} {c' cend: command}
+                   {O : obseq} {W: the_write_stuff},
+        trace_c (N1, V', c') (Nend1, Vend, cend) O W ->
+        (forall(N0: nvmem) (V: vmem) (c: command),
+         trace_i ((N0, V, c), N1, V', c') ((N0, V, c), Nend1, Vend, cend) O W)
+        (*(reboot \notin O)*).
+  Admitted.
 (*if there is a PF it would have to be the last thing
 cuz no reboots
  which is fine
  cuz empty trace*)
+
+(*do implicit types for nvmem start here*)
 
 Lemma skiptrace_empty:forall{N Nend: nvmem} {V Vend: vmem} {cend: command}
                    {O : obseq} {W: the_write_stuff},
@@ -1509,37 +1523,48 @@ forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
 
 (*starting point in terms only of current mem so don't need to parameterize it,
  don't need to induct over length of starting trace!*)
-    Lemma sixteen: forall{N0 N1 Nend N2 : nvmem} {V V1 Vend: vmem} {c c1 cend: command}
-                   {O : obseq} {W: the_write_stuff},
+Lemma sixteen: forall{Nstart N0 N1 Nend N2 : nvmem} {V Vstart V1 Vend: vmem}
+                {c c1 cend: command}
+                    {O Ostart: obseq} {W Wstart: the_write_stuff},
+    trace_c (Nstart, Vstart, c) (N1, V1, c1) Ostart Wstart -> (*initializes V1 as correct*) subset_nvm N0 Nstart ->
         trace_i ((N0, V, c), N1, V1, c1) ((N0, V, c), Nend, Vend, cend) O W -> cend <> (Ins inreboot) ->
         (checkpoint \notin O) ->
              (reboot \notin O) ->
              WARok (getdomain N0) [::] [::] c ->
              same_pt (N0 U! N1) V c c1 N1 N2 ->
-           exists(Nend2: nvmem),(trace_c (N2, V1, c1) (Nend2, Vend, cend) O W /\
+             checkpoint \notin Ostart
+           -> exists(Nend2: nvmem),(trace_c (N2, V1, c1) (Nend2, Vend, cend) O W /\
              same_pt (N0 U! Nend) V c cend Nend Nend2).
       intros.
-      dependent induction H.
+      dependent induction H1.
       (*empty trace case*)
       + exists N2. split. eapply CTrace_Empty.
         assumption.
         (*single intermittent step case*)
-      + remember H as Hiceval.
+      + remember H1 as Hiceval.
         clear HeqHiceval.
         (*show arthur the ridiculous error message
          that i get if i take this out*)
-        dependent induction H. (*induct iceval
+        (*start here consider a different
+         command type where the BC is all grouped
+         together as one instruction
+         i mean, if you wanted to do that you'd
+         induct on c
+         but i remember that being annoying for a different
+         reason
+         see how you go with this and then try it*)
+        dependent induction H1. (*induct iceval
                                 to get length of step*)
         - (*pf*) by exfalso.
-        - (*rb*) exfalso. move/negP :H2.
+        - (*rb*) exfalso. move/negP :H4.
             by apply.
-        - (*cp*) exfalso. move/negP: H1. by apply.
+        - (*cp*) exfalso. move/negP: H3. by apply.
         - (*nv*) exists((updateNV_sv N2 x v)).
           pose proof (NV_Assign H H0 H1) as Hcceval.
           pose proof (iceval_cceval Hiceval Hcceval) as [ [ contraN [ contraV [contraW contrac] ] ]  | [ Hn [ Hv Hw ] ] ]; subst.
           discriminate contrac.
           Check nineteen.
-          pose proof (nineteen H6 Hcceval) as Hloceq.
+          pose proof (nineteen H8 Hcceval) as Hloceq.
           Check twenty.
           pose proof (twenty H Hloceq) as Heval2.
           pose proof (NV_Assign Heval2 H0 H1) as Hcceval2.
@@ -1554,20 +1579,48 @@ forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
                           (N0, V, c, N1, Vend, Ins (asgn_sv x e))
                           (N0, V, c, updateNV_sv N1 x v, Vend, Ins skip) [:: Obs r]).
             - intros Hm.
-              inversion H6. subst.
+              inversion H8. subst.
               (*NTS crem = skip*)
               pose proof (trace_stops T2) as Hrem.
               pose proof (trace_append T1 T2) as Tend.
-              pose proof (and_or_elim Hrem H7).
+              pose proof (and_or_elim Hrem H10).
               assert (~
         (crem = Ins (asgn_sv x e) /\
          (exists w crem2, crem = incheckpoint w;; crem2))).
               intros [contra1 [b1 [b2 contra2] ] ].
               subst. discriminate contra2.
-              apply H12 in H13. subst.
-              (*weird that im trying to wiggle around
-               initializing Vend*)
-              Check twelve00.
+              apply H15 in H16. subst.
+              assert (checkpoint \notin Ostart ++ [:: Obs r]) as Hcp.
+              apply (introT negP).
+              move => contra.
+              rewrite mem_cat in contra.
+              move/orP : contra => [contra1 | contra2].
+              apply (elimT negP) in H9.
+              (*ask arthur how is it that those switch*)
+                by apply H9.
+                rewrite mem_seq1 in contra2.
+                by move/eqP : contra2.
+              (*make Hcceval into a continuous trace,
+               combine it with H2*)
+                assert (multi_step_i (N0, Vstart, c, Nstart,
+                                     Vstart, c)
+                                     (N0, Vstart, c, (updateNV_sv N1 x v), Vend, Ins skip) (Ostart ++ [:: Obs r])) as Ts2e.
+pose proof (ctrace_itrace c (trace_append H2
+                                                 (CTrace_Single Hcceval))).
+exists (append_write Wstart
+             ([:: inl x],
+             readobs_wvs r,
+             remove
+               (readobs_wvs r)
+               [:: inl x])).
+eapply H16.
+                Check twelve00.
+              pose proof (
+                     twelve00 Ts2e Hcp H7 H3  Ts2e Hcp
+                   ).
+              (*start here you'd think there'd be some
+               sort of reboots req for first trace in twelve00*)
+              
               Admitted.
            (*     pose proof (twelve00 Hm H3 H5
                            )
@@ -1660,8 +1713,6 @@ configs can always make progress assumption*)
                destruct H9 as [H81 | H82]; subst.
              pose proof (skiptrace_empty T2). subst.
              apply empty_trace in T2; auto. destruct T2 as [Heq1 Heq2]. subst.
-             (*ask arthur how the above works with applying it
-              for you sort of*)
              rewrite in_nil in contra0. discriminate contra0.
              destruct H82 as [w [cend2 Heqcend] ]. subst.
              pose proof (observe_checkpt T2) as
@@ -1854,7 +1905,7 @@ configs can always make progress assumption*)
                        H7 H6 H4).
         (*i think this is 12*)
 (* ask arthur am i stupid or this should do something
- unfold prefix Hc51*)
+ unfold prefix in Hc51*)
 
       (*split up Hc2end
 Hc51 should give it
@@ -1863,13 +1914,12 @@ Hc51 should give it
 
 
      (* ask arthur.. seriously?
-pose proof (and4 Hc1 Hc2 Hc3 Hc4) as Hc.*)
-      (* ask arthur
-what is the star for rewrite - and_assoc in Hconj*)
+pose proof (and4 Hc1 Hc2 Hc3 Hc4) as Hc.
+Record types where each one of those guys is a field
+      *)
 
 
 
-        }
 
 
  (*   Lemma eleven1: forall{N0 N1 Nmid Nend N2: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
@@ -1975,7 +2025,6 @@ update_sub rewrite - {1} (update_sub H1).*)
                       {V}
 
      (*base case done!*)
-        (*ask arthur is this rewrite ssreflect*)
 
      
         

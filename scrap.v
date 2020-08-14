@@ -1,10 +1,32 @@
-
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Strings.String Program Sumbool.
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype fintype seq.
-From Semantics Require Import lemmas_0.
+From extructures Require Import ord fset fmap.
+Implicit Types m: {fmap nat -> nat}.
+
+
+Definition sub_map m1 m2 := 
+  {in domm m1, m1 =1 m2}.
+
+Lemma update_sub {m1 m2}: sub_map m1 m2 ->
+                            (unionm m1 m2) = m2.
+  move => Hsub. Check eq_fmap.
+  apply/eq_fmap => x. rewrite unionmE.
+  case E: (m1 x) => [a | ] //=.
+  rewrite/sub_map in Hsub.
+  by have /Hsub <- : x \in (domm m1) by rewrite mem_domm E.
+  Qed.
+
+
+
+  (*/= := simpl
+   // := try done
+   //= := simpl; done
+{} works for any universal quantifier
+   *)
+
 
 (*basic seq functions that I couldn't find in a library*)
 Fixpoint eq_seqs {A: Type} (L1: seq A) (L2: seq A) (eq: A -> A -> Prop) :=
