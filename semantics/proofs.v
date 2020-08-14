@@ -1570,15 +1570,20 @@ Lemma sixteen: forall{Nstart N0 N1 Nend N2 : nvmem} {V V1 Vend: vmem}
           pose proof (NV_Assign Heval2 H0 H1) as Hcceval2.
           split.
             - by apply CTrace_Single.
-            - eapply same_mem.
-              Check single_step_all.
+            -
+              (*showing
+  same_pt (N0 U! updateNV_sv N1 x v) V c 
+    (Ins skip) (updateNV_sv N1 x v)
+    (updateNV_sv N2 x v)
+               *)
+              eapply same_mem.
               (*consider is there any point to the
                multistep part*)
-              Check twelve00.
-              suffices: (multi_step_i
-                          (N0, V, c, N1, Vend, Ins (asgn_sv x e))
-                          (N0, V, c, updateNV_sv N1 x v, Vend, Ins skip) [:: Obs r]).
-            - intros Hm.
+            - (*showing
+  trace_c (N0 U! updateNV_sv N1 x v, V, c)
+    (updateNV_sv N1 x v, ?V1, Ins skip) 
+    ?O1 ?W1
+               *)
               inversion H8. subst.
               (*NTS crem = skip*)
               pose proof (trace_stops T2) as Hrem.
@@ -1614,7 +1619,6 @@ exists (append_write Wstart
                (readobs_wvs r)
                [:: inl x])).
 eapply H16.
-                Check twelve00.
               pose proof (
                      twelve00 Ts2e Hcp H7 H3 Tcs2e Hcp
                    ) as Tends2end.
