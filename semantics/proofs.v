@@ -7,7 +7,12 @@ From TLC Require Import LibTactics LibLogic.
 From Semantics Require Export programs semantics algorithms lemmas_1
 lemmas_0. (*shouldn't have to import both of these*)
 
-Implicit Types N: nvmem.
+Implicit Types N: nvmem. Implicit Types V: vmem.
+Implicit Types O: obseq.
+Implicit Types c: command.
+Implicit Types W: the_write_stuff.
+Implicit Types x: smallvar.
+(*start here should be a way to stack these*)
 
 Open Scope type_scope.
 
@@ -1521,6 +1526,19 @@ forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
   intros. Admitted.
 
 
+Lemma update_mask N1 N2: forall{x: smallvar} {v: value} {l: loc},
+   (getmap (updateNV_sv N1 x v)) l <>
+                          (getmap (updateNV_sv N2 x v)) l ->
+   (getmap N1) l <> (getmap N2) l.
+  Admitted.
+
+Lemma trace_ins1 N1 N2 V1 V2 O W: forall(l: instruction), 
+  trace_c (N1, V1, Ins l) 
+          (N2, V2, Ins skip) O W ->
+  l <> skip ->
+  cceval_w(N1, V1, Ins l) O
+          (N2, V2, Ins skip) W.
+  Admitted.
 (*starting point in terms only of current mem so don't need to parameterize it,
  don't need to induct over length of starting trace!*)
 Lemma sixteen: forall{Nstart N0 N1 Nend N2 : nvmem} {V V1 Vend: vmem}
@@ -1576,7 +1594,20 @@ Lemma sixteen: forall{Nstart N0 N1 Nend N2 : nvmem} {V V1 Vend: vmem}
     (Ins skip) (updateNV_sv N1 x v)
     (updateNV_sv N2 x v)
                *)
-              eapply same_mem.
+(*prep as i use this in multiple goals generated
+ by same_mem*)
+              assert (checkpoint \notin Ostart ++ [:: Obs r]) as Hcp.
+              apply (introT negP).
+              move => contra.
+              rewrite mem_cat in contra.
+              move/orP : contra => [contra1 | contra2].
+              apply (elimT negP) in H9.
+              (*ask arthur how is it that those switch*)
+                by apply H9.
+                rewrite mem_seq1 in contra2.
+                  by move/eqP : contra2.
+              inversion H8. subst.
+              eapply same_mem; try auto.
               (*consider is there any point to the
                multistep part*)
             - (*showing
@@ -1584,7 +1615,6 @@ Lemma sixteen: forall{Nstart N0 N1 Nend N2 : nvmem} {V V1 Vend: vmem}
     (updateNV_sv N1 x v, ?V1, Ins skip) 
     ?O1 ?W1
                *)
-              inversion H8. subst.
               (*NTS crem = skip*)
               pose proof (trace_stops T2) as Hrem.
               pose proof (trace_append T1 T2) as Tend.
@@ -1595,16 +1625,6 @@ Lemma sixteen: forall{Nstart N0 N1 Nend N2 : nvmem} {V V1 Vend: vmem}
               intros [contra1 [b1 [b2 contra2] ] ].
               subst. discriminate contra2.
               apply H15 in H16. subst.
-              assert (checkpoint \notin Ostart ++ [:: Obs r]) as Hcp.
-              apply (introT negP).
-              move => contra.
-              rewrite mem_cat in contra.
-              move/orP : contra => [contra1 | contra2].
-              apply (elimT negP) in H9.
-              (*ask arthur how is it that those switch*)
-                by apply H9.
-                rewrite mem_seq1 in contra2.
-                by move/eqP : contra2.
               (*make Hcceval into a continuous trace,
                combine it with H2*)
 pose proof (trace_append H2 (CTrace_Single Hcceval)) as Tcs2e.
@@ -1623,9 +1643,33 @@ eapply H16.
                      twelve00 Ts2e Hcp H7 H3 Tcs2e Hcp
                    ) as Tends2end.
               apply Tends2end.
-              (*start here you'd think there'd be some
+        - (*showing
+  trace_c (updateNV_sv N1 x v, Vend, Ins skip)
+(?N2, ?V2, ?crem) ?O2 ?W2 *)
+          apply CTrace_Empty. apply Hcp.
+          auto.
+          simpl.
+     (*showing N1 =1 N2*)
+        - intros l contra.
+          apply update_mask in contra.
+          apply H14 in contra.
+          remember T2 as T21. clear HeqT21.
+          move/trace_stops: T21 => [contra1 | contra2]; subst.
+          move/empty_trace_sc :T2 =>
+          [b1 [b2 [b3 b4] ] ]. subst.
+          simpl in contra.
+          destruct contra as [c1 c2].
+          exfalso. rewrite in_nil in c1.
+            by move: c1.
+            apply trace_ins1 in T2.
+            (*consider making a separate proof for the instruction
+             case so you dont have to do this reasoning 500 times
+             start here*)
+          
+(*start here you'd think there'd be some
                sort of reboots req for first trace in twelve00*)
-              
+
+
               Admitted.
            (*     pose proof (twelve00 Hm H3 H5
                            )
