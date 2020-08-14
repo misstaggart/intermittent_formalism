@@ -1,11 +1,14 @@
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
-     Init.Datatypes Strings.String Program Sumbool.
-Require Export Coq.Strings.String.
-From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype fintype seq.
-From extructures Require Import ord fset fmap.
+     Init.Datatypes Program Sumbool
+     Ascii String.
+From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype fintype seq
+     choice bigop finset generic_quotient tuple.
+(*From extructures Require Import ord fset fmap.*)
+(*From deriving Require Import deriving.*)
 From Semantics Require Import lemmas_0.
 
+(*Check prod_ordMixin.*)
 (*basic seq functions that I couldn't find in a library*)
 Fixpoint eq_seqs {A: Type} (L1: seq A) (L2: seq A) (eq: A -> A -> Prop) :=
         match L1, L2 with
@@ -511,7 +514,34 @@ Qed.
 Canonical loc_eqMixin := EqMixin eqloc.
 Canonical loc_eqtype := Eval hnf in EqType loc loc_eqMixin.
 
+Definition getstring_sv (x1: smallvar) :=
+  match x1 with
+    SV s _ => s end.
 
+(*Definition loc_leq (l1 l2: loc) :=
+  match l1, l2 with
+inl x, inl y => (getstring_sv x) <= (getstring_sv y)
+| _, _ => true end.*)
+Definition loc_leq (l1 l2: loc) :=
+  match l1, l2 with
+inl x, inl y => true 
+| _, _ => true end.
+
+(*Check Ord.axioms.
+Open Scope ord_scope.
+Definition ord_loc: Ord.axioms loc_leq.
+Admitted.
+
+Check ord_loc.
+Definition loc_ordMixin := OrdMixin ord_loc.
+Check loc_ordMixin.
+Check nat_ordMixin.
+i think the problem with the line below is that you havent defined any choice garbage
+Canonical loc_ordtype := Eval hnf in OrdType loc loc_ordMixin.
+
+
+ *)
+(*start here*)
 
 (*******************************************************************)
 
