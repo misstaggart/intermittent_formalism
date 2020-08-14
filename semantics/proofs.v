@@ -16,6 +16,11 @@ Implicit Types x: smallvar.
 
 Open Scope type_scope.
 
+(*
+mapim f m == apply the function f : T -> S -> S' to all bindings in   *)
+(*                   the map m : {fmap T -> S}.  
+ask arthur start here... each singular input/output is its OWN T->S?
+ *)
 
 (*lemmas for the lemmas; not in paper*)
 Lemma sub_disclude N0 N1 N2:  forall(l: loc),
