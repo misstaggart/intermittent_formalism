@@ -1523,10 +1523,10 @@ forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
 
 (*starting point in terms only of current mem so don't need to parameterize it,
  don't need to induct over length of starting trace!*)
-Lemma sixteen: forall{Nstart N0 N1 Nend N2 : nvmem} {V Vstart V1 Vend: vmem}
+Lemma sixteen: forall{Nstart N0 N1 Nend N2 : nvmem} {V V1 Vend: vmem}
                 {c c1 cend: command}
                     {O Ostart: obseq} {W Wstart: the_write_stuff},
-    trace_c (Nstart, Vstart, c) (N1, V1, c1) Ostart Wstart -> (*initializes V1 as correct*) subset_nvm N0 Nstart ->
+    trace_c (Nstart, V, c) (N1, V1, c1) Ostart Wstart -> (*initializes V1 as correct*) subset_nvm N0 Nstart ->
         trace_i ((N0, V, c), N1, V1, c1) ((N0, V, c), Nend, Vend, cend) O W -> cend <> (Ins inreboot) ->
         (checkpoint \notin O) ->
              (reboot \notin O) ->
@@ -1603,9 +1603,9 @@ Lemma sixteen: forall{Nstart N0 N1 Nend N2 : nvmem} {V Vstart V1 Vend: vmem}
               (*make Hcceval into a continuous trace,
                combine it with H2*)
 pose proof (trace_append H2 (CTrace_Single Hcceval)) as Tcs2e.
-                assert (multi_step_i (N0, Vstart, c, Nstart,
-                                     Vstart, c)
-                                     (N0, Vstart, c, (updateNV_sv N1 x v), Vend, Ins skip) (Ostart ++ [:: Obs r])) as Ts2e.
+                assert (multi_step_i (N0, V, c, Nstart,
+                                     V, c)
+                                     (N0, V, c, (updateNV_sv N1 x v), Vend, Ins skip) (Ostart ++ [:: Obs r])) as Ts2e.
 pose proof (ctrace_itrace c Tcs2e).
 exists (append_write Wstart
              ([:: inl x],
@@ -1617,7 +1617,8 @@ eapply H16.
                 Check twelve00.
               pose proof (
                      twelve00 Ts2e Hcp H7 H3 Tcs2e Hcp
-                   ).
+                   ) as Tends2end.
+              apply Tends2end.
               (*start here you'd think there'd be some
                sort of reboots req for first trace in twelve00*)
               
