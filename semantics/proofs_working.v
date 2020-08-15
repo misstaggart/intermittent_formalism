@@ -41,7 +41,7 @@ if you induct on c you wont have info about how N gets updated which will break 
          see how you go with this and then try it*)
           pose proof (iceval_cceval1 Hiceval H2 H4) as Hcceval.
           pose proof (nineteen H6 Hcceval) as Hloceq.
-(*for 20 you need an eeval*)
+(*for 20 you need an eeval*) 
           dependent induction H1; (*indict iceval*)
             try (pose proof (twenty H Hloceq) as Heval2);
           try (pose proof (twenty_arr H0 H Hloceq) as [ Heval20 Heval21]).
@@ -77,7 +77,15 @@ how to unfocus a goal before you are finished with it*)
           }
 (*seq inductive iceval case*)
           2: {
-            suffices: 
+            suffices: exists Nend2,
+               trace_c (N2, V1, Ins l) (Nend2, Vend, cend)
+                 [:: o] W /\
+               same_pt (N0 U! Nend) V c cend Nend Nend2.
+            - move => [Nend2 [Tcins Hsp] ]. exists Nend2. split.
+            apply CTrace_Single. constructor; try assumption.
+            apply (singletc_cceval Tcins).
+              by []. assumption.
+            - eapply IHiceval_w; try reflexivity.
             exists(N2).
             pose proof (Skip N2 Vend cend) as Hcceval2.
             (*start here consider combining this with NV assign through function based on H0*)

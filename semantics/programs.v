@@ -164,10 +164,11 @@ Next Obligation. split. intros wildcard contra. destruct contra. inversion H1.
                  intros contra. destruct contra. inversion H1. Qed.
 
 
-Lemma singletc_cceval N V c N1 V1 c1 O W:
+
+Lemma singletc_cceval {N V c N1 V1 c1 O W} :
  trace_c (N, V, c) (N1, V1, c1) O W ->
   (size O) == 1 ->
-  cceval_w (N, V, c) O (N1, V1, c1) W.
+  cceval_w (N, V, c) O (N1, V1, Ins skip) W.
 Admitted.
 (*intermittent traces*)
  (*the same as trace_c bar types as differences between
