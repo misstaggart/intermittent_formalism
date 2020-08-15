@@ -1148,7 +1148,7 @@ Lemma twenty_arr:forall{N0 N1: nvmem} {V0: vmem} {e ei: exp} {r0 r1: readobs} {v
   eeval N0 V0 ei r0 vi ->
   eeval N0 V0 e r1 v ->
               (forall(z: loc), z \in (readobs_wvs (r0 ++ r1)) -> (getmap N0) z = (getmap N1) z) ->
-              eeval N1 V0 ei r0 vi /\ eeval N0 V0 e r1 v.
+              eeval N1 V0 ei r0 vi /\ eeval N1 V0 e r1 v.
   intros. Admitted.
 
 

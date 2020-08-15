@@ -5,6 +5,11 @@ Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq ssrnat.
 From Semantics Require Import algorithms lemmas_1.
 
+Implicit Types N: nvmem. Implicit Types V: vmem.
+Implicit Types O: obseq.
+Implicit Types c: command.
+Implicit Types W: the_write_stuff.
+Implicit Types x: smallvar.
 
 Open Scope type_scope.
 (************* program traces*****************)
@@ -158,6 +163,12 @@ Next Obligation. emptyl T2. Qed.
 Next Obligation. split. intros wildcard contra. destruct contra. inversion H1.
                  intros contra. destruct contra. inversion H1. Qed.
 
+
+Lemma singletc_cceval N V c N1 V1 c1 O W:
+ trace_c (N, V, c) (N1, V1, c1) O W ->
+  (size O) == 1 ->
+  cceval_w (N, V, c) O (N1, V1, c1) W.
+Admitted.
 (*intermittent traces*)
  (*the same as trace_c bar types as differences between
   intermittent and continuous execution have been implemented in evals*)

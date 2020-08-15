@@ -44,7 +44,7 @@ if you induct on c you wont have info about how N gets updated which will break 
 (*for 20 you need an eeval*)
           dependent induction H1; (*indict iceval*)
             try (pose proof (twenty H Hloceq) as Heval2);
-          try (pose proof (twenty_arr H0 H Hloceq) as Heval2).
+          try (pose proof (twenty_arr H0 H Hloceq) as [ Heval20 Heval21]).
         - (*pf*) by exfalso.
         - (*rb*) exfalso. move/negP :H4.
             by apply.
@@ -63,7 +63,7 @@ how to unfocus a goal before you are finished with it*)
           (*asgn_arr*)
           2: {
             exists(updateNV_arr N2 element a v). (*could definitely extract this given the cceval and N2*)
-            pose proof (Assign_Arr Heval2 H0 H1) as Hcceval2.
+            pose proof (Assign_Arr Heval21 Heval20 H1 H2) as Hcceval2. 
             (*start here consider combining this with NV assign through function based on H0*)
             shelve. 
           }
@@ -75,7 +75,9 @@ how to unfocus a goal before you are finished with it*)
             shelve. 
 
           }
-          4: {
+(*seq inductive iceval case*)
+          2: {
+            suffices: 
             exists(N2).
             pose proof (Skip N2 Vend cend) as Hcceval2.
             (*start here consider combining this with NV assign through function based on H0*)

@@ -995,17 +995,19 @@ CheckPoint: forall(N: nvmem)
              (RdObs r :: nil)
              (N, (Vol ((inl x) |-> v ; mapV)), Ins skip)
              (nil,  (readobs_wvs r), nil)
-| Assign_Arr: forall (N: nvmem) (V: vmem)
-               (a: array)
-               (ei: exp)
-               (ri: readobs)
-               (vi: value)
-               (e: exp)
-               (r: readobs)
-               (v: value)
-               (element: el_loc),
+| Assign_Arr: forall {N: nvmem} {V: vmem}
+               {a: array}
+               {ei: exp}
+               {ri: readobs}
+               {vi: value}
+               {e: exp}
+               {r: readobs}
+               {v: value}
+               {element: el_loc},
     eeval N V ei ri vi ->
     eeval N V e r v ->
+    (*start here its kind of annoying that ri comies in first but down there
+     its appended second*)
     equal_index element a vi -> (*extra premise to check that inr element
                                         is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
