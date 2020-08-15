@@ -321,6 +321,13 @@ Lemma cceval_iceval: forall {N Nend : nvmem} {V Vend: vmem}
     (forall(k: context), iceval_w (k, N, V, c) O (k, Nend, Vend, cend) W).
 Admitted.
 
+Lemma iceval_cceval1: forall{k: context} {N Nend: nvmem} {V Vend: vmem}
+                      {c cend : command} {O: obseq} {W: the_write_stuff},
+    iceval_w (k, N, V, c) O (k, Nend, Vend, cend) W ->
+    cend <> Ins inreboot (*no pf*) -> reboot \notin O -> (*no rb*) 
+    cceval_w (N, V, c) O (Nend, Vend, cend) W. Admitted.
+  (*start here delete iceval_cceval in proofs0*)
+
   Lemma wt_gets_bigger: forall{N N0 N1 Nend: nvmem} {V V0 V1 Vend: vmem} {c c0 c1 cend: command} {O0 O1: obseq} {W0 W1: the_write_stuff}
   {l: loc},
     iceval_w ((N0, V0, c0), N, V, c) O0 ((N0, V0, c0), N1, V1, c1) W0 ->
@@ -1121,11 +1128,10 @@ Lemma ctrace_deterministic: forall{N Nend1 Nend2: nvmem} {V Vend1 Vend2: vmem} {
         Nend1 = Nend2 /\ Vend1 = Vend2 /\ O1 = O2 /\ W1 = W2.
   Admitted.
 
-Lemma nineteen: forall{Nstart N1 Nend N2: nvmem} {V V1 Vend: vmem} {c cend: command}
-                 {l: instruction}
+Lemma nineteen: forall{Nstart N1 Nend N2: nvmem} {V V1 Vend: vmem} {c cmid cend: command}
                    {O : obseq} {W: the_write_stuff},
-             same_pt Nstart V c (Ins l) N1 N2 ->
-             cceval_w (N1, V1, (Ins l)) O (Nend, Vend, cend) W ->
+             same_pt Nstart V c cmid N1 N2 ->
+             cceval_w (N1, V1, cmid) O (Nend, Vend, cend) W ->
             ( forall(z: loc), z \in (getrd W) -> (*z was read immediately cuz trace is only 1
                                 thing long*)
                    (getmap N1) z = (getmap N2) z). (*since z isnt in FW of trace from Ins l to skip*)

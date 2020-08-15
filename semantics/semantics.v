@@ -987,7 +987,7 @@ CheckPoint: forall(N: nvmem)
              (RdObs r :: nil)
              ((updateNV_sv N x v), V, Ins skip)
              ([:: inl x],  (readobs_wvs r), (remove (readobs_wvs r) [:: inl x]))
-| V_Assign: forall(x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
+| V_Assign: forall{x: smallvar} {N: nvmem} {mapV: mem} {e: exp} {r: readobs} {v: value},
     eeval N (Vol mapV) e r v ->
     isV(x) -> (*checks x is correct type for V memory*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
