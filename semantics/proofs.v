@@ -1138,17 +1138,17 @@ Lemma nineteen: forall{Nstart N1 Nend N2: nvmem} {V V1 Vend: vmem} {c cmid cend:
 Admitted.
 
 Lemma twenty:
-forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0 r1: readobs} {v0: value},
+forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
   eeval N0 V0 e r0 v0 ->
-  (forall(z: loc), z \in (readobs_wvs r0 (**++ r1 or does the ++ go on the outside**)) -> (getmap N0) z = (getmap N1) z) ->
+  (forall(z: loc), z \in (readobs_wvs r0 ) -> (getmap N0) z = (getmap N1) z) ->
               eeval N1 V0 e r0 v0.
   intros. Admitted.
 
-Lemma twenty_arr:forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
-  eeval N0 V0 ei ri vi ->
-  eeval N0 V0 e r v ->
-              (forall(z: loc), z \in (readobs_wvs r ++ ri) -> (getmap N0) z = (getmap N1) z) ->
-              eeval N1 V0 e r0 v0.
+Lemma twenty_arr:forall{N0 N1: nvmem} {V0: vmem} {e ei: exp} {r0 r1: readobs} {vi v: value},
+  eeval N0 V0 ei r0 vi ->
+  eeval N0 V0 e r1 v ->
+              (forall(z: loc), z \in (readobs_wvs (r0 ++ r1)) -> (getmap N0) z = (getmap N1) z) ->
+              eeval N1 V0 ei r0 vi /\ eeval N0 V0 e r1 v.
   intros. Admitted.
 
 
