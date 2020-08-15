@@ -518,14 +518,24 @@ Definition getstring_sv (x1: smallvar) :=
   match x1 with
     SV s _ => s end.
 
+Definition loc_choiceMixin := choiceMixin loc.
+Check oddb. (*bool -> prop*)
+Check bool_of_unitK.
+Check bool_choiceMixin.
+(*Check Choice.axioms.
+Check loc_choiceMixin.
+
+Canonical loc_choiceType := Eval hnf in ChoiceType loc loc_choiceMixin.*)
+(*ask arthur*)
+
+Print choiceMixin.
+
+
+
 (*Definition loc_leq (l1 l2: loc) :=
   match l1, l2 with
 inl x, inl y => (getstring_sv x) <= (getstring_sv y)
 | _, _ => true end.*)
-Definition loc_leq (l1 l2: loc) :=
-  match l1, l2 with
-inl x, inl y => true 
-| _, _ => true end.
 
 (*Check Ord.axioms.
 Open Scope ord_scope.
