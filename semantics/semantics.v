@@ -22,8 +22,6 @@ Fixpoint member {A: Type} (eq: A -> A -> bool) (a: A)  (L: seq A) :=
   | x::xs => orb (eq a x) (member eq a xs)
   end.
 
-Definition prefix {A: Type} (O1: seq A) (O2: seq A) :=
-  exists(l: nat), O1 = take l O2.
 
 Definition intersect {A: eqType} (O1: seq A) (O2: seq A) :=
   exists(l: A), l \in O1 /\ l \in O2.
@@ -843,7 +841,6 @@ Fixpoint readobs_wvs (R: readobs): (seq loc) :=
 (*relations between continuous and intermittent observations*)
 (*Definition reduces (O1 O2: readobs) :=
   (prefix O1 O2*)
-Notation "S <= T" := (prefix S T).
 
 (*Where
 O1 is a sequence of read observation seqs,
@@ -851,6 +848,14 @@ where each continguous read observation seq is separated from those adjacent to 
 and O2 is a read observation seq,
 prefix_seq determines if each ro seq in O1 is a valid
 prefix of O2*)
+
+Inductive prefix: obseq -> obseq -> Prop :=
+  P_Base: forall(R: readobs), prefix [:: RdObs R] [:: RdObs R]
+| P_Ind: forall(R: readobs) (O1: obseq) (O2: obseq), prefix O1 O2 ->
+                                                prefix O1 (O2 ++ [:: RdObs R]).
+Notation "S <= T" := (prefix S T).
+(*some sort of spec start here?*)
+
 Inductive prefix_seq: obseq -> obseq -> Prop :=
   RB_Base: forall(O: obseq),
     reboot \notin O -> checkpoint \notin O ->

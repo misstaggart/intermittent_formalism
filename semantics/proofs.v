@@ -1963,11 +1963,7 @@ configs can always make progress assumption*)
       pose proof (same_nearest_CP Hc2end Hcp1 H11 Hc2end1 Hcp2 Hcend2). subst.
       apply (ctrace_deterministic Hc2end1) in Hc2end.
       destruct Hc2end as [e1 [e2 [e3 e4] ] ]. subst.
-      exists (size o1).
-      repeat rewrite hacky in e3.
-      inversion e3. subst.
-        by rewrite take_size_cat.
-          by rewrite hacky in Hc5.
+      rewrite - e3. repeat constructor.
       - eapply IHtrace_i1; try reflexivity; try assumption.
         apply sub_update.
         Check twelve.
