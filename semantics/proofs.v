@@ -1972,7 +1972,10 @@ configs can always make progress assumption*)
         apply trace_convert in T12.
         eapply (twelve T12 H1
                        (neg_observe_rb H)
-                       H7 H6 H4).
+                       H7 H6 H4). }
+      (*BC*)
+      Check eleven_bc.
+      Check ctrace_itrace.
         (*i think this is 12*)
 (* ask arthur am i stupid or this should do something
  unfold prefix in Hc51*)
