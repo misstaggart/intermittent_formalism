@@ -1145,3 +1145,4 @@ Definition el_arrayexp_eq (e: el) (a: array) (eindex: exp) (N: nvmem) (V: vmem) 
 
 (*ask arthur how to check in*)
 Close Scope type_scope.
+
