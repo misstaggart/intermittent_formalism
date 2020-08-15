@@ -1678,6 +1678,12 @@ eapply H16.
             apply same_update. simpl in contra.
             move: contra => [c1 c2]. rewrite in_nil in c1.
             discriminate c1. intros contra2. discriminate contra2.
+(*need to add other cases for 16
+ consider some function where it takes in a map and an instruction
+ and returns the resulting map
+ and then prove that this works with cceval
+ could save automation?*)
+Admitted.
             (*NV case done*)
             (*consider making a separate proof for the instruction
              case so you dont have to do this reasoning 500 times
@@ -1759,8 +1765,11 @@ configs can always make progress assumption*)
                  discriminate contra1.
                  discriminate contra2.
                  Check sixteen.
-               destruct (sixteen H6 Hcend H7 H8 H5 Hsp)
-                 as [Nend2 [Tc2 Hspend] ].
+                 (*need to update this to reflect changes to 16 thm statement SP*)
+
+                 pose proof (itrace_ctrace H H1) as Tcs.
+               destruct (sixteen Tcs H2 H6 Hcend H7 H8 H5 Hsp H0)
+                   as [Nend2 [Tc2 Hspend] ].
                suffices: Nend = Nend2.
                move=> Heq. subst. assumption.
            - inversion Hspend. subst.
@@ -1789,7 +1798,9 @@ configs can always make progress assumption*)
                by apply: (negP H13).
    - eapply sixteen; try eapply iTrace_Empty; try
         (*how is auto too stupid to solve this*)
-                                                (by rewrite in_nil); try assumption. apply H. intros contra. subst.
+                                                (by rewrite in_nil); try apply (CTrace_Empty (N1, V, c)); try assumption.
+     (*start here learn the company coq keystrokes*)
+     (*apply H.*) intros contra. subst.
      pose proof (observe_rb H6) as contra.
      destruct contra as [contra1 | contra2]; subst.
      destruct H9 as [contra1 | [b1 [b2 contra2] ] ].
@@ -1801,6 +1812,7 @@ pretty cool that this works given the theorem statement of
 update_sub rewrite - {1} (update_sub H1).*)
      rewrite {1} (update_sub H2).
      eapply eight; try apply H2; try assumption.
+     by rewrite in_nil.
      Qed.
 
       Lemma obseq_readobs: forall{O: obseq}
