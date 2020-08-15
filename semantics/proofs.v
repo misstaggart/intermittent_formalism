@@ -1826,11 +1826,6 @@ checkpoint \notin O ->
 exists(o: readobs), O = [::RdObs o].
 Admitted.
 
-Lemma hacky: forall(o3 o4: readobs),
-                    [:: RdObs o3] ++ [:: Obs o4] =
-              [:: RdObs (o3 ++ o4)].
-Admitted.
-
       Lemma can_make_progress: forall(N: nvmem) (V: vmem)
                                 (c: command),
                                   exists(Nend: nvmem) (Vend: vmem)
@@ -1916,8 +1911,8 @@ configs can always make progress assumption*)
        right. if i didnt bunch readobs up into one list, wouldnt need*)
       subst.
       repeat rewrite - catA.
-      rewrite~ (hacky o3 o4).
-      apply RB_Ind.
+      apply RB_Ind; try assumption.
+      rewrite mem_cat negb_orb. apply (introT andP). split; try assumption.
       (*2nd goal should come out of Hc5*)
       Check eleven_bc.
       assert (reboot \notin [:: RdObs o1]) as Ho1.
@@ -1948,14 +1943,17 @@ configs can always make progress assumption*)
          ] ] ].
       pose proof (trace_append Hc11 Hc31) as Hc2end1.
       pose proof (trace_append Hc1 Hc4) as Hc2end.
-      assert (checkpoint \notin [:: RdObs o3] ++ [:: Obs o4])
+      assert (checkpoint \notin [:: RdObs o3] ++ [:: RdObs o4])
+           (*start here it does the weird search thing with
+            2nd occurrence as well! with /Obs it's fine!
+            *)
         as Hcp1.
       apply (introT negP). intros contra.
       rewrite mem_cat in contra.
       move/orP : contra => [contra1 | contra2].
       move/negP : Hc2. by apply.
       move/negP : H9. by apply.
-      assert (checkpoint \notin ([:: RdObs o1] ++ [:: Obs oend]))
+      assert (checkpoint \notin ([:: RdObs o1] ++ [:: RdObs oend]))
         as Hcp2.
       apply (introT negP). intros contra.
       rewrite mem_cat in contra.
