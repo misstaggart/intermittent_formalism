@@ -768,7 +768,8 @@ Definition eqb_obs (o1: obs) (o2: obs) :=
   match o1, o2 with
     reboot, reboot => true
   | checkpoint, checkpoint => true
-  | RdObs R1, Obs R2 => R1 == R2
+  | RdObs R1, RdObs R2 => R1 == R2 (*start here find replace doesnt work
+with second occurence?*)
   | _, _ => false end.
 
 Lemma eqb_obs_true_iff : forall x y : obs,
@@ -841,7 +842,7 @@ and O2 is a read observation seq,
 prefix_seq determines if each ro seq in O1 is a valid
 prefix of O2*)
 Inductive prefix_seq: obseq -> obseq -> Prop :=
-  RB_Base: forall(O: obsseq),
+  RB_Base: forall(O: obseq),
     reboot \notin O -> checkpoint \notin O ->
     prefix_seq O O
 | RB_Ind: forall(O1 O2: obseq) (O1': obseq),
@@ -1002,7 +1003,7 @@ CheckPoint: forall(N: nvmem)
 | Skip: forall(N: nvmem)
          (V: vmem)
          (c: command),
-    cceval_w (N, V, (skip;;c)) ((RdObs NoObs)::nil) (N, V, c) (nil, nil, nil)
+    cceval_w (N, V, (skip;;c)) ((RdObs [::])::nil) (N, V, c) (nil, nil, nil)
 | Seq: forall (N N': nvmem)
          (V V': vmem)
          (l: instruction)
@@ -1092,7 +1093,7 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
 | CP_Skip: forall(k: context) (N: nvmem)
          (V: vmem)
          (c: command),
-    iceval_w (k, N, V, (skip;;c)) ((RdObs NoObs)::nil) (k, N, V, c) (nil, nil, nil)
+    iceval_w (k, N, V, (skip;;c)) ((RdObs [::])::nil) (k, N, V, c) (nil, nil, nil)
 |CP_Seq: forall (k: context)
          (N: nvmem) (N': nvmem)
          (V: vmem) (V': vmem)

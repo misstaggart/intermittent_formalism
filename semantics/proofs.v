@@ -1605,7 +1605,7 @@ Lemma sixteen: forall{Nstart N0 N1 Nend N2 : nvmem} {V V1 Vend: vmem}
                *)
 (*prep as i use this in multiple goals generated
  by same_mem*)
-              assert (checkpoint \notin Ostart ++ [:: Obs r]) as Hcp.
+              assert (checkpoint \notin Ostart ++ [:: RdObs r]) as Hcp.
               apply (introT negP).
               move => contra.
               rewrite mem_cat in contra.
@@ -1639,7 +1639,7 @@ Lemma sixteen: forall{Nstart N0 N1 Nend N2 : nvmem} {V V1 Vend: vmem}
 pose proof (trace_append H2 (CTrace_Single Hcceval)) as Tcs2e.
                 assert (multi_step_i (N0, V, c, Nstart,
                                      V, c)
-                                     (N0, V, c, (updateNV_sv N1 x v), Vend, Ins skip) (Ostart ++ [:: Obs r])) as Ts2e.
+                                     (N0, V, c, (updateNV_sv N1 x v), Vend, Ins skip) (Ostart ++ [:: RdObs r])) as Ts2e.
 pose proof (ctrace_itrace c Tcs2e).
 exists (append_write Wstart
              ([:: inl x],
@@ -1811,12 +1811,12 @@ update_sub rewrite - {1} (update_sub H1).*)
 trace_c (N1, V1, c1) (N2, V2, c2) O
         W ->
 checkpoint \notin O ->
-exists(o: readobs), O = [::Obs o].
+exists(o: readobs), O = [::RdObs o].
 Admitted.
 
 Lemma hacky: forall(o3 o4: readobs),
-                    [:: Obs o3] ++ [:: Obs o4] =
-              [:: Obs (o3 ++ o4)].
+                    [:: RdObs o3] ++ [:: Obs o4] =
+              [:: RdObs (o3 ++ o4)].
 Admitted.
 
       Lemma can_make_progress: forall(N: nvmem) (V: vmem)
@@ -1908,7 +1908,7 @@ configs can always make progress assumption*)
       apply RB_Ind.
       (*2nd goal should come out of Hc5*)
       Check eleven_bc.
-      assert (reboot \notin [:: Obs o1]) as Ho1.
+      assert (reboot \notin [:: RdObs o1]) as Ho1.
       apply (introT negP).
       rewrite mem_seq1. move/eqP => contra. discriminate contra.
       pose proof (can_make_progress Nmid0 Vmid0 cmid0) as
@@ -1916,7 +1916,7 @@ configs can always make progress assumption*)
                  Hcend2]  ] ] ] ] ] ].
       pose proof (obseq_readobs Tendc Hcend1) as [oend Hoend].
       subst.
-      assert (reboot \notin [:: Obs oend]) as Hoend.
+      assert (reboot \notin [:: RdObs oend]) as Hoend.
       apply (introT negP).
       rewrite mem_seq1. move/eqP => contra. discriminate contra.
       Check eleven_bc.
@@ -1936,14 +1936,14 @@ configs can always make progress assumption*)
          ] ] ].
       pose proof (trace_append Hc11 Hc31) as Hc2end1.
       pose proof (trace_append Hc1 Hc4) as Hc2end.
-      assert (checkpoint \notin [:: Obs o3] ++ [:: Obs o4])
+      assert (checkpoint \notin [:: RdObs o3] ++ [:: Obs o4])
         as Hcp1.
       apply (introT negP). intros contra.
       rewrite mem_cat in contra.
       move/orP : contra => [contra1 | contra2].
       move/negP : Hc2. by apply.
       move/negP : H9. by apply.
-      assert (checkpoint \notin ([:: Obs o1] ++ [:: Obs oend]))
+      assert (checkpoint \notin ([:: RdObs o1] ++ [:: Obs oend]))
         as Hcp2.
       apply (introT negP). intros contra.
       rewrite mem_cat in contra.
