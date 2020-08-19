@@ -285,6 +285,7 @@ Definition Rd {C1 C2: context} {O: obseq} {W: the_write_stuff}
 Definition FstWt {C1 C2: context} {O: obseq} {W: the_write_stuff}
   (T: trace_c C1 C2 O W) := getfstwt W.
 
+(*trying some function to extract nvm from trace to enforce that they are the same*)
 
 (**********************************************************************************)
 
