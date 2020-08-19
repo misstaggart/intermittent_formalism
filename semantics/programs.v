@@ -286,7 +286,7 @@ Definition FstWt {C1 C2: context} {O: obseq} {W: the_write_stuff}
 (**********************************************************************************)
 
 (*
-:(
+: (
 Program Definition update_cmap {N0 N1 N2 N3 V0 V1 V2 V3 c O W} {l: instruction} (H: iceval_w (N0, V0, c, N1, V1, l) O
                                                                                              (N0, V0, c, N3, V3, skip) W) := *)
 
