@@ -408,7 +408,7 @@ configs can always make progress assumption*)
       repeat (try split); try assumption.
       destruct3 sigma Ns Vs cs.
       pose proof (obseq_readobs Hc1 Hc2) as [o3 Ho3].
-      pose proof (obseq_readobs Hc4 H10) as [o4 Ho4].
+      pose proof (obseq_readobs Hc4 H9) as [o4 Ho4].
       pose proof (obseq_readobs H H1) as [o1 Ho1].
       (*dont think obseq_readobs is actually true
        because the trace doesnt append consecutive read observations together*
@@ -433,9 +433,8 @@ configs can always make progress assumption*)
       apply (introT negP).
       rewrite mem_seq1. move/eqP => contra. discriminate contra.
       Check eleven_bc.
-      rewrite mem_cat negb_orb in H5.
-      move/ andP : H5 => [H31 H32].
-      inversion H12. subst.
+      rewrite mem_cat negb_orb in H4.
+      move/ andP : H4 => [H31 H32].
       Check eleven_bc.
       pose proof (iTrace_Cont N0 V c H H31) as Hi.
       pose proof (iTrace_Cont N0 V c Tendc Hcend1) as Tendci.
@@ -446,7 +445,7 @@ configs can always make progress assumption*)
 current init and Ns2 to be the same
        *)
       Check eleven_bc.
-pose proof (eleven_bc Hi H31 Ho1 H6 H7 H4 H8 
+pose proof (eleven_bc Hi H31 Ho1 H5 H6 H3 H7 
                            Tendci 
                             Hcend1 Hoend
                             Hcend2)
@@ -475,7 +474,7 @@ pose proof (eleven_bc Hi H31 Ho1 H6 H7 H4 H8
       apply (ctrace_deterministic Hc2end1) in Hc2end.
       destruct Hc2end as [e1 [e2 [e3 e4] ] ]. subst.
       rewrite - e3. repeat constructor.
-      - eapply IHtrace_i1; try reflexivity; try assumption.
+      - eapply IHtrace_i1; try reflexivity. try assumption.
         apply sub_update.
         Check twelve.
         (*might make my life easier to have 12 take in a continuous trace*)
