@@ -107,16 +107,16 @@ Proof. intros. inversion H1. subst.
                 (CTrace_Empty (N1, V0, c0))
                 T); auto. 
        - intros l Hl. simpl.
-        assert (H6: not (l \in (getdomain N0))) by
+        assert (Hdom: not (l \in (getdomain N0))) by
                apply (sub_disclude N0 N1 N2 l H H0 Hl).
          (*try appldis here*)
-         apply H5 in Hl. destruct Hl.
+         apply H6 in Hl. destruct Hl.
          split.
          + apply (in_subseq (wt_subst_fstwt T) H7).
          + split. unfold remove. simpl.
            rewrite filter_predT. rewrite cats0. assumption.
              - intros contra. discriminate contra. 
-         + apply H6 in H7. contradiction.
+         + apply Hdom in H7. contradiction.
 Qed.
 
 
@@ -780,13 +780,13 @@ Lemma pf_idem : forall(N0 N Nend: nvmem) (V0 V Vend: vmem)
              current_init_pt N0 V c (N0 U! N1') (N0 U! N1') N2.
   intros. inversion H3. subst. remember T as TN1. clear HeqTN1.
   destruct H5; subst. (*casing on skip*)
-  +      eapply valid_mem.
+  +      eapply valid_mem; try assumption.
 (*need to show N0 U! N1' can make it*)
          - assert(trace_c ((N0 U! N1'), V, c) (Nend, Vend, Ins skip) O0 W0) as T2.
            eapply twelve00.
            (*recent ask arthur won't let me put a semicolon!
            *)
-   exists W; try (apply (iTrace_Single H)). assumption.
+   exists W; try (apply (iTrace_Single H)); try assumption.
    assumption. assumption. assumption. assumption.
      apply T2. by left.
        - (*showing N2 subst N0 U! N1'

@@ -16,10 +16,10 @@ Lemma sixteen: forall{Nstart N0 N1 Nend N2 : nvmem} {V V1 Vend: vmem}
         (checkpoint \notin O) ->
              (reboot \notin O) ->
              WARok (getdomain N0) [::] [::] c ->
-             same_pt (N0 U! N1) V c c1 N1 N2 ->
+             same_pt Nstart V c c1 N1 N2 ->
              checkpoint \notin Ostart
            -> exists(Nend2: nvmem),(trace_c (N2, V1, c1) (Nend2, Vend, cend) O W /\
-             same_pt (N0 U! Nend) V c cend Nend Nend2).
+             same_pt Nstart V c cend Nend Nend2).
       intros.
       dependent induction H1.
       (*empty trace case*)
@@ -80,17 +80,12 @@ how to unfocus a goal before you are finished with it*)
             suffices: exists Nend2,
                trace_c (N2, V1, Ins l) (Nend2, Vend, cend)
                  [:: o] W /\
-               same_pt (N0 U! Nend) V c cend Nend Nend2.
+               same_pt Nstart V c cend Nend Nend2.
             - move => [Nend2 [Tcins Hsp] ]. exists Nend2. split.
             apply CTrace_Single. constructor; try assumption.
             apply (singletc_cceval Tcins).
               by []. assumption.
-            - eapply IHiceval_w; try reflexivity.
-            exists(N2).
-            pose proof (Skip N2 Vend cend) as Hcceval2.
-            (*start here consider combining this with NV assign through function based on H0*)
             shelve. 
-
           }
           split.
           (*try doing just the top part case by case and automating
@@ -133,6 +128,7 @@ how to unfocus a goal before you are finished with it*)
               intros [contra1 [b1 [b2 contra2] ] ].
               subst. discriminate contra2.
               apply H15 in H16. subst.
+              (*ask arthur what the hell is this*)
               (*make Hcceval into a continuous trace,
                combine it with H2*)
 pose proof (trace_append H2 (CTrace_Single Hcceval)) as Tcs2e.
@@ -147,16 +143,12 @@ exists (append_write Wstart
                (readobs_wvs r)
                [:: inl x])).
 eapply H16.
-              pose proof (
-                     twelve00 Ts2e Hcp H7 H3 Tcs2e Hcp
-                   ) as Tends2end.
-              apply Tends2end.
-        - (*showing
+apply (trace_append H2 (CTrace_Single Hcceval)).
+       (*showing
   trace_c (updateNV_sv N1 x v, Vend, Ins skip)
 (?N2, ?V2, ?crem) ?O2 ?W2 *)
           apply CTrace_Empty. apply Hcp.
           auto.
-          simpl.
      (*showing N1 =1 N2*)
         - intros l contra.
           remember contra as contra1. clear Heqcontra1.
@@ -239,7 +231,7 @@ configs can always make progress assumption*)
                           but write lists do not,
                           can add that extra specificity
                           if I need it*)
-             same_config ((N0, V, c), Nmid, Vmid, cmid) (*Sigma ~ sigma*)
+             same_config N1 ((N0, V, c), Nmid, Vmid, cmid) (*Sigma ~ sigma*)
                          sigma /\
              trace_c sigma (Nend, Vend, cend) Orem Wrem (*sigma -> Sigma'-*)
              (*same obs, write as "intermittent" execution*)
@@ -247,7 +239,7 @@ configs can always make progress assumption*)
   intros.
         suffices: exists(Nmid2: nvmem),
           (trace_c (N2, V, c) (Nmid2, Vmid, cmid) O1 W1 /\
-           same_pt (N0 U! Nmid) V c cmid Nmid Nmid2).
+           same_pt N1 V c cmid Nmid Nmid2).
       - move => [Nmid2 [Tc1 Hsp] ].
         exists (Nmid2, Vmid, cmid) W1. split.
         + assumption.

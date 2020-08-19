@@ -339,7 +339,9 @@ Inductive current_init_pt: nvmem -> vmem -> command -> nvmem -> nvmem -> nvmem -
                   {w: warvars}
                   (T: trace_c (Ni0, V, c) (Nend, Vend, crem) O W),
     crem = skip \/ (exists(w: warvars) (crem2: command), crem = ((incheckpoint w);;crem2)) ->
-                 subseq (getdomain Nc0) (getdomain N1) 
+                 subseq (getdomain Nc0) (getdomain N1) (*start here
+                                                        fix this*)
+                  -> subset_nvm N Nc0
                   -> (checkpoint \notin O) (*checks checkpoint T ends on is nearest checkpoint*)
                  -> (forall(l: loc),
                       not((getmap N1) l = (getmap Nc0) l)
@@ -354,10 +356,11 @@ concern: using context instead of cconf
  *)
 (*took out equality premises and built them into the types*)
 Check same_pt.
-Inductive same_config: iconf -> context -> Prop :=
+Inductive same_config: nvmem -> iconf -> context -> Prop :=
   SameConfig: forall(Nstart N0 N1 N2: nvmem)
                 (V0 V: vmem)
                 (c0 c: command),
+    subset_nvm N0 Nstart ->
                 same_pt Nstart V0 c0 c N1 (*V*) N2 -> (*nvms are extensionally the same by same_pt
                                           vms and cs are intensionally the same by types*)
                 same_config Nstart ((N0, V0, c0), N1, V, c) (N2, V, c).
