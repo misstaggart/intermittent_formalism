@@ -243,9 +243,8 @@ configs can always make progress assumption*)
       - move => [Nmid2 [Tc1 Hsp] ].
         exists (Nmid2, Vmid, cmid) W1. split.
         + assumption.
-        + split.
-           - constructor. assumption.
-           - (*trying to use 16 instead of 17*)
+        + (*split.
+           - constructor. assumption.*)
             (* destruct H8 as [H80 | H81].*)
            (*  subst.
              split.
@@ -256,15 +255,15 @@ configs can always make progress assumption*)
                  discriminate contra1.
                  discriminate contra2.
                  Check sixteen.
-                 (*need to update this to reflect changes to 16 thm statement SP*)
 
                  pose proof (itrace_ctrace H H1) as Tcs.
                destruct (sixteen Tcs H2 H6 Hcend H7 H8 H5 Hsp H0)
                    as [Nend2 [Tc2 Hspend] ].
                suffices: Nend = Nend2.
-               move=> Heq. subst. assumption.
-           - inversion Hspend. subst.
-             apply dom_eq.
+               move=> Heq. subst.
+               split; try assumption; constructor; try assumption.
+               - inversion Hspend. subst.
+                 apply dom_eq.
              intros l.
              apply: eqP.
              apply: negPn.
@@ -286,12 +285,12 @@ configs can always make progress assumption*)
              destruct T2 as [blah [blah1 [blah2 blah3] ] ].
              subst.
              rewrite in_nil in contra0. discriminate contra0.
-               by apply: (negP H13).
+             by apply: (negP H13).
    - eapply sixteen; try eapply iTrace_Empty; try
         (*how is auto too stupid to solve this*)
-                                                (by rewrite in_nil); try apply (CTrace_Empty (N1, V, c)); try assumption.
+                                                (by rewrite in_nil); try apply (CTrace_Empty (N1, V, c)); try
      (*start here learn the company coq keystrokes*)
-     (*apply H.*) intros contra. subst.
+     apply H2; try assumption. intros contra. subst.
      pose proof (observe_rb H6) as contra.
      destruct contra as [contra1 | contra2]; subst.
      destruct H9 as [contra1 | [b1 [b2 contra2] ] ].
@@ -301,7 +300,7 @@ configs can always make progress assumption*)
      (* start here
 pretty cool that this works given the theorem statement of
 update_sub rewrite - {1} (update_sub H1).*)
-     rewrite {1} (update_sub H2).
+     (*rewrite {1} (update_sub H2).*)
      eapply eight; try apply H2; try assumption.
      by rewrite in_nil.
      Qed.
@@ -369,7 +368,7 @@ configs can always make progress assumption*)
                           but write lists do not,
                           can add that extra specificity
                           if I need it*)
-             same_config ((N0, V, c), Nmid, Vmid, cmid) (*Sigma ~ sigma*)
+             same_config N1 ((N0, V, c), Nmid, Vmid, cmid) (*Sigma ~ sigma*)
                          sigma /\
              trace_c sigma (Nend, Vend, cend) Orem Wrem  /\ (*sigma -> Sigma'-*)
              (*same obs, write as "intermittent" execution*)
