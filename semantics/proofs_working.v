@@ -391,9 +391,9 @@ configs can always make progress assumption*)
                trace_c (N3, V, c) sigma O3 Wc /\
                       is_true (checkpoint \notin O3) /\
                same_config
-                 N1 (N0, V, c, Nmid, Vmid, cmid)
+                 N1 (N0, V, c, Nend, Vend, cend)
                  sigma /\
-               trace_c sigma (Nend, Vend, cend)
+               trace_c sigma (Nend0, Vend0, cend0)
                  Orem Wrem /\
                (O2 ++ Orem <=m O3 ++ Orem)).
         (*ask arthur how does it let me
