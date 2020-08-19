@@ -285,6 +285,14 @@ Definition FstWt {C1 C2: context} {O: obseq} {W: the_write_stuff}
 
 (**********************************************************************************)
 
+(*
+:(
+Program Definition update_cmap {N0 N1 N2 N3 V0 V1 V2 V3 c O W} {l: instruction} (H: iceval_w (N0, V0, c, N1, V1, l) O
+                                                                                             (N0, V0, c, N3, V3, skip) W) := *)
+
+
+
+
 
 (*relations between continuous and intermittent memory*)
 
@@ -298,7 +306,7 @@ Definition FstWt {C1 C2: context} {O: obseq} {W: the_write_stuff}
  V1 isn't used anywhere it's just to fill out the type
  N2, V2 is final state for intermittent, once again solely to fill out the type*)
 
-Inductive same_pt: nvmem -> vmem -> command -> command -> nvmem -> nvmem -> Prop:=
+Inductive same_pt: nvmem -> vmem -> command -> command -> nvmem -> nvmem -> Prop :=
 same_mem: forall {N0 N1 Ncomp N2: nvmem}
                   {V0 V1 V2: vmem}
                   {c0 c1 crem: command}
@@ -347,12 +355,12 @@ concern: using context instead of cconf
 (*took out equality premises and built them into the types*)
 Check same_pt.
 Inductive same_config: iconf -> context -> Prop :=
-  SameConfig: forall(N0 N1 N2: nvmem)
+  SameConfig: forall(Nstart N0 N1 N2: nvmem)
                 (V0 V: vmem)
                 (c0 c: command),
-                same_pt (N0 U! N1) V0 c0 c N1 (*V*) N2 -> (*nvms are extensionally the same by same_pt
+                same_pt Nstart V0 c0 c N1 (*V*) N2 -> (*nvms are extensionally the same by same_pt
                                           vms and cs are intensionally the same by types*)
-                same_config ((N0, V0, c0), N1, V, c) (N2, V, c).
+                same_config Nstart ((N0, V0, c0), N1, V, c) (N2, V, c).
 
 
 Close Scope type_scope.

@@ -42,10 +42,10 @@ if you induct on c you wont have info about how N gets updated which will break 
           pose proof (iceval_cceval1 Hiceval H2 H4) as Hcceval.
           pose proof (nineteen H6 Hcceval) as Hloceq.
 (*for 20 you need an eeval*) 
-          dependent induction H1; (*indict iceval*)
+         dependent induction H1; (*indict iceval*)
             try (pose proof (twenty H Hloceq) as Heval2);
           try (pose proof (twenty_arr H0 H Hloceq) as [ Heval20 Heval21]).
-        - (*pf*) by exfalso.
+        - (*pf*) give_up. 
         - (*rb*) exfalso. move/negP :H4.
             by apply.
         - (*cp*) exfalso. move/negP: H3. by apply.

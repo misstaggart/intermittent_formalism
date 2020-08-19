@@ -276,6 +276,13 @@ Lemma update_sub: forall{N0 N1: nvmem},
  assumption, admitting it now, intend to fix it later*)
 
 (*termination case*)
+
+(*actually very big deal that you assume that the observation
+ and write sets are the same
+ correctness of the entire thing is kind of built in here :/
+ AND that the ending mems are the same?!
+ just apply this a finite # of times and correctness pops out,
+ unacceptable*)
 Lemma twelve00: forall{N0 N1 N1' NT: nvmem} {V V' VT: vmem} {c c': command} {O1 OT: obseq}
   {WT: the_write_stuff},
    multi_step_i ((N0, V, c), N1, V, c) ((N0, V, c), N1', V', c') O1
