@@ -344,6 +344,13 @@ Lemma same_nearest_CP: forall{Ns Nend1 Nend2: nvmem} {Vs Vend1
    -> cend1 = cend2.
 Admitted.
 
+
+Lemma cp_const {N01 N02 V01 V02 c01 c02 N1 N2 V1 V2 c1 c2 O W} :
+  trace_i ((N01, V01, c01), N1, V1, c1) ((N02, V02, c02), N2, V2, c2) O W ->
+  checkpoint \notin O ->
+  N01 = N02 /\ V01 = V02 /\ c01 = c02. Admitted.
+
+
     Lemma eleven: forall{N0 N1 Nmid Nend N2: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
                    {O1 Orem: obseq} {W1 Wrem: the_write_stuff},
         trace_i ((N0, V, c), N1, V, c) ((N0, V, c), Nmid, Vmid, cmid) O1 W1 ->
@@ -374,11 +381,14 @@ configs can always make progress assumption*)
              (*same obs, write as "intermittent" execution*)
              (O1 ++ Orem <=m O2 ++ Orem)).
       intros.
+      move: H0 H1 H2 H3 H4 H5 H6 H7 H8.
+      move: Wrem Orem cend Vend Nend N2.
       apply trace_convert in H.
-      induction H.
+      induction H; intros.
       2: {
+        pose proof (cp_const H8 H9) as [eq1 [eq2 eq3] ]. subst.
         suffices: (exists O3 sigma Wc,
-               trace_c (N2, V, c) sigma O3 Wc /\
+               trace_c (N3, V, c) sigma O3 Wc /\
                       is_true (checkpoint \notin O3) /\
                same_config
                  N1 (N0, V, c, Nmid, Vmid, cmid)
@@ -386,6 +396,8 @@ configs can always make progress assumption*)
                trace_c sigma (Nend, Vend, cend)
                  Orem Wrem /\
                (O2 ++ Orem <=m O3 ++ Orem)).
+        (*ask arthur how does it let me
+         get away with Nmid when it's not in the context*)
       - intros [O3 [sigma [Wc [Hc1 [Hc2 [Hc3 [ Hc4 Hc5 ]
                    ] ] ] ] ] ].
       exists O3, sigma, Wc.
