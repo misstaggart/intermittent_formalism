@@ -787,7 +787,7 @@ Lemma pf_idem : forall(N0 N Nend: nvmem) (V0 V Vend: vmem)
            (*recent ask arthur won't let me put a semicolon!
            *)
    exists W; try (apply (iTrace_Single H)); try assumption.
-   assumption. assumption. assumption. assumption.
+   assumption. assumption. assumption. assumption. assumption.
      apply T2. by left.
        - (*showing N2 subst N0 U! N1'
           Ignore this bullet: I forgot to take out this part of the
@@ -825,8 +825,8 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
            unfold updatemaps in H5.
            simpl in H5.
            simpl in H9.
-           apply not_true_is_false in H9.
-           rewrite H9 in H5.
+           apply not_true_is_false in H10.
+           rewrite H10 in H5.
            simpl.
            (*now have that l is not in D0*)
            left.
@@ -835,7 +835,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
            inversion H. subst.
           exfalso. by apply H5.
 (*single trace case*)
-+ destruct (iceval_cceval H H10) as [ [ HN [HV Hw] ] | [HN [HV Hw ] ] ]; subst.
++ destruct (iceval_cceval H H11) as [ [ HN [HV Hw] ] | [HN [HV Hw ] ] ]; subst.
        - (*pf case*) exfalso. by apply H5.
        - 
   destruct W0 as [ [W11 R1] Fw1] eqn: W1eq.
@@ -850,7 +850,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
        is_true (l \in D0)
                    ).
          case => contra.
-+ rewrite H9 in contra. discriminate contra.
++ rewrite H10 in contra. discriminate contra.
   rewrite rememberme1.
   suffices: (is_true (l \in getdomain (NonVol M0 D0)) \/
              is_true (l \in [::])).
@@ -868,7 +868,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          rewrite <- W1eq in TN1.
          apply TN1.
          intros contra. subst.
-         inversion H10.
+         inversion H11.
          apply (update_one H); try assumption.
          intros contra. apply H5.
          rewrite rememberme. symmetry. assumption.
@@ -889,7 +889,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          intros HW1.
          destruct (l \in Fw1) eqn: FWeq; auto.
          apply negbT in FWeq.
-         pose proof (negfwandw_means_r H10 FWeq HW1) as Hr.
+         pose proof (negfwandw_means_r H11 FWeq HW1) as Hr.
          simpl in Hr.
          suffices: (is_true (l \in Fw1 ++ remove R1 Fw2) \/
        is_true (l \in D0)
@@ -905,7 +905,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          rewrite Hr in contra. discriminate contra.
          case => contra.
          assumption.
-         rewrite H9 in contra. assumption.
+         rewrite H10 in contra. assumption.
          right. rewrite rememberme1.
          destruct3 Cmid nmid vmid cmid.
   suffices: (is_true (l \in getdomain (NonVol M0 D0)) \/
@@ -913,10 +913,10 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
   - move => [yes | contra]. assumption.
   rewrite in_nil in contra. discriminate contra.
   -
-    apply (fourteen l H10 H2); try (rewrite remove_empty);
+    apply (fourteen l H11 H2); try (rewrite remove_empty);
       try assumption.
-         rewrite mem_cat in H7.
-         case/ norP : H7 => Hor1 Hor2. assumption.
+         rewrite mem_cat in H8.
+         case/ norP : H8 => Hor1 Hor2. assumption.
          (*this comes from fact that N1 steps to M1'
           in one (H) but N1 l and M1' of l are different.. new theorem*)
          assert (W11 = (getwt W1)) as Hwt. by rewrite W1eq; auto.
@@ -924,14 +924,14 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          destruct3 Cmid nmid vmid cmid.
          eapply wt_gets_bigger.
          apply H.
-         rewrite <- W1eq in H10.
-         apply H10.
+         rewrite <- W1eq in H11.
+         apply H11.
          assumption.
          apply (update_one H); try assumption.
          intros contra. apply H5.
          rewrite rememberme. symmetry. assumption.
 (*N1 l != N2 l*)
-+ apply H8. by move/ eqP : beq.
++ apply H9. by move/ eqP : beq.
 
  (*checkpoint case
   consider doing the H5 casing later on so you have less boilerplate*)
@@ -951,7 +951,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
                   (subseq_trans H6 (dom_gets_bigger
                                       H5)) (dom_gets_bigger_rb
                                                     N0 N1')).
-         assumption.
+         assumption. assumption.
   (*casing on whether l is different in N1*)
   intros. destruct (getmap N1 l == getmap N2 l) eqn: beq. (*casing on fw or not*)
            move/eqP :beq => beq. rewrite <- beq in H5.
@@ -977,8 +977,8 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
            unfold updatemaps in H5.
            simpl in H5.
            simpl in H9.
-           apply not_true_is_false in H9.
-           rewrite H9 in H5.
+           apply not_true_is_false in H10.
+           rewrite H10 in H5.
            simpl.
            (*now have that l is not in D0*)
            left.
@@ -988,9 +988,9 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
            + 
            inversion H; subst; try (
                                    exfalso; by apply H5).
-           exfalso. by apply (H20 wcp).
+           exfalso. by apply (H21 wcp).
           (*single trace case*)
-           + destruct (iceval_cceval H H10) as [ [HN [HV Hw] ]  | [HN [HV Hw ] ] ]; subst.
+           + destruct (iceval_cceval H H11) as [ [HN [HV Hw] ]  | [HN [HV Hw ] ] ]; subst.
              - exfalso. by apply H5.
              - destruct W0 as [ [W11 R1] Fw1] eqn: W1eq.
          simpl.
@@ -1004,7 +1004,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
        is_true (l \in D0)
                    ).
          move => contra.
-+ rewrite H9 in contra. discriminate contra.
++ rewrite H10 in contra. discriminate contra.
   suffices: (is_true (l \in getdomain (NonVol M0 D0)) \/
              is_true (l \in [::])).
              - move => [yes | contra]. assumption.
@@ -1021,7 +1021,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          rewrite <- W1eq in TN1.
          apply TN1.
          intros contra. subst.
-         inversion H10.
+         inversion H11.
          eapply (update_one H); try assumption.
          intros contra. apply H5.
          rewrite rememberme. symmetry. assumption.
@@ -1038,7 +1038,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          intros HW1.
          destruct (l \in Fw1) eqn: FWeq; auto.
          apply negbT in FWeq.
-         pose proof (negfwandw_means_r H10 FWeq HW1) as Hr.
+         pose proof (negfwandw_means_r H11 FWeq HW1) as Hr.
          simpl in Hr.
          suffices: (is_true (l \in Fw1 ++ remove R1 Fw2) \/
        is_true (l \in D0)
@@ -1054,7 +1054,7 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          rewrite Hr in contra. discriminate contra.
          case => contra.
          assumption.
-         rewrite H9 in contra. assumption.
+         rewrite H10 in contra. assumption.
          right. rewrite rememberme1.
          destruct3 Cmid nmid vmid cmid.
   suffices: (is_true (l \in getdomain (NonVol M0 D0)) \/
@@ -1062,10 +1062,10 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
   - move => [yes | contra]. assumption.
   rewrite in_nil in contra. discriminate contra.
   -
-    apply (fourteen l H10 H2); try (rewrite remove_empty);
+    apply (fourteen l H11 H2); try (rewrite remove_empty);
       try assumption.
-         rewrite mem_cat in H7.
-         case/ norP : H7 => Hor1 Hor2. assumption.
+         rewrite mem_cat in H8.
+         case/ norP : H8 => Hor1 Hor2. assumption.
          (*this comes from fact that N1 steps to M1'
           in one (H) but N1 l and M1' of l are different.. new theorem*)
          assert (W11 = (getwt W1)) as Hwt. by rewrite W1eq; auto.
@@ -1073,14 +1073,14 @@ assert (multi_step_i ((N0, V, c), N1, V, c)
          destruct3 Cmid nmid vmid cmid.
          eapply wt_gets_bigger.
          apply H.
-         rewrite <- W1eq in H10.
-         apply H10.
+         rewrite <- W1eq in H11.
+         apply H11.
          assumption.
          apply (update_one H); try assumption.
          intros contra. apply H5.
          rewrite rememberme. symmetry. assumption.
 (*N1 l != N2 l*)
-+ apply H8. by move/ eqP : beq.
++ apply H9. by move/ eqP : beq.
   Unshelve. apply V1. apply w. apply V1. apply w.  Qed.
            
 
