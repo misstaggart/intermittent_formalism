@@ -350,18 +350,16 @@ Lemma cp_const {N01 N02 V01 V02 c01 c02 N1 N2 V1 V2 c1 c2 O W} :
   checkpoint \notin O ->
   N01 = N02 /\ V01 = V02 /\ c01 = c02. Admitted.
 
-      Inductive same_mem11 {N0 Nstart Nvar Nc V c N Nend Vend cend O W}:
-        (current_init_pt N0 V c Nstart Nvar Nc) ->
-        trace_i ((N0, V, c), N, V, c) ((N0, V, c), Nend, Vend, cend) O W ->
-        Prop :=
-        Same_Mem11: forall(H: current_init_pt N0 V c Nstart Nvar Nc)
-(T: trace_i ((N0, V, c), N, V, c) ((N0, V, c), Nend, Vend, cend) O W),
-          Nvar = N -> same_mem11 H T.
+Inductive same_mem11: nvmem -> Prop :=
+            Same_Mem11: forall {N0 Nstart Nvar Nc V c N Nend Vend cend O W},
+              current_init_pt N0 V c Nstart Nvar Nc ->
+              trace_i ((N0, V, c), N, V, c) ((N0, V, c), Nend, Vend, cend) O W ->
+              Nvar = N -> same_mem11 N.
 
-    Lemma eleven: forall{N0 N1 Nmid Nend N2: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
-                   {O1 Orem: obseq} {W1 Wrem: the_write_stuff} 
-                   (T: trace_i ((N0, V, c), N1, V, c) ((N0, V, c), Nmid, Vmid, cmid) O1 W1)
-             (H: current_init_pt N0 V c N1 N1 N2),
+    Lemma eleven: forall{N0 N1 Nmid Nend N2 Nstart: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
+                   {O1 Orem: obseq} {W1 Wrem: the_write_stuff},
+                   trace_i ((N0, V, c), N1, V, c) ((N0, V, c), Nmid, Vmid, cmid) O1 W1 ->
+          current_init_pt N0 V c N1 N1 N2 ->
              (checkpoint \notin O1) ->
              subset_nvm N0 N1 ->
              subset_nvm N0 N2 ->
@@ -371,7 +369,6 @@ Lemma cp_const {N01 N02 V01 V02 c01 c02 N1 N2 V1 V2 c1 c2 O W} :
 configs can always make progress assumption*)
              (checkpoint \notin Orem) ->
              (reboot \notin Orem) ->
-             same_mem11 H T ->
              ((cend = Ins skip) \/ exists(w: warvars) (cend2: command), cend = (incheckpoint w);; cend2) ->
              (exists(O2: obseq) (sigma: context) (Wc:
                                             the_write_stuff),
@@ -389,23 +386,18 @@ configs can always make progress assumption*)
              (*same obs, write as "intermittent" execution*)
              (O1 ++ Orem <=m O2 ++ Orem)).
       intros.
-      move: H H0 H1 H2 H3 H4 H5 H6 H7 H8.
+      move: H0 H1 H2 H3 H4 H5 H6 H7 H8.
       move: Wrem Orem cend Vend Nend N2.
-      assert (trace_i (N0, V, c, N1, V, c)
-                      (N0, V, c, Nmid, Vmid, cmid) O1 W1) as T1.
-      apply T.
-      (*ask arthur what the hell is this*)
-      apply trace_convert in T1.
-      induction T1; intros.
+      apply trace_convert in H.
+      dependent induction H; intros.
       2: {
-        pose proof (cp_const H8 H9) as [eq1 [eq2 eq3] ]. subst.
         suffices: (exists O3 sigma Wc,
-               trace_c (N3, V, c) sigma O3 Wc /\
+               trace_c (N2, V, c) sigma O3 Wc /\
                       is_true (checkpoint \notin O3) /\
                same_config
-                 N1 (N0, V, c, Nend, Vend, cend)
+                 N1 (N0, V, c, Nmid, Vmid, cmid)
                  sigma /\
-               trace_c sigma (Nend0, Vend0, cend0)
+               trace_c sigma (Nend, Vend, cend)
                  Orem Wrem /\
                (O2 ++ Orem <=m O3 ++ Orem)).
         (*ask arthur how does it let me
@@ -416,8 +408,8 @@ configs can always make progress assumption*)
       repeat (try split); try assumption.
       destruct3 sigma Ns Vs cs.
       pose proof (obseq_readobs Hc1 Hc2) as [o3 Ho3].
-      pose proof (obseq_readobs Hc4 H9) as [o4 Ho4].
-      pose proof (obseq_readobs H H0) as [o1 Ho1].
+      pose proof (obseq_readobs Hc4 H10) as [o4 Ho4].
+      pose proof (obseq_readobs H H1) as [o1 Ho1].
       (*dont think obseq_readobs is actually true
        because the trace doesnt append consecutive read observations together*
       why do i even need the above
@@ -441,8 +433,9 @@ configs can always make progress assumption*)
       apply (introT negP).
       rewrite mem_seq1. move/eqP => contra. discriminate contra.
       Check eleven_bc.
-      rewrite mem_cat negb_orb in H4.
-      move/ andP : H4 => [H31 H32].
+      rewrite mem_cat negb_orb in H5.
+      move/ andP : H5 => [H31 H32].
+      inversion H12. subst.
       Check eleven_bc.
       pose proof (iTrace_Cont N0 V c H H31) as Hi.
       pose proof (iTrace_Cont N0 V c Tendc Hcend1) as Tendci.
@@ -452,10 +445,8 @@ configs can always make progress assumption*)
       (*prop which forces N1 from
 current init and Ns2 to be the same
        *)
-
-inversion H11.
-
-                  pose proof (eleven_bc Hi H31 Ho1 H2 H6 H7 H8
+      Check eleven_bc.
+pose proof (eleven_bc Hi H31 Ho1 H6 H7 H4 H8 
                            Tendci 
                             Hcend1 Hoend
                             Hcend2)
