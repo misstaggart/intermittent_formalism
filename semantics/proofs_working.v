@@ -375,13 +375,13 @@ configs can always make progress assumption*)
              (O1 ++ Orem <=m O2 ++ Orem)).
       intros.
       apply trace_convert in H.
-      dependent induction H.
+      induction H.
       2: {
         suffices: (exists O3 sigma Wc,
                trace_c (N2, V, c) sigma O3 Wc /\
                       is_true (checkpoint \notin O3) /\
                same_config
-                 (N0, V, c, Nmid, Vmid, cmid)
+                 N1 (N0, V, c, Nmid, Vmid, cmid)
                  sigma /\
                trace_c sigma (Nend, Vend, cend)
                  Orem Wrem /\
