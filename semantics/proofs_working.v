@@ -386,7 +386,7 @@ configs can always make progress assumption*)
       apply trace_convert in H.
       induction H; intros.
       2: {
-        pose proof (cp_const H8 H9) as [eq1 [eq2 eq3] ]. subst.
+        pose proof (cp_const H9 H10) as [eq1 [eq2 eq3] ]. subst.
         suffices: (exists O3 sigma Wc,
                trace_c (N3, V, c) sigma O3 Wc /\
                       is_true (checkpoint \notin O3) /\
@@ -404,7 +404,7 @@ configs can always make progress assumption*)
       repeat (try split); try assumption.
       destruct3 sigma Ns Vs cs.
       pose proof (obseq_readobs Hc1 Hc2) as [o3 Ho3].
-      pose proof (obseq_readobs Hc4 H9) as [o4 Ho4].
+      pose proof (obseq_readobs Hc4 H10) as [o4 Ho4].
       pose proof (obseq_readobs H H1) as [o1 Ho1].
       (*dont think obseq_readobs is actually true
        because the trace doesnt append consecutive read observations together*
@@ -429,15 +429,15 @@ configs can always make progress assumption*)
       apply (introT negP).
       rewrite mem_seq1. move/eqP => contra. discriminate contra.
       Check eleven_bc.
-      rewrite mem_cat negb_orb in H3.
-      move/ andP : H3 => [H31 H32].
+      rewrite mem_cat negb_orb in H4.
+      move/ andP : H4 => [H31 H32].
       Check eleven_bc.
       pose proof (iTrace_Cont N0 V c H H31) as Hi.
       pose proof (iTrace_Cont N0 V c Tendc Hcend1) as Tendci.
       (*consider having two directions for trace_Convertso that
        you can combine this*)
       apply trace_convert in Hi. apply trace_convert in Tendci.
-      pose proof (eleven_bc Hi H31 Ho1 H4 H5 H6 H7
+                  pose proof (eleven_bc Hi H31 Ho1 H3 H6 H7 H8
                            Tendci 
                             Hcend1 Hoend
                             Hcend2)
