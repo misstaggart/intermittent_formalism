@@ -283,27 +283,6 @@ Lemma update_sub: forall{N0 N1: nvmem},
  AND that the ending mems are the same?!
  just apply this a finite # of times and correctness pops out,
  unacceptable*)
-Lemma twelve00: forall{N0 N1 N1' NT: nvmem} {V V' VT: vmem} {c c': command} {O1 OT: obseq}
-  {WT: the_write_stuff},
-   multi_step_i ((N0, V, c), N1, V, c) ((N0, V, c), N1', V', c') O1
-      -> (checkpoint \notin O1)
-      -> WARok (getdomain N0) [::] [::] c
-      -> subset_nvm N0 N1
-      -> trace_c (N1, V, c) (NT, VT, Ins skip) OT WT
-      -> (checkpoint \notin OT)
-      -> trace_c ((N0 U! N1'), V, c) (NT, VT, Ins skip) OT WT.
-Admitted.
-
-(*checkpoint case*)
-Lemma twelve01: forall(N0 N1 N1' NCP: nvmem) (V V' VCP: vmem) (c c' cCP: command) (w: warvars) (O1 OCP: obseq)
-  (WCP: the_write_stuff),
-   multi_step_i ((N0, V, c), N1, V, c) ((N0, V, c), N1', V', c') O1
-      -> (checkpoint \notin O1)
-      -> WARok (getdomain N0) [::] [::] c
-      -> subset_nvm N0 N1
-      -> trace_c (N1, V, c) (NCP, VCP, (incheckpoint w);; cCP) OCP WCP
-      -> (checkpoint \notin OCP)
-      -> trace_c ((N0 U! N1'), V, c) (NCP, VCP, (incheckpoint w);; cCP) OCP WCP.
   (*intros. rename H3 into T.
   destruct_ms H Ti WTi.
   dependent induction Ti. (*makes a diff here w remembering that N1 and N1' are the same*)
@@ -318,8 +297,6 @@ Lemma twelve01: forall(N0 N1 N1' NCP: nvmem) (V V' VCP: vmem) (c c' cCP: command
        (*x has been written to
   unfold multi_step_c in H.
   destruct H.*)
-
-Admitted.
 
 
 Lemma cceval_iceval: forall {N Nend : nvmem} {V Vend: vmem}
@@ -707,7 +684,9 @@ try (rewrite in_nil in H4; discriminate H4)
          left.
          apply (in_subseq H24 H7).
  - (*seq case*)
-    eapply IHH01; try apply H01; try reflexivity; try assumption.
+   eapply IHH01; try apply H01; try reflexivity; try assumption. Show Proof.
+(*tactics are writing the proof object
+ which is a function*)
     inversion H2; subst. (*invert WARok to get warins*)
     + (*CP case warok*)
     exfalso. by apply (H1 w).
@@ -768,6 +747,56 @@ Lemma pf_idem : forall(N0 N Nend: nvmem) (V0 V Vend: vmem)
     apply stupid in x. contradiction.
  Qed.
 
+ Lemma can_make_progress: forall(N: nvmem) (V: vmem)
+                                (c: command),
+                                  exists(Nend: nvmem) (Vend: vmem)
+                                   (cend: command)
+                                   (O: obseq)
+                                  (W: the_write_stuff),
+                                    trace_c (N, V, c) (Nend, Vend, cend) O W /\ checkpoint \notin O /\
+(cend = Ins skip \/
+        (exists w cend2,
+            cend = incheckpoint w;; cend2)).
+        Admitted.
+
+Lemma same_nearest_CP: forall{Ns Nend1 Nend2: nvmem} {Vs Vend1
+                                            Vend2: vmem}
+                {c cend1 cend2: command} {O1 O2: obseq}
+                {W1 W2: the_write_stuff},
+    trace_c (Ns, Vs, c) (Nend1, Vend1, cend1) O1 W1 ->
+    checkpoint \notin O1 ->
+    (cend1 = Ins skip \/
+     (exists w1 crem1, cend1 = incheckpoint w1;; crem1))
+      (*start here make that into a prop*) ->
+    trace_c (Ns, Vs, c) (Nend2, Vend2, cend2) O2 W2 ->
+    checkpoint \notin O2 -> 
+    (cend2 = Ins skip \/
+     (exists w2 crem2, cend2 = incheckpoint w2;; crem2))
+   -> cend1 = cend2.
+Admitted.
+
+Lemma twelve00: forall{N0 N1 N1' NT: nvmem} {V V' VT: vmem} {c c': command} {O1 OT: obseq}
+  {WT: the_write_stuff},
+   multi_step_i ((N0, V, c), N1, V, c) ((N0, V, c), N1', V', c') O1
+      -> (checkpoint \notin O1)
+      -> WARok (getdomain N0) [::] [::] c
+      -> subset_nvm N0 N1
+      -> trace_c (N1, V, c) (NT, VT, Ins skip) OT WT
+      -> (checkpoint \notin OT)
+      -> trace_c ((N0 U! N1'), V, c) (NT, VT, Ins skip) OT WT.
+Admitted.
+
+(*checkpoint case*)
+Lemma twelve01: forall(N0 N1 N1' NCP: nvmem) (V V' VCP: vmem) (c c' cCP: command) (w: warvars) (O1 OCP: obseq)
+  (WCP: the_write_stuff),
+   multi_step_i ((N0, V, c), N1, V, c) ((N0, V, c), N1', V', c') O1
+      -> (checkpoint \notin O1)
+      -> WARok (getdomain N0) [::] [::] c
+      -> subset_nvm N0 N1
+      -> trace_c (N1, V, c) (NCP, VCP, (incheckpoint w);; cCP) OCP WCP
+      -> (checkpoint \notin OCP)
+      -> trace_c ((N0 U! N1'), V, c) (NCP, VCP, (incheckpoint w);; cCP) OCP WCP.
+Admitted.
 
     Lemma fifteen: forall{N0 N1 N1' N2: nvmem} {V V': vmem} {c c': command} {O: obseq} {W: the_write_stuff},
              iceval_w ((N0, V, c), N1, V, c) O
@@ -783,11 +812,10 @@ Lemma pf_idem : forall(N0 N Nend: nvmem) (V0 V Vend: vmem)
   +      eapply valid_mem; try assumption.
 (*need to show N0 U! N1' can make it*)
          - assert(trace_c ((N0 U! N1'), V, c) (Nend, Vend, Ins skip) O0 W0) as T2.
-           eapply twelve00.
+           eapply twelve00;
            (*recent ask arthur won't let me put a semicolon!
            *)
-   exists W; try (apply (iTrace_Single H)); try assumption.
-   assumption. assumption. assumption. assumption. assumption.
+  try exists W; try (apply (iTrace_Single H)); try assumption.
      apply T2. by left.
        - (*showing N2 subst N0 U! N1'
           Ignore this bullet: I forgot to take out this part of the

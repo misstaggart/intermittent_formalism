@@ -6,8 +6,14 @@ From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq fintype ssrnat 
 From TLC Require Import LibTactics LibLogic.
 From Semantics Require Export programs semantics algorithms lemmas_1
 lemmas_0 proofs_0 proofs. (*shouldn't have to import both of these*)
-(*starting point in terms only of current mem so don't need to parameterize it,
- don't need to induct over length of starting trace!*)
+
+Fixpoint foo (n: nat) {struct n} := n.
+
+Lemma thing: forall(n: nat), foo n = n.
+  case => [| n']; reflexivity.
+ Qed. 
+
+
 Lemma sixteen: forall{Nstart N0 N1 Nend N2 : nvmem} {V V1 Vend: vmem}
                 {c c1 cend: command}
                     {O Ostart: obseq} {W Wstart: the_write_stuff},
@@ -100,15 +106,16 @@ how to unfocus a goal before you are finished with it*)
 (*prep as i use this in multiple goals generated
  by same_mem*)
               assert (checkpoint \notin Ostart ++ [:: RdObs r]) as Hcp.
-              apply (introT negP).
+              by rewrite mem_cat negb_or H9.
+             (* apply (introT negP).
               move => contra.
               rewrite mem_cat in contra.
-              move/orP : contra => [contra1 | contra2].
-              apply (elimT negP) in H9.
-              (*ask arthur how is it that those switch*)
+              move/orP : contra => [contra1 | contra2].*)
+              Check elimT.
+             (* apply (elimT negP) in H9.
                 by apply H9.
                 rewrite mem_seq1 in contra2.
-                  by move/eqP : contra2.
+                  by move/eqP : contra2.*)
               inversion H8. subst.
               eapply same_mem; try auto.
               (*consider is there any point to the
@@ -316,33 +323,7 @@ checkpoint \notin O ->
 exists(o: readobs), O = [::RdObs o].
 Admitted.
 
-      Lemma can_make_progress: forall(N: nvmem) (V: vmem)
-                                (c: command),
-                                  exists(Nend: nvmem) (Vend: vmem)
-                                   (cend: command)
-                                   (O: obseq)
-                                  (W: the_write_stuff),
-                                    trace_c (N, V, c) (Nend, Vend, cend) O W /\ checkpoint \notin O /\
-(cend = Ins skip \/
-        (exists w cend2,
-            cend = incheckpoint w;; cend2)).
-        Admitted.
 
-Lemma same_nearest_CP: forall{Ns Nend1 Nend2: nvmem} {Vs Vend1
-                                            Vend2: vmem}
-                {c cend1 cend2: command} {O1 O2: obseq}
-                {W1 W2: the_write_stuff},
-    trace_c (Ns, Vs, c) (Nend1, Vend1, cend1) O1 W1 ->
-    checkpoint \notin O1 ->
-    (cend1 = Ins skip \/
-     (exists w1 crem1, cend1 = incheckpoint w1;; crem1))
-      (*start here make that into a prop*) ->
-    trace_c (Ns, Vs, c) (Nend2, Vend2, cend2) O2 W2 ->
-    checkpoint \notin O2 -> 
-    (cend2 = Ins skip \/
-     (exists w2 crem2, cend2 = incheckpoint w2;; crem2))
-   -> cend1 = cend2.
-Admitted.
 
 
 Lemma cp_const {N01 N02 V01 V02 c01 c02 N1 N2 V1 V2 c1 c2 O W} :

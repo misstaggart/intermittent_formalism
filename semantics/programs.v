@@ -54,6 +54,17 @@ Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Prop :=
     O2 <> [::]  ->
     trace_c Cmid C2 O2 W2 -> (*steps rest of program*)
     trace_c C1 C2 (O1 ++ O2) (append_write W1 W2).
+
+(*Inductive trace_c1: context -> context -> obseq -> the_write_stuff -> Prop :=
+  CTrace_Empty: forall(C: context),
+                 trace_c C C [::] ([::], [::], [::])
+  | CTrace_Cons: forall {C1 Cmid C2: context} {O O2: obseq} {W W2: the_write_stuff},
+      trace_c Cmid C2 O2 W2 ->
+      cceval_w C1 O C2 W ->
+      trace_c C1 C2 (O ++ O2) (append_write W W2).*)
+
+(*induct over Os instead*)
+
 (*App makes for easy subtraces by allowing command in C2 not to be skip*)
 (*never actually need to append traces now that I have the write datatype
  consider a simpler type?*)
@@ -304,7 +315,7 @@ Program Definition update_cmap {N0 N1 N2 N3 V0 V1 V2 V3 c O W} {l: instruction} 
 (*concern: not yet clear to me why we need the vmem parameter; pending further inspection of
  proofs*)
 (*concern: liberal use of intensional equality with nvmem*)
-(*N0, V0 is starting state for both executions
+(*N0, V0 is starting state for both (maybe just continuous actually) executions
  N1, V1 and Ncomp are middle states of intermittent, continuous respectively
  V1 isn't used anywhere it's just to fill out the type
  N2, V2 is final state for intermittent, once again solely to fill out the type*)

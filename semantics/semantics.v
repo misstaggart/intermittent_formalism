@@ -8,6 +8,9 @@ From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype fintype seq
 (*From deriving Require Import deriving.*)
 From Semantics Require Import lemmas_0.
 
+From deriving Require Import deriving.
+
+Check [eqType of string].
 (*Check prod_ordMixin.*)
 (*basic seq functions that I couldn't find in a library*)
 Fixpoint eq_seqs {A: Type} (L1: seq A) (L2: seq A) (eq: A -> A -> Prop) :=
@@ -253,8 +256,23 @@ checks if a warvar is in the domain, rather than checking a location.
 (******************************************************************************************)
 
 (*******************************more syntax**********************************************)
+
 Inductive array :=
   Array (s: string) (l: nat).
+
+
+Definition array_indMixin := Eval simpl in [indMixin for array_rect].
+
+Canonical array_indType := IndType _ array array_indMixin.
+
+Definition array_eqMixin := Eval simpl in [derive eqMixin for array].
+
+Canonical array_eqType := EqType array array_eqMixin.
+
+Definition array_choiceMixin := Eval simpl in [derive choiceMixin for array].
+
+Canonical array_choiceType := ChoiceType array array_choiceMixin.
+
 
 Definition get_length (a: array) :=
   match a with
@@ -270,6 +288,39 @@ Inductive smallvar :=
 Inductive el_loc :=
   El (a: array) (i: ('I_(get_length a))).
 
+Definition tagged_of_el_loc (l: el_loc) : {a: array & 'I_(get_length a)} :=
+  match l with
+    El a i => @Tagged _ a _ i end.
+
+Definition el_loc_of_tagged  (x: {a: array & 'I_(get_length a)}): el_loc :=
+  El (tag x) (tagged x).
+
+Lemma tagged_of_el_locK: cancel tagged_of_el_loc el_loc_of_tagged.
+    by case. Qed.
+
+Check tagged.
+
+Definition el_loc_eqMixin := CanEqMixin tagged_of_el_locK.
+
+Inductive myOrdinal (n: nat) :=
+  MyOrdinal {f1: nat; _: f1 < n}. (*curly brackets are for record*)
+
+Check f1. (*
+inside the record f1 is a natural but outside of the record f1 is reused as
+a
+field is a function that gets out one of the arguments of
+           an inductive type*)
+
+(*@ turns off implicit args*)
+Canonical myOrdinal_subType n := [subType for @f1 n]. (*injective function going into the naturals makes for equality
+same technique works for choice, count, ord
+                                                       *)
+
+Definition myOrdinal_eqMixin n := [eqMixin of myOrdinal n by <:].
+
+
+(*uses left inverse to project into the sigma type and then compares each component
+ of the sigma type with the previously defined equality*)
 
 Definition equal_index (e: el_loc) (a2: array) (v: value) :=
   match e with
@@ -379,8 +430,8 @@ Proof.
   -  constructor. intros contra. apply eqb_array_true_iff in contra.
      rewrite contra in beq. discriminate beq.
 Qed.
-Canonical array_eqMixin := EqMixin eqarray.
-Canonical array_eqtype := Eval hnf in EqType array array_eqMixin.
+(*Canonical array_eqMixin := EqMixin eqarray.
+Canonical array_eqtype := Eval hnf in EqType array array_eqMixin.*)
 (*****)
 
 (*equality type for elements*)
