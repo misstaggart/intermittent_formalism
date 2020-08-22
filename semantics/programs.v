@@ -55,6 +55,21 @@ Inductive trace_c: context -> context -> obseq -> the_write_stuff -> Prop :=
     trace_c Cmid C2 O2 W2 -> (*steps rest of program*)
     trace_c C1 C2 (O1 ++ O2) (append_write W1 W2).
 
+Inductive trace_cs: context -> context -> obseq -> the_write_stuff -> Prop :=
+  CsTrace_Empty: forall(C: context),
+                 trace_cs C C [::] ([::], [::], [::])
+  | CsTrace_Single: forall {C1 C2: context} {O: obseq} {W: the_write_stuff},
+      cceval_w C1 O C2 W ->
+      trace_cs C1 C2 O W
+| CTrace_Cons: forall{C1 Cmid C2: context} {O1 O2: obseq}
+               {W1 W2: the_write_stuff},
+    trace_cs Cmid C2 O2 W2 -> (*steps last section*)
+    O2 <> [::] -> (* forces empty step to use other constructors*)
+    cceval_w C1 O1 Cmid W1 ->
+    trace_cs C1 C2 (O1 ++ O2) (append_write W1 W2).
+
+
+
 (*Inductive trace_c1: context -> context -> obseq -> the_write_stuff -> Prop :=
   CTrace_Empty: forall(C: context),
                  trace_c C C [::] ([::], [::], [::])
@@ -199,6 +214,19 @@ iTrace_Empty: forall{C: iconf},
     trace_i C1 C2 (O1 ++ O2) (append_write W1 W2).
 (*could force the CPs to be well intialized here as well by controlling context in itrace
  Single and in 1st arg to itrace _app*)
+
+Inductive trace_is : iconf -> iconf -> obseq -> the_write_stuff -> Prop :=
+isTrace_Empty: forall{C: iconf},
+                 trace_is C C [::] ([::], [::], [::])
+|isTrace_Single: forall{C1 C2: iconf} {O: obseq} {W: the_write_stuff},
+                  iceval_w C1 O C2 W -> (*command in C2 is skip by def single_com, iceval_w*)
+                  trace_is C1 C2 O W
+| isTrace_Cons: forall{C1 C2 Cmid: iconf} {O1 O2: obseq}
+         {W1 W2: the_write_stuff},
+    iceval_w C1 O1 Cmid W1 -> (*steps first section*)
+    trace_is Cmid C2 O2 W2 -> (*steps rest of program*)
+    O2 <> [::]  ->
+    trace_is C1 C2 (O1 ++ O2) (append_write W1 W2).
 
 Inductive trace_i1: iconf -> iconf -> obseq -> the_write_stuff -> Prop :=
   iTrace_Cont: forall(N0: nvmem) (V0: vmem) (c0: command)

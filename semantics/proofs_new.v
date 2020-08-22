@@ -27,7 +27,7 @@ Admitted.
  maybe to make the traces more tractable
  leave it in for now, can always take it out*)
 Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
-  Diff_in_FW: forall{N1 V1 c1 N2 V2 c2 N1c O W} (T: trace_c (N1, V1, c1) (N2, V2, c2) O W),
+  Diff_in_FW: forall{N1 V1 c1 N2 V2 c2 N1c O W} (T: trace_cs (N1, V1, c1) (N2, V2, c2) O W),
     end_com c2 -> checkpoint \notin O -> (*c2 is nearest checkpoint or termination*)
     (getdomain N1) = (getdomain N2) -> (*alternatively
                                        could check N2 domain as well instead of this*)
@@ -41,6 +41,8 @@ Lemma two Ni Ni1 V V1 c c1 Nc Nc1 O W: all_diff_in_fw Ni V c Nc ->
                               forall(l: loc), l \in (getwt W) -> ((getmap Ni1) l = (getmap Nc1) l)).
 Admitted.
 
-Lemma three N0 V0 c0 Ni Ni1 V V1 c c1 Nc Nc1 O W:
+Lemma three N0 V0 c0 N01 V01 c01 Ni Ni1 V V1 c c1 Nc O W:
   all_diff_in_fw Ni V c Nc ->
-  trace_i ((N0, V0, c0))
+  trace_is ((N0, V0, c0), Ni, V, c) ((N01, V01, c01), Ni1, V1, c1) O W ->
+  ( exists(Nc1: nvmem), trace_cs (Nc, V, c) (Nc1, V1, c1) O W /\
+  all_diff_in_fw Ni1 V1 c1 Nc1).
