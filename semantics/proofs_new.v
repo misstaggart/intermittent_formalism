@@ -83,7 +83,7 @@ Proof.
     (*ask arthur i want to write
      exists O exists W H, like a function*)
     assert (exists(Oc: obseq) (Wc: the_write_stuff),
-               cceval_w (Ni, V, c) O (Ni1, V1, c1) W) as Hcceval2.
+               cceval_w (Ni, V, c) Oc (Ni1, V1, c1) Wc) as Hcceval2.
     (*ask arthur why does it look like that*)
     by exists O W. 
     pose proof (single_step_alls T Ho0 Hcceval2).
