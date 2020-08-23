@@ -31,7 +31,7 @@ Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
     end_com c2 -> checkpoint \notin O -> (*c2 is nearest checkpoint or termination*)
     (getdomain N1) = (getdomain N1c) -> (*alternatively
                                        could check N2 domain as well instead of this*)
-   (forall(el: el_loc), (inr el) \in (getdomain N1) -> ((getmap N1) (inr el)) = ((getmap N2) (inr el))) ->
+   (forall(el: el_loc), ((getmap N1) (inr el)) = ((getmap N2) (inr el))) ->
 ( forall(l: loc ), l \in (getdomain N1) -> ((getmap N1) l <> (getmap N2) l) -> (l \in getfstwt W))
 -> all_diff_in_fw N1 V1 c1 N1c.
 
@@ -56,9 +56,17 @@ Lemma single_step_alls: forall{C1 Cmid C3: context}
     trace_cs C1 C3 Obig Wbig ->
     Obig <> [::] ->
     (exists (O1: obseq) (W1: the_write_stuff), cceval_w C1 O1 Cmid W1) ->
-    exists(Wrest: the_write_stuff) (Orest: obseq), trace_c Cmid C3 Orest Wrest
+    exists(Wrest: the_write_stuff) (Orest: obseq), trace_cs Cmid C3 Orest Wrest
 /\ subseq Orest Obig
 . Admitted.
+
+Lemma update_domc {N11 N12 V11 V12  N21 N22 V21 V22
+                       c c1 c2 O1 O2 W1 W2}:
+  cceval_w (N11, V11, c) O1 (N12, V12, c1) W1 ->
+  cceval_w (N21, V21, c) O2 (N22, V22, c2) W2 ->
+  (getdomain N11) = (getdomain N21) ->
+  (getdomain N12) = (getdomain N22).
+  Admitted.
 
 Lemma three N0 V0 c0 N01 V01 c01 Ni Ni1 V V1 c c1 Nc O W:
   all_diff_in_fw Ni V c Nc ->
@@ -73,7 +81,7 @@ Proof.
     (*cceval case*)
   - move: (two H1 H) => [Nc1 [Hcceval Heq] ]. exists Nc1.
     split. apply CsTrace_Single; assumption.
-    econstructor. inversion H1. subst.
+    inversion H1. subst. 
     (*getting ready to apply single_step_alls*)
     assert (O0 <> [::]) as Ho0.
     - move/ (empty_trace_s T) => [ [contra10 [contra11 contra12] ] contra2]. subst. case H2 as [Hskip | [crem [w Hcp] ] ]; subst.
@@ -86,8 +94,19 @@ Proof.
                cceval_w (Ni, V, c) Oc (Ni1, V1, c1) Wc) as Hcceval2.
     (*ask arthur why does it look like that*)
     by exists O W. 
-    pose proof (single_step_alls T Ho0 Hcceval2).
+         move: (single_step_alls T Ho0 Hcceval2) => [W1 [O1 [T1 Hsub] ] ].
+         econstructor; try apply T1; try assumption.
+         apply/ negP => contra.
+         move/ negP : H3. apply.
+         apply (in_subseq Hsub contra).
+         apply (update_domc H Hcceval); assumption.
+         move => el Hel. apply/ eqP / negPn/ negP.
+         move/ eqP => contra.
+
+
+         apply/ negP : H3.
     move: (observe_checkpt_s Hcceval) => Hin. apply H3.
     remember T as T1. apply (contra _ _ _) in T.
+    econstructor.
     apply T.
  -
