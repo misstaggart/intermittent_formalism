@@ -61,7 +61,7 @@ Inductive trace_cs: context -> context -> obseq -> the_write_stuff -> Prop :=
   | CsTrace_Single: forall {C1 C2: context} {O: obseq} {W: the_write_stuff},
       cceval_w C1 O C2 W ->
       trace_cs C1 C2 O W
-| CTrace_Cons: forall{C1 Cmid C2: context} {O1 O2: obseq}
+| CsTrace_Cons: forall{C1 Cmid C2: context} {O1 O2: obseq}
                {W1 W2: the_write_stuff},
     trace_cs Cmid C2 O2 W2 -> (*steps last section*)
     O2 <> [::] -> (* forces empty step to use other constructors*)

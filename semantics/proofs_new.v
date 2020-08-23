@@ -88,14 +88,14 @@ Lemma fw_subst_wt: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
   trace_cs C1 C2 O W ->
   subseq (getfstwt W) (getwt W). Admitted.
 
-Lemma three_bc1 Ni Ni1 V V1 c c1 Nc O W:
+Lemma three_bc1 {Ni Ni1 V V1 c c1 Nc O W} :
   all_diff_in_fw Ni V c Nc ->
   cceval_w ( Ni, V, c) O (Ni1, V1, c1) W ->
     checkpoint \notin O ->
-  ( exists(Nc1: nvmem), trace_cs (Nc, V, c) (Nc1, V1, c1) O W /\
+  ( exists(Nc1: nvmem), cceval_w (Nc, V, c) O (Nc1, V1, c1) W /\
                    all_diff_in_fw Ni1 V1 c1 Nc1).
 intros. move: (two H H0) => [Nc1 [Hcceval Heq] ]. exists Nc1.
-    split. apply CsTrace_Single; assumption.
+    split. assumption. 
     inversion H. subst. 
     (*getting ready to apply single_step_alls*)
     assert (O0 <> [::]) as Ho0.
@@ -125,9 +125,7 @@ intros. move: (two H H0) => [Nc1 [Hcceval Heq] ]. exists Nc1.
          Qed.
 
 
-
-
-(*Lemma three N0 V0 c0 N01 V01 c01 Ni Ni1 V V1 c c1 Nc O W:
+Lemma three N0 V0 c0 N01 V01 c01 Ni Ni1 V V1 c c1 Nc O W:
   all_diff_in_fw Ni V c Nc ->
   trace_i1 ((N0, V0, c0), Ni, V, c) ((N01, V01, c01), Ni1, V1, c1) O W ->
   ( exists(Nc1: nvmem), trace_cs (Nc, V, c) (Nc1, V1, c1) O W /\
@@ -140,7 +138,26 @@ Proof.
     (*empty trace case*)
   - exists Nc; split; auto; constructor.
     (*cceval case*)
-  - move: (two H1 H) => [Nc1 [Hcceval Heq] ]. exists Nc1.
+  -  move: (three_bc1 H1 H H0) => [Nc1 [Hcceval Hdiff] ].
+     exists Nc1. split; try assumption. apply (CsTrace_Single Hcceval).
+  - (*inductive cs case*)
+    destruct Cmid as [ [Nmid Vmid] cmid]. Check three_bc1.
+    assert (checkpoint \notin O1) as Hcpo1.
+    rewrite mem_cat in H2. by move/norP : H2 => [H21 H22].
+    (*start here is there a way to combine the above*)
+    move: (three_bc1 H3 H1 Hcpo1) => [Ncmid [Tmid Hmid] ].
+    suffices: exists Nc1,
+               trace_cs (Ncmid, Vmid, cmid) (Nc1, V1, c1) O2 W2 /\
+               all_diff_in_fw Ni1 V1 c1 Nc1.
+  - move => [ Nc1 [Tmid2end Hmid2end] ]. exists Nc1. split.
+    eapply CsTrace_Cons; try apply Tmid2end; try assumption.
+    Check two.
+    suffices: exists Nc1,
+       trace_cs (Nc, V, c) (Nc1, Vmid, cmid) O1 W1 /\
+       all_diff_in_fw Nmid Vmid cmid Nc1.
+    * move => [Nc1 [Tmid Hdiffmid] ].
+
+    move: (two H1 H) => [Nc1 [Hcceval Heq] ]. exists Nc1.
     split. apply CsTrace_Single; assumption.
     inversion H1. subst. 
     (*getting ready to apply single_step_alls*)
