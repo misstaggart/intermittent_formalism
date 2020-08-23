@@ -31,8 +31,8 @@ Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
     end_com c2 -> checkpoint \notin O -> (*c2 is nearest checkpoint or termination*)
     (getdomain N1) = (getdomain N1c) -> (*alternatively
                                        could check N2 domain as well instead of this*)
-   (forall(el: el_loc), ((getmap N1) (inr el)) = ((getmap N2) (inr el))) ->
-( forall(l: loc ), l \in (getdomain N1) -> ((getmap N1) l <> (getmap N2) l) -> (l \in getfstwt W))
+   (forall(el: el_loc), ((getmap N1) (inr el)) = ((getmap N1c) (inr el))) ->
+( forall(l: loc ), l \in (getdomain N1) -> ((getmap N1) l <> (getmap N1c) l) -> (l \in getfstwt W))
 -> all_diff_in_fw N1 V1 c1 N1c.
 
 Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
@@ -68,6 +68,14 @@ Lemma update_domc {N11 N12 V11 V12  N21 N22 V21 V22
   (getdomain N12) = (getdomain N22).
   Admitted.
 
+Lemma update_onec {N11 N12 V11 V12 N21 N22 V21 V22
+                       c c1 c2 O1 O2 W} {l: loc} :
+  cceval_w (N11, V11, c) O1 (N12, V12, c1) W ->
+  cceval_w (N21, V21, c) O2 (N22, V22, c2) W ->
+    (getmap N11) l = (getmap N21) l ->
+    (getmap N12) l <> (getmap N22) l ->
+    l \in (getwt W). Admitted.
+
 Lemma three N0 V0 c0 N01 V01 c01 Ni Ni1 V V1 c c1 Nc O W:
   all_diff_in_fw Ni V c Nc ->
   trace_i1 ((N0, V0, c0), Ni, V, c) ((N01, V01, c01), Ni1, V1, c1) O W ->
@@ -100,8 +108,10 @@ Proof.
          move/ negP : H3. apply.
          apply (in_subseq Hsub contra).
          apply (update_domc H Hcceval); assumption.
-         move => el Hel. apply/ eqP / negPn/ negP.
+         move => el. apply/ eqP / negPn/ negP.
          move/ eqP => contra.
+         move: (update_onec H Hcceval (H5 el) contra) => Hw.
+         apply H5 in el.
 
 
          apply/ negP : H3.
