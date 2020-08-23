@@ -29,10 +29,12 @@ Admitted.
 Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
   Diff_in_FW: forall{N1 V1 c1 N2 V2 c2 N1c O W} (T: trace_cs (N1, V1, c1) (N2, V2, c2) O W),
     end_com c2 -> checkpoint \notin O -> (*c2 is nearest checkpoint or termination*)
-    (getdomain N1) = (getdomain N1c) -> (*alternatively
-                                       could check N2 domain as well instead of this*)
+  (*  (getdomain N1) = (getdomain N1c) -> alternatively
+                                       could check N2 domain as well instead of this
+ not even clear why i need the domains                                    
+   *)
    (forall(el: el_loc), ((getmap N1) (inr el)) = ((getmap N1c) (inr el))) ->
-( forall(l: loc ), l \in (getdomain N1) -> ((getmap N1) l <> (getmap N1c) l) -> (l \in getfstwt W))
+( forall(l: loc ), ((getmap N1) l <> (getmap N1c) l) -> (l \in getfstwt W))
 -> all_diff_in_fw N1 V1 c1 N1c.
 
 Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
@@ -107,10 +109,11 @@ Proof.
          apply/ negP => contra.
          move/ negP : H3. apply.
          apply (in_subseq Hsub contra).
-         apply (update_domc H Hcceval); assumption.
+        (* apply (update_domc H Hcceval); assumption.*)
          move => el. apply/ eqP / negPn/ negP.
          move/ eqP => contra.
          move: (update_onec H Hcceval (H5 el) contra) => Hw.
+         apply Heq in Hw. by apply contra.
          apply H5 in el.
 
 
