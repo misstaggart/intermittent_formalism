@@ -124,21 +124,29 @@ intros. move: (two H H0) => [Nc1 [Hcceval Heq] ]. exists Nc1.
          move/ Heq : (in_subseq (fw_subst_wt (CsTrace_Single H0)) Hc1) => contra. exfalso. by apply Hl. by [].
          Qed.
 
+Lemma wts_cped: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
+                  {Wstart Rstart: warvars} (l: loc),
+    trace_cs (N, V, c) (Nend, Vend, cend) O W ->
+    WARok (getdomain N0) Wstart Rstart c ->
+    checkpoint \notin O ->
+    (*O <> [::] -> empty trace annoying and i dont think
+               i have to deal w it*)
+    l \notin (remove Rstart (getfstwt W)) -> (*l not in OVERALL FW for this trace*)
+    l \in (getwt W) -> (*l written to
+                       IN THIS trace*)
+    l \in (getdomain N0) \/ l \in Wstart. Admitted. (*14*)
 
-Lemma three N0 V0 c0 N01 V01 c01 Ni Ni1 V V1 c c1 Nc O W:
+Lemma three_bc  {Ni Ni1 V V1 c c1 Nc O W} :
   all_diff_in_fw Ni V c Nc ->
-  trace_i1 ((N0, V0, c0), Ni, V, c) ((N01, V01, c01), Ni1, V1, c1) O W ->
+  trace_cs (Ni, V, c) (Ni1, V1, c1) O W ->
+  checkpoint \notin O ->
   ( exists(Nc1: nvmem), trace_cs (Nc, V, c) (Nc1, V1, c1) O W /\
                    all_diff_in_fw Ni1 V1 c1 Nc1).
-Proof.
-  intros. move: Nc H. dependent induction H0.
-  + (*remember H as Ht. induction H; intros.
-     ask arthur*)
-    dependent induction H; intros.
+Proof. intros. move: Nc H. dependent induction H0; intros.
     (*empty trace case*)
   - exists Nc; split; auto; constructor.
     (*cceval case*)
-  -  move: (three_bc1 H1 H H0) => [Nc1 [Hcceval Hdiff] ].
+  -  move: (three_bc1 H0 H H1) => [Nc1 [Hcceval Hdiff] ].
      exists Nc1. split; try assumption. apply (CsTrace_Single Hcceval).
   - (*inductive cs case*)
     destruct Cmid as [ [Nmid Vmid] cmid]. Check three_bc1.
@@ -151,6 +159,43 @@ Proof.
   - move => [ Nc1 [Tmid2end Hmid2end] ]. exists Nc1. split; try assumption.
     eapply CsTrace_Cons; try apply Tmid2end; try assumption.
     eapply IHtrace_cs; try reflexivity; try assumption.
+ Qed.
+
+
+
+Lemma three N0 V0 c0 N01 V01 c01 Ni Ni1 V V1 c c1 Nc O W:
+  all_diff_in_fw Ni V c Nc ->
+  trace_i1 ((N0, V, c), Ni, V, c) ((N01, V01, c01), Ni1, V1, c1) O W ->
+  WARok (getdomain N0) [::] [::] c ->
+  subset_nvm N0 Ni -> subset_nvm N0 Nc ->
+  ( exists(Nc1: nvmem), trace_cs (Nc, V, c) (Nc1, V1, c1) O W /\
+                   all_diff_in_fw Ni1 V1 c1 Nc1).
+Proof.
+  intros. move: H. dependent induction H0; intros.
+  + apply (three_bc H4 H H0).
+
+
+    (*remember H as Ht. induction H; intros.
+     ask arthur*)
+    dependent induction H; intros.
+    (*empty trace case*)
+  - exists Nc; split; auto; constructor.
+    (*cceval case*)
+  -  move: (three_bc1 H4 H H0) => [Nc1 [Hcceval Hdiff] ].
+     exists Nc1. split; try assumption. apply (CsTrace_Single Hcceval).
+  - (*inductive cs case*)
+    destruct Cmid as [ [Nmid Vmid] cmid]. Check three_bc1.
+    rewrite mem_cat in H2. move/norP : H2 => [H21 H22].
+    (*start here is there a way to combine the above*)
+    move: (three_bc1 H6 H1 H21) => [Ncmid [Tmid Hmid] ].
+    suffices: exists Nc1,
+               trace_cs (Ncmid, Vmid, cmid) (Nc1, V1, c1) O2 W2 /\
+               all_diff_in_fw Ni1 V1 c1 Nc1.
+  - move => [ Nc1 [Tmid2end Hmid2end] ]. exists Nc1. split; try assumption.
+    eapply CsTrace_Cons; try apply Tmid2end; try assumption.
+    eapply IHtrace_cs; try reflexivity; try assumption.
+
+
     apply Hmid2end.
 
     Check two.
