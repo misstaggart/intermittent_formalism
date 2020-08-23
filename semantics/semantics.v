@@ -926,7 +926,6 @@ Theorem ps_correct: forall(O1 O2: obseq),
     checkpoint \notin O1 /\ reboot \notin O2 /\ checkpoint \notin O2.
   Admitted.*)
 
-Notation "S <=m T" := (prefix_seq S T) (at level 100).
 (* Where
 O1 is a sequence of ((read observation seq sequences), where
 each continguous read observation seq is separated from those adjacent to it
@@ -942,6 +941,7 @@ Inductive prefix_fragment: obseq -> obseq -> Prop :=
 | CP_IND: forall(O1 O1': obseq) (O2 O2': obseq),
     prefix_seq O1 O2 -> prefix_fragment O1' O2' ->
    prefix_fragment (O1 ++ [:: checkpoint] ++ O1') (O2 ++ [::checkpoint] ++ O2'). 
+Notation "S <=f T" := (prefix_fragment S T) (at level 100).
 (***************************************************************)
 
 

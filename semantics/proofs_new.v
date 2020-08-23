@@ -78,6 +78,11 @@ Lemma update_onec {N11 N12 V11 V12 N21 N22 V21 V22
     (getmap N12) l <> (getmap N22) l ->
     l \in (getwt W). Admitted.
 
+Lemma trace_diff {N1 V1 c1 N2 V2 c2 O W} {l: loc}:
+  trace_cs (N1, V1, c1) (N2, V2, c2) O W ->
+  (getmap N2) l <> (getmap N1) l ->
+l \in (getwt W). Admitted.
+
 Lemma fw_split {W W1} {l: loc}:
            l \in getfstwt (append_write W W1) ->
                  l \in (getfstwt W) \/ l \in (getfstwt W1).
@@ -124,17 +129,38 @@ intros. move: (two H H0) => [Nc1 [Hcceval Heq] ]. exists Nc1.
          move/ Heq : (in_subseq (fw_subst_wt (CsTrace_Single H0)) Hc1) => contra. exfalso. by apply Hl. by [].
          Qed.
 
-Lemma wts_cped: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
-                  {Wstart Rstart: warvars} (l: loc),
+Lemma wts_cped_sv: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
+                  {Wstart Rstart: warvars} {l: loc},
     trace_cs (N, V, c) (Nend, Vend, cend) O W ->
     WARok (getdomain N0) Wstart Rstart c ->
     checkpoint \notin O ->
     (*O <> [::] -> empty trace annoying and i dont think
                i have to deal w it*)
-    l \notin (remove Rstart (getfstwt W)) -> (*l not in OVERALL FW for this trace*)
+    l \notin (getdomain N0) ->
     l \in (getwt W) -> (*l written to
                        IN THIS trace*)
-    l \in (getdomain N0) \/ l \in Wstart. Admitted. (*14*)
+    l \in (remove Rstart (getfstwt W)) (*l not in OVERALL FW for this trace*)
+ \/ l \in Wstart. Admitted. (*14*)
+
+Lemma wts_cped_arr: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
+                  {Wstart Rstart: warvars} {el: el_loc},
+    trace_cs (N, V, c) (Nend, Vend, cend) O W ->
+    WARok (getdomain N0) Wstart Rstart c ->
+    checkpoint \notin O ->
+    (*O <> [::] -> empty trace annoying and i dont think
+               i have to deal w it*)
+    (inr el) \notin (getdomain N0) ->
+   (inr el) \notin (getwt W).
+Admitted. (*14*)
+
+Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
+                         {Omid O: obseq} {Wmid W: the_write_stuff} {l: loc},
+    trace_cs (N, V, c) (Nmid, Vmid, cmid) Omid Wmid ->
+    checkpoint \notin Omid ->
+    trace_cs (N, V, c) (Nend, Vend, cend) O W ->
+    end_com cend ->
+    l \in (getfstwt Wmid) -> l \in (getfstwt W). Admitted.
+                  
 
 Lemma three_bc  {Ni Ni1 V V1 c c1 Nc O W} :
   all_diff_in_fw Ni V c Nc ->
@@ -162,22 +188,83 @@ Proof. intros. move: Nc H. dependent induction H0; intros.
  Qed.
 
 
+Lemma neg_observe_rb: forall {N N': nvmem} {V V': vmem}
+                     {c c': command} 
+                    {O: obseq} {W: the_write_stuff},
+    trace_cs (N, V, c) (N', V', c') O W ->
+    reboot \notin O.
+Admitted.
+
+   Lemma update_diff N0 N1 N2: forall(l: loc), ((getmap N1) l !=
+                                                       (getmap (N2 U! N0)) l) ->
+                                          ((getmap N0) l <> (getmap N1) l /\ l \in (getdomain N0)) \/
+                                          ( (getmap N2) l <> (getmap N1) l /\
+                                            l \notin (getdomain N0)
+                                          ). Admitted.
 
 Lemma three N0 V0 c0 N01 V01 c01 Ni Ni1 V V1 c c1 Nc O W:
   all_diff_in_fw Ni V c Nc ->
   trace_i1 ((N0, V, c), Ni, V, c) ((N01, V01, c01), Ni1, V1, c1) O W ->
   WARok (getdomain N0) [::] [::] c ->
   subset_nvm N0 Ni -> subset_nvm N0 Nc ->
-  ( exists(Nc1: nvmem), trace_cs (Nc, V, c) (Nc1, V1, c1) O W /\
+  (exists(Oc: obseq) (Nc1: nvmem) (Wc: the_write_stuff) , trace_cs (Nc, V, c) (Nc1, V1, c1) Oc Wc /\
                    all_diff_in_fw Ni1 V1 c1 Nc1).
 Proof.
-  intros. move: H. dependent induction H0; intros.
-  + apply (three_bc H4 H H0).
+  intros. move: H. (* remember H0 as Ht. induction H0.
+                    ask arthur*)
+dependent induction H0; intros.
+  + move: (three_bc H4 H H0) => [ Nc1 [Tdone Hdone] ].
+    exists O Nc1 W. repeat split; try assumption. 
+  + assert (all_diff_in_fw Ni V01 c01 (Nmid U! N01)) as Hdiffcp.
+    - inversion H6. subst.  econstructor; try apply T; try assumption.
+    move => el. apply/ eqP / negPn/ negP => contra.
+   apply update_diff in contra. destruct contra as [ [con11 con12] | [con21 con22] ].
+   destruct H4 as [H41 H42]. apply con11. apply (H42 (inr el) con12).
+   move: (trace_diff H con21) => Hdiff.
+   move/negP :(wts_cped_arr H H3 H1 con22). by apply.
+   move => l. move/eqP/update_diff => [ [diff11 diff12] | [diff21 diff22] ]. destruct H4 as [H41 H42]. case diff11. apply (H42 l diff12).
+   move: (trace_diff H diff21) => Hdiff.
+   (*start here clean up repeated work in above*)
+   move: (wts_cped_sv H H3 H1 diff22 Hdiff)  => [good | bad].
+   rewrite/remove filter_predT in good.
+   apply (fw_gets_bigger H H1 T H7 good).
+   rewrite in_nil in bad. discriminate bad. 
+   exfalso. apply/nilP: bad.
+   rewrite nilP in bad.
+   apply good.
 
 
-    (*remember H as Ht. induction H; intros.
-     ask arthur*)
-    dependent induction H; intros.
+   apply update_diff in Hdiff.
+
+   apply/ eqP / negPn/ negP => contra.
+   apply update_diff in contra. destruct contra as [ [con11 con12] | [con21 con22] ].
+   destruct H4 as [H41 H42]. apply con11. apply (H42 (inr el) con12).
+   move: (trace_diff H con21) => Hdiff.
+   move/negP :(wts_cped_arr H H3 H1 con22). by apply.
+   rewrite/subset_nvm in H4.
+
+
+
+   move: (wts_cped_arr H H3 H1)
+
+
+    move: (three_bc H6 H H1) => Hmid.
+    (*get rid of observation stuff, you dont need it,
+     just say exists*)
+
+
+
+
+
+
+
+
+
+
+
+
+
+        dependent induction H; intros.
     (*empty trace case*)
   - exists Nc; split; auto; constructor.
     (*cceval case*)
