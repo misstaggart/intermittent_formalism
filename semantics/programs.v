@@ -232,12 +232,12 @@ Inductive trace_i1: iconf -> iconf -> obseq -> the_write_stuff -> Prop :=
   iTrace_Cont: forall(N0: nvmem) (V0: vmem) (c0: command)
     {N N1: nvmem} {V V1: vmem} {c c1: command}
                  {O: obseq} {W: the_write_stuff},
-    trace_c (N, V, c) (N1, V1, c1) O W ->
+    trace_cs (N, V, c) (N1, V1, c1) O W ->
     checkpoint \notin O ->
     trace_i1 ((N0, V0, c0), N, V, c) ((N0, V0, c0), N1, V1, c1) O W
  | iTrace_RB: forall{N0 N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cstart cmid cend: command}
                  {O1 O2: obseq} {W1 W2: the_write_stuff},
-    trace_c (N, V, cstart) (Nmid, Vmid, cmid) O1 W1 -> (*first section of trace w
+    trace_cs (N, V, cstart) (Nmid, Vmid, cmid) O1 W1 -> (*first section of trace w
                                                        no reboots*)
     trace_i1 ((N0, V, c), N0 U! Nmid, V, c) ((N0, V, c), Nend, Vend, cend) O2 W2 ->
     (*last section of trace with reboots*)

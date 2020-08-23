@@ -54,13 +54,13 @@ Lemma observe_checkpt_s: forall {N N': nvmem} {V V': vmem}
     checkpoint \in O. Admitted.
 
 Lemma single_step_alls: forall{C1 Cmid C3: context}
-                    {Obig: obseq} {Wbig: the_write_stuff},
+                    {Obig O1 : obseq} {W1 Wbig: the_write_stuff},
     trace_cs C1 C3 Obig Wbig ->
     Obig <> [::] ->
-    (exists (O1: obseq) (W1: the_write_stuff), cceval_w C1 O1 Cmid W1) ->
+     cceval_w C1 O1 Cmid W1 ->
     exists(Wrest: the_write_stuff) (Orest: obseq), trace_cs Cmid C3 Orest Wrest
-/\ subseq Orest Obig
-. Admitted.
+/\ subseq Orest Obig /\ Wbig = (append_write W1 Wrest).
+ Admitted.
 
 Lemma update_domc {N11 N12 V11 V12  N21 N22 V21 V22
                        c c1 c2 O1 O2 W1 W2}:
@@ -77,6 +77,16 @@ Lemma update_onec {N11 N12 V11 V12 N21 N22 V21 V22
     (getmap N11) l = (getmap N21) l ->
     (getmap N12) l <> (getmap N22) l ->
     l \in (getwt W). Admitted.
+
+Lemma fw_split {W W1} {l: loc}:
+           l \in getfstwt (append_write W W1) ->
+                 l \in (getfstwt W) \/ l \in (getfstwt W1).
+  Admitted.
+
+Lemma fw_subst_wt: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
+      (* pose proof (cceval_to_rd_sv H H5). *)
+  trace_cs C1 C2 O W ->
+  subseq (getfstwt W) (getwt W). Admitted.
 
 Lemma three N0 V0 c0 N01 V01 c01 Ni Ni1 V V1 c c1 Nc O W:
   all_diff_in_fw Ni V c Nc ->
@@ -100,11 +110,7 @@ Proof.
     apply (observe_checkpt_s Hcceval).
     (*ask arthur i want to write
      exists O exists W H, like a function*)
-    assert (exists(Oc: obseq) (Wc: the_write_stuff),
-               cceval_w (Ni, V, c) Oc (Ni1, V1, c1) Wc) as Hcceval2.
-    (*ask arthur why does it look like that*)
-    by exists O W. 
-         move: (single_step_alls T Ho0 Hcceval2) => [W1 [O1 [T1 Hsub] ] ].
+         move: (single_step_alls T Ho0 H) => [W1 [O1 [T1 [Hsub Hw ] ] ] ].
          econstructor; try apply T1; try assumption.
          apply/ negP => contra.
          move/ negP : H3. apply.
@@ -112,8 +118,23 @@ Proof.
         (* apply (update_domc H Hcceval); assumption.*)
          move => el. apply/ eqP / negPn/ negP.
          move/ eqP => contra.
-         move: (update_onec H Hcceval (H5 el) contra) => Hw.
-         apply Heq in Hw. by apply contra.
+         move: (update_onec H Hcceval (H4 el) contra) => Hwcontra.
+         apply Heq in Hwcontra. by apply contra.
+         move => l Hl.
+         destruct ((getmap Ni l) == (getmap Nc l)) eqn: Hcase;
+           move/eqP: Hcase => Hcase.
+         move: (update_onec H Hcceval Hcase Hl) => Hw1.
+         apply Heq in Hw1. exfalso. by apply Hl.
+         apply H5 in Hcase. subst. move/fw_split : Hcase => [Hc1 | Hc2].
+         move/ Heq : (in_subseq (fw_subst_wt (CsTrace_Single H)) Hc1) => contra. exfalso. by apply Hl. by [].
+   - (*larger continuous trace case*)
+         apply Heq in Hc1.
+         apply fw_split in Hcase.
+
+
+
+
+         case: ((getmap Ni l) == (getmap Nc l)) => [Hc1 | Hc2].
          apply H5 in el.
 
 
