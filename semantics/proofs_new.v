@@ -142,20 +142,23 @@ Proof.
      exists Nc1. split; try assumption. apply (CsTrace_Single Hcceval).
   - (*inductive cs case*)
     destruct Cmid as [ [Nmid Vmid] cmid]. Check three_bc1.
-    assert (checkpoint \notin O1) as Hcpo1.
-    rewrite mem_cat in H2. by move/norP : H2 => [H21 H22].
+    rewrite mem_cat in H2. move/norP : H2 => [H21 H22].
     (*start here is there a way to combine the above*)
-    move: (three_bc1 H3 H1 Hcpo1) => [Ncmid [Tmid Hmid] ].
+    move: (three_bc1 H3 H1 H21) => [Ncmid [Tmid Hmid] ].
     suffices: exists Nc1,
                trace_cs (Ncmid, Vmid, cmid) (Nc1, V1, c1) O2 W2 /\
                all_diff_in_fw Ni1 V1 c1 Nc1.
-  - move => [ Nc1 [Tmid2end Hmid2end] ]. exists Nc1. split.
+  - move => [ Nc1 [Tmid2end Hmid2end] ]. exists Nc1. split; try assumption.
     eapply CsTrace_Cons; try apply Tmid2end; try assumption.
+    eapply IHtrace_cs; try reflexivity; try assumption.
+    apply Hmid2end.
+
     Check two.
     suffices: exists Nc1,
        trace_cs (Nc, V, c) (Nc1, Vmid, cmid) O1 W1 /\
        all_diff_in_fw Nmid Vmid cmid Nc1.
-    * move => [Nc1 [Tmid Hdiffmid] ].
+  - intros thing.  destruct thing as [Nc1 thing].
+    move => [Nc1].
 
     move: (two H1 H) => [Nc1 [Hcceval Heq] ]. exists Nc1.
     split. apply CsTrace_Single; assumption.
