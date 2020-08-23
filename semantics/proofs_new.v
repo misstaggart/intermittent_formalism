@@ -88,14 +88,55 @@ Lemma fw_subst_wt: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
   trace_cs C1 C2 O W ->
   subseq (getfstwt W) (getwt W). Admitted.
 
-Lemma three N0 V0 c0 N01 V01 c01 Ni Ni1 V V1 c c1 Nc O W:
+Lemma three_bc1 Ni Ni1 V V1 c c1 Nc O W:
+  all_diff_in_fw Ni V c Nc ->
+  cceval_w ( Ni, V, c) O (Ni1, V1, c1) W ->
+    checkpoint \notin O ->
+  ( exists(Nc1: nvmem), trace_cs (Nc, V, c) (Nc1, V1, c1) O W /\
+                   all_diff_in_fw Ni1 V1 c1 Nc1).
+intros. move: (two H H0) => [Nc1 [Hcceval Heq] ]. exists Nc1.
+    split. apply CsTrace_Single; assumption.
+    inversion H. subst. 
+    (*getting ready to apply single_step_alls*)
+    assert (O0 <> [::]) as Ho0.
+    - move/ (empty_trace_s T) => [ [contra10 [contra11 contra12] ] contra2]. subst. case H2 as [Hskip | [crem [w Hcp] ] ]; subst.
+    inversion Hcceval. move/negP : H1. apply.
+    (*start here why is apply/negP different from this*)
+    apply (observe_checkpt_s Hcceval).
+    (*ask arthur i want to write
+     exists O exists W H, like a function*)
+         move: (single_step_alls T Ho0 H0) => [W1 [O1 [T1 [Hsub Hw ] ] ] ].
+         econstructor; try apply T1; try assumption.
+         apply/ negP => contra.
+         move/ negP : H3. apply.
+         apply (in_subseq Hsub contra).
+        (* apply (update_domc H Hcceval); assumption.*)
+         move => el. apply/ eqP / negPn/ negP.
+         move/ eqP => contra.
+         move: (update_onec H0 Hcceval (H4 el) contra) => Hwcontra.
+         apply Heq in Hwcontra. by apply contra.
+         move => l Hl.
+         destruct ((getmap Ni l) == (getmap Nc l)) eqn: Hcase;
+           move/eqP: Hcase => Hcase.
+         move: (update_onec H0 Hcceval Hcase Hl) => Hw1.
+         apply Heq in Hw1. exfalso. by apply Hl.
+         apply H5 in Hcase. subst. move/fw_split : Hcase => [Hc1 | Hc2].
+         move/ Heq : (in_subseq (fw_subst_wt (CsTrace_Single H0)) Hc1) => contra. exfalso. by apply Hl. by [].
+         Qed.
+
+
+
+
+(*Lemma three N0 V0 c0 N01 V01 c01 Ni Ni1 V V1 c c1 Nc O W:
   all_diff_in_fw Ni V c Nc ->
   trace_i1 ((N0, V0, c0), Ni, V, c) ((N01, V01, c01), Ni1, V1, c1) O W ->
   ( exists(Nc1: nvmem), trace_cs (Nc, V, c) (Nc1, V1, c1) O W /\
                    all_diff_in_fw Ni1 V1 c1 Nc1).
 Proof.
   intros. move: Nc H. dependent induction H0.
-  + dependent induction H; intros.
+  + (*remember H as Ht. induction H; intros.
+     ask arthur*)
+    dependent induction H; intros.
     (*empty trace case*)
   - exists Nc; split; auto; constructor.
     (*cceval case*)
@@ -142,5 +183,5 @@ Proof.
     move: (observe_checkpt_s Hcceval) => Hin. apply H3.
     remember T as T1. apply (contra _ _ _) in T.
     econstructor.
-    apply T.
+    apply T.*)
  -
