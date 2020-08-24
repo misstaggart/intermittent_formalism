@@ -248,6 +248,11 @@ Lemma warok_cp {N1 N2 V1 V2 c crem O W}
   trace_cs (N1, V1, c) (N2, V2, incheckpoint w1;; crem) O W ->
   WARok w1 [::] [::] crem. Admitted.
 
+Lemma adif_refl {N V c Nend Vend O W}:
+        trace_cs (N, V, c) (Nend, Vend, Ins skip) O W ->
+        all_diff_in_fw N V c N.
+Admitted.
+
 Lemma three N0 (*V0 c0*) N01 V01 c01 Ni Ni1 Nend V V1 Vend c c1 Nc O W Oend Wend:
   all_diff_in_fw Ni V c Nc ->
   trace_i1 ((N0, V, c), Ni, V, c) ((N01, V01, c01), Ni1, V1, c1) O W ->
@@ -263,10 +268,6 @@ Proof.
 dependent induction H0; intros.
   + move: (three_bc H3 H H0) => [ Nc1 [Tdone Hdone] ].
     exists O Oend Nc1 W Wend. repeat split; try assumption.
-
-
-
-
     apply (adif_works Hdone H4).
   + assert (all_diff_in_fw Ni V01 c01 (N01 U! Nmid)) as Hdiffrb.
     - inversion H6. subst.  econstructor; try apply T; try assumption.
@@ -275,7 +276,7 @@ dependent induction H0; intros.
    apply con11. apply (H4 (inr el) con12).
    move: (trace_diff H con21) => Hdiff.
    move/negP :(wts_cped_arr H H3 H1 con22). by apply.
-   move => l. move/eqP/update_diff => [ [diff11 diff12] | [diff21 diff22] ]. destruct H4 as [H41 H42]. case diff11. apply (H42 l diff12).
+   move => l. move/eqP/update_diff => [ [diff11 diff12] | [diff21 diff22] ]. case diff11. apply (H4 l diff12).
    move: (trace_diff H diff21) => Hdiff.
    (*start here clean up repeated work in above*)
    move: (wts_cped_sv H H3 H1 diff22 Hdiff)  => [good | bad].
@@ -291,7 +292,7 @@ dependent induction H0; intros.
                  trace_cs (Nc, V, c)
                           (Nc1, Vmid, ccp) Oc Wc /\
                  all_diff_in_fw Nmid Vmid ccp Nc1 /\
-                 trace_cs (Nc1, V1, ccp)
+                 trace_cs (Nc1, Vmid, ccp)
                    (Nend, Vend, Ins skip) Oendc
                    Wendc
                   ).
@@ -311,11 +312,19 @@ dependent induction H0; intros.
      - move: (append_cps H11 H21) => T1.
       exists (Oc1 ++ Oc2) Oendc2 Nc2 (append_write Wc1 Wc2) Wendc2.
       repeat split; try assumption.
-      eapply IHtrace_i1_2; try reflexivity.
+      eapply IHtrace_i1_2; try reflexivity; try assumption;
+      try apply sub_restrict.
       destruct Nc1 as [mc1 dc1]. rewrite/getdomain. simpl.
-      apply (warok_cp H1 H11).
+      apply (warok_cp H1 H11). 
+      assert (Oendc1 <> [::]) as Hoendc1. intros contra. subst.
+      apply empty_trace_s in H13. destruct H13 as
+          [eq1 eq2]. inversion eq1. reflexivity.
+      move: (single_step_alls H13 Hoendc1 (CheckPoint Nc1 Vmid crem w)) => [Wc2 [Oc2 [Tc1end Hb] ] ].
+      apply (adif_refl Tc1end).
+    - eapply IHtrace_i1_1; try reflexivity; try assumption.
 
-
+      Lemma single_steps_cp_skip {N V c Nend Vend crem O W}
+      
 
     - eapply IHtr
       (*showing adif Nc1 V1 Nmid*)
