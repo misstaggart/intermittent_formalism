@@ -196,11 +196,29 @@ Lemma neg_observe_rb: forall {N N': nvmem} {V V': vmem}
 Admitted.
 
    Lemma update_diff N0 N1 N2: forall(l: loc), ((getmap N1) l !=
-                                                       (getmap (N2 U! N0)) l) ->
+                                                       (getmap (N0 U! N2)) l) ->
                                           ((getmap N0) l <> (getmap N1) l /\ l \in (getdomain N0)) \/
                                           ( (getmap N2) l <> (getmap N1) l /\
                                             l \notin (getdomain N0)
                                           ). Admitted.
+
+   Lemma sub_update: forall(N0 N1: nvmem),
+    subset_nvm N0 (N0 U! N1).
+  intros.
+  destruct N0, N1.
+  unfold subset_nvm. split.
+  simpl. apply prefix_subseq.
+  intros. simpl. by rewrite H.
+  Qed.
+
+Lemma all_diff_in_fw_sym {N1 V1 c1 Nc1}: 
+  all_diff_in_fw N1 V1 c1 Nc1 ->
+all_diff_in_fw Nc1 V1 c1 N1. Admitted.
+
+Lemma all_diff_in_fw_trans {Nc0 V1 c1 Nc1 Nc2}:
+  all_diff_in_fw Nc0 V1 c1 Nc1 ->
+  all_diff_in_fw Nc1 V1 c1 Nc2 ->
+  all_diff_in_fw Nc0 V1 c1 Nc2. Admitted.
 
 Lemma three N0 V0 c0 N01 V01 c01 Ni Ni1 V V1 c c1 Nc O W:
   all_diff_in_fw Ni V c Nc ->
@@ -215,7 +233,7 @@ Proof.
 dependent induction H0; intros.
   + move: (three_bc H4 H H0) => [ Nc1 [Tdone Hdone] ].
     exists O Nc1 W. repeat split; try assumption. 
-  + assert (all_diff_in_fw Ni V01 c01 (Nmid U! N01)) as Hdiffcp.
+  + assert (all_diff_in_fw Ni V01 c01 (N01 U! Nmid)) as Hdiffrb.
     - inversion H6. subst.  econstructor; try apply T; try assumption.
     move => el. apply/ eqP / negPn/ negP => contra.
    apply update_diff in contra. destruct contra as [ [con11 con12] | [con21 con22] ].
@@ -228,7 +246,10 @@ dependent induction H0; intros.
    move: (wts_cped_sv H H3 H1 diff22 Hdiff)  => [good | bad].
    rewrite/remove filter_predT in good.
    apply (fw_gets_bigger H H1 T H7 good).
-   rewrite in_nil in bad. discriminate bad. 
+   rewrite in_nil in bad. by discriminate bad.
+   eapply IHtrace_i1; try reflexivity; try assumption.
+   apply sub_update. apply (all_diff_in_fw_trans (all_diff_in_fw_sym Hdiffrb) H6).
+
    exfalso. apply/nilP: bad.
    rewrite nilP in bad.
    apply good.
