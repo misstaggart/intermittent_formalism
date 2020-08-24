@@ -28,10 +28,10 @@ Lemma sub_disclude N0 N1 N2:  forall(l: loc),
                      subset_nvm N0 N2 ->
                      not ((getmap N1) l = (getmap N2) l)
                      -> not (l \in (getdomain N0)).
-Proof. intros. intros contra. unfold subset_nvm in H. destruct H.
+Proof. intros. intros contra. unfold subset_nvm in H. (*destruct H.*)
        remember contra as contra1. clear Heqcontra1.
-       apply H2 in contra.
-       unfold subset_nvm in H0. destruct H0. apply H3 in contra1.
+       apply H in contra.
+       unfold subset_nvm in H0. (*destruct H0.*) apply H0 in contra1.
        symmetry in contra.
        apply (eq_trans _ _ _ contra) in contra1.
        apply H1. assumption.
@@ -273,8 +273,8 @@ Lemma sub_update: forall(N0 N1: nvmem),
     subset_nvm N0 (N0 U! N1).
   intros.
   destruct N0, N1.
-  unfold subset_nvm. split.
-  simpl. apply prefix_subseq.
+  unfold subset_nvm. (*split.
+  simpl. apply prefix_subseq.*)
   intros. simpl. by rewrite H.
   Qed.
 

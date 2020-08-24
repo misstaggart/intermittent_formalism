@@ -720,9 +720,12 @@ apply (in_dec decidable_loc). Qed.*)
 Definition remove (L1 L2 : seq loc) :=
   filter (fun x =>  negb (x \in L1)) L2.
 
+(*Definition interseqt (L1 L2 : seq loc) :=
+  filter (fun x =>  (x \in L1)) L2.*)
+
 Definition restrict (N: nvmem) (w: warvars): nvmem :=
   match N with NonVol m D => NonVol
-    (fun input => if (input \in w) then m input else error) w  end.
+    (fun input => if (input \in w) then m input else error) w end.
 
 Notation "N '|!' w" := (restrict N w) 
   (at level 40, left associativity).
@@ -766,7 +769,8 @@ Compute test1 == test2.
 Definition isdomain_nvm (N: nvmem) (w: warvars) :=
   (getdomain N) == w.
 Definition subset_nvm (N1 N2: nvmem) :=
-  (subseq (getdomain N1) (getdomain N2)) /\ (forall(l: loc),
+  (*start here take out the domain requirement*)
+  (*(subseq (getdomain N1) (getdomain N2))*) (forall(l: loc),
                                     l \in (getdomain N1) ->
                                     (getmap N1) l = (getmap N2) l
                                   ).
