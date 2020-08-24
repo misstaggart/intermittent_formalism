@@ -228,13 +228,13 @@ Lemma three N0 V0 c0 N01 V01 c01 Ni Ni1 V V1 c c1 Nc O W:
   (exists(Oc: obseq) (Nc1: nvmem) (Wc: the_write_stuff) , trace_cs (Nc, V, c) (Nc1, V1, c1) Oc Wc /\
                    all_diff_in_fw Ni1 V1 c1 Nc1).
 Proof.
-  intros. move: H. (* remember H0 as Ht. induction H0.
+  intros. move: Nc H H3. (* remember H0 as Ht. induction H0.
                     ask arthur*)
 dependent induction H0; intros.
-  + move: (three_bc H4 H H0) => [ Nc1 [Tdone Hdone] ].
+  + move: (three_bc H3 H H0) => [ Nc1 [Tdone Hdone] ].
     exists O Nc1 W. repeat split; try assumption. 
   + assert (all_diff_in_fw Ni V01 c01 (N01 U! Nmid)) as Hdiffrb.
-    - inversion H6. subst.  econstructor; try apply T; try assumption.
+    - inversion H5. subst.  econstructor; try apply T; try assumption.
     move => el. apply/ eqP / negPn/ negP => contra.
    apply update_diff in contra. destruct contra as [ [con11 con12] | [con21 con22] ].
    destruct H4 as [H41 H42]. apply con11. apply (H42 (inr el) con12).
@@ -248,7 +248,8 @@ dependent induction H0; intros.
    apply (fw_gets_bigger H H1 T H7 good).
    rewrite in_nil in bad. by discriminate bad.
    eapply IHtrace_i1; try reflexivity; try assumption.
-   apply sub_update. apply (all_diff_in_fw_trans (all_diff_in_fw_sym Hdiffrb) H6).
+   apply sub_update. apply (all_diff_in_fw_trans (all_diff_in_fw_sym Hdiffrb) H5).
+ +
 
    exfalso. apply/nilP: bad.
    rewrite nilP in bad.

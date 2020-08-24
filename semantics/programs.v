@@ -254,7 +254,7 @@ Inductive trace_i1: iconf -> iconf -> obseq -> the_write_stuff -> Prop :=
                                                                (incheckpoint w);;crem) O1 W1 (*1st
                                                                                                checkpointed section*)
                         -> checkpoint \notin O1
-                        -> trace_i1 (((Nc0 |! w), Vmid, crem), Nmid, Vmid, crem)
+                        -> trace_i1 (((Nmid |! w), Vmid, crem), Nmid, Vmid, crem)
                                    ((Nc1, Vc1, cc1), Nend, Vend, cend) O2 W2
                         -> trace_i1 ((Nc0, Vc0, cc0), N0, V0, c0)
                                    ((Nc1, Vc1, cc1), Nend, Vend, cend)
