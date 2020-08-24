@@ -253,6 +253,39 @@ Lemma adif_refl {N V c Nend Vend O W}:
         all_diff_in_fw N V c N.
 Admitted.
 
+Lemma threeIS1 N0 Ni Ni1 V V1 c c1 Nc O W:
+  all_diff_in_fw Ni V c Nc -> (*ensures well formed up till nearest endcom*)
+  trace_i1 ((N0, V, c), Ni, V, c) ((N0, V, c), Ni1, V1, c1) O W ->
+  WARok (getdomain N0) [::] [::] c ->
+  subset_nvm N0 Ni -> subset_nvm N0 Nc ->
+  checkpoint \notin O ->
+  (exists(Oc: obseq) (Nc1: nvmem) (Wc: the_write_stuff) , trace_cs (Nc, V, c) (Nc1, V1, c1) Oc Wc /\ all_diff_in_fw Ni1 V1 c1 Nc1 
+  ).
+Proof. intros. move: Nc H H3. (* remember H0 as Ht. induction H0.
+                    ask arthur*)
+dependent induction H0; intros.
+  + move: (three_bc H3 H H0) => [ Nc1 [Tdone Hdone] ].
+    exists O Nc1 W. repeat split; try assumption.
+  + assert (all_diff_in_fw Ni V c (N0 U! Nmid)) as Hdiffrb.
+    - inversion H6. subst.  econstructor; try apply T; try assumption.
+    move => el. apply/ eqP / negPn/ negP => contra.
+   apply update_diff in contra. destruct contra as [ [con11 con12] | [con21 con22] ].
+   apply con11. apply (H4 (inr el) con12).
+   move: (trace_diff H con21) => Hdiff.
+   move/negP :(wts_cped_arr H H3 H1 con22). by apply.
+   move => l. move/eqP/update_diff => [ [diff11 diff12] | [diff21 diff22] ]. case diff11. apply (H4 l diff12).
+   move: (trace_diff H diff21) => Hdiff.
+   (*start here clean up repeated work in above*)
+   move: (wts_cped_sv H H3 H1 diff22 Hdiff)  => [good | bad].
+   rewrite/remove filter_predT in good.
+   apply (fw_gets_bigger H H1 T H8 good).
+   rewrite in_nil in bad. by discriminate bad.
+   eapply IHtrace_i1; try reflexivity; try assumption.
+   apply sub_update. apply (all_diff_in_fw_trans (all_diff_in_fw_sym Hdiffrb) H6).
+      + repeat rewrite mem_cat in H4. move/norP: H4 => [Hb H4].
+        move/norP: H4 => [contra Hb1]. by case/negP : contra. 
+Qed.
+
 Lemma three N0 (*V0 c0*) N01 V01 c01 Ni Ni1 Nend V V1 Vend c c1 Nc O W Oend Wend:
   all_diff_in_fw Ni V c Nc ->
   trace_i1 ((N0, V, c), Ni, V, c) ((N01, V01, c01), Ni1, V1, c1) O W ->
