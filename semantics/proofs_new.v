@@ -226,6 +226,10 @@ Lemma adif_works {N1 N2 V c Nend Vend O1 W1}:
   trace_cs (N1, V, c) (Nend, Vend, Ins skip) O1 W1 ->
   trace_cs (N2, V, c) (Nend, Vend, Ins skip) O1 W1. Admitted.
 
+Lemma trace_converge {N V crem Nc} {w: warvars}:
+  all_diff_in_fw N V ((incheckpoint w);;crem) Nc ->
+  N = Nc. Admitted.
+
 Lemma three N0 V0 c0 N01 V01 c01 Ni Ni1 Nend V V1 Vend c c1 Nc O W Oend Wend:
   all_diff_in_fw Ni V c Nc ->
   trace_i1 ((N0, V, c), Ni, V, c) ((N01, V01, c01), Ni1, V1, c1) O W ->
@@ -258,7 +262,22 @@ dependent induction H0; intros.
    rewrite in_nil in bad. by discriminate bad.
    eapply IHtrace_i1; try reflexivity; try assumption.
    apply sub_update. apply (all_diff_in_fw_trans (all_diff_in_fw_sym Hdiffrb) H6).
- +
+      +
+        remember ((incheckpoint w);;crem) as ccp.
+        suffices: (exists Oc Oendc Nc1 Wc
+                 Wendc,
+                 trace_cs (Nc, V0, c)
+                          (Nc1, V1, ccp) Oc Wc /\
+                 all_diff_in_fw Nmid Vmid ccp Nc1 /\
+                 trace_cs (Nc1, V1, ccp)
+                   (Nend, Vend, Ins skip) Oendc
+                   Wendc
+                  ).
+    - move => [Oc1 [Oendc1 [Nc1 [Wc1 [Wendc1 [H11 [H12 H13] ] ] ] ] ] ]. subst.
+      move: (trace_converge H12) => Heq. subst.
+      eapply IHtrace_i1_2; try reflexivity.
+      (*showing adif Nc1 V1 Nmid*)
+
 
    exfalso. apply/nilP: bad.
    rewrite nilP in bad.
