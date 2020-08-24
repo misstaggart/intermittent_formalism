@@ -47,6 +47,7 @@ Lemma empty_trace_s: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
     trace_cs C1 C2 O W -> O = [::] -> C1 = C2 /\ W = emptysets.
 Admitted.
 
+
 Lemma observe_checkpt_s: forall {N N': nvmem} {V V': vmem}
                      {c c' : command} {w: warvars}
                     {O: obseq} {W: the_write_stuff},
@@ -220,21 +221,29 @@ Lemma all_diff_in_fw_trans {Nc0 V1 c1 Nc1 Nc2}:
   all_diff_in_fw Nc1 V1 c1 Nc2 ->
   all_diff_in_fw Nc0 V1 c1 Nc2. Admitted.
 
-Lemma three N0 V0 c0 N01 V01 c01 Ni Ni1 V V1 c c1 Nc O W:
+Lemma adif_works {N1 N2 V c Nend Vend O1 W1}:
+  all_diff_in_fw N1 V c N2 ->
+  trace_cs (N1, V, c) (Nend, Vend, Ins skip) O1 W1 ->
+  trace_cs (N2, V, c) (Nend, Vend, Ins skip) O1 W1. Admitted.
+
+Lemma three N0 V0 c0 N01 V01 c01 Ni Ni1 Nend V V1 Vend c c1 Nc O W Oend Wend:
   all_diff_in_fw Ni V c Nc ->
   trace_i1 ((N0, V, c), Ni, V, c) ((N01, V01, c01), Ni1, V1, c1) O W ->
   WARok (getdomain N0) [::] [::] c ->
   subset_nvm N0 Ni -> subset_nvm N0 Nc ->
-  (exists(Oc: obseq) (Nc1: nvmem) (Wc: the_write_stuff) , trace_cs (Nc, V, c) (Nc1, V1, c1) Oc Wc /\
-                   all_diff_in_fw Ni1 V1 c1 Nc1).
+  trace_cs (Ni1, V1, c1) (Nend, Vend, Ins skip) Oend Wend -> (*ensuring int mem is well formed,
+                                                   can put Ni1 arbitrarily far back after this lemma is finished*)
+  (exists(Oc Oendc: obseq) (Nc1: nvmem) (Wc Wendc: the_write_stuff) , trace_cs (Nc, V, c) (Nc1, V1, c1) Oc Wc /\ all_diff_in_fw Ni1 V1 c1 Nc1 /\ trace_cs (Nc1, V1, c1) (Nend, Vend, Ins skip) Oendc Wendc
+  ).
 Proof.
   intros. move: Nc H H3. (* remember H0 as Ht. induction H0.
                     ask arthur*)
 dependent induction H0; intros.
   + move: (three_bc H3 H H0) => [ Nc1 [Tdone Hdone] ].
-    exists O Nc1 W. repeat split; try assumption. 
+    exists O Oend Nc1 W Wend. repeat split; try assumption.
+    apply (adif_works Hdone H4).
   + assert (all_diff_in_fw Ni V01 c01 (N01 U! Nmid)) as Hdiffrb.
-    - inversion H5. subst.  econstructor; try apply T; try assumption.
+    - inversion H6. subst.  econstructor; try apply T; try assumption.
     move => el. apply/ eqP / negPn/ negP => contra.
    apply update_diff in contra. destruct contra as [ [con11 con12] | [con21 con22] ].
    destruct H4 as [H41 H42]. apply con11. apply (H42 (inr el) con12).
@@ -245,10 +254,10 @@ dependent induction H0; intros.
    (*start here clean up repeated work in above*)
    move: (wts_cped_sv H H3 H1 diff22 Hdiff)  => [good | bad].
    rewrite/remove filter_predT in good.
-   apply (fw_gets_bigger H H1 T H7 good).
+   apply (fw_gets_bigger H H1 T H8 good).
    rewrite in_nil in bad. by discriminate bad.
    eapply IHtrace_i1; try reflexivity; try assumption.
-   apply sub_update. apply (all_diff_in_fw_trans (all_diff_in_fw_sym Hdiffrb) H5).
+   apply sub_update. apply (all_diff_in_fw_trans (all_diff_in_fw_sym Hdiffrb) H6).
  +
 
    exfalso. apply/nilP: bad.
