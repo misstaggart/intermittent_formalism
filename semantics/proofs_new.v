@@ -409,20 +409,33 @@ dependent induction H0; intros.
        move: (trace_append_ic H0_0 H4) => [Nc1endi [Vc1endi [cend Tendi] ] ].
        Check threeIS1.
        move: (threeIS1 H0 H0_ H1 H2 H3 H) => [Oc [Nc1 [Wc [T1 Hdiff] ] ] ].
-       move/exist_endcom: Tendi => [Oendc [Wendc [Nc1end [Vc1end
+       move/exist_endcom: Tendi => [Oendc0 [Wendc0 [Nc1end0 [Vc1end
                                                            [cend0 [Tend [Hendcom Hoendc] ] ] ] ] ] ].
-       exists Oc Oendc Nc1 Wc Wendc Nc1end. exists Vc1end cend0. subst.
-       apply trace_converge in Hdiff.
-       repeat split; try assumption. 
-       apply 
-       eapply IHtrace_i1_1; try reflexivity; try assumption.
-      assert (WARok (getdomain (Nmid |! w)) [::] [::] crem) as Hwarok2.
-      destruct Nmid as [mc1 dc1]. rewrite/getdomain. simpl.
-      Check warok_cp. subst.
-      Check same_comi.
+       Check same_comi.
+assert (WARok (getdomain (Nc1 |! w)) [::] [::] crem) as Hwarok2.
+      destruct Nc1 as [mc1 dc1]. rewrite/getdomain. simpl.
+      subst.
       move: (same_comi H1 H2 H0_ H) => [Nend1 [Oc1 [Wc1 [Tc1 Hoc1] ] ] ].
       apply (warok_cp H1 Tc1).
-      Check exist_endcom.
+      Check same_comi. subst.
+       apply trace_converge in Hdiff. subst.
+       move: (same_comi Hwarok2 (sub_restrict Nc1 w) Tend Hoendc) =>
+      [Nc1end [Oendc [Wendc [Tendc Hcpoendc] ] ] ].                                                            
+       exists Oc Oendc Nc1 Wc Wendc Nc1end. exists Vc1end cend0. subst.
+       repeat split; try assumption. 
+       econstructor; try eapply CsTrace_Empty; auto. right.
+       exists crem w. by [].
+Qed.
+
+
+
+      apply same
+      move: (exist_endcom )
+       pose proof (same_comi )
+         by rewrite in_nil. auto.
+       eapply adif_refl.
+       eapply IHtrace_i1_1; try reflexivity; try assumption.
+            Check exist_endcom.
 
 
       move: (exist_endcom H0_0) => [Oend [Wend [Nend2 ] ] ].
