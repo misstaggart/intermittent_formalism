@@ -43,6 +43,45 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
                               forall(l: loc), l \in (getwt W) -> ((getmap Ni1) l = (getmap Nc1) l)).
 Admitted.
 
+Lemma exist_endcom {N0 V0 c0 N01 V01 c01 N V c N1 V1 O W}:
+  trace_i1 ((N0, V0, c0), N, V, c) ((N01, V01, c01), N1, V1, Ins skip) O W ->
+  (exists(Osmall: obseq) (Wsmall: the_write_stuff) (N2: nvmem) (V2: vmem) (c2: command),
+    trace_i1 ((N0, V0, c0), N, V, c) ((N0, V0, c0), N2, V2, c2) Osmall Wsmall /\
+    end_com c2 /\ checkpoint \notin Osmall). Admitted.
+
+Lemma same_com {N0 N V c Nmid Vmid cmid O1 W1 Nend1 Vend cend O2 W2}:
+  WARok (getdomain N0) [::] [::] c ->
+  subset_nvm N0 N ->
+  trace_cs (N, V, c) (Nmid, Vmid, cmid) O1 W1 ->
+  trace_cs (N0 U! Nmid, V, c) (Nend1, Vend, cend) O2 W2 ->
+  exists (Nend2: nvmem), trace_cs (N, V, c) (Nend2, Vend, cend) O2 W2.
+Admitted.
+
+Lemma same_comi {N0 N V c O1 W1 Nend Vend cend }:
+  WARok (getdomain N0) [::] [::] c ->
+  subset_nvm N0 N ->
+  trace_i1 ((N0, V, c), N, V, c) ((N0, V, c), Nend, Vend, cend) O1 W1 ->
+  checkpoint \notin O1 ->
+  exists (Nend2: nvmem) (Oc: obseq) (Wc: the_write_stuff), (trace_cs (N, V, c) (Nend2, Vend, cend) Oc Wc /\
+checkpoint \notin Oc).
+  intros. dependent induction  H1.
+  exists Nend O W. split; assumption.
+  suffices:(exists Nend2 Oc Wc,
+               trace_cs (N0 U! Nmid, V, c)
+                 (Nend2, Vend, cend) Oc Wc /\
+               checkpoint \notin Oc
+           ). move => [Nend2 [Ocend [Wcend [Tend Hocend] ] ] ].
+  move: (same_com H H0 H3 Tend) => [Nend0 Tdone].
+  exists Nend0 Ocend Wcend. split; assumption.
+  eapply IHtrace_i1; try reflexivity; try assumption.
+  apply sub_update.
+  repeat rewrite mem_cat in H2. move/norP: H2 => [Hblah H2].
+  move/norP: H2 => [contra Hb]. rewrite mem_seq1 in contra.
+    by case/eqP : contra.
+    Qed.
+ 
+
+
 Lemma empty_trace_s: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
     trace_cs C1 C2 O W -> O = [::] -> C1 = C2 /\ W = emptysets.
 Admitted.
@@ -248,12 +287,14 @@ Lemma warok_cp {N1 N2 V1 V2 c crem O W}
   trace_cs (N1, V1, c) (N2, V2, incheckpoint w1;; crem) O W ->
   WARok w1 [::] [::] crem. Admitted.
 
-Lemma adif_refl {N V c Nend Vend O W}:
-        trace_cs (N, V, c) (Nend, Vend, Ins skip) O W ->
+Lemma adif_refl {N V c c1 Nend Vend O W}:
+  trace_cs (N, V, c) (Nend, Vend, c1) O W ->
+  end_com c1 ->
+  checkpoint \notin O ->
         all_diff_in_fw N V c N.
 Admitted.
 
-Lemma threeIS1 N0 Ni Ni1 V V1 c c1 Nc O W:
+Lemma threeIS1 {N0 Ni Ni1 V V1 c c1 Nc O W}:
   all_diff_in_fw Ni V c Nc -> (*ensures well formed up till nearest endcom*)
   trace_i1 ((N0, V, c), Ni, V, c) ((N0, V, c), Ni1, V1, c1) O W ->
   WARok (getdomain N0) [::] [::] c ->
@@ -285,6 +326,17 @@ dependent induction H0; intros.
       + repeat rewrite mem_cat in H4. move/norP: H4 => [Hb H4].
         move/norP: H4 => [contra Hb1]. by case/negP : contra. 
 Qed.
+
+Lemma trace_append_ic {N0 V0 c0 N01 V01 c01 N1 V1 c1 N2 V2 c2
+                                      N3 V3 c3}
+                  {O1 O2: obseq}
+                  {W1 W2: the_write_stuff}:
+                  trace_i1 ((N0, V0, c0), N1, V1, c1) ((N01, V01, c01), N2, V2, c2) O1 W1 ->
+      trace_cs (N2, V2, c2) (N3, V3, c3) O2 W2  ->
+      exists(N02: nvmem) (V02: vmem) (c02: command), trace_i1 ((N0, V0, c0), N1, V1, c1)
+                                                         ((N02, V02, c02), N3, V3, c3) (O1 ++ O2) (append_write W1 W2).
+  Admitted.
+
 
 Lemma three N0 (*V0 c0*) N01 V01 c01 Ni Ni1 Nend V V1 Vend c c1 Nc O W Oend Wend:
   all_diff_in_fw Ni V c Nc ->
@@ -321,15 +373,19 @@ dependent induction H0; intros.
       +
         remember ((incheckpoint w);;crem) as ccp.
         suffices: (exists Oc Oendc Nc1 Wc
-                 Wendc,
+                 Wendc Nc1end Vc1end cend,
                  trace_cs (Nc, V, c)
                           (Nc1, Vmid, ccp) Oc Wc /\
                  all_diff_in_fw Nmid Vmid ccp Nc1 /\
-                 trace_cs (Nc1, Vmid, ccp)
-                   (Nend, Vend, Ins skip) Oendc
-                   Wendc
+                 trace_cs (Nc1, Vmid, crem)
+                   (Nc1end, Vc1end, cend) Oendc
+                   Wendc /\ checkpoint \notin Oendc /\ end_com cend
                   ).
-    - move => [Oc1 [Oendc1 [Nc1 [Wc1 [Wendc1 [H11 [H12 H13] ] ] ] ] ] ]. subst.
+    - move => [Oc1 [Oendc1 [Nc1 [Wc1 [Wendc1 [ Nc1end [ Vc1end
+            [ ccend [H11 [H12 [H13 [H14 H15] ] ] ] ] ] ] ] ] ] ] ]. subst.
+      assert (WARok (getdomain (Nc1 |! w)) [::] [::] crem) as Hwarok2.
+      destruct Nc1 as [mc1 dc1]. rewrite/getdomain. simpl.
+      apply (warok_cp H1 H11). 
       move: (trace_converge H12) => Heq. subst.
       suffices: (
                  exists Oc2 Oendc2 Nc2 Wc2 Wendc2,
@@ -347,17 +403,30 @@ dependent induction H0; intros.
       repeat split; try assumption.
       eapply IHtrace_i1_2; try reflexivity; try assumption;
       try apply sub_restrict.
-      destruct Nc1 as [mc1 dc1]. rewrite/getdomain. simpl.
-      apply (warok_cp H1 H11). 
-      assert (Oendc1 <> [::]) as Hoendc1. intros contra. subst.
-      apply empty_trace_s in H13. destruct H13 as
-          [eq1 eq2]. inversion eq1. reflexivity.
-      move: (single_step_alls H13 Hoendc1 (CheckPoint Nc1 Vmid crem w)) => [Wc2 [Oc2 [Tc1end Hb] ] ].
-      apply (adif_refl Tc1end).
-    - eapply IHtrace_i1_1; try reflexivity; try assumption.
+      apply (adif_refl H13 H15 H14).
+     -
+       Check trace_append_ic.
+       move: (trace_append_ic H0_0 H4) => [Nc1endi [Vc1endi [cend Tendi] ] ].
+       Check threeIS1.
+       move: (threeIS1 H0 H0_ H1 H2 H3 H) => [Oc [Nc1 [Wc [T1 Hdiff] ] ] ].
+       move/exist_endcom: Tendi => [Oendc [Wendc [Nc1end [Vc1end
+                                                           [cend0 [Tend [Hendcom Hoendc] ] ] ] ] ] ].
+       exists Oc Oendc Nc1 Wc Wendc Nc1end. exists Vc1end cend0. subst.
+       apply trace_converge in Hdiff.
+       repeat split; try assumption. 
+       apply 
+       eapply IHtrace_i1_1; try reflexivity; try assumption.
+      assert (WARok (getdomain (Nmid |! w)) [::] [::] crem) as Hwarok2.
+      destruct Nmid as [mc1 dc1]. rewrite/getdomain. simpl.
+      Check warok_cp. subst.
+      Check same_comi.
+      move: (same_comi H1 H2 H0_ H) => [Nend1 [Oc1 [Wc1 [Tc1 Hoc1] ] ] ].
+      apply (warok_cp H1 Tc1).
+      Check exist_endcom.
 
-      Lemma single_steps_cp_skip {N V c Nend Vend crem O W}
-      
+
+      move: (exist_endcom H0_0) => [Oend [Wend [Nend2 ] ] ].
+     move: (same_comi Hwarok2 (sub_restrict Nmid w) H0_0 H) => [Nthing [Wthing Thing] ].
 
     - eapply IHtr
       (*showing adif Nc1 V1 Nmid*)
@@ -415,6 +484,7 @@ dependent induction H0; intros.
   - move => [ Nc1 [Tmid2end Hmid2end] ]. exists Nc1. split; try assumption.
     eapply CsTrace_Cons; try apply Tmid2end; try assumption.
     eapply IHtrace_cs; try reflexivity; try assumption.
+    apply trace_converge in Hdiff.
 
 
     apply Hmid2end.
@@ -470,4 +540,3 @@ dependent induction H0; intros.
     remember T as T1. apply (contra _ _ _) in T.
     econstructor.
     apply T.*)
- -
