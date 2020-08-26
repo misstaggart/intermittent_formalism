@@ -429,7 +429,23 @@ assert (WARok (getdomain (Nc1 |! w)) [::] [::] crem) as Hwarok2.
        exists crem w. by [].
 Qed.
 
-Theorem One {N0 V c N01 V01 c01 Ni Oi Nendi Vend Nc Wi 
+  Lemma both_cp {O1 O2} :
+    (O1 <=f O2) -> checkpoint \notin O1 ->
+     O1 <=m O2.
+    intros. inversion H; subst; try assumption.
+    repeat rewrite mem_cat in H0.
+    move/norP : H0 => [Hb H0]. move/norP: H0 => [contra Hb2].
+    exfalso. move/negP: contra. by apply. Qed.
+
+  Lemma ctrace_det_obs {N V c Nmid Vmid cmid
+                          Nend Vend Omid Wmid Oend Wend}:
+    trace_cs (N, V, c)
+            (Nmid, Vmid, cmid) Omid Wmid ->
+ trace_cs (N, V, c)
+          (Nend, Vend, Ins skip) Oend Wend ->
+ Omid <= Oend. Admitted. (*induct over 1, then 2 nested*)
+
+    Theorem One {N0 V c N01 V01 c01 Ni Oi Nendi Vend Nc Wi
            }:
       trace_i1 ((N0, V, c), Ni, V, c) ((N01, V01, c01), Nendi, Vend, Ins skip) Oi Wi ->
 subset_nvm N0 Ni -> 
@@ -449,14 +465,27 @@ intros. dependent induction H.
          (O1 ++ [:: reboot] ++ [::]) (append_write W1 emptysets)) as Tis3.
   eapply iTrace_RB; try apply H; try assumption; try repeat constructor.
   Check threeIS1.
-  assert (checkpoint \notin O1 ++ [:: reboot] ++ [::]). repeat rewrite mem_cat. repeat apply/norP.
-  move: (threeIS1 H4 Tis3 H5 H3 H4). => [Nmidc [Tcmid  Hdiff] ].
+  assert (checkpoint \notin O1 ++ [:: reboot] ++ [::]) as Hcp. repeat rewrite mem_cat. repeat (apply/norP; split); try assumption; try auto.
+  Check threeIS1.
+  move: (threeIS1 H4 Tis3 H5 H3 Hcp) => [Ocuseless [Ncuseless [Wcusless
+                                                         [Tusless Hdiff] ] ] ].
   suffices: (exists Nendc Oc Wc,
                trace_cs (Nc, V01, c01)
                  (Nendc, Vend, Ins skip) Oc Wc /\
                (O2 <=f Oc) /\
                nvmem_eq Nendi Nendc).
-  intros Nendc0 Oc Wc.
+  move => [Nendc [Oc [ Wc [Tdone [Hoend HNdone] ] ] ] ].
+  exists Nendc Oc Wc; repeat split; try assumption.
+  move: (both_cp Hoend H2) => Hprefixend.
+  move: (three_bc H4 H H1) => [Ncmid [Tcmid Hdiffmid] ].
+
+
+
+  repeat constructor; try assumption; try 
+  (eapply (neg_observe_rb); try eassumption).
+
+
+  Lemma ctrace_subseq
 
   eapply IHtrace_i1.
   (*strange philosophically that one can approach deductive truth
