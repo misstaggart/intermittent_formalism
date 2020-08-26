@@ -17,11 +17,13 @@ Implicit Types x: smallvar.
 
 Definition end_com c := c = Ins skip \/ exists(crem: command)(w: warvars), c= (incheckpoint w);; crem.
 
-Definition nvm_eq N1 N2 := subseq (getdomain N1) (getdomain N2) /\
+(*Definition nvm_eq N1 N2 := subseq (getdomain N1) (getdomain N2) /\
                            subseq (getdomain N2) (getdomain N1).
 
 Lemma hacky_nvm_eq N1 N2 : nvm_eq N1 N2 <-> (getdomain N1) = (getdomain N2).
-Admitted.
+Admitted.*)
+
+Definition nvmem_eq N1 N2 := (getmap N1) =1 (getmap N2).
 
 (*why do you include the volatile memory
  maybe to make the traces more tractable
@@ -298,7 +300,7 @@ Lemma threeIS1 {N0 Ni Ni1 V V1 c c1 Nc O W}:
   all_diff_in_fw Ni V c Nc -> (*ensures well formed up till nearest endcom*)
   trace_i1 ((N0, V, c), Ni, V, c) ((N0, V, c), Ni1, V1, c1) O W ->
   WARok (getdomain N0) [::] [::] c ->
-  subset_nvm N0 Ni -> subset_nvm N0 Nc ->
+  subset_nvm N0 Ni -> 
   checkpoint \notin O ->
   (exists(Oc: obseq) (Nc1: nvmem) (Wc: the_write_stuff) , trace_cs (Nc, V, c) (Nc1, V1, c1) Oc Wc /\ all_diff_in_fw Ni1 V1 c1 Nc1 
   ).
@@ -308,7 +310,7 @@ dependent induction H0; intros.
   + move: (three_bc H3 H H0) => [ Nc1 [Tdone Hdone] ].
     exists O Nc1 W. repeat split; try assumption.
   + assert (all_diff_in_fw Ni V c (N0 U! Nmid)) as Hdiffrb.
-    - inversion H6. subst.  econstructor; try apply T; try assumption.
+    - inversion H5. subst.  econstructor; try apply T; try assumption.
     move => el. apply/ eqP / negPn/ negP => contra.
    apply update_diff in contra. destruct contra as [ [con11 con12] | [con21 con22] ].
    apply con11. apply (H4 (inr el) con12).
@@ -319,12 +321,12 @@ dependent induction H0; intros.
    (*start here clean up repeated work in above*)
    move: (wts_cped_sv H H3 H1 diff22 Hdiff)  => [good | bad].
    rewrite/remove filter_predT in good.
-   apply (fw_gets_bigger H H1 T H8 good).
+   apply (fw_gets_bigger H H1 T H7 good).
    rewrite in_nil in bad. by discriminate bad.
    eapply IHtrace_i1; try reflexivity; try assumption.
-   apply sub_update. apply (all_diff_in_fw_trans (all_diff_in_fw_sym Hdiffrb) H6).
-      + repeat rewrite mem_cat in H4. move/norP: H4 => [Hb H4].
-        move/norP: H4 => [contra Hb1]. by case/negP : contra. 
+   apply sub_update. apply (all_diff_in_fw_trans (all_diff_in_fw_sym Hdiffrb) H5).
+      + repeat rewrite mem_cat in H3. move/norP: H3 => [Hb H3].
+        move/norP: H3 => [contra Hb1]. by case/negP : contra. 
 Qed.
 
 Lemma trace_append_ic {N0 V0 c0 N01 V01 c01 N1 V1 c1 N2 V2 c2
@@ -338,7 +340,7 @@ Lemma trace_append_ic {N0 V0 c0 N01 V01 c01 N1 V1 c1 N2 V2 c2
   Admitted.
 
 
-Lemma three N0 (*V0 c0*) N01 V01 c01 Ni Ni1 Nend V V1 Vend c c1 Nc O W Oend Wend:
+Lemma three {N0 N01 V01 c01 Ni Ni1 Nend V V1 Vend c c1 Nc O W Oend Wend}:
   all_diff_in_fw Ni V c Nc ->
   trace_i1 ((N0, V, c), Ni, V, c) ((N01, V01, c01), Ni1, V1, c1) O W ->
   WARok (getdomain N0) [::] [::] c ->
@@ -427,46 +429,37 @@ assert (WARok (getdomain (Nc1 |! w)) [::] [::] crem) as Hwarok2.
        exists crem w. by [].
 Qed.
 
+Theorem One {N0 V c N01 V01 c01 Ni Oi Nendi Vend Nc Wi 
+           }:
+      trace_i1 ((N0, V, c), Ni, V, c) ((N01, V01, c01), Nendi, Vend, Ins skip) Oi Wi ->
+subset_nvm N0 Ni -> 
+all_diff_in_fw Ni V c Nc ->
+WARok (getdomain N0) [::] [::] c ->
+(exists(Nendc: nvmem) (Oc: obseq) (Wc: the_write_stuff) , trace_cs (Nc, V, c) (Nendc, Vend, Ins skip) Oc Wc /\
+(Oi <=f Oc) /\ (nvmem_eq Nendi Nendc)).
+intros. dependent induction H.
+- (*all continuous execution*)
+  exists Nendi O W. repeat split. apply (adif_works H3 H). repeat constructor. apply (neg_observe_rb H). assumption.
+- (*reboot*)
+  Check three_bc.
+  assert (trace_i1
+         (N01, V01, c01, Ni, V01,
+         c01)
+         (N01, V01, c01, N01 U! Nmid, V01, c01)
+         (O1 ++ [:: reboot] ++ [::]) (append_write W1 emptysets)) as Tis3.
+  eapply iTrace_RB; try apply H; try assumption; try repeat constructor.
+  Check threeIS1.
+  move: (threeIS1 H5 Tis3 H6 H3 H4). => [Nmidc [Tcmid  Hdiff] ].
+  suffices: (exists Nendc Oc Wc,
+               trace_cs (Nc, V01, c01)
+                 (Nendc, Vend, Ins skip) Oc Wc /\
+               (O2 <=f Oc) /\
+               nvmem_eq Nendi Nendc).
+  intros Nendc0 Oc Wc.
 
-
-      apply same
-      move: (exist_endcom )
-       pose proof (same_comi )
-         by rewrite in_nil. auto.
-       eapply adif_refl.
-       eapply IHtrace_i1_1; try reflexivity; try assumption.
-            Check exist_endcom.
-
-
-      move: (exist_endcom H0_0) => [Oend [Wend [Nend2 ] ] ].
-     move: (same_comi Hwarok2 (sub_restrict Nmid w) H0_0 H) => [Nthing [Wthing Thing] ].
-
-    - eapply IHtr
-      (*showing adif Nc1 V1 Nmid*)
-
-
-   exfalso. apply/nilP: bad.
-   rewrite nilP in bad.
-   apply good.
-
-
-   apply update_diff in Hdiff.
-
-   apply/ eqP / negPn/ negP => contra.
-   apply update_diff in contra. destruct contra as [ [con11 con12] | [con21 con22] ].
-   destruct H4 as [H41 H42]. apply con11. apply (H42 (inr el) con12).
-   move: (trace_diff H con21) => Hdiff.
-   move/negP :(wts_cped_arr H H3 H1 con22). by apply.
-   rewrite/subset_nvm in H4.
-
-
-
-   move: (wts_cped_arr H H3 H1)
-
-
-    move: (three_bc H6 H H1) => Hmid.
-    (*get rid of observation stuff, you dont need it,
-     just say exists*)
+  eapply IHtrace_i1.
+  (*strange philosophically that one can approach deductive truth
+   from a sort of back door*)
 
 
 
@@ -477,79 +470,3 @@ Qed.
 
 
 
-
-
-
-        dependent induction H; intros.
-    (*empty trace case*)
-  - exists Nc; split; auto; constructor.
-    (*cceval case*)
-  -  move: (three_bc1 H4 H H0) => [Nc1 [Hcceval Hdiff] ].
-     exists Nc1. split; try assumption. apply (CsTrace_Single Hcceval).
-  - (*inductive cs case*)
-    destruct Cmid as [ [Nmid Vmid] cmid]. Check three_bc1.
-    rewrite mem_cat in H2. move/norP : H2 => [H21 H22].
-    (*start here is there a way to combine the above*)
-    move: (three_bc1 H6 H1 H21) => [Ncmid [Tmid Hmid] ].
-    suffices: exists Nc1,
-               trace_cs (Ncmid, Vmid, cmid) (Nc1, V1, c1) O2 W2 /\
-               all_diff_in_fw Ni1 V1 c1 Nc1.
-  - move => [ Nc1 [Tmid2end Hmid2end] ]. exists Nc1. split; try assumption.
-    eapply CsTrace_Cons; try apply Tmid2end; try assumption.
-    eapply IHtrace_cs; try reflexivity; try assumption.
-    apply trace_converge in Hdiff.
-
-
-    apply Hmid2end.
-
-    Check two.
-    suffices: exists Nc1,
-       trace_cs (Nc, V, c) (Nc1, Vmid, cmid) O1 W1 /\
-       all_diff_in_fw Nmid Vmid cmid Nc1.
-  - intros thing.  destruct thing as [Nc1 thing].
-    move => [Nc1].
-
-    move: (two H1 H) => [Nc1 [Hcceval Heq] ]. exists Nc1.
-    split. apply CsTrace_Single; assumption.
-    inversion H1. subst. 
-    (*getting ready to apply single_step_alls*)
-    assert (O0 <> [::]) as Ho0.
-    - move/ (empty_trace_s T) => [ [contra10 [contra11 contra12] ] contra2]. subst. case H2 as [Hskip | [crem [w Hcp] ] ]; subst.
-    inversion Hcceval. move/negP : H0. apply.
-    (*start here why is apply/negP different from this*)
-    apply (observe_checkpt_s Hcceval).
-    (*ask arthur i want to write
-     exists O exists W H, like a function*)
-         move: (single_step_alls T Ho0 H) => [W1 [O1 [T1 [Hsub Hw ] ] ] ].
-         econstructor; try apply T1; try assumption.
-         apply/ negP => contra.
-         move/ negP : H3. apply.
-         apply (in_subseq Hsub contra).
-        (* apply (update_domc H Hcceval); assumption.*)
-         move => el. apply/ eqP / negPn/ negP.
-         move/ eqP => contra.
-         move: (update_onec H Hcceval (H4 el) contra) => Hwcontra.
-         apply Heq in Hwcontra. by apply contra.
-         move => l Hl.
-         destruct ((getmap Ni l) == (getmap Nc l)) eqn: Hcase;
-           move/eqP: Hcase => Hcase.
-         move: (update_onec H Hcceval Hcase Hl) => Hw1.
-         apply Heq in Hw1. exfalso. by apply Hl.
-         apply H5 in Hcase. subst. move/fw_split : Hcase => [Hc1 | Hc2].
-         move/ Heq : (in_subseq (fw_subst_wt (CsTrace_Single H)) Hc1) => contra. exfalso. by apply Hl. by [].
-   - (*larger continuous trace case*)
-         apply Heq in Hc1.
-         apply fw_split in Hcase.
-
-
-
-
-         case: ((getmap Ni l) == (getmap Nc l)) => [Hc1 | Hc2].
-         apply H5 in el.
-
-
-         apply/ negP : H3.
-    move: (observe_checkpt_s Hcceval) => Hin. apply H3.
-    remember T as T1. apply (contra _ _ _) in T.
-    econstructor.
-    apply T.*)
