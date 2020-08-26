@@ -410,7 +410,7 @@ dependent induction H0; intros.
        Check trace_append_ic.
        move: (trace_append_ic H0_0 H4) => [Nc1endi [Vc1endi [cend Tendi] ] ].
        Check threeIS1.
-       move: (threeIS1 H0 H0_ H1 H2 H3 H) => [Oc [Nc1 [Wc [T1 Hdiff] ] ] ].
+       move: (threeIS1 H0 H0_ H1 H2  H) => [Oc [Nc1 [Wc [T1 Hdiff] ] ] ].
        move/exist_endcom: Tendi => [Oendc0 [Wendc0 [Nc1end0 [Vc1end
                                                            [cend0 [Tend [Hendcom Hoendc] ] ] ] ] ] ].
        Check same_comi.
@@ -439,7 +439,7 @@ WARok (getdomain N0) [::] [::] c ->
 (Oi <=f Oc) /\ (nvmem_eq Nendi Nendc)).
 intros. dependent induction H.
 - (*all continuous execution*)
-  exists Nendi O W. repeat split. apply (adif_works H3 H). repeat constructor. apply (neg_observe_rb H). assumption.
+  exists Nendi O W. repeat split. apply (adif_works H2 H). repeat constructor. apply (neg_observe_rb H). assumption.
 - (*reboot*)
   Check three_bc.
   assert (trace_i1
@@ -449,7 +449,8 @@ intros. dependent induction H.
          (O1 ++ [:: reboot] ++ [::]) (append_write W1 emptysets)) as Tis3.
   eapply iTrace_RB; try apply H; try assumption; try repeat constructor.
   Check threeIS1.
-  move: (threeIS1 H5 Tis3 H6 H3 H4). => [Nmidc [Tcmid  Hdiff] ].
+  assert (checkpoint \notin O1 ++ [:: reboot] ++ [::]). repeat rewrite mem_cat. repeat apply/norP.
+  move: (threeIS1 H4 Tis3 H5 H3 H4). => [Nmidc [Tcmid  Hdiff] ].
   suffices: (exists Nendc Oc Wc,
                trace_cs (Nc, V01, c01)
                  (Nendc, Vend, Ins skip) Oc Wc /\
