@@ -431,19 +431,27 @@ Qed.
 
   Lemma both_cp {O1 O2} :
     (O1 <=f O2) -> checkpoint \notin O1 ->
-     O1 <=m O2.
-    intros. inversion H; subst; try assumption.
+    (O1 <=m O2) /\ checkpoint \notin O2.
+    Admitted.
+  (*  intros. inversion H; subst; try assumption.
     repeat rewrite mem_cat in H0.
     move/norP : H0 => [Hb H0]. move/norP: H0 => [contra Hb2].
-    exfalso. move/negP: contra. by apply. Qed.
+    exfalso. move/negP: contra. by apply. Qed.*)
 
   Lemma ctrace_det_obs {N V c Nmid Vmid cmid
                           Nend Vend Omid Wmid Oend Wend}:
     trace_cs (N, V, c)
-            (Nmid, Vmid, cmid) Omid Wmid ->
+             (Nmid, Vmid, cmid) Omid Wmid ->
+    checkpoint \notin Omid ->
  trace_cs (N, V, c)
-          (Nend, Vend, Ins skip) Oend Wend ->
+ (Nend, Vend, Ins skip) Oend Wend ->
+    checkpoint \notin Oend ->
  Omid <= Oend. Admitted. (*induct over 1, then 2 nested*)
+
+Lemma empty_trace_cs:
+  forall{N1 N2: nvmem} {V1 V2: vmem} {c: command} {O: obseq} {W: the_write_stuff},
+    trace_cs (N1, V1, c) (N2, V2, c) O W -> O = [::] /\ N1 = N2 /\ V1 = V2 /\ W = emptysets.
+Admitted.
 
     Theorem One {N0 V c N01 V01 c01 Ni Oi Nendi Vend Nc Wi
            }:
@@ -474,11 +482,16 @@ intros. dependent induction H.
                  (Nendc, Vend, Ins skip) Oc Wc /\
                (O2 <=f Oc) /\
                nvmem_eq Nendi Nendc).
-  move => [Nendc [Oc [ Wc [Tdone [Hoend HNdone] ] ] ] ].
+  - move => [Nendc [Oc [ Wc [Tdone [Hoend HNdone] ] ] ] ].
   exists Nendc Oc Wc; repeat split; try assumption.
-  move: (both_cp Hoend H2) => Hprefixend.
+  move: (both_cp Hoend H2) => [Hprefixend Hoccp].
   move: (three_bc H4 H H1) => [Ncmid [Tcmid Hdiffmid] ].
-
+  move: (ctrace_det_obs Tcmid H1 Tdone Hoccp) => Hprefixstart.
+  constructor. apply RB_Ind; try assumption.
+  apply (neg_observe_rb H). apply (neg_observe_rb Tdone).
+  - move: (empty_trace_cs Tusless) => [eq1 [eq2 [eq3 eq4] ] ]. subst.
+    eapply IHtrace_i1; try reflexivity; try assumption. apply sub_update.
+  -
 
 
   repeat constructor; try assumption; try 

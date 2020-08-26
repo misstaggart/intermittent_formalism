@@ -905,9 +905,11 @@ prefix_seq determines if each ro seq in O1 is a valid
 prefix of O2*)
 
 Inductive prefix: obseq -> obseq -> Prop :=
-  P_Base: forall(R: readobs), prefix [:: RdObs R] [:: RdObs R]
-| P_Ind: forall(R: readobs) (O1: obseq) (O2: obseq), prefix O1 O2 ->
-                                                prefix O1 (O2 ++ [:: RdObs R]).
+  P_Base: forall(O: obseq), checkpoint \notin O ->
+                       reboot \notin O -> prefix O O 
+| P_Ind: forall (O1 O2 O3: obseq), prefix O1 O2 ->
+                              reboot \notin O3 -> checkpoint \notin O3 ->
+                                                prefix O1 (O2 ++ O3).
 Notation "S <= T" := (prefix S T).
 (*some sort of spec start here?*)
 
