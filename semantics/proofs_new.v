@@ -276,12 +276,20 @@ Lemma trace_converge {N V crem Nc} {w: warvars}:
   all_diff_in_fw N V ((incheckpoint w);;crem) Nc ->
   N = Nc. Admitted.
 
+(*might be easier to just do appending in general*)
 Lemma append_cps {N1 V1 c1 N2 V2 crem O1 W1 N3 V3 c3 O2 W2}
         {w: warvars}:
         trace_cs (N1, V1, c1) (N2, V2, incheckpoint w;; crem) O1 W1 ->
         trace_cs (N2, V2, crem) (N3, V3, c3) O2 W2 ->
         trace_cs (N1, V1, c1) (N3, V3, c3) (O1 ++ O2) (append_write W1 W2).
-  Admitted.
+Admitted.
+
+Lemma step_end_cpi {N0 V0 N1 V1 c1 N2 V2 crem O1 W1 }
+        {w: warvars}:
+        trace_i1 ((N0, V0, c1), N1, V1, c1) ((N0, V0, c1), N2, V2, incheckpoint w;; crem) O1 W1 ->
+        trace_i1 ((N0, V0, c1), N1, V1, c1) ((N0, V0, c1), N2, V2, crem) O1 W1. 
+Admitted.
+
         (*induct on length of 1st trace, rewrite nested filters into filtering
          out the appended list*)
 
@@ -331,6 +339,7 @@ dependent induction H0; intros.
         move/norP: H3 => [contra Hb1]. by case/negP : contra. 
 Qed.
 
+(*wouldnt need this guy if i took in an intermittent trace in 3?*)
 Lemma trace_append_ic {N0 V0 c0 N01 V01 c01 N1 V1 c1 N2 V2 c2
                                       N3 V3 c3}
                   {O1 O2: obseq}
@@ -350,7 +359,10 @@ Lemma three {N0 N01 V01 c01 Ni Ni1 Nend V V1 Vend c c1 Nc O W Oend Wend cend}:
   trace_cs (Ni1, V1, c1) (Nend, Vend, cend) Oend Wend -> (*ensuring int mem is well formed,
                                                    can put Ni1 arbitrarily far back after this lemma is finished*)
   end_com cend -> checkpoint \notin Oend ->
-  (exists(Oc Oendc: obseq) (Nc1: nvmem) (Wc Wendc: the_write_stuff) , trace_cs (Nc, V, c) (Nc1, V1, c1) Oc Wc /\ all_diff_in_fw Ni1 V1 c1 Nc1 /\ trace_cs (Nc1, V1, c1) (Nend, Vend, cend) Oendc Wendc
+  (exists(Oc Oendc: obseq) (Nc1: nvmem) (Wc Wendc: the_write_stuff) ,
+      trace_cs (Nc, V, c) (Nc1, V1, c1) Oc Wc /\
+      all_diff_in_fw Ni1 V1 c1 Nc1 /\ (O <=f Oc) /\
+      trace_cs (Nc1, V1, c1) (Nend, Vend, cend) Oendc Wendc
   ).
 Proof.
   intros. move: Nc H H3. (* remember H0 as Ht. induction H0.
@@ -358,6 +370,8 @@ Proof.
 dependent induction H0; intros.
   + move: (three_bc H3 H H0) => [ Nc1 [Tdone Hdone] ].
     exists O Oend Nc1 W Wend. repeat split; try assumption.
+    apply CP_Base. apply RB_Base.
+    apply (neg_observe_rb H). assumption.
     apply (adif_works Hdone H6); try assumption.
   + assert (all_diff_in_fw Ni V01 c01 (N01 U! Nmid)) as Hdiffrb.
     - inversion H7. subst.  econstructor; try apply T; try assumption.
@@ -456,6 +470,24 @@ Lemma empty_trace_cs:
     trace_cs (N1, V1, c) (N2, V2, c) O W -> O = [::] /\ N1 = N2 /\ V1 = V2 /\ W = emptysets.
 Admitted.
 
+Theorem One2 {N0 V c N01 V01 c01 Ni Oi Nendi Vend Nc Wi
+           }:
+      trace_i1 ((N0, V, c), Ni, V, c) ((N01, V01, c01), Nendi, Vend, Ins skip) Oi Wi ->
+subset_nvm N0 Ni -> 
+all_diff_in_fw Ni V c Nc ->
+WARok (getdomain N0) [::] [::] c ->
+(exists(Nendc: nvmem) (Oc: obseq) (Wc: the_write_stuff) , trace_cs (Nc, V, c) (Nendc, Vend, Ins skip) Oc Wc /\
+(Oi <=f Oc) /\ (nvmem_eq Nendi Nendc)).
+suffices: 
+  (exists(Oc Oendc: obseq) (Nendc: nvmem) (Wc Wendc: the_write_stuff),
+      trace_cs (Nc, V, c) (Nendc, Vend, Ins skip) Oc Wc /\
+ all_diff_in_fw Nendi Vend skip Nendc /\ trace_cs (Nendc, Vend, Ins skip)
+            (Nendc, Vend, Ins skip) Oendc Wendc
+  ).
+move => [Oc threehyp] Ti Hsub Hdiff Hok.
+
+
+
     Theorem One {N0 V c N01 V01 c01 Ni Oi Nendi Vend Nc Wi
            }:
       trace_i1 ((N0, V, c), Ni, V, c) ((N01, V01, c01), Nendi, Vend, Ins skip) Oi Wi ->
@@ -466,7 +498,8 @@ WARok (getdomain N0) [::] [::] c ->
 (Oi <=f Oc) /\ (nvmem_eq Nendi Nendc)).
 intros. dependent induction H.
 - (*all continuous execution*)
-  exists Nendi O W. repeat split. apply (adif_works H2 H). repeat constructor. apply (neg_observe_rb H). assumption.
+  exists Nendi O W. repeat split. apply (adif_works H2 H); try assumption. by left.
+  repeat constructor. apply (neg_observe_rb H). assumption.
 - (*reboot*)
   Check three_bc.
   assert (trace_i1
@@ -494,7 +527,25 @@ intros. dependent induction H.
   apply (neg_observe_rb H). apply (neg_observe_rb Tdone).
   - move: (empty_trace_cs Tusless) => [eq1 [eq2 [eq3 eq4] ] ]. subst.
     eapply IHtrace_i1; try reflexivity; try assumption. apply sub_update.
-  -
+  - apply exist_endcom in H1. move: H1 =>
+                              [Oendmi [Wendmi [Nendmi [Vendm [cendm
+                              [Tendmi [Hendcom Hoendmi] ] ] ] ] ] ].
+      assert (WARok (getdomain (Nmid |! w)) [::] [::] crem) as Hwarok2.
+      + destruct Nmid as [mc1 dc1]. rewrite/getdomain.
+      move: (same_comi H4 H2 H H0) => [Ncstart [Ocstart [Wcstart [Tcstart Hocstart] ] ] ].
+      apply (warok_cp H4 Tcstart). 
+    move: (same_comi Hwarok2 (sub_restrict Nmid w) Tendmi Hoendmi) => [Nendm [Oendm
+                                                     [Wendm
+                                           [Tendm Hoendm] ] ] ].
+    assert (exists(Oc Oendmc: obseq) (Ncmid: nvmem) (Wc Wendmc: the_write_stuff),
+               trace_cs (Nc, V, c) (Ncmid, Vmid, crem) Oc Wc
+               /\ all_diff_in_fw Nmid Vmid crem Ncmid /\ trace_cs (Ncmid, Vmid, crem) (Nendm, Vendm, cendm) Oendmc Wendmc) as Hdiff.
+    apply step_end_cpi in H. 
+    Check three. eapply (three H3 H); try apply Tendm; try assumption.
+    apply Tendm; try assumption.
+    Check same_comi.
+    eapply three.
+
 
 
   repeat constructor; try assumption; try 
