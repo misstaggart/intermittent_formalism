@@ -225,6 +225,9 @@ Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cen
     checkpoint \notin Oend ->
  Omid <= Oend. Admitted. (*induct over 1, then 2 nested*)
 
+
+  (*need the CPs so i know which command is bigger
+   might be easier to just have a stpe index lol*)
   Lemma ctrace_det_obs {N V c Nmid Vmid cmid
                           Nend Vend Omid Wmid Oend Wend cend}:
     trace_cs (N, V, c)
@@ -237,7 +240,7 @@ Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cen
  Omid <= Oend. Admitted. (*induct over 1, then 2 nested*)
 
   Lemma append_c {N1 V1 c1 N2 V2 crem O1 W1 N3 V3 c3 O2 W2}
-        {w: warvars}:
+        :
         trace_cs (N1, V1, c1) (N2, V2, crem) O1 W1 ->
         trace_cs (N2, V2, crem) (N3, V3, c3) O2 W2 ->
         trace_cs (N1, V1, c1) (N3, V3, c3) (O1 ++ O2) (append_write W1 W2).
@@ -454,24 +457,26 @@ dependent induction H0; intros.
    apply CP_Base.
    rewrite- catA.
    rewrite - catA.
-   apply RB_Ind; try assumption.
-   apply (neg_observe_rb H).
-   rewrite mem_cat; apply/ norP; split.
-    apply (neg_observe_rb ass1).
-    apply (neg_observe_rb ass4).
+    assert (checkpoint \notin Oc ++ Oendc).
     move: (frag_to_seq ass3) => Hannoying.
     apply no_CP_in_seq in Hannoying.
     move: Hannoying => [Ha1 Ha2].
     apply Ha2.
     rewrite mem_cat.
-    by apply/ norP.
+      by apply/ norP.
+   apply RB_Ind; try assumption.
+   apply (neg_observe_rb H).
+   rewrite mem_cat; apply/ norP; split.
+    apply (neg_observe_rb ass1).
+    apply (neg_observe_rb ass4).
     rewrite mem_cat.
       by apply/ norP.
       move: (three_bc H7 H H1) => [Nc3 [threetrace whatever] ].
-   move: (append_c ass1 ass4) => bigtrace.
-    eapply ctrace_det_obs; try apply (append_c ).
-
-
+      move: (append_c ass1 ass4) => bigtrace.
+      apply (ctrace_det_obs threetrace H1 bigtrace); try assumption.
+      apply frag_to_seq; try assumption.
+      rewrite mem_cat. by apply/ norP.
+                               
    eapply IHtrace_i1; try reflexivity; try assumption.
    apply sub_update. apply (all_diff_in_fw_trans (all_diff_in_fw_sym Hdiffrb) H7).
       +
