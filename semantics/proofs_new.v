@@ -353,27 +353,32 @@ Lemma no_CP_in_seq: forall{O1 O2: obseq},
     (O1 <=m O2) -> checkpoint \notin O1 /\ checkpoint \notin O2.
   Admitted.
 
-Lemma threeIS1 {N0 Ni Ni1 V V1 c c1 Nc O W}:
+Lemma threeIS1 {N0 Ni Ni1 Nend V V1 Vend c c1 Nc O W Oend Wend cend}:
   all_diff_in_fw Ni V c Nc -> (*ensures well formed up till nearest endcom*)
   trace_i1 ((N0, V, c), Ni, V, c) ((N0, V, c), Ni1, V1, c1) O W ->
   WARok (getdomain N0) [::] [::] c ->
-  subset_nvm N0 Ni -> 
+  subset_nvm N0 Ni ->
   checkpoint \notin O ->
-  (exists(Oc: obseq) (Nc1: nvmem) (Wc: the_write_stuff) ,
+   trace_cs (Ni1, V1, c1) (Nend, Vend, cend) Oend Wend -> (*ensuring int mem is well formed,
+                                                   can put Ni1 arbitrarily far back after this lemma is finished*)
+   end_com cend -> checkpoint \notin Oend ->
+  (exists(Oc Oendc: obseq) (Nc1: nvmem) (Wc Wendc: the_write_stuff),
       trace_cs (Nc, V, c) (Nc1, V1, c1) Oc Wc /\
-      all_diff_in_fw Ni1 V1 c1 Nc1 /\ (O <=m Oc)
+      all_diff_in_fw Ni1 V1 c1 Nc1 /\ (O ++ Oend <=m Oc ++ Oendc)
+     /\ trace_cs (Nc1, V1, c1) (Nend, Vend, cend) Oendc Wendc
   ).
-Proof. intros. move: Nc H H3. (* remember H0 as Ht. induction H0.
+  Proof. intros. move: Nc H H3. (* remember H0 as Ht. induction H0.
                     ask arthur*)
 dependent induction H0; intros.
   + move: (three_bc H3 H H0) => [ Nc1 [Tdone Hdone] ].
-    exists O Nc1 W. repeat split; try assumption.
-     apply RB_Base; try (rewrite mem_cat; apply/ norP; split);
+ exists O Oend Nc1 W Wend. repeat split; try assumption.
+    apply RB_Base; try (rewrite mem_cat; apply/ norP; split);
     try assumption.
     apply (neg_observe_rb H).
-    (*apply (adif_works Hdone H6); try assumption. ??*)
+    apply (neg_observe_rb H4).
+      apply (adif_works Hdone H4); try assumption.
   + assert (all_diff_in_fw Ni V c (N0 U! Nmid)) as Hdiffrb.
-    - inversion H5. subst.  econstructor; try apply T; try assumption.
+    - inversion H8. subst.  econstructor; try apply T; try assumption.
     move => el. apply/ eqP / negPn/ negP => contra.
    apply update_diff in contra. destruct contra as [ [con11 con12] | [con21 con22] ].
    apply con11. apply (H4 (inr el) con12).
