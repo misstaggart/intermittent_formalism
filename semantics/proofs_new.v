@@ -349,19 +349,29 @@ Lemma adif_refl {N V c c1 Nend Vend O W}:
         all_diff_in_fw N V c N.
 Admitted.
 
+Lemma no_CP_in_seq: forall{O1 O2: obseq},
+    (O1 <=m O2) -> checkpoint \notin O1 /\ checkpoint \notin O2.
+  Admitted.
+
 Lemma threeIS1 {N0 Ni Ni1 V V1 c c1 Nc O W}:
   all_diff_in_fw Ni V c Nc -> (*ensures well formed up till nearest endcom*)
   trace_i1 ((N0, V, c), Ni, V, c) ((N0, V, c), Ni1, V1, c1) O W ->
   WARok (getdomain N0) [::] [::] c ->
   subset_nvm N0 Ni -> 
   checkpoint \notin O ->
-  (exists(Oc: obseq) (Nc1: nvmem) (Wc: the_write_stuff) , trace_cs (Nc, V, c) (Nc1, V1, c1) Oc Wc /\ all_diff_in_fw Ni1 V1 c1 Nc1 
+  (exists(Oc: obseq) (Nc1: nvmem) (Wc: the_write_stuff) ,
+      trace_cs (Nc, V, c) (Nc1, V1, c1) Oc Wc /\
+      all_diff_in_fw Ni1 V1 c1 Nc1 /\ (O <=m Oc)
   ).
 Proof. intros. move: Nc H H3. (* remember H0 as Ht. induction H0.
                     ask arthur*)
 dependent induction H0; intros.
   + move: (three_bc H3 H H0) => [ Nc1 [Tdone Hdone] ].
     exists O Nc1 W. repeat split; try assumption.
+     apply RB_Base; try (rewrite mem_cat; apply/ norP; split);
+    try assumption.
+    apply (neg_observe_rb H).
+    (*apply (adif_works Hdone H6); try assumption. ??*)
   + assert (all_diff_in_fw Ni V c (N0 U! Nmid)) as Hdiffrb.
     - inversion H5. subst.  econstructor; try apply T; try assumption.
     move => el. apply/ eqP / negPn/ negP => contra.
@@ -376,6 +386,24 @@ dependent induction H0; intros.
    rewrite/remove filter_predT in good.
    apply (fw_gets_bigger H H1 T H7 good).
    rewrite in_nil in bad. by discriminate bad.
+   suffices:
+               exists Oc Nc1 Wc,
+  trace_cs (Nc, V, c) (Nc1, V1, c1) Oc Wc /\
+  all_diff_in_fw Ni1 V1 c1 Nc1 /\
+  (O2 <=m Oc).
+   intros [Oc [Nc1 [Wc
+                        [ass1
+                              [ass2 ass3 ] ] ] ] ].
+   move : (no_CP_in_seq ass3) => [ass10 ass11]; try assumption.
+   exists Oc Nc1 Wc.
+   repeat split; try assumption.
+   apply RB_Ind; try assumption.
+   apply (neg_observe_rb H).
+   apply (neg_observe_rb ass1).
+      move: (three_bc H5 H H1) => [Nc3 [threetrace whatever] ].
+      apply (ctrace_det_obs threetrace H1 ass1); try assumption.
+      apply frag_to_seq; try assumption.
+      rewrite mem_cat. by apply/ norP.
    eapply IHtrace_i1; try reflexivity; try assumption.
    apply sub_update. apply (all_diff_in_fw_trans (all_diff_in_fw_sym Hdiffrb) H5).
       + repeat rewrite mem_cat in H3. move/norP: H3 => [Hb H3].
@@ -400,9 +428,6 @@ Lemma frag_to_seq: forall{O1 O2: obseq},
                     O1 <=m O2.
 Admitted.
 
-Lemma no_CP_in_seq: forall{O1 O2: obseq},
-    (O1 <=m O2) -> checkpoint \notin O1 /\ checkpoint \notin O2.
-  Admitted.
 
 Lemma three {N0 N01 V01 c01 Ni Ni1 Nend V V1 Vend c c1 Nc O W Oend Wend cend}:
   all_diff_in_fw Ni V c Nc ->
@@ -480,6 +505,7 @@ dependent induction H0; intros.
    eapply IHtrace_i1; try reflexivity; try assumption.
    apply sub_update. apply (all_diff_in_fw_trans (all_diff_in_fw_sym Hdiffrb) H7).
       +
+        (*last inductive case starts here*)
         remember ((incheckpoint w);;crem) as ccp.
         suffices: (exists Oc Oendc Nc1 Wc
                  Wendc Nc1end Vc1end cend,
