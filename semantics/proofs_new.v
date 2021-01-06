@@ -389,29 +389,49 @@ dependent induction H0; intros.
    (*start here clean up repeated work in above*)
    move: (wts_cped_sv H H3 H1 diff22 Hdiff)  => [good | bad].
    rewrite/remove filter_predT in good.
-   apply (fw_gets_bigger H H1 T H7 good).
+   apply (fw_gets_bigger H H1 T H10 good).
    rewrite in_nil in bad. by discriminate bad.
    suffices:
-               exists Oc Nc1 Wc,
+               exists Oc Oendc Nc1 Wc Wendc,
   trace_cs (Nc, V, c) (Nc1, V1, c1) Oc Wc /\
   all_diff_in_fw Ni1 V1 c1 Nc1 /\
-  (O2 <=m Oc).
-   intros [Oc [Nc1 [Wc
-                        [ass1
-                              [ass2 ass3 ] ] ] ] ].
-   move : (no_CP_in_seq ass3) => [ass10 ass11]; try assumption.
-   exists Oc Nc1 Wc.
+  (O2 ++ Oend <=m Oc ++ Oendc) /\
+  trace_cs (Nc1, V1, c1) (Nend, Vend, cend) Oendc Wendc.
+   intros [Oc [Oendc [Nc1 [Wc [Wendc
+                                 [ass1
+                                    [ass2
+                                       [ass3 ass4] ] ] ] ] ] ] ].
+   exists Oc Oendc Nc1 Wc Wendc.
    repeat split; try assumption.
+   (*apply CP_Base.
+   rewrite- catA.
+   rewrite - catA.*)
+    assert (checkpoint \notin Oc ++ Oendc).
+    apply no_CP_in_seq in ass3.
+    by move: ass3 => [Ha1 Ha2].
+   (* rewrite mem_cat.
+      by apply/ norP.*)
+   rewrite- catA.
+   rewrite - catA.
    apply RB_Ind; try assumption.
    apply (neg_observe_rb H).
-   apply (neg_observe_rb ass1).
-      move: (three_bc H5 H H1) => [Nc3 [threetrace whatever] ].
-      apply (ctrace_det_obs threetrace H1 ass1); try assumption.
+   rewrite mem_cat; apply/ norP; split.
+    apply (neg_observe_rb ass1).
+    apply (neg_observe_rb ass4).
+    rewrite mem_cat.
+    apply/ norP.
+    split; assumption.
+      move: (three_bc H8 H H1) => [Nc3 [threetrace whatever] ].
+      move: (append_c ass1 ass4) => bigtrace.
+      apply (ctrace_det_obs threetrace H1 bigtrace); try assumption.
       apply frag_to_seq; try assumption.
       rewrite mem_cat. by apply/ norP.
+                               
    eapply IHtrace_i1; try reflexivity; try assumption.
-   apply sub_update. apply (all_diff_in_fw_trans (all_diff_in_fw_sym Hdiffrb) H5).
-      + repeat rewrite mem_cat in H3. move/norP: H3 => [Hb H3].
+   apply sub_update. apply (all_diff_in_fw_trans (all_diff_in_fw_sym Hdiffrb) H7).
+
+
+  + repeat rewrite mem_cat in H3. move/norP: H3 => [Hb H3].
         move/norP: H3 => [contra Hb1]. by case/negP : contra. 
 Qed.
 
@@ -427,11 +447,6 @@ Lemma trace_append_ic {N0 V0 c0 N01 V01 c01 N1 V1 c1 N2 V2 c2
   Admitted.
 
 
-Lemma frag_to_seq: forall{O1 O2: obseq},
-                    (O1 <=f O2) ->
-                    checkpoint \notin O1 ->
-                    O1 <=m O2.
-Admitted.
 
 
 Lemma three {N0 N01 V01 c01 Ni Ni1 Nend V V1 Vend c c1 Nc O W Oend Wend cend}:
