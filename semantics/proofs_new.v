@@ -424,11 +424,8 @@ dependent induction H0; intros.
       move: (three_bc H8 H H1) => [Nc3 [threetrace whatever] ].
       move: (append_c ass1 ass4) => bigtrace.
       apply (ctrace_det_obs threetrace H1 bigtrace); try assumption.
-      apply frag_to_seq; try assumption.
-      rewrite mem_cat. by apply/ norP.
-                               
    eapply IHtrace_i1; try reflexivity; try assumption.
-   apply sub_update. apply (all_diff_in_fw_trans (all_diff_in_fw_sym Hdiffrb) H7).
+   apply sub_update. apply (all_diff_in_fw_trans (all_diff_in_fw_sym Hdiffrb) H8).
 
 
   + repeat rewrite mem_cat in H3. move/norP: H3 => [Hb H3].
