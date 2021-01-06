@@ -427,7 +427,6 @@ dependent induction H0; intros.
    eapply IHtrace_i1; try reflexivity; try assumption.
    apply sub_update. apply (all_diff_in_fw_trans (all_diff_in_fw_sym Hdiffrb) H8).
 
-
   + repeat rewrite mem_cat in H3. move/norP: H3 => [Hb H3].
         move/norP: H3 => [contra Hb1]. by case/negP : contra. 
 Qed.
@@ -470,58 +469,32 @@ dependent induction H0; intros.
     apply (neg_observe_rb H).
     apply (neg_observe_rb H6).
     apply (adif_works Hdone H6); try assumption.
-  + assert (all_diff_in_fw Ni V01 c01 (N01 U! Nmid)) as Hdiffrb.
-    - inversion H7. subst.  econstructor; try apply T; try assumption.
-    move => el. apply/ eqP / negPn/ negP => contra.
-   apply update_diff in contra. destruct contra as [ [con11 con12] | [con21 con22] ].
-   apply con11. apply (H4 (inr el) con12).
-   move: (trace_diff H con21) => Hdiff.
-   move/negP :(wts_cped_arr H H3 H1 con22). by apply.
-   move => l. move/eqP/update_diff => [ [diff11 diff12] | [diff21 diff22] ]. case diff11. apply (H4 l diff12).
-   move: (trace_diff H diff21) => Hdiff.
-   (*start here clean up repeated work in above*)
-   move: (wts_cped_sv H H3 H1 diff22 Hdiff)  => [good | bad].
-   rewrite/remove filter_predT in good.
-   apply (fw_gets_bigger H H1 T H9 good).
-   rewrite in_nil in bad. by discriminate bad.
-   suffices:
-               exists Oc Oendc Nc1 Wc Wendc,
-  trace_cs (Nc, V01, c01) (Nc1, V1, c1) Oc Wc /\
-  all_diff_in_fw Ni1 V1 c1 Nc1 /\
-  (O2 ++ Oend <=f Oc ++ Oendc) /\
-  trace_cs (Nc1, V1, c1) (Nend, Vend, cend) Oendc Wendc.
-   intros [Oc [Oendc [Nc1 [Wc [Wendc
-                                 [ass1
-                                    [ass2
-                                       [ass3 ass4] ] ] ] ] ] ] ].
-   exists Oc Oendc Nc1 Wc Wendc.
-   repeat split; try assumption.
-   apply CP_Base.
-   rewrite- catA.
-   rewrite - catA.
-    assert (checkpoint \notin Oc ++ Oendc).
-    move: (frag_to_seq ass3) => Hannoying.
-    apply no_CP_in_seq in Hannoying.
-    move: Hannoying => [Ha1 Ha2].
-    apply Ha2.
-    rewrite mem_cat.
-      by apply/ norP.
-   apply RB_Ind; try assumption.
-   apply (neg_observe_rb H).
-   rewrite mem_cat; apply/ norP; split.
-    apply (neg_observe_rb ass1).
-    apply (neg_observe_rb ass4).
-    rewrite mem_cat.
-      by apply/ norP.
-      move: (three_bc H7 H H1) => [Nc3 [threetrace whatever] ].
-      move: (append_c ass1 ass4) => bigtrace.
-      apply (ctrace_det_obs threetrace H1 bigtrace); try assumption.
-      apply frag_to_seq; try assumption.
-      rewrite mem_cat. by apply/ norP.
-                               
-   eapply IHtrace_i1; try reflexivity; try assumption.
-   apply sub_update. apply (all_diff_in_fw_trans (all_diff_in_fw_sym Hdiffrb) H7).
-      +
+  + 
+    move: (iTrace_RB H H0 H1 H2) => bigtrace. Check threeIS1.
+    assert (checkpoint \notin O1 ++ [:: reboot] ++ O2) as Hcp.
+    rewrite mem_cat. apply/ norP. split; try assumption.
+Check threeIS1.
+move: (threeIS1 H7 bigtrace H3 H4 Hcp H8 H5 H6) =>
+[Oc
+   [Oendc
+      [Nc1
+         [Wc [
+              Wendc
+               [ ass1 [
+                     ass2
+                       [ass3 ass4]
+                   ]
+               ]
+            ]
+         ]
+      ]
+   ]
+].
+exists Oc Oendc Nc1 Wc Wendc. repeat split; try assumption.
+repeat rewrite - catA.
+apply CP_Base.
+by repeat rewrite - catA in ass3.
+  +
         (*last inductive case starts here*)
         remember ((incheckpoint w);;crem) as ccp.
         suffices: (exists Oc Oendc Nc1 Wc
