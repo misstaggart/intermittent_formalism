@@ -25,6 +25,8 @@ Admitted.*)
 
 Definition nvmem_eq N1 N2 := (getmap N1) =1 (getmap N2).
 
+Lemma hack {N1 N2} : nvmem_eq N1 N2 -> N1 = N2. Admitted.
+
 (*why do you include the volatile memory
  maybe to make the traces more tractable
  leave it in for now, can always take it out*)
@@ -315,15 +317,60 @@ Lemma all_diff_in_fw_trans {Nc0 V1 c1 Nc1 Nc2}:
   all_diff_in_fw Nc1 V1 c1 Nc2 ->
   all_diff_in_fw Nc0 V1 c1 Nc2. Admitted.
 
+Lemma trace_converge {N V cend Nc} :
+  all_diff_in_fw N V cend Nc ->
+  end_com cend ->
+  N = Nc. Admitted.
+
+
+    Lemma agreeonread: forall{N Nend N2: nvmem} {V Vend: vmem}
+                        {c c1: command}
+                   {O : obseq} {W: the_write_stuff},
+  all_diff_in_fw N V c N2 ->
+             cceval_w (N, V, c) O (Nend, Vend, c1) W ->
+            ( forall(z: loc), z \in (getrd W) -> (*z was read immediately cuz trace is only 1
+                                thing long*)
+                   (getmap N) z = (getmap N2) z). (*since z isnt in FW of trace from Ins l to skip*)
+    Admitted.
+
+Lemma adif_cceval {N1 N2 V c Nend Vend O1 W cend}:
+  all_diff_in_fw N1 V c N2 ->
+  cceval_w (N1, V, c) O1 (Nend, Vend, cend) W ->
+  end_com cend ->
+   (forall(el: el_loc), ((getmap N1) (inr el)) = ((getmap N2) (inr el))) /\
+   ( forall(l: loc ), ((getmap N1) l <> (getmap N2) l) -> (l \in getfstwt W)). Admitted.
+
 Lemma adif_works {N1 N2 V c Nend Vend O1 W1 cend}:
   all_diff_in_fw N1 V c N2 ->
   trace_cs (N1, V, c) (Nend, Vend, cend) O1 W1 ->
   end_com cend -> checkpoint \notin O1 ->
-  trace_cs (N2, V, c) (Nend, Vend, cend) O1 W1. Admitted.
+  trace_cs (N2, V, c) (Nend, Vend, cend) O1 W1.
+  intros.
+  dependent induction H0.
+  + move: (trace_converge H H1) => Heq. subst.
+    apply (CsTrace_Empty (N2, Vend, cend)).
+  + move: (adif_cceval H H0 H1) => [Hel Hl].
+    move: (two H H0) => [Nend1 [Hcceval Hl2] ].
+    suffices: Nend = Nend1.
+    intros. subst. by apply CsTrace_Single.
+    apply hack. unfold nvmem_eq. intros l.
+    destruct (l \in getwt(W)) eqn: Hbool.
+       - apply Hl2. apply Hbool.
+       -
+         suffices: getmap N1 l = getmap N2 l.
+         intros Heq.
+         move: (update_one_c l H0) => Himp1.
+         apply contra in Himp1.
+         move: (update_one_c l Hcceval) => Himp2.
+         apply contra in Himp2.
+         move /negPn/ eqP: Himp1.
+         move /negPn/ eqP: Himp2.
+         intros. rewrite - Himp1.
+         by rewrite - Himp2.
+         apply/negP : (contra Himp) in Hbool.
 
-Lemma trace_converge {N V crem Nc} {w: warvars}:
-  all_diff_in_fw N V ((incheckpoint w);;crem) Nc ->
-  N = Nc. Admitted.
+
+
 
 (*might be easier to just do appending in general*)
 
@@ -624,7 +671,7 @@ repeat split; try assumption.
 move: (exist_endcom H Hskip) => [Osmall
                                   [Wsmall
                                      [Nmid
-                                        [Vmid
+                                     [Vmid
                                            [cmid
                                               [Tsmall
                                                  [Hend Hcp ]  ] ] ] ] ] ].
@@ -632,7 +679,7 @@ move: (same_comi H1 H0 Tsmall Hcp) => [N2 [Osc [c2 [Tsc Hosc] ] ] ].
 econstructor; try apply Tsc; try assumption.
   by intros.
   intros. exfalso. by apply H2.
-Qed.
+ Qed.
 
 
 
