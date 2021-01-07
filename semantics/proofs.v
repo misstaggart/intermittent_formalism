@@ -1175,7 +1175,10 @@ Admitted.
 Lemma twenty:
 forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
   eeval N0 V0 e r0 v0 ->
-  (forall(z: loc), z \in (readobs_wvs r0 ) -> (getmap N0) z = (getmap N1) z) ->
+  (forall(z: loc), z \in (readobs_wvs r0 ) -> (getmap N0) z = (getmap N1) z) -> (*they concur
+                                                                          on all
+                                                                          values read
+                                                                          from*)
               eeval N1 V0 e r0 v0.
   intros. Admitted.
 

@@ -51,15 +51,44 @@ Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
                    (getmap N) z = (getmap N2) z). (*since z isnt in FW of trace from Ins l to skip*)
     Admitted.
 
+Lemma agr_imp_age:
+forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
+  eeval N0 V0 e r0 v0 ->
+  (forall(z: loc), z \in (readobs_wvs r0 ) -> (getmap N0) z = (getmap N1) z) -> (*they concur
+                                                                          on all
+                                                                          values read
+                                                                          from*)
+              eeval N1 V0 e r0 v0.
+  intros. Admitted.
+
     Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
                               cceval_w (Ni, V, c) O (Ni1, V1, c1) W ->
                               exists(Nc1: nvmem), (cceval_w (Nc, V, c) O (Nc1, V1, c1) W /\
                               forall(l: loc), l \in (getwt W) -> ((getmap Ni1) l = (getmap Nc1) l)).
       intros.
-      dependent induction H0.
+      move: (agreeonread H H0) => agr.
+      dependent induction H0; simpl in agr.
       - exists Nc. split. apply CheckPoint. move => l contra.
         rewrite in_nil in contra. by exfalso.
-      - exists (updateNV_sv Nc x v).
+      - exists (updateNV_sv Nc x v). split. apply NV_Assign; try assumption.
+        eapply agr_imp_age; try apply H2; try assumption.
+        simpl. intros l Hin. rewrite mem_seq1 in Hin.
+        move/ eqP : Hin => Hin. subst.
+        destruct Ni as [Nimap NiD].
+        destruct Nc as [Ncmap NcD].
+        unfold updateNV_sv. unfold updatemap. simpl.
+        remember (inl x) as xloc.
+        suffices: (if xloc == xloc then v else Nimap xloc) = v /\
+                  (if xloc == xloc then v else Ncmap xloc) = v.
+        move => [one two]. by rewrite one two.
+        split; by apply ifT.
+
+        rewrite H3.
+        move: (H3 (inl x)) =>
+
+             (inl x == inl x). apply/ eqP.
+
+        simpl in
 
 
 Lemma two_p_five {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
