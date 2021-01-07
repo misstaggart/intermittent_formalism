@@ -587,25 +587,32 @@ Lemma empty_trace_cs:
     trace_cs (N1, V1, c) (N2, V2, c) O W -> O = [::] /\ N1 = N2 /\ V1 = V2 /\ W = emptysets.
 Admitted.
 
-Theorem One2 {N0 V c N01 V01 c01 Ni Oi Nendi Vend Nc Wi
+Theorem One {N0 V c N01 V01 c01 Ni Oi Nendi Vend Nc Wi
            }:
       trace_i1 ((N0, V, c), Ni, V, c) ((N01, V01, c01), Nendi, Vend, Ins skip) Oi Wi ->
 subset_nvm N0 Ni -> 
 all_diff_in_fw Ni V c Nc ->
 WARok (getdomain N0) [::] [::] c ->
 (exists(Nendc: nvmem) (Oc: obseq) (Wc: the_write_stuff) , trace_cs (Nc, V, c) (Nendc, Vend, Ins skip) Oc Wc /\
-(Oi <=f Oc) /\ (nvmem_eq Nendi Nendc)).
+                                                     (Oi <=f Oc) /\ (nvmem_eq Nendi Nendc)).
+  intros.
 suffices: 
   (exists(Oc Oendc: obseq) (Nendc: nvmem) (Wc Wendc: the_write_stuff),
       trace_cs (Nc, V, c) (Nendc, Vend, Ins skip) Oc Wc /\
  all_diff_in_fw Nendi Vend skip Nendc /\ trace_cs (Nendc, Vend, Ins skip)
             (Nendc, Vend, Ins skip) Oendc Wendc
   ).
-move => [Oc threehyp] Ti Hsub Hdiff Hok.
+move => [Oc
+          [ Oendc [Nendc
+             [Wc
+                [Wendc
+                   [Tc
+                      [Hdiff Tend] ] ] ] ] ] ].
+exists Nendc Oc Wc. repeat skip; try assumption.
 
 
 
-    Theorem One {N0 V c N01 V01 c01 Ni Oi Nendi Vend Nc Wi
+    Theorem One_old {N0 V c N01 V01 c01 Ni Oi Nendi Vend Nc Wi
            }:
       trace_i1 ((N0, V, c), Ni, V, c) ((N01, V01, c01), Nendi, Vend, Ins skip) Oi Wi ->
 subset_nvm N0 Ni -> 
