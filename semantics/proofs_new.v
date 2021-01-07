@@ -366,7 +366,18 @@ Lemma adif_works {N1 N2 V c Nend Vend O1 W1 cend}:
          move /negPn/ eqP: Himp1.
          move /negPn/ eqP: Himp2.
          intros. rewrite - Himp1.
-         by rewrite - Himp2.
+           by rewrite - Himp2.
+           by move/ negbT: Hbool.
+             by move/ negbT: Hbool.
+          apply/ eqP.
+          destruct (getmap N1 l == getmap N2 l) eqn: Hbool1.
+          auto.
+          move/ eqP : Hbool1.
+          move/Hl => Hcontra.
+          move: (fw_s_w_ceval H0) => Hsub.
+          apply (in_subseq Hsub) in Hcontra.
+            by rewrite Hbool in Hcontra.
+     +
          apply/negP : (contra Himp) in Hbool.
 
 

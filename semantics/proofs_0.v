@@ -38,7 +38,7 @@ Proof. intros. intros contra. unfold subset_nvm in H. (*destruct H.*)
 Qed.
 
 
-Lemma wt_subst_fstwt: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
+Lemma wt_subst_fstwt_c: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
       (* pose proof (cceval_to_rd_sv H H5). *)
   trace_c C1 C2 O W ->
     subseq (getfstwt W) (getwt W).
@@ -51,6 +51,12 @@ Proof. intros C1 C2 O W T. induction T.
                                     IHT2) IHT1
                                     ).
 Qed.
+
+Lemma fw_s_w_ceval: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
+      (* pose proof (cceval_to_rd_sv H H5). *)
+  cceval_w C1 O C2 W ->
+    subseq (getfstwt W) (getwt W).
+Admitted.
 
 Lemma trace_stops: forall {N N': nvmem} {V V': vmem}
                     {l: instruction} {c: command}
