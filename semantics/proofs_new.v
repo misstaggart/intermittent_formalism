@@ -587,18 +587,21 @@ Lemma empty_trace_cs:
     trace_cs (N1, V1, c) (N2, V2, c) O W -> O = [::] /\ N1 = N2 /\ V1 = V2 /\ W = emptysets.
 Admitted.
 
-Theorem One {N0 V c N01 V01 c01 Ni Oi Nendi Vend Nc Wi
+Lemma notin (o: obs) : o \notin [::].
+Admitted.
+
+Theorem One {N0 V c N01 V01 c01 N Oi Nendi Vend Wi
            }:
-      trace_i1 ((N0, V, c), Ni, V, c) ((N01, V01, c01), Nendi, Vend, Ins skip) Oi Wi ->
-subset_nvm N0 Ni -> 
-all_diff_in_fw Ni V c Nc ->
+      trace_i1 ((N0, V, c), N, V, c) ((N01, V01, c01), Nendi, Vend, Ins skip) Oi Wi ->
+subset_nvm N0 N -> 
 WARok (getdomain N0) [::] [::] c ->
-(exists(Nendc: nvmem) (Oc: obseq) (Wc: the_write_stuff) , trace_cs (Nc, V, c) (Nendc, Vend, Ins skip) Oc Wc /\
+(exists(Nendc: nvmem) (Oc: obseq) (Wc: the_write_stuff) , trace_cs (N, V, c) (Nendc, Vend, Ins skip) Oc Wc /\
                                                      (Oi <=f Oc) /\ (nvmem_eq Nendi Nendc)).
   intros.
+assert (end_com skip) as Hskip. by left.
 suffices: 
   (exists(Oc Oendc: obseq) (Nendc: nvmem) (Wc Wendc: the_write_stuff),
-      trace_cs (Nc, V, c) (Nendc, Vend, Ins skip) Oc Wc /\
+      trace_cs (N, V, c) (Nendc, Vend, Ins skip) Oc Wc /\
  all_diff_in_fw Nendi Vend skip Nendc /\ trace_cs (Nendc, Vend, Ins skip)
             (Nendc, Vend, Ins skip) Oendc Wendc
   ).
@@ -609,6 +612,27 @@ move => [Oc
                    [Tc
                       [Hdiff Tend] ] ] ] ] ] ].
 exists Nendc Oc Wc. repeat skip; try assumption.
+suffices: all_diff_in_fw N V c N.
+move => Hdiff.
+Check three.
+move: (three Hdiff H H1 H0 (CsTrace_Empty (Nendi, Vend, (Ins skip))) Hskip
+      (notin checkpoint)).
+=> [Oc [Oendc [Nendc [Wc [ Wendc [T1 [Hdiffend [Hm Tempty] ] ] ] ] ] ] ].
+exists Oc Oendc Nendi Wc Wendc.
+move: (empty_trace_cs Tempty). => [Ho [Hn [Hv Hw] ] ]. subst.
+repeat split; try assumption.
+move: (exist_endcom H Hskip) => [Osmall
+                                  [Wsmall
+                                     [Nmid
+                                        [Vmid
+                                           [cmid
+                                              [Tsmall
+                                                 [Hend Hcp ]  ] ] ] ] ] ].
+move: (same_comi H1 H0 Tsmall Hcp) => [N2 [Osc [c2 [Tsc Hosc] ] ] ].
+econstructor; try apply Tsc; try assumption.
+  by intros.
+  intros. exfalso. by apply H2.
+Qed.
 
 
 
