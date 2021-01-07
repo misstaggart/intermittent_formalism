@@ -140,6 +140,10 @@ Lemma empty_trace_sc:
     trace_c (N1, V1, c) (N2, V2, c) O W -> O = [::] /\ N1 = N2 /\ V1 = V2 /\ W = emptysets.
   Admitted.
 
+Lemma empty_trace_cs:
+  forall{N1 N2: nvmem} {V1 V2: vmem} {c: command} {O: obseq} {W: the_write_stuff},
+    trace_cs (N1, V1, c) (N2, V2, c) O W -> O = [::] /\ N1 = N2 /\ V1 = V2 /\ W = emptysets.
+  Admitted.
 
 Lemma append_write_empty: forall{W: the_write_stuff},
     append_write W emptysets = W.

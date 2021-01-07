@@ -251,7 +251,7 @@ Admitted.
         {w: warvars}:
         trace_cs (N1, V1, c1) (N2, V2, incheckpoint w;; crem) O1 W1 ->
         trace_cs (N2, V2, crem) (N3, V3, c3) O2 W2 ->
-        trace_cs (N1, V1, c1) (N3, V3, c3) (O1 ++ O2) (append_write W1 W2).
+        trace_cs (N1, V1, c1) (N3, V3, c3) (O1 ++ [::checkpoint] ++ O2) (append_write W1 W2).
 Admitted.
 
   Lemma three_bc  {Ni Ni1 V V1 c c1 Nc O W} :
@@ -502,12 +502,13 @@ by repeat rewrite - catA in ass3.
                  trace_cs (Nc, V, c)
                           (Nc1, Vmid, ccp) Oc Wc /\
                  all_diff_in_fw Nmid Vmid ccp Nc1 /\
+                 (O1 <=m Oc) /\
                  trace_cs (Nc1, Vmid, crem)
                    (Nc1end, Vc1end, cend) Oendc
                    Wendc /\ checkpoint \notin Oendc /\ end_com cend
                   ).
     - move => [Oc1 [Oendc1 [Nc1 [Wc1 [Wendc1 [ Nc1end [ Vc1end
-            [ ccend [H11 [H12 [H13 [H14 H15] ] ] ] ] ] ] ] ] ] ] ]. subst.
+            [ ccend [H11 [H12 [Ho1 [H13 [H14 H15] ] ] ] ] ] ] ] ] ] ] ] ]. subst.
       assert (WARok (getdomain (Nc1 |! w)) [::] [::] crem) as Hwarok2.
       destruct Nc1 as [mc1 dc1]. rewrite/getdomain. simpl.
       apply (warok_cp H1 H11). 
@@ -516,24 +517,42 @@ by repeat rewrite - catA in ass3.
                  exists Oc2 Oendc2 Nc2 Wc2 Wendc2,
                    trace_cs (Nc1, Vmid, crem)
                             (Nc2, V1, c1) Oc2 Wc2 /\
-                 all_diff_in_fw Ni1 V1 c1 Nc2 /\
+                   all_diff_in_fw Ni1 V1 c1 Nc2 /\
+                   (O2 ++ Oend <=f Oc2 ++ Oendc2) /\
                  trace_cs (Nc2, V1, c1) 
                    (Nend, Vend, cend) Oendc2 Wendc2
                 ).
-      move => [Oc2 [Oendc2 [Nc2 [Wc2 [Wendc2 [H21 [H22 H23] ] ] ] ] ] ].
+      move => [Oc2 [Oendc2 [Nc2 [Wc2 [Wendc2 [H21 [H22 [Ho2 H23] ] ] ] ] ] ] ].
       (*consider: maybe your type should just split by reboots
        rather than checkpoints*)
      - move: (append_cps H11 H21) => T1.
-      exists (Oc1 ++ Oc2) Oendc2 Nc2 (append_write Wc1 Wc2) Wendc2.
+      exists (Oc1 ++ [::checkpoint] ++ Oc2) Oendc2 Nc2 (append_write Wc1 Wc2) Wendc2.
       repeat split; try assumption.
-      eapply IHtrace_i1_2; try reflexivity; try assumption;
+      repeat rewrite - catA. apply CP_IND; try assumption.
+      - eapply IHtrace_i1_2; try reflexivity; try assumption;
       try apply sub_restrict.
-      apply (adif_refl H13 H15 H14).
-     -
+        apply (adif_refl H13 H15 H14).
+        (*why not just do an empty trace here
+         up till nearest cp*)
        Check trace_append_ic.
        move: (trace_append_ic H0_0 H3) => [Nc1endi [Vc1endi [cmend Tendi] ] ].
        Check threeIS1.
-       move: (threeIS1 H0 H0_ H1 H2  H) => [Oc [Nc1 [Wc [T1 Hdiff] ] ] ].
+       assert (end_com ccp) as Hend. unfold end_com. right.
+       subst.
+         by exists crem w.
+              assert ( checkpoint \notin [::]) as Hcp.
+              by rewrite in_nil.
+       move: (threeIS1 H0 H0_ H1 H2 H
+                       (CsTrace_Empty
+                          (Nmid, Vmid, ccp )) Hend Hcp).
+
+       (*need to put in a bigger trace for threeIS1
+        also to get the crem part*)
+       => [Oc [Oendc [Nc1 [Wc [ Wendc500 [T1 [Hdiff [Hm Tempty] ] ] ] ] ] ] ].
+       subst.
+       move: (trace_converge Hdiff) => Hsamemem. subst.
+       move/ empty_trace_cs : Tempty => [Heq whatever].
+       subst.
        move: (exist_endcom Tendi H4) => [Oendc0 [Wendc0 [Nc1end0 [Vc1end
                                                            [cend0 [Tend [Hendcom Hoendc] ] ] ] ] ] ].
        Check same_comi.
@@ -543,13 +562,14 @@ assert (WARok (getdomain (Nc1 |! w)) [::] [::] crem) as Hwarok2.
       move: (same_comi H1 H2 H0_ H) => [Nend1 [Oc1 [Wc1 [Tc1 Hoc1] ] ] ].
       apply (warok_cp H1 Tc1).
       Check same_comi. subst.
-       apply trace_converge in Hdiff. subst.
-       move: (same_comi Hwarok2 (sub_restrict Nc1 w) Tend Hoendc) =>
+      apply trace_converge in Hdiff. subst.
+      move: (same_comi Hwarok2 (sub_restrict Nc1 w) Tend Hoendc).
+      =>
       [Nc1end [Oendc [Wendc [Tendc Hcpoendc] ] ] ].                                                            
        exists Oc Oendc Nc1 Wc Wendc Nc1end. exists Vc1end cend0. subst.
        repeat split; try assumption. 
-       econstructor; try eapply CsTrace_Empty; auto. right.
-       exists crem w. by [].
+       econstructor; try eapply CsTrace_Empty; auto.
+       by repeat rewrite cats0 in Hm.
 Qed.
 
   Lemma both_cp {O1 O2} :
