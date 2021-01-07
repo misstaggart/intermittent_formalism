@@ -47,6 +47,13 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
                               forall(l: loc), l \in (getwt W) -> ((getmap Ni1) l = (getmap Nc1) l)).
 Admitted.
 
+Lemma two_p_five {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
+                                             cceval_w (Ni, V, c) O (Ni1, V1, c1) W ->
+                                             checkpoint \notin O ->
+                              exists(Nc1: nvmem), (cceval_w (Nc, V, c) O (Nc1, V1, c1) W /\
+                              all_diff_in_fw Ni1 V1 c1 Nc1).
+Admitted.
+
 Lemma exist_endcom {N0 V0 c0 N01 V01 c01 N V c N1 V1 O W cend}:
   trace_i1 ((N0, V0, c0), N, V, c) ((N01, V01, c01), N1, V1, cend) O W ->
   end_com cend ->
@@ -345,12 +352,12 @@ Lemma adif_works {N1 N2 V c Nend Vend O1 W1 cend}:
   trace_cs (N1, V, c) (Nend, Vend, cend) O1 W1 ->
   end_com cend -> checkpoint \notin O1 ->
   trace_cs (N2, V, c) (Nend, Vend, cend) O1 W1.
-  intros.
-  dependent induction H0.
+  intros. move: N2 H.
+  dependent induction H0; intros.
   + move: (trace_converge H H1) => Heq. subst.
     apply (CsTrace_Empty (N2, Vend, cend)).
-  + move: (adif_cceval H H0 H1) => [Hel Hl].
-    move: (two H H0) => [Nend1 [Hcceval Hl2] ].
+  + move: (adif_cceval H0 H H1) => [Hel Hl].
+    move: (two H0 H) => [Nend1 [Hcceval Hl2] ].
     suffices: Nend = Nend1.
     intros. subst. by apply CsTrace_Single.
     apply hack. unfold nvmem_eq. intros l.
@@ -359,7 +366,7 @@ Lemma adif_works {N1 N2 V c Nend Vend O1 W1 cend}:
        -
          suffices: getmap N1 l = getmap N2 l.
          intros Heq.
-         move: (update_one_c l H0) => Himp1.
+         move: (update_one_c l H) => Himp1.
          apply contra in Himp1.
          move: (update_one_c l Hcceval) => Himp2.
          apply contra in Himp2.
@@ -374,11 +381,22 @@ Lemma adif_works {N1 N2 V c Nend Vend O1 W1 cend}:
           auto.
           move/ eqP : Hbool1.
           move/Hl => Hcontra.
-          move: (fw_s_w_ceval H0) => Hsub.
+          move: (fw_s_w_ceval H) => Hsub.
           apply (in_subseq Hsub) in Hcontra.
             by rewrite Hbool in Hcontra.
-     +
-         apply/negP : (contra Himp) in Hbool.
+         + destruct Cmid as [ [Ni1 V1] c1].
+           assert (checkpoint \notin O1) as Hcp1.
+           apply/negP. intros contra.
+           apply/negP/ negPn: H3.
+           by apply in_app_l.
+           move: (two_p_five H4 H1 Hcp1) => [Nmid [Hccevalmid Hdiff] ].
+           eapply CsTrace_Cons.
+           eapply IHtrace_cs; try reflexivity; 
+             try assumption; try apply Hdiff.
+           apply/negP. intros contra.
+           apply/negP/ negPn: H3.
+           by apply in_app_r. assumption. assumption.
+Qed.
 
 
 
