@@ -295,13 +295,12 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
              by rewrite Heq1 Heq2.
              clear Hneq. intros Hneq. apply/negP. intros contra.
              apply Hneq. by apply Hdone.
-       symmetry in Heq2.
-       rewrite append_write_empty_l in Hwrite. by rewrite - Hwrite.
        intros contra.
        move: (empty_trace_cs1 T contra) => [Eq1 Eq2].
-       inversion Eq1. subst. inversion H2.
-       inversion H6.
-       move : H6 => [crem [w contra] ]. inversion contra.
+       inversion Eq1. subst. inversion H1.
+       inversion H5.
+       move : H5 => [crem [w contra] ]. inversion contra.
+       by apply (H10 w).
      + inversion H0; subst; exists Nc; split. apply If_T.
        move: (agreeonread H H0) => agr.
        apply (agr_imp_age H11); try assumption.move => l contra.
