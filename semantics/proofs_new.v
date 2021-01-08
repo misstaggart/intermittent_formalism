@@ -267,31 +267,33 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
        apply/negP / negPn: H2.
        apply (in_subseq Hsubseq contra).
        intros. destruct ((inr el) \in (getwt W)) eqn: Hbool.
-       by apply Hdone in Hbool.
-       move/contra : (update_one_c (inr el) H12) => Ho2ni.
-       move/contra : (update_one_c (inr el) Hsmall) => Ho2nc.
+         by apply Hdone in Hbool.
+       move : (update_one_contra (inr el) H12) => Ho2ni.
+       move : (update_one_contra (inr el) Hsmall) => Ho2nc.
        move/ negbT : Hbool => Hbooli.
        remember Hbooli as Hboolc. clear HeqHboolc.
        apply Ho2ni in Hbooli.
        apply Ho2nc in Hboolc.
-       move/ negPn /eqP: Hbooli.
-       move/ negPn /eqP: Hboolc.
-       move => Heq1 Heq2.
        suffices: getmap Ni (inr el) = getmap Nc (inr el).
-       intros Heq3. symmetry in Heq2.
-         by move: (trans_eq (trans_eq Heq2 Heq3) Heq1).
+       intros Heq3. symmetry in Hbooli.
+         by move: (trans_eq (trans_eq Hbooli Heq3) Hboolc).
          apply/eqP/ negPn/ negP. move/eqP => contra.
            by apply contra.
-           intros l0 Hl0.
-           suffices: (l0 \in getfstwt W0).
-           intros Hfw.
+           intros l0 Hl0. remember Hl0 as Hneq.
+           clear HeqHneq.
            suffices: getmap Ni1 l0 <> getmap Nc1 l0 -> l0 \notin getwt W.
            intros Hdonec. apply Hdonec in Hl0.
+           suffices: (l0 \in getfstwt W0).
+           intros Hfw.
            subst. move/ fw_split : Hfw => [one | two].
            apply (in_subseq (fw_subst_wt_c H12)) in one.
            exfalso. move/ negP : Hl0. by apply.
              by move: two => [whatever done].
-             intros Hneq. apply/negP. intros contra.
+             apply H4.
+             move: (update_one_contra l0 H12 Hl0) => Heq1.
+             move: (update_one_contra l0 Hsmall Hl0) => Heq2.
+             by rewrite Heq1 Heq2.
+             clear Hneq. intros Hneq. apply/negP. intros contra.
              apply Hneq. by apply Hdone.
        symmetry in Heq2.
        rewrite append_write_empty_l in Hwrite. by rewrite - Hwrite.

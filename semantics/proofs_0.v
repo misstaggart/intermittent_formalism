@@ -372,6 +372,13 @@ Lemma update_one_c: forall{N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: o
     cceval_w (N, V, c) O (Nend, Vend, cend) W ->
     ~~((getmap N) l == (getmap Nend) l) ->
     l \in (getwt W).
+Admitted.
+
+Lemma update_one_contra: forall{N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
+  (l: loc),
+    cceval_w (N, V, c) O (Nend, Vend, cend) W ->
+    l \notin (getwt W) -> 
+    (getmap N) l = (getmap Nend) l.
   Admitted.
 (*start here replace this with
  iceval_cceval1*)
