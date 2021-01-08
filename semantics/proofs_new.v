@@ -723,7 +723,11 @@ by repeat rewrite - catA in ass3.
       assert (WARok (getdomain (Nc1 |! w)) [::] [::] crem) as Hwarok2.
       destruct Nc1 as [mc1 dc1]. rewrite/getdomain. simpl.
       apply (warok_cp H1 H11). 
-      move: (trace_converge H12) => Heq. subst.
+        remember ((incheckpoint w);;crem) as ccp.
+       assert (end_com ccp) as Hend. unfold end_com. right.
+       subst.
+         by exists crem w.
+      move: (trace_converge H12 Hend) => Heq. subst.
       suffices: (
                  exists Oc2 Oendc2 Nc2 Wc2 Wendc2,
                    trace_cs (Nc1, Vmid, crem)
@@ -740,22 +744,17 @@ by repeat rewrite - catA in ass3.
       exists (Oc1 ++ [::checkpoint] ++ Oc2) Oendc2 Nc2 (append_write Wc1 Wc2) Wendc2.
       repeat split; try assumption.
       repeat rewrite - catA. apply CP_IND; try assumption.
-      - eapply IHtrace_i1_2; try reflexivity; try assumption;
-          try apply sub_restrict.
-        destruct Nmid as [Nmidm NmidD].
-        unfold restrict. unfold getdomain. simpl.
-        destruct Nc1 as [Nc1m Nc1D].
-        apply Hwarok2.
-        unfold restrict in Hwarok2. unfold getdomain in Hwarok2. simpl in H.
+      - eapply IHtrace_i1_2;try reflexivity; try assumption;
+
+        (*Nmid and Nc1 are the same but they aren't
+         substituting*)
+        try apply sub_restrict.
         apply (adif_refl H13 H15 H14).
         (*why not just do an empty trace here
          up till nearest cp*)
        Check trace_append_ic.
        move: (trace_append_ic H0_0 H3) => [Nc1endi [Vc1endi [cmend Tendi] ] ].
        Check threeIS1.
-       assert (end_com ccp) as Hend. unfold end_com. right.
-       subst.
-         by exists crem w.
               assert ( checkpoint \notin [::]) as Hcp.
               by rewrite in_nil.
        move: (threeIS1 H0 H0_ H1 H2 H
