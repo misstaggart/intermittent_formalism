@@ -301,10 +301,27 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
        inversion H5.
        move : H5 => [crem [w contra] ]. inversion contra.
        by apply (H10 w).
-     + inversion H0; subst; exists Nc; split. apply If_T.
+     + inversion H0; subst; exists Nc; repeat split. apply If_T.
        move: (agreeonread H H0) => agr.
-       apply (agr_imp_age H11); try assumption.move => l contra.
+       apply (agr_imp_age H11); try assumption.
+       move => l contra.
        rewrite in_nil in contra. by exfalso.
+       intros.
+       inversion H. subst. suffices: O <> [::]. intros Ho.
+       move: (single_step_alls T Ho H0). => [Wrest [Orest
+                                                     [Trest
+                                [Hsubseq Hwrite] ] ] ].
+       econstructor; try apply Trest; try assumption.
+       apply/negP.
+       move/(in_subseq Hsubseq) => contra. move/negP: H3.
+         by apply.
+         destruct W as [ [w1 w2 ] w3].
+         destruct Wrest as [ [wr1 wr2] wr3]. inversion Hwrite.
+         rewrite cats0 in H9.
+         intros l Hneq. apply H5 in Hneq. subst. simpl in Hneq.
+         simpl. rewrite mem_filter in Hneq.
+         by move/ andP : Hneq => [one two].
+         unfold remove in H9. rewrite in_nil in H9. predT in H9.
        apply If_F.
        move: (agreeonread H H0) => agr.
        apply (agr_imp_age H11); try assumption. move => l contra.
