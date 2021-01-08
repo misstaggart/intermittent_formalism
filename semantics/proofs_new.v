@@ -61,6 +61,12 @@ forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
               eeval N1 V0 e r0 v0.
   intros. Admitted.
 
+ Lemma genloc_contents: forall(l: loc) (a: array),
+              l \in generate_locs a ->
+                    exists (el: el_loc), inr el = l.
+   Admitted.
+
+
     Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
                               cceval_w (Ni, V, c) O (Ni1, V1, c1) W ->
                               exists(Nc1: nvmem), (cceval_w (Nc, V, c) O (Nc1, V1, c1) W /\
@@ -82,14 +88,50 @@ forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
                   (if xloc == xloc then v else Ncmap xloc) = v.
         move => [one two]. by rewrite one two.
         split; by apply ifT.
-
+     - exists Nc. split. apply V_Assign; try assumption.
+       eapply agr_imp_age; try apply H2; try assumption.
+       simpl. move => l contra.
+        rewrite in_nil in contra. by exfalso.
+     - exists (updateNV_arr Nc element a v). split. eapply Assign_Arr.
+       eapply agr_imp_age; try apply H3; try assumption.
+       intros z Hin.
+       suffices: (z \in readobs_wvs (r ++ ri)).
+       move => Hin1.
+         by apply (agr z).
+         rewrite readobs_app_wvs.
+         by eapply in_app_r.
+       eapply agr_imp_age; try apply H0; try assumption.
+       intros z Hin.
+       suffices: (z \in readobs_wvs (r ++ ri)).
+       move => Hin1.
+         by apply (agr z).
+         rewrite readobs_app_wvs.
+           by eapply in_app_l. assumption. assumption.
+           simpl.
+           intros l Hin.
+        destruct Ni as [Nimap NiD].
+        destruct Nc as [Ncmap NcD].
+        unfold updateNV_arr. simpl.
+        move: (genloc_contents l a Hin) => [el Heq].
+        subst.
+        destruct (el == element) eqn: Hbool.
+        move/ eqP : Hbool => Heq. subst.
+        unfold updatemap.
+        suffices: 
+          ((if inr element == inr element then v else Nimap (inr element)) = v
+                                                                              /\
+  (if inr element == inr element then v else Ncmap (inr element)) = v).
+        move => annoying.
+        move: (annoying loc_eqtype loc_eqtype) => [one two].
+          by rewrite one two. 
+       intros. split; by apply ifT.
+      apply (agr z (in_app_l Hin)).
         rewrite H3.
         move: (H3 (inl x)) =>
 
              (inl x == inl x). apply/ eqP.
 
         simpl in
-
 
 Lemma two_p_five {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
                                              cceval_w (Ni, V, c) O (Ni1, V1, c1) W ->
