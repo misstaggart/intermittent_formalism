@@ -67,7 +67,9 @@ forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
    Admitted.
 
 
-(*Lemma add_skip {N1 V c N2}: all_diff_in_fw N V c N2*)
+ Lemma add_skip_ins {N1 V l N2}: all_diff_in_fw N1 V (Ins l) N2 ->
+                                 all_diff_in_fw N1 V (l;; skip) N2.
+   Admitted.
 
     Lemma two_bc {Ni Ni1 V V1 l c1 crem Nc O W} : all_diff_in_fw Ni V (l;;crem) Nc ->
                               cceval_w (Ni, V, Ins l) O (Ni1, V1, c1) W ->
@@ -143,7 +145,7 @@ forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
           by apply Hneq.
 Qed.
     
-    - exists Nc. split. apply Skip. move => l contra.
+    -(* exists Nc. split. apply Skip. move => l contra.
       rewrite in_nil in contra. by exfalso.
       suffices: 
                exists Nc1,
@@ -153,13 +155,26 @@ Qed.
                 getmap Ni1 l = getmap Nc1 l).
       move => [Nc1 [Hsmall Hloc] ]. exists Nc1. split; try assumption.
       apply Seq; try assumption.
-      eapply IHcceval_w; try reflexivity; try assumption.
+      eapply IHcceval_w; try reflexivity; try assumption.*)
 
 Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
                               cceval_w (Ni, V, c) O (Ni1, V1, c1) W ->
                               exists(Nc1: nvmem), (cceval_w (Nc, V, c) O (Nc1, V1, c1) W /\
                               forall(l: loc), l \in (getwt W) -> ((getmap Ni1) l = (getmap Nc1) l)).
-Admitted.
+  intros.
+  induction c.
+   - by move: (two_bc (add_skip_ins H) H0).
+    inversion H0; subst.
+     + exists Nc. split. apply CheckPoint. move => l contra.
+       rewrite in_nil in contra. by exfalso.
+     + exists Nc. split. apply Skip. move => l contra.
+       rewrite in_nil in contra. by exfalso.
+     + move: (two_bc H H12) => [Nc1 [Hsmall Hdone] ]. exists Nc1. split; try assumption.
+       apply Seq; try assumption.
+     +
+
+     
+  by 
 
 Lemma two_p_five {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
                                              cceval_w (Ni, V, c) O (Ni1, V1, c1) W ->
