@@ -192,28 +192,28 @@ Lemma single_step_alls: forall{C1 Cmid C3: context}
  Admitted.
 
 Lemma fw_split {W W1} {l: loc}:
-           l \in getfstwt (append_write W W1) ->
-                 l \in (getfstwt W) \/ l \in (getfstwt W1).
+           l \in getfstwt (append_write W1 W) ->
+                 l \in (getfstwt W1) \/ (
+                         l \notin (getrd W1)
+                           /\ l \in (getfstwt W)
+                       ).
   intros.
            (*intros Hdoneb. apply Hdoneb in Hl0.*)
            destruct W as [ [wW rW] fwW].
            destruct W1 as [ [wW1 rW1] fwW1].
-           simpl in H. simpl in Hl0.
-           unfold append_write in Hwrite. simpl in Hwrite.
-           inversion Hwrite. subst.
-           unfold remove in Hfw.
-           rewrite me/m_cat in Hfw.
-           move/ orP : Hfw => [Case1 | Case2].
-           rewrite mem_filter in Case1.
-             by move/ andP : Case1 => [blah done].
-            move: () 
-           rewrite mem_filter in Hfw.
-           move/ eqP: (Hdone l0).
-           apply (contra (Hdone l0)) in Hl0.
+           simpl in H.
+           unfold remove in H.
+           rewrite mem_cat in H.
+           rewrite mem_filter in H.
+           move/ orP : H => [one | two].
+           right.
+             by move/ andP : one.
+              by left.
+Qed.
 
-Lemma fw_subst_wt: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
+Lemma fw_subst_wt_c: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
       (* pose proof (cceval_to_rd_sv H H5). *)
-  trace_cs C1 C2 O W ->
+  cceval_w C1 O C2 W ->
   subseq (getfstwt W) (getwt W). Admitted.
 
 Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
@@ -286,8 +286,13 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
            suffices: (l0 \in getfstwt W0).
            intros Hfw.
            suffices: getmap Ni1 l0 <> getmap Nc1 l0 -> l0 \notin getwt W.
-         apply/
-
+           intros Hdonec. apply Hdonec in Hl0.
+           subst. move/ fw_split : Hfw => [one | two].
+           apply (in_subseq (fw_subst_wt_c H12)) in one.
+           exfalso. move/ negP : Hl0. by apply.
+             by move: two => [whatever done].
+             intros Hneq. apply/negP. intros contra.
+             apply Hneq. by apply Hdone.
        symmetry in Heq2.
        rewrite append_write_empty_l in Hwrite. by rewrite - Hwrite.
        intros contra.
