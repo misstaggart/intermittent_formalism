@@ -185,9 +185,11 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
        move: (agreeonread H H0) => agr.
        apply (agr_imp_age H11); try assumption.move => l contra.
        rewrite in_nil in contra. by exfalso.
-
-     
-  by 
+       apply If_F.
+       move: (agreeonread H H0) => agr.
+       apply (agr_imp_age H11); try assumption. move => l contra.
+       rewrite in_nil in contra. by exfalso.
+Qed.
 
 Lemma two_p_five {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
                                              cceval_w (Ni, V, c) O (Ni1, V1, c1) W ->
@@ -739,7 +741,12 @@ by repeat rewrite - catA in ass3.
       repeat split; try assumption.
       repeat rewrite - catA. apply CP_IND; try assumption.
       - eapply IHtrace_i1_2; try reflexivity; try assumption;
-      try apply sub_restrict.
+          try apply sub_restrict.
+        destruct Nmid as [Nmidm NmidD].
+        unfold restrict. unfold getdomain. simpl.
+        destruct Nc1 as [Nc1m Nc1D].
+        apply Hwarok2.
+        unfold restrict in Hwarok2. unfold getdomain in Hwarok2. simpl in H.
         apply (adif_refl H13 H15 H14).
         (*why not just do an empty trace here
          up till nearest cp*)
