@@ -167,18 +167,64 @@ Qed.
       apply Seq; try assumption.
       eapply IHcceval_w; try reflexivity; try assumption.*)
 
+Lemma cceval_skip: forall {N N': nvmem} {V V': vmem}
+                    {l: instruction} {c: command}
+  {O: obseq} {W: the_write_stuff},
+    cceval_w (N, V, Ins l) O (N', V', c) W ->
+    (c = skip). Admitted.
+
+(*can't do this one till youve fixed your eq types*)
+Lemma trace_converge_minus1 {N V l N' Nmid Vmid Nmid'
+                            O W}:
+  all_diff_in_fw N V l N' ->
+  cceval_w (N, V, l) O (Nmid, Vmid, Ins skip) W ->
+  cceval_w (N', V, l) O (Nmid', Vmid, Ins skip) W ->
+  Nmid = Nmid'.
+Admitted.
+
+Lemma single_step_alls: forall{C1 Cmid C3: context}
+                    {Obig O1 : obseq} {W1 Wbig: the_write_stuff},
+    trace_cs C1 C3 Obig Wbig ->
+    Obig <> [::] ->
+     cceval_w C1 O1 Cmid W1 ->
+    exists(Wrest: the_write_stuff) (Orest: obseq), trace_cs Cmid C3 Orest Wrest
+/\ subseq Orest Obig /\ Wbig = (append_write W1 Wrest).
+ Admitted.
+
 Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
                               cceval_w (Ni, V, c) O (Ni1, V1, c1) W ->
                               exists(Nc1: nvmem), (cceval_w (Nc, V, c) O (Nc1, V1, c1) W /\
-                              forall(l: loc), l \in (getwt W) -> ((getmap Ni1) l = (getmap Nc1) l)).
+                                              (forall(l: loc), l \in (getwt W) -> ((getmap Ni1) l = (getmap Nc1) l))
+
+                                             /\
+                                             (checkpoint \notin O -> all_diff_in_fw Ni1 V1 c1 Nc1)
+                                             ).
   intros.
   induction c.
-   - by move: (two_bc (add_skip_ins H) H0).
-    inversion H0; subst.
-     + exists Nc. split. apply CheckPoint. move => l contra.
+  - move: (two_bc (add_skip_ins H) H0). => [Nc1 [Hcceval Hl] ].
+    exists Nc1. repeat (split; try assumption).
+    move: (cceval_skip Hcceval) => Heq. subst.
+    pose proof (trace_converge_minus1 H H0 Hcceval). subst. intros.
+    econstructor; try reflexivity.
+    apply (CsTrace_Empty (Nc1, V1, Ins skip)). by left.
+      by rewrite in_nil.
+      move => l0 contra. exfalso. by apply contra.
+   - inversion H0; subst.
+     + exists Nc. repeat split. apply CheckPoint. move => l contra.
        rewrite in_nil in contra. by exfalso.
-     + exists Nc. split. apply Skip. move => l contra.
-       rewrite in_nil in contra. by exfalso.
+       move/ negP => contra. exfalso. by apply contra.
+     + exists Nc. repeat split. apply Skip. move => l contra.
+       rewrite in_nil in contra. by exfalso. intros.
+       inversion H; subst.
+       suffices: O <> [::]. intros Ho.
+       move: (single_step_alls T Ho H0). => [Wrest [Orest
+                                                     [Trest
+                                [Hsubseq Hwrite] ] ] ].
+       econstructor; try apply Trest; try assumption.
+       apply/negP. intros contra.
+       apply/negP / negPn: H3.
+       apply (in_subseq Hsubseq contra).
+       rewrite append_write_empty_l in Hwrite. by rewrite - Hwrite.
      + move: (two_bc H H12) => [Nc1 [Hsmall Hdone] ]. exists Nc1. split; try assumption.
        apply Seq; try assumption.
      + inversion H0; subst; exists Nc; split. apply If_T.
@@ -196,9 +242,14 @@ Lemma two_p_five {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
                                              checkpoint \notin O ->
                               exists(Nc1: nvmem), (cceval_w (Nc, V, c) O (Nc1, V1, c1) W /\
                               all_diff_in_fw Ni1 V1 c1 Nc1).
-Admitted.
+  intros.
+  move: (two H H0) => [Nc1 [Hcceval Hl] ]. exists Nc1. split; try assumption.
+  inversion H; subst.
+  econstructor.
 
-Lemma exist_endcom {N0 V0 c0 N01 V01 c01 N V c N1 V1 O W cend}:
+
+
+  Lemma exist_endcom {N0 V0 c0 N01 V01 c01 N V c N1 V1 O W cend}:
   trace_i1 ((N0, V0, c0), N, V, c) ((N01, V01, c01), N1, V1, cend) O W ->
   end_com cend ->
   (exists(Osmall: obseq) (Wsmall: the_write_stuff) (N2: nvmem) (V2: vmem) (c2: command),
@@ -249,14 +300,6 @@ Lemma observe_checkpt_s: forall {N N': nvmem} {V V': vmem}
     cceval_w (N, V, (incheckpoint w ;; c)) O (N', V', c') W ->
     checkpoint \in O. Admitted.
 
-Lemma single_step_alls: forall{C1 Cmid C3: context}
-                    {Obig O1 : obseq} {W1 Wbig: the_write_stuff},
-    trace_cs C1 C3 Obig Wbig ->
-    Obig <> [::] ->
-     cceval_w C1 O1 Cmid W1 ->
-    exists(Wrest: the_write_stuff) (Orest: obseq), trace_cs Cmid C3 Orest Wrest
-/\ subseq Orest Obig /\ Wbig = (append_write W1 Wrest).
- Admitted.
 
 Lemma update_domc {N11 N12 V11 V12  N21 N22 V21 V22
                        c c1 c2 O1 O2 W1 W2}:
