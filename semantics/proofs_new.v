@@ -41,11 +41,21 @@ Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
 ( forall(l: loc ), ((getmap N1) l <> (getmap N1c) l) -> (l \in getfstwt W))
 -> all_diff_in_fw N1 V1 c1 N1c.
 
-    Lemma agreeonread: forall{N Nend N2: nvmem} {V Vend: vmem}
+    Lemma agreeonread_ins: forall{N Nend N2: nvmem} {V Vend: vmem}
                         {l: instruction} {crem c1: command}
                    {O : obseq} {W: the_write_stuff},
   all_diff_in_fw N V (l;;crem) N2 ->
              cceval_w (N, V, Ins l) O (Nend, Vend, c1) W ->
+            ( forall(z: loc), z \in (getrd W) -> (*z was read immediately cuz trace is only 1
+                                thing long*)
+                   (getmap N) z = (getmap N2) z). (*since z isnt in FW of trace from Ins l to skip*)
+    Admitted.
+
+ Lemma agreeonread: forall{N Nend N2: nvmem} {V Vend: vmem}
+                        {c c1: command}
+                   {O : obseq} {W: the_write_stuff},
+  all_diff_in_fw N V c N2 ->
+             cceval_w (N, V, c) O (Nend, Vend, c1) W ->
             ( forall(z: loc), z \in (getrd W) -> (*z was read immediately cuz trace is only 1
                                 thing long*)
                    (getmap N) z = (getmap N2) z). (*since z isnt in FW of trace from Ins l to skip*)
@@ -76,7 +86,7 @@ forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
                               exists(Nc1: nvmem), (cceval_w (Nc, V, Ins l) O (Nc1, V1, c1) W /\
                               forall(l: loc), l \in (getwt W) -> ((getmap Ni1) l = (getmap Nc1) l)).
       intros.
-      move: (agreeonread H H0) => agr.
+      move: (agreeonread_ins H H0) => agr.
       dependent induction H0; simpl in agr.
     (*  - exists Nc. split. apply CheckPoint. move => l contra.
         rewrite in_nil in contra. by exfalso.*)
@@ -171,7 +181,10 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
        rewrite in_nil in contra. by exfalso.
      + move: (two_bc H H12) => [Nc1 [Hsmall Hdone] ]. exists Nc1. split; try assumption.
        apply Seq; try assumption.
-     +
+     + inversion H0; subst; exists Nc; split. apply If_T.
+       move: (agreeonread H H0) => agr.
+       apply (agr_imp_age H11); try assumption.move => l contra.
+       rewrite in_nil in contra. by exfalso.
 
      
   by 
