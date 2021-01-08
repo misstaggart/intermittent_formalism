@@ -191,6 +191,31 @@ Lemma single_step_alls: forall{C1 Cmid C3: context}
 /\ subseq Orest Obig /\ Wbig = (append_write W1 Wrest).
  Admitted.
 
+Lemma fw_split {W W1} {l: loc}:
+           l \in getfstwt (append_write W W1) ->
+                 l \in (getfstwt W) \/ l \in (getfstwt W1).
+  intros.
+           (*intros Hdoneb. apply Hdoneb in Hl0.*)
+           destruct W as [ [wW rW] fwW].
+           destruct W1 as [ [wW1 rW1] fwW1].
+           simpl in H. simpl in Hl0.
+           unfold append_write in Hwrite. simpl in Hwrite.
+           inversion Hwrite. subst.
+           unfold remove in Hfw.
+           rewrite me/m_cat in Hfw.
+           move/ orP : Hfw => [Case1 | Case2].
+           rewrite mem_filter in Case1.
+             by move/ andP : Case1 => [blah done].
+            move: () 
+           rewrite mem_filter in Hfw.
+           move/ eqP: (Hdone l0).
+           apply (contra (Hdone l0)) in Hl0.
+
+Lemma fw_subst_wt: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
+      (* pose proof (cceval_to_rd_sv H H5). *)
+  trace_cs C1 C2 O W ->
+  subseq (getfstwt W) (getwt W). Admitted.
+
 Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
                               cceval_w (Ni, V, c) O (Ni1, V1, c1) W ->
                               exists(Nc1: nvmem), (cceval_w (Nc, V, c) O (Nc1, V1, c1) W /\
@@ -254,7 +279,15 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
        move => Heq1 Heq2.
        suffices: getmap Ni (inr el) = getmap Nc (inr el).
        intros Heq3. symmetry in Heq2.
-       by move: (trans_eq (trans_eq Heq2 Heq3) Heq1).
+         by move: (trans_eq (trans_eq Heq2 Heq3) Heq1).
+         apply/eqP/ negPn/ negP. move/eqP => contra.
+           by apply contra.
+           intros l0 Hl0.
+           suffices: (l0 \in getfstwt W0).
+           intros Hfw.
+           suffices: getmap Ni1 l0 <> getmap Nc1 l0 -> l0 \notin getwt W.
+         apply/
+
        symmetry in Heq2.
        rewrite append_write_empty_l in Hwrite. by rewrite - Hwrite.
        intros contra.
@@ -357,15 +390,6 @@ Lemma trace_diff {N1 V1 c1 N2 V2 c2 O W} {l: loc}:
   (getmap N2) l <> (getmap N1) l ->
 l \in (getwt W). Admitted.
 
-Lemma fw_split {W W1} {l: loc}:
-           l \in getfstwt (append_write W W1) ->
-                 l \in (getfstwt W) \/ l \in (getfstwt W1).
-  Admitted.
-
-Lemma fw_subst_wt: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
-      (* pose proof (cceval_to_rd_sv H H5). *)
-  trace_cs C1 C2 O W ->
-  subseq (getfstwt W) (getwt W). Admitted.
 
 Lemma three_bc1 {Ni Ni1 V V1 c c1 Nc O W} :
   all_diff_in_fw Ni V c Nc ->
