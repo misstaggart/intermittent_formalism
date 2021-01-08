@@ -708,6 +708,9 @@ by repeat rewrite - catA in ass3.
   +
         (*last inductive case starts here*)
         remember ((incheckpoint w);;crem) as ccp.
+       assert (end_com ccp) as Hend. unfold end_com. right.
+       subst.
+         by exists crem w.
         suffices: (exists Oc Oendc Nc1 Wc
                  Wendc Nc1end Vc1end cend,
                  trace_cs (Nc, V, c)
@@ -724,9 +727,6 @@ by repeat rewrite - catA in ass3.
       destruct Nc1 as [mc1 dc1]. rewrite/getdomain. simpl.
       apply (warok_cp H1 H11). 
         remember ((incheckpoint w);;crem) as ccp.
-       assert (end_com ccp) as Hend. unfold end_com. right.
-       subst.
-         by exists crem w.
       move: (trace_converge H12 Hend) => Heq. subst.
       suffices: (
                  exists Oc2 Oendc2 Nc2 Wc2 Wendc2,
@@ -784,7 +784,7 @@ assert (WARok (getdomain (Nc1 |! w)) [::] [::] crem) as Hwarok2.
        exists Oc Oendc Nc1 Wc Wendc Nc1end. exists Vc1end cend0. subst.
        repeat split; try assumption. 
        econstructor; try eapply CsTrace_Empty; auto.
-       by repeat rewrite cats0 in Hm.
+       by repeat rewrite cats0 in Hm. assumption.
 Qed.
 
   Lemma both_cp {O1 O2} :
