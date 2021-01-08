@@ -138,7 +138,19 @@ forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
         move/eqP: (negbT Hbool) => Hneq;
         apply negbTE;
         apply/eqP; intros contra; inversion contra; subst;
-        by apply Hneq.
+          by apply Hneq.
+    - exists Nc. split. apply Skip. move => l contra.
+      rewrite in_nil in contra. by exfalso.
+      suffices: 
+               exists Nc1,
+               cceval_w (Nc, V, (Ins l)) [:: o] (Nc1, V1, Ins skip) W /\
+               (forall l : loc,
+                l \in getwt W ->
+                getmap Ni1 l = getmap Nc1 l).
+      move => [Nc1 [Hsmall Hloc] ]. exists Nc1. split; try assumption.
+      apply Seq; try assumption.
+      eapply IHcceval_w; try reflexivity; try assumption.
+
 Lemma two_p_five {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
                                              cceval_w (Ni, V, c) O (Ni1, V1, c1) W ->
                                              checkpoint \notin O ->
