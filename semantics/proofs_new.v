@@ -356,10 +356,8 @@ Lemma two_p_five {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
                               exists(Nc1: nvmem), (cceval_w (Nc, V, c) O (Nc1, V1, c1) W /\
                               all_diff_in_fw Ni1 V1 c1 Nc1).
   intros.
-  move: (two H H0) => [Nc1 [Hcceval Hl] ]. exists Nc1. split; try assumption.
-  inversion H; subst.
-  econstructor.
-
+  move: (two H H0) => [Nc1 [Hcceval [Hl Hdone] ] ]. exists Nc1. split; try assumption. by apply Hdone.
+Qed.
 
 
   Lemma exist_endcom {N0 V0 c0 N01 V01 c01 N V c N1 V1 O W cend}:
