@@ -225,8 +225,29 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
        apply/negP / negPn: H3.
        apply (in_subseq Hsubseq contra).
        rewrite append_write_empty_l in Hwrite. by rewrite - Hwrite.
-     + move: (two_bc H H12) => [Nc1 [Hsmall Hdone] ]. exists Nc1. split; try assumption.
+       intros contra.
+       move: (empty_trace_cs1 T contra) => [Eq1 Eq2].
+       inversion Eq1. subst. inversion H2.
+       inversion H6.
+       move : H6 => [crem [w contra] ]. inversion contra.
+     + move: (two_bc H H12) => [Nc1 [Hsmall Hdone] ]. exists Nc1. repeat split; try assumption.
        apply Seq; try assumption.
+       inversion H; subst.
+       suffices: O <> [::]. intros Ho.
+       move: (single_step_alls T Ho H0). => [Wrest [Orest
+                                                     [Trest
+                                [Hsubseq Hwrite] ] ] ].
+       econstructor; try apply Trest; try assumption.
+       apply/negP. intros contra.
+       apply/negP / negPn: H2.
+       apply (in_subseq Hsubseq contra).
+       (*start here*)
+       rewrite append_write_empty_l in Hwrite. by rewrite - Hwrite.
+       intros contra.
+       move: (empty_trace_cs1 T contra) => [Eq1 Eq2].
+       inversion Eq1. subst. inversion H2.
+       inversion H6.
+       move : H6 => [crem [w contra] ]. inversion contra.
      + inversion H0; subst; exists Nc; split. apply If_T.
        move: (agreeonread H H0) => agr.
        apply (agr_imp_age H11); try assumption.move => l contra.
