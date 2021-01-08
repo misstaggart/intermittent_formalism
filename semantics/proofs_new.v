@@ -125,14 +125,20 @@ forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
         move: (annoying loc_eqtype loc_eqtype) => [one two].
           by rewrite one two. 
        intros. split; by apply ifT.
-      apply (agr z (in_app_l Hin)).
-        rewrite H3.
-        move: (H3 (inl x)) =>
-
-             (inl x == inl x). apply/ eqP.
-
-        simpl in
-
+        unfold updatemap.
+        suffices: 
+          ((if inr el == inr element then v else Nimap (inr el)) =
+           Nimap (inr el) /\
+           (if inr el == inr element then v else Ncmap (inr el)) = Ncmap (inr el)).
+        move => annoying.
+        move: (annoying loc_eqtype loc_eqtype) => [one two]. rewrite one two.
+        inversion H; subst.
+        apply (H6 el).
+        intros. split; apply ifF;
+        move/eqP: (negbT Hbool) => Hneq;
+        apply negbTE;
+        apply/eqP; intros contra; inversion contra; subst;
+        by apply Hneq.
 Lemma two_p_five {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
                                              cceval_w (Ni, V, c) O (Ni1, V1, c1) W ->
                                              checkpoint \notin O ->
