@@ -241,7 +241,21 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
        apply/negP. intros contra.
        apply/negP / negPn: H2.
        apply (in_subseq Hsubseq contra).
-       (*start here*)
+       intros. destruct ((inr el) \in (getwt W)) eqn: Hbool.
+       by apply Hdone in Hbool.
+       move/contra : (update_one_c (inr el) H12) => Ho2ni.
+       move/contra : (update_one_c (inr el) Hsmall) => Ho2nc.
+       move/ negbT : Hbool => Hbooli.
+       remember Hbooli as Hboolc. clear HeqHboolc.
+       apply Ho2ni in Hbooli.
+       apply Ho2nc in Hboolc.
+       move/ negPn /eqP: Hbooli.
+       move/ negPn /eqP: Hboolc.
+       move => Heq1 Heq2.
+       suffices: getmap Ni (inr el) = getmap Nc (inr el).
+       intros Heq3. symmetry in Heq2.
+       by move: (trans_eq (trans_eq Heq2 Heq3) Heq1).
+       symmetry in Heq2.
        rewrite append_write_empty_l in Hwrite. by rewrite - Hwrite.
        intros contra.
        move: (empty_trace_cs1 T contra) => [Eq1 Eq2].
