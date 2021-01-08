@@ -467,7 +467,9 @@ intros. move: (two H H0) => [Nc1 [Hcceval Heq] ]. exists Nc1.
          move: (update_onec H0 Hcceval Hcase Hl) => Hw1.
          apply Heq in Hw1. exfalso. by apply Hl.
          apply H5 in Hcase. subst. move/fw_split : Hcase => [Hc1 | Hc2].
-         move/ Heq : (in_subseq (fw_subst_wt (CsTrace_Single H0)) Hc1) => contra. exfalso. by apply Hl. by [].
+         move : (in_subseq (fw_subst_wt_c H0) Hc1) => contra.
+         apply Heq in contra.
+         exfalso. by apply Hl. by destruct Hc2.
          Qed.
 
 Lemma wts_cped_sv: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
@@ -911,7 +913,8 @@ by repeat rewrite - catA in ass3.
        => [Oc [Oendc [Nc1 [Wc [ Wendc500 [T1 [Hdiff [Hm Tempty] ] ] ] ] ] ] ].
        subst.
        move: (trace_converge Hdiff) => Hsamemem. subst.
-       move/ empty_trace_cs : Tempty => [Heq whatever].
+       move/ empty_trace_cs : Tempty => [Heq
+                                          [one two] ].
        subst.
        move: (exist_endcom Tendi H4) => [Oendc0 [Wendc0 [Nc1end0 [Vc1end
                                                            [cend0 [Tend [Hendcom Hoendc] ] ] ] ] ] ].
