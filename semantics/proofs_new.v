@@ -367,13 +367,21 @@ Qed.
     trace_i1 ((N0, V0, c0), N, V, c) ((N0, V0, c0), N2, V2, c2) Osmall Wsmall /\
     end_com c2 /\ checkpoint \notin Osmall). Admitted.
 
+
+Lemma same_com_c
+
+
 Lemma same_com {N0 N V c Nmid Vmid cmid O1 W1 Nend1 Vend cend O2 W2}:
   WARok (getdomain N0) [::] [::] c ->
   subset_nvm N0 N ->
   trace_cs (N, V, c) (Nmid, Vmid, cmid) O1 W1 ->
+  checkpoint \notin O1 ->
   trace_cs (N0 U! Nmid, V, c) (Nend1, Vend, cend) O2 W2 ->
+  checkpoint \notin O2 ->
   exists (Nend2: nvmem), trace_cs (N, V, c) (Nend2, Vend, cend) O2 W2.
-Admitted.
+  intros. dependent induction H3.
+  + exists N. apply (CsTrace_Empty (N, Vend, cend)) .
+  + 
 
 Lemma same_comi {N0 N V c O1 W1 Nend Vend cend }:
   WARok (getdomain N0) [::] [::] c ->
@@ -389,7 +397,7 @@ checkpoint \notin Oc).
                  (Nend2, Vend, cend) Oc Wc /\
                checkpoint \notin Oc
            ). move => [Nend2 [Ocend [Wcend [Tend Hocend] ] ] ].
-  move: (same_com H H0 H3 Tend) => [Nend0 Tdone].
+  move: (same_com H H0 H3 H4 Tend Hocend) => [Nend0 Tdone].
   exists Nend0 Ocend Wcend. split; assumption.
   eapply IHtrace_i1; try reflexivity; try assumption.
   apply sub_update.
