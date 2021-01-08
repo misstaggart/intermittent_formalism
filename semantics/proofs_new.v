@@ -42,10 +42,10 @@ Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
 -> all_diff_in_fw N1 V1 c1 N1c.
 
     Lemma agreeonread: forall{N Nend N2: nvmem} {V Vend: vmem}
-                        {c c1: command}
+                        {l: instruction} {crem c1: command}
                    {O : obseq} {W: the_write_stuff},
-  all_diff_in_fw N V c N2 ->
-             cceval_w (N, V, c) O (Nend, Vend, c1) W ->
+  all_diff_in_fw N V (l;;crem) N2 ->
+             cceval_w (N, V, Ins l) O (Nend, Vend, c1) W ->
             ( forall(z: loc), z \in (getrd W) -> (*z was read immediately cuz trace is only 1
                                 thing long*)
                    (getmap N) z = (getmap N2) z). (*since z isnt in FW of trace from Ins l to skip*)
@@ -67,15 +67,17 @@ forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
    Admitted.
 
 
-    Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
-                              cceval_w (Ni, V, c) O (Ni1, V1, c1) W ->
-                              exists(Nc1: nvmem), (cceval_w (Nc, V, c) O (Nc1, V1, c1) W /\
+(*Lemma add_skip {N1 V c N2}: all_diff_in_fw N V c N2*)
+
+    Lemma two_bc {Ni Ni1 V V1 l c1 crem Nc O W} : all_diff_in_fw Ni V (l;;crem) Nc ->
+                              cceval_w (Ni, V, Ins l) O (Ni1, V1, c1) W ->
+                              exists(Nc1: nvmem), (cceval_w (Nc, V, Ins l) O (Nc1, V1, c1) W /\
                               forall(l: loc), l \in (getwt W) -> ((getmap Ni1) l = (getmap Nc1) l)).
       intros.
       move: (agreeonread H H0) => agr.
       dependent induction H0; simpl in agr.
-      - exists Nc. split. apply CheckPoint. move => l contra.
-        rewrite in_nil in contra. by exfalso.
+    (*  - exists Nc. split. apply CheckPoint. move => l contra.
+        rewrite in_nil in contra. by exfalso.*)
       - exists (updateNV_sv Nc x v). split. apply NV_Assign; try assumption.
         eapply agr_imp_age; try apply H2; try assumption.
         simpl. intros l Hin. rewrite mem_seq1 in Hin.
@@ -139,6 +141,8 @@ forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
         apply negbTE;
         apply/eqP; intros contra; inversion contra; subst;
           by apply Hneq.
+Qed.
+    
     - exists Nc. split. apply Skip. move => l contra.
       rewrite in_nil in contra. by exfalso.
       suffices: 
@@ -150,6 +154,12 @@ forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
       move => [Nc1 [Hsmall Hloc] ]. exists Nc1. split; try assumption.
       apply Seq; try assumption.
       eapply IHcceval_w; try reflexivity; try assumption.
+
+Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
+                              cceval_w (Ni, V, c) O (Ni1, V1, c1) W ->
+                              exists(Nc1: nvmem), (cceval_w (Nc, V, c) O (Nc1, V1, c1) W /\
+                              forall(l: loc), l \in (getwt W) -> ((getmap Ni1) l = (getmap Nc1) l)).
+Admitted.
 
 Lemma two_p_five {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
                                              cceval_w (Ni, V, c) O (Ni1, V1, c1) W ->
