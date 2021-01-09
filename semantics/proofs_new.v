@@ -368,20 +368,39 @@ Qed.
     end_com c2 /\ checkpoint \notin Osmall). Admitted.
 
 
-Lemma same_com_c
+  Lemma same_com_c {N0 N V c Nmid Vmid cmid O1 W1 Nend1 Vend cend O2 W2}:
+    WARok (getdomain N0) [::] [::] c ->
+  subset_nvm N0 N ->
+  trace_cs (N, V, c) (Nmid, Vmid, cmid) O1 W1 -> (*need this so you know what
+                                                 to update with*)
+  cceval_w (N0 U! Nmid, V, c) O2 (Nend1, Vend, cend) W2 ->
+  checkpoint \notin O1 ->
+  checkpoint \notin O2 ->
+  exists (Nend2: nvmem), cceval_w (N, V, c) O2 (Nend2, Vend, cend) W2.
+Admitted.
 
 
 Lemma same_com {N0 N V c Nmid Vmid cmid O1 W1 Nend1 Vend cend O2 W2}:
   WARok (getdomain N0) [::] [::] c ->
   subset_nvm N0 N ->
-  trace_cs (N, V, c) (Nmid, Vmid, cmid) O1 W1 ->
+  trace_cs (N, V, c) (Nmid, Vmid, cmid) O1 W1 -> (*need this so you know what
+                                                 to update with*)
   checkpoint \notin O1 ->
   trace_cs (N0 U! Nmid, V, c) (Nend1, Vend, cend) O2 W2 ->
   checkpoint \notin O2 ->
   exists (Nend2: nvmem), trace_cs (N, V, c) (Nend2, Vend, cend) O2 W2.
-  intros. dependent induction H3.
+  intros. move: Vmid cmid N W1 O1 H1 H2 H0. dependent induction H3; intros.
   + exists N. apply (CsTrace_Empty (N, Vend, cend)) .
-  + 
+  + move: (same_com_c H H3 H1 H0 H2 H4) => [Nend2 Hend2].
+    exists Nend2. by apply CsTrace_Single.
+  + destruct Cmid as [ [N2 V2] c2].
+    rewrite mem_cat in H4. move/ norP : H4 => [Ho1 Ho2].
+    move: (same_com_c H H6 H2 H0 H5 Ho1) => [Nend2 Hend2].
+    suffices:
+      (exists Nend3, trace_cs (N2, V2, c2) (Nend3, Vend, cend) O2 W2).
+    move => [Nend3 Tend].
+    exists Nend3. eapply CsTrace_Cons; try apply Tend; try assumption.
+  Admitted. 
 
 Lemma same_comi {N0 N V c O1 W1 Nend Vend cend }:
   WARok (getdomain N0) [::] [::] c ->
