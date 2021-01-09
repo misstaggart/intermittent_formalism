@@ -168,11 +168,6 @@ Qed.
       apply Seq; try assumption.
       eapply IHcceval_w; try reflexivity; try assumption.*)
 
-Lemma cceval_skip: forall {N N': nvmem} {V V': vmem}
-                    {l: instruction} {c: command}
-  {O: obseq} {W: the_write_stuff},
-    cceval_w (N, V, Ins l) O (N', V', c) W ->
-    (c = skip). Admitted.
 
 (*can't do this one till youve fixed your eq types*)
 Lemma trace_converge_minus1 {N V l N' Nmid Vmid Nmid'

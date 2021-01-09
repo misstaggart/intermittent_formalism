@@ -440,3 +440,9 @@ right.
 (*ask arthur how to do a recursive tactic
  for dealing with big conjunctions*)
 Qed.
+
+Lemma cceval_skip: forall {N N': nvmem} {V V': vmem}
+                    {l: instruction} {c: command}
+  {O: obseq} {W: the_write_stuff},
+    cceval_w (N, V, Ins l) O (N', V', c) W ->
+    (c = skip). Admitted.

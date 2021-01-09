@@ -16,15 +16,46 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
    *)
 ( forall(l: loc ), ((getmap N1) l <> (getmap N1c) l) -> (l \in getfstwt W))
 -> all_diff_in_fww N1 V1 c1 N1c.
-  Lemma same_com_hc {N N1 V c Nend2 V1 c1 O W}:
+
+ Lemma same_com_hcbc {N N1 Nend1 V V1 l crem O W c1} : all_diff_in_fww N V (l;;crem) N1 ->
+                              cceval_w (N1, V, Ins l) O (Nend1, V1, c1) W ->
+                              exists(Nend: nvmem), (cceval_w (N, V, Ins l) O (Nend, V1, c1) W).
+   intros.
+   Admitted.
+
+ Lemma add_skip_ins {N1 V l N2}: all_diff_in_fww N1 V (Ins l) N2 ->
+                                 all_diff_in_fww N1 V (l;; skip) N2.
+   Admitted.
+
+Lemma trace_converge_minus1w {N V l N' Nmid Vmid Nmid'
+                            O W}:
+  all_diff_in_fww N V l N' ->
+  cceval_w (N, V, l) O (Nmid, Vmid, Ins skip) W ->
+  cceval_w (N', V, l) O (Nmid', Vmid, Ins skip) W ->
+  Nmid = Nmid'.
+Admitted.
+
+(*wellformedness condition about all the mems,
+the maps are not error <-> in the domain
+ and sorting for the domain*)
+
+Lemma same_com_hc {N N1 V c Nend2 V1 c1 O W}:
   all_diff_in_fww N V c N1 ->
   cceval_w (N1, V, c) O (Nend2, V1, c1) W -> (*use that W2 must be a subset of W*)
   checkpoint \notin O ->
   exists (Nend1: nvmem), cceval_w (N, V, c) O (Nend1, V1, c1) W
                              /\ all_diff_in_fww Nend1 V1 c1 Nend2.
+    intros Hdiff Hcceval1 Ho.
+   induction c.
+  - move: (same_com_hcbc (add_skip_ins Hdiff) Hcceval1). => [Nend Hcceval].
+    exists Nend. split; try assumption.
+    move: (cceval_skip Hcceval1) => Heq. subst.
+    pose proof (trace_converge_minus1w Hdiff Hcceval Hcceval1). subst.
+    econstructor; try reflexivity.
+    apply (CsTrace_Empty (Nend2, V1, Ins skip)). 
+      by rewrite in_nil.
+      move => l0 contra. exfalso. by apply contra.
 
-
-Admitted.
 
   Lemma same_com_help {N N1 V c Nend2 Vend cend O W}:
   all_diff_in_fww N V c N1 ->

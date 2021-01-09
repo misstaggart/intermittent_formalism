@@ -1,4 +1,4 @@
-DIGEST 525ca84d7b2dbe59145ce90bf864223a
+DIGEST 35e655b48010f640f1f0ded9e79c12d3
 FSemantics.proofs_0
 R70:78 Coq.Bool.Bool <> <> lib
 R80:87 Coq.Init.Nat <> <> lib
@@ -1175,3 +1175,41 @@ R15564:15576 Semantics.proofs_0 <> determinism_e thm
 R15705:15717 Semantics.proofs_0 <> determinism_e thm
 R15705:15717 Semantics.proofs_0 <> determinism_e thm
 R15705:15717 Semantics.proofs_0 <> determinism_e thm
+prf 15891:15901 <> cceval_skip
+R15918:15922 Semantics.semantics <> nvmem ind
+binder 15912:15912 <> N:162
+binder 15914:15915 <> N':163
+R15932:15935 Semantics.semantics <> vmem ind
+binder 15926:15926 <> V:164
+binder 15928:15929 <> V':165
+R15962:15972 Semantics.semantics <> instruction ind
+binder 15959:15959 <> l:166
+R15979:15985 Semantics.semantics <> command ind
+binder 15976:15976 <> c:167
+R15994:15998 Semantics.semantics <> obseq syndef
+binder 15991:15991 <> O:168
+R16005:16019 Semantics.semantics <> the_write_stuff syndef
+binder 16002:16002 <> W:169
+R16065:16073 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R16082:16082 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R16075:16077 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R16074:16074 Semantics.proofs_0 <> c:167 var
+R16078:16081 Semantics.semantics <> skip constr
+R16027:16034 Semantics.semantics <> cceval_w ind
+R16064:16064 Semantics.proofs_0 <> W:169 var
+R16052:16052 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R16055:16056 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R16059:16060 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R16062:16062 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R16053:16054 Semantics.proofs_0 <> N':163 var
+R16057:16058 Semantics.proofs_0 <> V':165 var
+R16061:16061 Semantics.proofs_0 <> c:167 var
+R16050:16050 Semantics.proofs_0 <> O:168 var
+R16036:16036 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R16038:16039 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R16041:16042 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R16048:16048 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R16037:16037 Semantics.proofs_0 <> N:162 var
+R16040:16040 Semantics.proofs_0 <> V:164 var
+R16043:16045 Semantics.semantics <> Ins constr
+R16047:16047 Semantics.proofs_0 <> l:166 var
