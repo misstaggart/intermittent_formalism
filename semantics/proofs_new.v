@@ -5,7 +5,7 @@ Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq fintype ssrnat ssrfun.
 From TLC Require Import LibTactics LibLogic.
 From Semantics Require Export programs semantics algorithms lemmas_1
-     lemmas_0 proofs_0. (*shouldn't have to import both of these*)
+     lemmas_0 proofs_0 proofs_sc. (*shouldn't have to import both of these*)
 
 Implicit Types N: nvmem. Implicit Types V: vmem.
 Implicit Types O: obseq.
@@ -41,15 +41,6 @@ Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
 ( forall(l: loc ), ((getmap N1) l <> (getmap N1c) l) -> (l \in getfstwt W))
 -> all_diff_in_fw N1 V1 c1 N1c.
 
-Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
-  Diff_in_FWw: forall{N1 V1 c1 N2 V2 c2 N1c O W} (T: trace_cs (N1, V1, c1) (N2, V2, c2) O W),
-    checkpoint \notin O -> (*c2 is nearest checkpoint or termination*)
-  (*  (getdomain N1) = (getdomain N1c) -> alternatively
-                                       could check N2 domain as well instead of this
- not even clear why i need the domains                                    
-   *)
-( forall(l: loc ), ((getmap N1) l <> (getmap N1c) l) -> (l \in getfstwt W))
--> all_diff_in_fww N1 V1 c1 N1c.
 
     Lemma agreeonread_ins: forall{N Nend N2: nvmem} {V Vend: vmem}
                         {l: instruction} {crem c1: command}
@@ -378,19 +369,6 @@ Qed.
     end_com c2 /\ checkpoint \notin Osmall). Admitted.
 
 
-  Lemma same_com_c {N0 N V c Nmid Vmid cmid O W Nend1 Vend cend O2 W2}:
-  subset_nvm N0 N ->
-  trace_cs (N, V, c) (Nmid, Vmid, cmid) O W -> (*need this so you know what
-                                                 to update with*)
-    (forall l: loc,  l \notin (getfstwt W) -> (*l not in OVERALL FW for this trace*)
-    l \in (getwt W) -> (*l written to
-                       IN THIS trace*)
-    l \in (getdomain N0) ) -> (*this guy replacing WarOk hyp*) 
-  cceval_w (N0 U! Nmid, V, c) O2 (Nend1, Vend, cend) W2 -> (*use that W2 must be a subset of W*)
-  checkpoint \notin O ->
-  checkpoint \notin O2 ->
-  exists (Nend2: nvmem), cceval_w (N, V, c) O2 (Nend2, Vend, cend) W2.
-Admitted.
 
 Lemma war_works1 {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
       {Wstart Rstart: warvars}:
@@ -415,12 +393,6 @@ Lemma war_works {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {
   Admitted.
 
 
-Lemma same_com_help {N N1 V c Nend1 Vend cend O W}:
-  all_diff_in_fww N V c N1 ->
-  trace_cs (N1, V, c) (Nend1, Vend, cend) O W ->
-  checkpoint \notin O ->
-  exists (Nend2: nvmem), trace_cs (N, V, c) (Nend2, Vend, cend) O W.
-  Admitted.
 
 Lemma same_com {N0 N V c Nmid Vmid cmid O1 W1 Nend1 Vend cend O2 W2}:
   WARok (getdomain N0) [::] [::] c ->

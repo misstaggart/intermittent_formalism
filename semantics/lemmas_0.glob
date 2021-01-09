@@ -1,0 +1,50 @@
+DIGEST 5ca239c980559c091b6dd918b8df0865
+FSemantics.lemmas_0
+R24:32 Coq.Bool.Bool <> <> lib
+R34:41 Coq.Init.Nat <> <> lib
+R43:53 Coq.Arith.Arith <> <> lib
+R55:65 Coq.Arith.EqNat <> <> lib
+R72:85 Coq.Init.Datatypes <> <> lib
+R87:96 Coq.Lists.List <> <> lib
+R98:111 Coq.Strings.String <> <> lib
+R113:119 Coq.Program.Program <> <> lib
+R137:154 Coq.Strings.String <> <> lib
+R186:191 mathcomp.ssreflect.ssrnat <> <> lib
+R193:201 mathcomp.ssreflect.ssreflect <> <> lib
+R203:208 mathcomp.ssreflect.ssrfun <> <> lib
+R210:216 mathcomp.ssreflect.ssrbool <> <> lib
+R218:223 mathcomp.ssreflect.eqtype <> <> lib
+R250:259 TLC.LibTactics <> <> lib
+prf 1172:1183 <> reflect_conj
+R1200:1203 Coq.Init.Datatypes <> bool ind
+binder 1193:1194 <> b0:1
+binder 1196:1197 <> b1:2
+binder 1207:1208 <> P0:3
+binder 1210:1211 <> P1:4
+R1256:1281 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1295:1320 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1321:1327 Coq.Bool.Bool <> reflect ind
+R1343:1346 Coq.Init.Datatypes <> ::bool_scope:x_'&&'_x not
+R1341:1342 Semantics.lemmas_0 <> b0:1 var
+R1347:1348 Semantics.lemmas_0 <> b1:2 var
+R1332:1335 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R1330:1331 Semantics.lemmas_0 <> P0:3 var
+R1336:1337 Semantics.lemmas_0 <> P1:4 var
+R1282:1288 Coq.Bool.Bool <> reflect ind
+R1293:1294 Semantics.lemmas_0 <> b1:2 var
+R1290:1291 Semantics.lemmas_0 <> P1:4 var
+R1243:1249 Coq.Bool.Bool <> reflect ind
+R1254:1255 Semantics.lemmas_0 <> b0:1 var
+R1251:1252 Semantics.lemmas_0 <> P0:3 var
+R1375:1378 Coq.Init.Datatypes <> ::bool_scope:x_'&&'_x not
+R1375:1378 Coq.Init.Datatypes <> ::bool_scope:x_'&&'_x not
+R1423:1435 Coq.Bool.Bool <> andb_true_iff thm
+R1449:1453 Coq.ssr.ssrbool <> elimT thm
+R1449:1453 Coq.ssr.ssrbool <> elimT thm
+R1481:1485 Coq.ssr.ssrbool <> elimT thm
+R1481:1485 Coq.ssr.ssrbool <> elimT thm
+R1534:1547 Coq.Bool.Bool <> andb_false_iff thm
+R1596:1600 Coq.ssr.ssrbool <> elimF thm
+R1596:1600 Coq.ssr.ssrbool <> elimF thm
+R1634:1638 Coq.ssr.ssrbool <> elimF thm
+R1634:1638 Coq.ssr.ssrbool <> elimF thm
