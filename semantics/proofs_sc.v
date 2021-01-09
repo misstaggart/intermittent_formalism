@@ -174,12 +174,21 @@ move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
        apply/negP.
        move/(in_subseq Hsubseq) => contra. move/negP: H.
          by apply.
-         destruct W as [ [w1 w2 ] w3].
+         destruct Wrest1 as [ [w1 w2 ] w3].
          destruct Wrest as [ [wr1 wr2] wr3]. inversion Hwrite.
-         rewrite cats0 in H9.
-         intros l Hneq. apply H5 in Hneq. subst. simpl in Hneq.
-         simpl. rewrite mem_filter in Hneq.
-         by move/ andP : Hneq => [one two].
+        
+         repeat rewrite cats0 in H2.
+         repeat rewrite cats0 in H4.
+         intros l Hneql.
+         simpl.
+         apply H0 in Hneql. subst. simpl in Hneq.
+         unfold append_write in Hneql.
+         simpl in Hneql. rewrite cats0 in Hneql.
+         rewrite H4 in Hneql.
+         rewrite mem_filter in Hneql.
+           by move/ andP : Hneql => [one two].
+           move: (determinism_e H12 Heval) => [one two].
+           inversion two.
        intros contra. move: (empty_trace_cs1 T contra) => [Eq1 Eq2].
        inversion Eq1. subst. inversion H2.
        inversion H6.
