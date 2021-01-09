@@ -178,14 +178,6 @@ Lemma trace_converge_minus1 {N V l N' Nmid Vmid Nmid'
   Nmid = Nmid'.
 Admitted.
 
-Lemma single_step_alls: forall{C1 Cmid C3: context}
-                    {Obig O1 : obseq} {W1 Wbig: the_write_stuff},
-    trace_cs C1 C3 Obig Wbig ->
-    Obig <> [::] ->
-     cceval_w C1 O1 Cmid W1 ->
-    exists(Wrest: the_write_stuff) (Orest: obseq), trace_cs Cmid C3 Orest Wrest
-/\ subseq Orest Obig /\ Wbig = (append_write W1 Wrest).
- Admitted.
 
 Lemma fw_split {W W1} {l: loc}:
            l \in getfstwt (append_write W1 W) ->

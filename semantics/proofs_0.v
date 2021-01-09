@@ -249,6 +249,26 @@ Lemma single_step_all: forall{C1 Cmid C3: context}
     - eapply cat_subseq. assumption. apply subseq_refl.
 Qed.
 
+
+Lemma single_step_alls_rev: forall{C1 C3: context}
+                    {Obig : obseq} {Wbig: the_write_stuff},
+    trace_cs C1 C3 Obig Wbig ->
+    Obig <> [::] ->
+    exists(Cmid: context) (W1 Wrest: the_write_stuff) (O1: obseq),
+      cceval_w C1 O1 Cmid W1
+/\ subseq O1 Obig /\ Wbig = (append_write W1 Wrest).
+Admitted.
+
+
+Lemma single_step_alls: forall{C1 Cmid C3: context}
+                    {Obig O1 : obseq} {W1 Wbig: the_write_stuff},
+    trace_cs C1 C3 Obig Wbig ->
+    Obig <> [::] ->
+     cceval_w C1 O1 Cmid W1 ->
+    exists(Wrest: the_write_stuff) (Orest: obseq), trace_cs Cmid C3 Orest Wrest
+/\ subseq Orest Obig /\ Wbig = (append_write W1 Wrest).
+Admitted.
+
 Lemma trace_steps: forall{C1 C3: context} 
                     {Obig: obseq} {Wbig: the_write_stuff},
     trace_c C1 C3 Obig Wbig ->
