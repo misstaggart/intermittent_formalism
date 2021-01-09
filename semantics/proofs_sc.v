@@ -102,34 +102,20 @@ Lemma same_com_hc {N N1 V c Nend2 V1 c1 O W}:
       econstructor; try apply CsTrace_Empty; try assumption.
       intros l0 contra. exfalso. by apply contra.
       intros l0. apply/ eqP /negPn /negP. intros contra.
-      move/ eqPn : contra.
-      apply (H0 l0) in contra.
-      apply/ negP : contra.
-      rewrite - in_nil.
-      apply/ negP in contra.
-      
-       move: (single_step_alls T Ho H0). => [Wrest [Orest
+      move/ eqPn / (H0 l0) : contra.
+      by rewrite in_nil. auto.
+       - move/ negbT / eqP : Hbool => Hneq.
+         suffices: cceval_w (N, V, l;;c1) [:: o] (Nend, V1, c1) W.
+         move => Hccevalbig.
+move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
                                                      [Trest
                                 [Hsubseq Hwrite] ] ] ].
        econstructor; try apply Trest; try assumption.
        apply/negP. intros contra.
-       apply/negP / negPn: H2.
+       apply/negP / negPn: H.
        apply (in_subseq Hsubseq contra).
-       intros. destruct ((inr el) \in (getwt W)) eqn: Hbool.
-         by apply Hdone in Hbool.
-       move : (update_one_contra (inr el) H12) => Ho2ni.
-       move : (update_one_contra (inr el) Hsmall) => Ho2nc.
-       move/ negbT : Hbool => Hbooli.
-       remember Hbooli as Hboolc. clear HeqHboolc.
-       apply Ho2ni in Hbooli.
-       apply Ho2nc in Hboolc.
-       suffices: getmap Ni (inr el) = getmap Nc (inr el).
-       intros Heq3. symmetry in Hbooli.
-         by move: (trans_eq (trans_eq Hbooli Heq3) Hboolc).
-         apply/eqP/ negPn/ negP. move/eqP => contra.
-           by apply contra.
-           intros l0 Hl0. remember Hl0 as Hneq.
-           clear HeqHneq.
+           intros l0 Hl0. remember Hl0 as Hneql.
+           clear HeqHneql.
            suffices: getmap Ni1 l0 <> getmap Nc1 l0 -> l0 \notin getwt W.
            intros Hdonec. apply Hdonec in Hl0.
            suffices: (l0 \in getfstwt W0).
