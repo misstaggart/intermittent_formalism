@@ -37,5 +37,13 @@ Admitted.
     + exists N. apply CsTrace_Empty.
     + move: (same_com_hc Hdiff H H1) => [Nend1 [done blah] ].
       exists Nend1. by apply CsTrace_Single.
-    + suffices: 
-Admitted.
+    + destruct Cmid as [ [Nmid Vmid] cmid].
+      rewrite mem_cat in H2. move/norP : H2 => [Ho1 Ho2].
+      move: (same_com_hc Hdiff H1 Ho1) => [Nendm [Tm Hdiffm] ].
+      suffices: exists Nend1,
+               trace_cs (Nendm, Vmid, cmid)
+                        (Nend1, Vend, cend) O2 W2.
+      move => [Nend1 Tend].
+      exists Nend1. eapply CsTrace_Cons; try apply Tend; try assumption.
+      eapply IHtrace_cs; try reflexivity; try assumption.
+Qed.
