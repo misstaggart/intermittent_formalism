@@ -21,7 +21,8 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
 
  Lemma same_com_hcbc {N N1 Nend1 V V1 l crem O W c1} : all_diff_in_fww N V (l;;crem) N1 ->
                               cceval_w (N1, V, Ins l) O (Nend1, V1, c1) W ->
-                              exists(Nend: nvmem), (cceval_w (N, V, Ins l) O (Nend, V1, c1) W).
+                              exists(Nend: nvmem), (cceval_w (N, V, Ins l) O (Nend, V1, c1) W) /\
+ forall(l: loc), l \in (getwt W) -> ((getmap Nend) l = (getmap Nend1) l).
    intros.
    Admitted.
 
@@ -53,7 +54,7 @@ Lemma same_com_hc {N N1 V c Nend2 V1 c1 O W}:
                              /\ all_diff_in_fww Nend1 V1 c1 Nend2.
     intros Hdiff Hcceval1 Ho.
    induction c.
-  - move: (same_com_hcbc (add_skip_ins Hdiff) Hcceval1). => [Nend Hcceval].
+  - move: (same_com_hcbc (add_skip_ins Hdiff) Hcceval1). => [Nend [Hcceval Hloc] ].
     exists Nend. split; try assumption.
     move: (cceval_skip Hcceval1) => Heq. subst.
     pose proof (trace_converge_minus1w Hdiff Hcceval Hcceval1). subst.
@@ -88,7 +89,7 @@ Lemma same_com_hc {N N1 V c Nend2 V1 c1 O W}:
        apply/negP / negPn: H.
        apply (in_subseq Hsubseq contra).
        exfalso. by apply H9.
-         + move: (same_com_hcbc Hdiff H10). => [Nend Hcceval].
+         + move: (same_com_hcbc Hdiff H10). => [Nend [ Hcceval Hloc] ].
            exists Nend. split.
        apply Seq; try assumption.
        inversion Hdiff; subst.
@@ -116,20 +117,21 @@ move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
        apply (in_subseq Hsubseq contra).
            intros l0 Hl0. remember Hl0 as Hneql.
            clear HeqHneql.
-           suffices: getmap Ni1 l0 <> getmap Nc1 l0 -> l0 \notin getwt W.
-           intros Hdonec. apply Hdonec in Hl0.
+           suffices: getmap Nend l0 <> getmap Nend2 l0 -> l0 \notin getwt W.
+           intros Hlocc. apply Hlocc in Hl0.
            suffices: (l0 \in getfstwt W0).
            intros Hfw.
            subst. move/ fw_split : Hfw => [one | two].
-           apply (in_subseq (fw_subst_wt_c H12)) in one.
+           apply (in_subseq (fw_subst_wt_c Hcceval
+                 )) in one.
            exfalso. move/ negP : Hl0. by apply.
              by move: two => [whatever done].
-             apply H4.
-             move: (update_one_contra l0 H12 Hl0) => Heq1.
-             move: (update_one_contra l0 Hsmall Hl0) => Heq2.
+             apply H0.
+             move: (update_one_contra l0 Hcceval Hl0) => Heq1.
+             move: (update_one_contra l0 Hcceval1 Hl0) => Heq2.
              by rewrite Heq1 Heq2.
              clear Hneq. intros Hneq. apply/negP. intros contra.
-             apply Hneq. by apply Hdone.
+             apply Hneq. by apply Hloc.
        intros contra.
        move: (empty_trace_cs1 T contra) => [Eq1 Eq2].
        inversion Eq1. subst. inversion H1.

@@ -79,6 +79,11 @@ Proof.
          destruct (IHT2 nmid N' vmid V' skip c); (reflexivity || assumption).
 Qed.
 
+Lemma fw_subst_wt_c: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
+      (* pose proof (cceval_to_rd_sv H H5). *)
+  cceval_w C1 O C2 W ->
+  subseq (getfstwt W) (getwt W). Admitted.
+
 Lemma observe_checkpt: forall {N N': nvmem} {V V': vmem}
                      {c c': command} {w: warvars}
                     {O: obseq} {W: the_write_stuff},
@@ -259,6 +264,25 @@ Lemma single_step_alls_rev: forall{C1 C3: context}
 /\ subseq O1 Obig /\ Wbig = (append_write W1 Wrest).
 Admitted.
 
+Lemma fw_split {W W1} {l: loc}:
+           l \in getfstwt (append_write W1 W) ->
+                 l \in (getfstwt W1) \/ (
+                         l \notin (getrd W1)
+                           /\ l \in (getfstwt W)
+                       ).
+  intros.
+           (*intros Hdoneb. apply Hdoneb in Hl0.*)
+           destruct W as [ [wW rW] fwW].
+           destruct W1 as [ [wW1 rW1] fwW1].
+           simpl in H.
+           unfold remove in H.
+           rewrite mem_cat in H.
+           rewrite mem_filter in H.
+           move/ orP : H => [one | two].
+           right.
+             by move/ andP : one.
+              by left.
+Qed.
 
 Lemma single_step_alls: forall{C1 Cmid C3: context}
                     {Obig O1 : obseq} {W1 Wbig: the_write_stuff},

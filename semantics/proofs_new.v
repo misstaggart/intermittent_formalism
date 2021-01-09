@@ -178,30 +178,7 @@ Lemma trace_converge_minus1 {N V l N' Nmid Vmid Nmid'
 Admitted.
 
 
-Lemma fw_split {W W1} {l: loc}:
-           l \in getfstwt (append_write W1 W) ->
-                 l \in (getfstwt W1) \/ (
-                         l \notin (getrd W1)
-                           /\ l \in (getfstwt W)
-                       ).
-  intros.
-           (*intros Hdoneb. apply Hdoneb in Hl0.*)
-           destruct W as [ [wW rW] fwW].
-           destruct W1 as [ [wW1 rW1] fwW1].
-           simpl in H.
-           unfold remove in H.
-           rewrite mem_cat in H.
-           rewrite mem_filter in H.
-           move/ orP : H => [one | two].
-           right.
-             by move/ andP : one.
-              by left.
-Qed.
 
-Lemma fw_subst_wt_c: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
-      (* pose proof (cceval_to_rd_sv H H5). *)
-  cceval_w C1 O C2 W ->
-  subseq (getfstwt W) (getwt W). Admitted.
 
 Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
                               cceval_w (Ni, V, c) O (Ni1, V1, c1) W ->
