@@ -393,7 +393,7 @@ Lemma updateone_arr: forall{N: nvmem} {a: array} {v: value}
   exfalso. by apply H. 
   Qed.
 
-Lemma update_one: forall{N N0 Nend: nvmem} {V V0 Vend: vmem} {c c0 cend: command} {O: obseq} {W: the_write_stuff}
+(*Lemma update_one: forall{N N0 Nend: nvmem} {V V0 Vend: vmem} {c c0 cend: command} {O: obseq} {W: the_write_stuff}
   {l: loc},
     iceval_w ((N0, V0, c0), N, V, c) O ((N0, V0, c0), Nend, Vend, cend) W ->
     (getmap N) l <> (getmap Nend) l ->
@@ -413,7 +413,7 @@ Lemma update_one: forall{N N0 Nend: nvmem} {V V0 Vend: vmem} {c c0 cend: command
   subst. destruct element. by pose proof (gen_locs_works H1).
   eapply IHiceval_w; try reflexivity; try
   assumption.
-  Qed.
+  Qed.*)
 
 
 Lemma update_one_c: forall{N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}

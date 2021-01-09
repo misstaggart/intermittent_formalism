@@ -102,7 +102,8 @@ Lemma eight: forall{N0 N1 N2: nvmem} {V0: vmem} {c0: command},
               (subset_nvm N0 N2) ->
               current_init_pt N0 V0 c0 N1 N1 N2 ->
               same_pt N1 V0 c0 c0 N1 N2.
-Proof. intros. inversion H1. subst.
+  Admitted.
+(*Proof. intros. inversion H1. subst.
  apply (same_mem
                 (CTrace_Empty (N1, V0, c0))
                 T); auto. 
@@ -117,7 +118,7 @@ Proof. intros. inversion H1. subst.
            rewrite filter_predT. rewrite cats0. assumption.
              - intros contra. discriminate contra. 
          + apply Hdom in H7. contradiction.
-Qed.
+Qed.*)
 
 
 
@@ -367,7 +368,8 @@ Lemma negfwandw_means_r: forall{C Cend: context}  {O: obseq} {W: the_write_stuff
   {l: loc},
     trace_c C Cend O W ->
     l \notin (getfstwt W) -> l \in (getwt W) -> l \in (getrd W).
-  intros. destruct3 W w rD fw.
+Admitted.
+ (* intros. destruct3 W w rD fw.
   dependent induction H.
   + discriminate H1.
   + induction H; (try discriminate H1);
@@ -428,7 +430,7 @@ Lemma cceval_to_rd_sv: forall {N Nend: nvmem} {V Vend: vmem}
   intros.
   inversion H; subst; try(
                           pose proof (read_deterministic H0 (RD H10)); by subst).
-Qed.
+Qed.*)
 
 Lemma extract_write_svnv: forall {N Nend: nvmem} {V Vend: vmem}
                       {e: exp} {x: smallvar} {O: obseq}
@@ -456,27 +458,38 @@ Lemma extract_write_svv: forall {N Nend: nvmem} {V Vend: vmem}
   exfalso. apply (negNVandV x H11 H0).
 Qed.
 
-Lemma extract_write_arr: forall {N Nend: nvmem} {V Vend: vmem}
+(*Lemma extract_write_arr: forall {N Nend: nvmem} {V Vend: vmem}
                       {e ei: exp} {a: array} {O: obseq}
                       {W: the_write_stuff}
   {cend: command},
     cceval_w (N, V, Ins (asgn_arr a ei e)) O
              (Nend, Vend, cend) W ->
-   (getwt W) = (generate_locs a).
+   (getwt W) = [:: inr ].
   intros.
   inversion H; subst.
    reflexivity.
-Qed.
+Qed.*)
 
 (*probs should have inducted over
  cceval instead of warok below, clean up*)
+
+Fixpoint get_smallvars (w: warvars) :=
+  filter (fun v =>
+          match v with
+            (inl _) => true
+          | (inr _) => false
+          end) w.
+
+
 Lemma war_cceval: forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
                    {l: instruction}
                    {O: obseq} {W: the_write_stuff} {Wstart Rstart W' R': warvars},
 
         cceval_w (N, V, l;;c) O (Nmid, Vmid, cmid) W ->
         WAR_ins (getdomain N0) Wstart Rstart l W' R' ->
-        ( W' = (getwt W) ++ Wstart) /\ (R' =  (getrd W) ++ Rstart).
+        (subseq ((getwt W) ++ Wstart)  W')
+          /\ get_smallvars ((getwt W) ++ Wstart) = (get_smallvars W')
+        /\ (R' =  (getrd W) ++ Rstart).
   intros. dependent induction H0.
   - (*skip case*) inversion H; subst. split; reflexivity.
     exfalso. by apply H10.
@@ -529,7 +542,12 @@ Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} 
     checkpoint \notin O ->
     WARok (getdomain N0) Wstart Rstart c ->
     WARok (getdomain N0) ((getwt W) ++ Wstart) ((getrd W) ++ Rstart) cmid.
-  intros.
+  (*your write set will be too small here
+   but only wrt arrays and the write set is literally never examined wrt arrays
+   lemma saying that if smallvar part of two diff write sets are equal
+   then warok works for both?*)
+Admitted.
+  (* intros.
   move: H1.
   move : Wstart Rstart.
   dependent induction H; intros.
@@ -568,7 +586,7 @@ Qed.
     (*inductive cceval step
     inversion H3; subst.*)
   (* - cp case exfalso. by apply (H w).
-    eapply IHcceval_w; try reflexivity.*)
+    eapply IHcceval_w; try reflexivity.*)*)
 
 
 

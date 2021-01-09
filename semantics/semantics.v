@@ -890,7 +890,7 @@ Fixpoint readobs_wvs (R: readobs): (seq loc) :=
   match R with
     nil => nil
   | (r::rs) => getwvs(fst r) ++ (readobs_wvs rs)
-  end.
+  end. (*i think it's fine to be overconservative about what you've read*) 
 
 
 (*relations between continuous and intermittent observations*)
@@ -1072,7 +1072,7 @@ CheckPoint: forall(N: nvmem)
     cceval_w (N, V, Ins (asgn_arr a ei e))
            ((RdObs (cat ri r)) :: nil)
            ((updateNV_arr N element a v), V, Ins skip)
-           ((generate_locs a), (readobs_wvs (cat r ri)), (remove (readobs_wvs (cat r ri)) (generate_locs a)))
+           ([:: inr element], (readobs_wvs (cat r ri)), (remove (readobs_wvs (cat r ri)) [:: inr element]))
 (*valuability and inboundedness of vindex are checked in sameindex*)
 | Skip: forall(N: nvmem)
          (V: vmem)
@@ -1163,7 +1163,7 @@ Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
     iceval_w (k, N, V, Ins (asgn_arr a ei e))
            [:: RdObs (ri++r)]
            (k, (updateNV_arr N element a v), V, Ins skip)
-           ((generate_locs a), (readobs_wvs (cat r ri)), (remove  (readobs_wvs (cat r ri)) (generate_locs a)))
+           ([::inr element], (readobs_wvs (cat r ri)), (remove  (readobs_wvs (cat r ri)) [::inr element]))
 | CP_Skip: forall(k: context) (N: nvmem)
          (V: vmem)
          (c: command),

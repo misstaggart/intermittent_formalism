@@ -16,7 +16,6 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
                                        could check N2 domain as well instead of this
  not even clear why i need the domains                                    
    *)
-   (forall(el: el_loc), ((getmap N1) (inr el)) = ((getmap N1c) (inr el))) ->
 ( forall(l: loc ), ((getmap N1) l <> (getmap N1c) l) -> (l \in getfstwt W))
 -> all_diff_in_fww N1 V1 c1 N1c.
 
