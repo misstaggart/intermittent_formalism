@@ -35,3 +35,8 @@ Proof. intros. case (b0 && b1) eqn: beq; constructor.
          applys (elimF H) H1 contra1.
          applys (elimF H0) H1 contra2.
 Qed.
+
+Check eqP.
+Lemma eqPn {T: eqType} {x: Equality.sort T}
+      {y: Equality.sort T}: reflect (x <> y) (x != y).
+  Admitted.

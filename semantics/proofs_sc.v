@@ -7,6 +7,8 @@ From TLC Require Import LibTactics LibLogic.
 From Semantics Require Export programs semantics algorithms lemmas_1
      lemmas_0 proofs_0. (*shouldn't have to import both of these*)
 
+Lemma hack {N1 N2} : (getmap N1) =1 (getmap N2) -> N1 = N2. Admitted.
+
 Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
   Diff_in_FWw: forall{N1 V1 c1 N2 V2 c2 N1c O W} (T: trace_cs (N1, V1, c1) (N2, V2, c2) O W),
     checkpoint \notin O -> (*c2 is nearest checkpoint or termination*)
@@ -86,10 +88,26 @@ Lemma same_com_hc {N N1 V c Nend2 V1 c1 O W}:
        apply/negP / negPn: H.
        apply (in_subseq Hsubseq contra).
        exfalso. by apply H9.
-     + move: (two_bc H H12) => [Nc1 [Hsmall Hdone] ]. exists Nc1. repeat split; try assumption.
+         + move: (same_com_hcbc Hdiff H10). => [Nend Hcceval].
+           exists Nend. split.
        apply Seq; try assumption.
-       inversion H; subst.
-       suffices: O <> [::]. intros Ho.
+       inversion Hdiff; subst.
+      destruct (O == [::]) eqn: Hbool.
+       - move/ eqP : Hbool => Hbool. subst.
+      apply empty_trace_cs1 in T. move: T =>
+                                  [ [one two ] three four].
+      subst.
+      suffices: (getmap N2) =1 (getmap N1). move/hack => H500. subst.
+      move: (determinism_c H10 Hcceval) => [ [one two] ]. subst.
+      econstructor; try apply CsTrace_Empty; try assumption.
+      intros l0 contra. exfalso. by apply contra.
+      intros l0. apply/ eqP /negPn /negP. intros contra.
+      move/ eqPn : contra.
+      apply (H0 l0) in contra.
+      apply/ negP : contra.
+      rewrite - in_nil.
+      apply/ negP in contra.
+      
        move: (single_step_alls T Ho H0). => [Wrest [Orest
                                                      [Trest
                                 [Hsubseq Hwrite] ] ] ].

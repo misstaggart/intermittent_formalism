@@ -25,7 +25,6 @@ Admitted.*)
 
 Definition nvmem_eq N1 N2 := (getmap N1) =1 (getmap N2).
 
-Lemma hack {N1 N2} : nvmem_eq N1 N2 -> N1 = N2. Admitted.
 
 (*why do you include the volatile memory
  maybe to make the traces more tractable

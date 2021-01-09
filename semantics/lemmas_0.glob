@@ -1,4 +1,4 @@
-DIGEST 5ca239c980559c091b6dd918b8df0865
+DIGEST 0bc938af9f1444a6b023146627dedf0f
 FSemantics.lemmas_0
 R24:32 Coq.Bool.Bool <> <> lib
 R34:41 Coq.Init.Nat <> <> lib
@@ -48,3 +48,20 @@ R1596:1600 Coq.ssr.ssrbool <> elimF thm
 R1596:1600 Coq.ssr.ssrbool <> elimF thm
 R1634:1638 Coq.ssr.ssrbool <> elimF thm
 R1634:1638 Coq.ssr.ssrbool <> elimF thm
+R1668:1670 mathcomp.ssreflect.eqtype <> eqP thm
+prf 1679:1682 <> eqPn
+R1688:1693 mathcomp.ssreflect.eqtype Equality.Exports eqType syndef
+binder 1685:1685 <> T:5
+R1700:1712 mathcomp.ssreflect.eqtype Equality sort proj
+R1714:1714 Semantics.lemmas_0 <> T:5 var
+binder 1697:1697 <> x:6
+R1727:1739 mathcomp.ssreflect.eqtype Equality sort proj
+R1741:1741 Semantics.lemmas_0 <> T:5 var
+binder 1724:1724 <> y:7
+R1745:1751 Coq.Bool.Bool <> reflect ind
+R1764:1767 mathcomp.ssreflect.eqtype <> ::bool_scope:x_'!='_x not
+R1763:1763 Semantics.lemmas_0 <> x:6 var
+R1768:1768 Semantics.lemmas_0 <> y:7 var
+R1755:1758 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R1754:1754 Semantics.lemmas_0 <> x:6 var
+R1759:1759 Semantics.lemmas_0 <> y:7 var
