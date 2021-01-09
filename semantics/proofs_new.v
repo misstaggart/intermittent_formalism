@@ -368,17 +368,33 @@ Qed.
     end_com c2 /\ checkpoint \notin Osmall). Admitted.
 
 
-  Lemma same_com_c {N0 N V c Nmid Vmid cmid O1 W1 Nend1 Vend cend O2 W2}:
-    WARok (getdomain N0) [::] [::] c ->
+  Lemma same_com_c {N0 N V c Nmid Vmid cmid O W Nend1 Vend cend O2 W2}:
   subset_nvm N0 N ->
-  trace_cs (N, V, c) (Nmid, Vmid, cmid) O1 W1 -> (*need this so you know what
+  trace_cs (N, V, c) (Nmid, Vmid, cmid) O W -> (*need this so you know what
                                                  to update with*)
-  cceval_w (N0 U! Nmid, V, c) O2 (Nend1, Vend, cend) W2 ->
-  checkpoint \notin O1 ->
+    (forall l: loc,  l \notin (getfstwt W) -> (*l not in OVERALL FW for this trace*)
+    l \in (getwt W) -> (*l written to
+                       IN THIS trace*)
+    l \in (getdomain N0) ) -> (*this guy replacing WarOk hyp*) 
+  cceval_w (N0 U! Nmid, V, c) O2 (Nend1, Vend, cend) W2 -> (*use that W2 must be a subset of W*)
+  checkpoint \notin O ->
   checkpoint \notin O2 ->
   exists (Nend2: nvmem), cceval_w (N, V, c) O2 (Nend2, Vend, cend) W2.
 Admitted.
 
+Lemma war_works {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
+      {Wstart Rstart: warvars}:
+    trace_cs (N, V, c) (Nend, Vend, cend) O W ->
+    WARok (getdomain N0) Wstart Rstart c ->
+    checkpoint \notin O ->
+    (*O <> [::] -> empty trace annoying and i dont think
+               i have to deal w it*)
+  forall (l: loc),
+(l \notin (remove Rstart (getfstwt W)) -> (*l not in OVERALL FW for this trace*)
+    l \in (getwt W) -> (*l written to
+                       IN THIS trace*)
+          l \in (getdomain N0) \/ l \in Wstart).
+  Admitted.
 
 Lemma same_com {N0 N V c Nmid Vmid cmid O1 W1 Nend1 Vend cend O2 W2}:
   WARok (getdomain N0) [::] [::] c ->
@@ -389,17 +405,29 @@ Lemma same_com {N0 N V c Nmid Vmid cmid O1 W1 Nend1 Vend cend O2 W2}:
   trace_cs (N0 U! Nmid, V, c) (Nend1, Vend, cend) O2 W2 ->
   checkpoint \notin O2 ->
   exists (Nend2: nvmem), trace_cs (N, V, c) (Nend2, Vend, cend) O2 W2.
-  intros. move: Vmid cmid N W1 O1 H1 H2 H0. dependent induction H3; intros.
+  intros.
+  move: (war_works H1 H H2) => Hbwar.
+  rewrite remove_empty in Hbwar.
+  suffices:(
+forall l : loc,
+          l \notin getfstwt W1 ->
+          l \in getwt W1 ->
+          l \in getdomain N0
+            ).
+  intros Hbwarc.
+  move: Vmid cmid N W1 O1 H1 H2 H0 Hbwar Hbwarc H31. clear H.
+  dependent induction H3; intros Vmid cmid N W500 O500 Tmid Ho1 Hsub Hbwar Hbwarc.
   + exists N. apply (CsTrace_Empty (N, Vend, cend)) .
-  + move: (same_com_c H H3 H1 H0 H2 H4) => [Nend2 Hend2].
+  + move: (same_com_c Hsub Tmid Hbwarc H Ho1 H4) => [Nend2 Hend2].
     exists Nend2. by apply CsTrace_Single.
   + destruct Cmid as [ [N2 V2] c2].
-    rewrite mem_cat in H4. move/ norP : H4 => [Ho1 Ho2].
-    move: (same_com_c H H6 H2 H0 H5 Ho1) => [Nend2 Hend2].
+    rewrite mem_cat in H4. move/ norP : H4 => [Hcp1 Hcp2].
+    move: (same_com_c Hsub Tmid Hbwarc H0 Ho1 Hcp1) => [Nend2 Hend2].
     suffices:
-      (exists Nend3, trace_cs (N2, V2, c2) (Nend3, Vend, cend) O2 W2).
+      (exists Nend3, trace_cs (Nend2, V2, c2) (Nend3, Vend, cend) O2 W2).
     move => [Nend3 Tend].
     exists Nend3. eapply CsTrace_Cons; try apply Tend; try assumption.
+    eapply IHtrace_cs.
   Admitted. 
 
 Lemma same_comi {N0 N V c O1 W1 Nend Vend cend }:
