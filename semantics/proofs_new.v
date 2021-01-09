@@ -320,7 +320,7 @@ Qed.
 
 
 
-Lemma war_works1 {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
+Lemma war_works_loc {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
       {Wstart Rstart: warvars}:
     trace_cs (N, V, c) (Nend, Vend, cend) O W ->
     WARok (getdomain N0) Wstart Rstart c ->
@@ -340,8 +340,8 @@ Lemma war_works {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {
     WARok (getdomain N0) [::] [::] c ->
     checkpoint \notin O ->
     all_diff_in_fww N V c (N0 U! Nend).
-  Admitted.
-
+  intros T Hsub Hwarok Ho.
+  econstructor; try apply T; try assumption.
 
 
 Lemma same_com {N0 N V c Nmid Vmid cmid O1 W1 Nend1 Vend cend O2 W2}:
@@ -356,7 +356,7 @@ Lemma same_com {N0 N V c Nmid Vmid cmid O1 W1 Nend1 Vend cend O2 W2}:
   intros Hwar Hsub Tmid Ho1 T2 Ho2.
   move: (war_works Tmid Hsub Hwar Ho1) => Hdiff.
   eapply same_com_help; try apply Hdiff; try assumption. apply T2.
-  Admitted. 
+Qed.
 
 Lemma same_comi {N0 N V c O1 W1 Nend Vend cend }:
   WARok (getdomain N0) [::] [::] c ->
