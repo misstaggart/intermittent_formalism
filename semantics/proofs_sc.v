@@ -50,10 +50,10 @@ the maps are not error <-> in the domain
                         {c c1: command}
                    {O : obseq} {W: the_write_stuff},
   all_diff_in_fww N V c N2 ->
-             cceval_w (N, V, c) O (Nend, Vend, c1) W ->
+             cceval_w (N2, V, c) O (Nend, Vend, c1) W ->
             ( forall(z: loc), z \in (getrd W) -> (*z was read immediately cuz trace is only 1
                                 thing long*)
-                   (getmap N) z = (getmap N2) z). (*since z isnt in FW of trace from Ins l to skip*)
+                   (getmap N2) z = (getmap N) z). (*since z isnt in FW of trace from Ins l to skip*)
     Admitted.
 
  Lemma same_com_hc {N N1 V c Nend2 V1 c1 O W}:
@@ -155,25 +155,24 @@ move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
       intros l0. apply/ eqP /negPn /negP. intros contra.
       move/ eqPn / (H0 l0) : contra.
       by rewrite in_nil. auto.
-      -
-           apply If_T.
+          - move/ negbT / eqP : Hbool => Hneq.
+            move: (agreeonread_w Hdiff Hcceval1) => agr.
+            move: (agr_imp_age H9 agr) => Heval.
+            split.
+           apply If_T; try assumption.
          move: (single_step_alls_rev T Hneq). => [
                                                 Cmid [W1
                                                 [Wrest1 [O1
                                                      [Hcceval
                                                         [Hsubseq1 Hwrite1] ] ] ] ] ].
-       move: (agreeonread_w Hdiff Hcceval1) => agr.
-       apply (agr_imp_age H11); try assumption.
-       move => l contra.
-       rewrite in_nil in contra. by exfalso.
-       intros.
-       inversion H. subst. suffices: O <> [::]. intros Ho.
-       move: (single_step_alls T Ho H0). => [Wrest [Orest
+       move: (single_step_alls T Hneq Hcceval). => [Wrest [Orest
                                                      [Trest
-                                [Hsubseq Hwrite] ] ] ].
+                                                        [Hsubseq Hwrite] ] ] ].
+       destruct Cmid as [ [Nmid Vmid] cmid].
+       inversion Hcceval; subst.
        econstructor; try apply Trest; try assumption.
        apply/negP.
-       move/(in_subseq Hsubseq) => contra. move/negP: H3.
+       move/(in_subseq Hsubseq) => contra. move/negP: H.
          by apply.
          destruct W as [ [w1 w2 ] w3].
          destruct Wrest as [ [wr1 wr2] wr3]. inversion Hwrite.

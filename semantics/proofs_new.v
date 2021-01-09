@@ -61,15 +61,6 @@ Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
                    (getmap N) z = (getmap N2) z). (*since z isnt in FW of trace from Ins l to skip*)
     Admitted.
 
-Lemma agr_imp_age:
-forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
-  eeval N0 V0 e r0 v0 ->
-  (forall(z: loc), z \in (readobs_wvs r0 ) -> (getmap N0) z = (getmap N1) z) -> (*they concur
-                                                                          on all
-                                                                          values read
-                                                                          from*)
-              eeval N1 V0 e r0 v0.
-  intros. Admitted.
 
  Lemma genloc_contents: forall(l: loc) (a: array),
               l \in generate_locs a ->

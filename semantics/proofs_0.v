@@ -490,3 +490,18 @@ Lemma cceval_skip: forall {N N': nvmem} {V V': vmem}
   {O: obseq} {W: the_write_stuff},
     cceval_w (N, V, Ins l) O (N', V', c) W ->
     (c = skip). Admitted.
+
+Lemma agr_imp_age:
+forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
+  eeval N0 V0 e r0 v0 ->
+  (forall(z: loc), z \in (readobs_wvs r0 ) -> (getmap N0) z = (getmap N1) z) -> (*they concur
+                                                                          on all
+                                                                          values read
+                                                                          from*)
+              eeval N1 V0 e r0 v0.
+  intros. Admitted.
+
+Lemma if_ctx {N V e N1 V1 c1 c2 c3 O W}:
+  cceval_w (N, V, TEST e THEN c1 ELSE c2) O (N1, V1, c3) W ->
+  N = N1 /\ V = V1.
+Admitted.
