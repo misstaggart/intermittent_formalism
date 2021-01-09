@@ -143,8 +143,7 @@ move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
              clear Hneq. intros Hneq. apply/negP. intros contra.
              apply Hneq. by apply Hloc.
              apply Seq; try assumption.
-         + inversion Hcceval1; subst; exists N.
-           inversion Hdiff. subst.
+         + inversion Hcceval1; subst; exists N; inversion Hdiff; subst;
            destruct (O == [::]) eqn: Hbool.
           -  move/ eqP : Hbool => Hbool. subst.
       apply empty_trace_cs1 in T. move: T =>
@@ -189,33 +188,49 @@ move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
            by move/ andP : Hneql => [one two].
            move: (determinism_e H12 Heval) => [one two].
            inversion two.
-       intros contra. move: (empty_trace_cs1 T contra) => [Eq1 Eq2].
-       inversion Eq1. subst. inversion H2.
-       inversion H6.
-       move : H6 => [crem [w contra] ]. inversion contra.
-       apply If_F.
-       move: (agreeonread H H0) => agr.
-       apply (agr_imp_age H11); try assumption. move => l contra.
-       rewrite in_nil in contra. by exfalso.
-       intros.
-       inversion H. subst. suffices: O <> [::]. intros Ho.
-       move: (single_step_alls T Ho H0). => [Wrest [Orest
+          -  move/ eqP : Hbool => Hbool. subst.
+      apply empty_trace_cs1 in T. move: T =>
+                                  [ [one two ] three four].
+      subst.
+      suffices: (getmap N2) =1 (getmap Nend2). move/hack => H500. subst. split; try assumption.
+      econstructor; try apply CsTrace_Empty; try assumption.
+      intros l0. apply/ eqP /negPn /negP. intros contra.
+      move/ eqPn / (H0 l0) : contra.
+      by rewrite in_nil. auto.
+          - move/ negbT / eqP : Hbool => Hneq.
+            move: (agreeonread_w Hdiff Hcceval1) => agr.
+            move: (agr_imp_age H9 agr) => Heval.
+            split.
+           apply If_F; try assumption.
+         move: (single_step_alls_rev T Hneq). => [
+                                                Cmid [W1
+                                                [Wrest1 [O1
+                                                     [Hcceval
+                                                        [Hsubseq1 Hwrite1] ] ] ] ] ].
+       move: (single_step_alls T Hneq Hcceval). => [Wrest [Orest
                                                      [Trest
-                                [Hsubseq Hwrite] ] ] ].
+                                                        [Hsubseq Hwrite] ] ] ].
+       destruct Cmid as [ [Nmid Vmid] cmid].
+       inversion Hcceval; subst.
+           move: (determinism_e H12 Heval) => [one two].
+           inversion two.
        econstructor; try apply Trest; try assumption.
        apply/negP.
-       move/(in_subseq Hsubseq) => contra. move/negP: H3.
+       move/(in_subseq Hsubseq) => contra. move/negP: H.
          by apply.
-         destruct W as [ [w1 w2 ] w3].
+         destruct Wrest1 as [ [w1 w2 ] w3].
          destruct Wrest as [ [wr1 wr2] wr3]. inversion Hwrite.
-         rewrite cats0 in H9.
-         intros l Hneq. apply H5 in Hneq. subst. simpl in Hneq.
-         simpl. rewrite mem_filter in Hneq.
-         by move/ andP : Hneq => [one two].
-       intros contra. move: (empty_trace_cs1 T contra) => [Eq1 Eq2].
-       inversion Eq1. subst. inversion H2.
-       inversion H6.
-       move : H6 => [crem [w contra] ]. inversion contra.
+        
+         repeat rewrite cats0 in H2.
+         repeat rewrite cats0 in H4.
+         intros l Hneql.
+         simpl.
+         apply H0 in Hneql. subst. simpl in Hneq.
+         unfold append_write in Hneql.
+         simpl in Hneql. rewrite cats0 in Hneql.
+         rewrite H4 in Hneql.
+         rewrite mem_filter in Hneql.
+           by move/ andP : Hneql => [one two].
 Qed.
 
   Lemma same_com_help {N N1 V c Nend2 Vend cend O W}:
