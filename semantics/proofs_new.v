@@ -62,10 +62,6 @@ Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
     Admitted.
 
 
- Lemma genloc_contents: forall(l: loc) (a: array),
-              l \in generate_locs a ->
-                    exists (el: el_loc), inr el = l.
-   Admitted.
 
 
  Lemma add_skip_ins {N1 V l N2}: all_diff_in_fw N1 V (Ins l) N2 ->

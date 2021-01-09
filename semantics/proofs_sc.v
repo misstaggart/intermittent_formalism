@@ -16,15 +16,103 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
                                        could check N2 domain as well instead of this
  not even clear why i need the domains                                    
    *)
+   (forall(el: el_loc), ((getmap N1) (inr el)) = ((getmap N1c) (inr el))) ->
 ( forall(l: loc ), ((getmap N1) l <> (getmap N1c) l) -> (l \in getfstwt W))
 -> all_diff_in_fww N1 V1 c1 N1c.
+
+    Lemma agreeonread_ins_w: forall{N Nend N2: nvmem} {V Vend: vmem}
+                        {l: instruction} {crem c1: command}
+                   {O : obseq} {W: the_write_stuff},
+  all_diff_in_fww N V (l;;crem) N2 ->
+             cceval_w (N2, V, Ins l) O (Nend, Vend, c1) W ->
+            ( forall(z: loc), z \in (getrd W) -> (*z was read immediately cuz trace is only 1
+                                thing long*)
+                   (getmap N2) z = (getmap N) z). (*since z isnt in FW of trace from Ins l to skip*)
+    Admitted.
+
+ Lemma agreeonread_w: forall{N Nend N2: nvmem} {V Vend: vmem}
+                        {c c1: command}
+                   {O : obseq} {W: the_write_stuff},
+  all_diff_in_fww N V c N2 ->
+             cceval_w (N2, V, c) O (Nend, Vend, c1) W ->
+            ( forall(z: loc), z \in (getrd W) -> (*z was read immediately cuz trace is only 1
+                                thing long*)
+                   (getmap N2) z = (getmap N) z). (*since z isnt in FW of trace from Ins l to skip*)
+ Admitted.
 
  Lemma same_com_hcbc {N N1 Nend1 V V1 l crem O W c1} : all_diff_in_fww N V (l;;crem) N1 ->
                               cceval_w (N1, V, Ins l) O (Nend1, V1, c1) W ->
                               exists(Nend: nvmem), (cceval_w (N, V, Ins l) O (Nend, V1, c1) W) /\
  forall(l: loc), l \in (getwt W) -> ((getmap Nend) l = (getmap Nend1) l).
-   intros.
-   Admitted.
+   intros Hdiff Hcceval1.
+move: (agreeonread_ins_w Hdiff Hcceval1) => agr.
+      dependent induction Hcceval1; simpl in agr.
+    (*  - exists Nc. split. apply CheckPoint. move => l contra.
+        rewrite in_nil in contra. by exfalso.*)
+      - exists (updateNV_sv N x v). split. apply NV_Assign; try assumption.
+        eapply agr_imp_age; try apply H; try assumption.
+        simpl. intros l Hin. rewrite mem_seq1 in Hin.
+        move/ eqP : Hin => Hin. subst.
+        destruct N as [Nmap ND].
+        destruct N1 as [N1map N1D].
+        unfold updateNV_sv. unfold updatemap. simpl.
+        remember (inl x) as xloc.
+        suffices: (if xloc == xloc then v else Nmap xloc) = v /\
+                  (if xloc == xloc then v else N1map xloc) = v.
+        move => [one two]. by rewrite one two.
+        split; by apply ifT.
+     - exists N. split. apply V_Assign; try assumption.
+       eapply agr_imp_age; try apply H; try assumption.
+       simpl. move => l contra.
+        rewrite in_nil in contra. by exfalso.
+     - exists (updateNV_arr N element a v). split. eapply Assign_Arr.
+       eapply agr_imp_age; try apply H; try assumption.
+       intros z Hin.
+       suffices: (z \in readobs_wvs (r ++ ri)).
+       move => Hin1.
+         by apply (agr z).
+         rewrite readobs_app_wvs.
+         by eapply in_app_r.
+       eapply agr_imp_age; try apply H0; try assumption.
+       intros z Hin.
+       suffices: (z \in readobs_wvs (r ++ ri)).
+       move => Hin1.
+         by apply (agr z).
+         rewrite readobs_app_wvs.
+           by eapply in_app_l. assumption. assumption.
+           simpl.
+           intros l Hin.
+        destruct N as [Nmap ND].
+        destruct N1 as [N1map N1D].
+        unfold updateNV_arr. simpl.
+        move: (genloc_contents l a Hin) => [el Heq].
+        subst.
+        destruct (el == element) eqn: Hbool.
+        move/ eqP : Hbool => Heq. subst.
+        unfold updatemap.
+        suffices: 
+          ((if inr element == inr element then v else Nmap (inr element)) = v
+                                                                              /\
+  (if inr element == inr element then v else N1map (inr element)) = v).
+        move => annoying.
+        move: (annoying loc_eqtype loc_eqtype) => [one two].
+          by rewrite one two. 
+       intros. split; by apply ifT.
+        unfold updatemap.
+        suffices: 
+          ((if inr el == inr element then v else Nmap (inr el)) =
+           Nmap (inr el) /\
+           (if inr el == inr element then v else N1map (inr el)) = N1map (inr el)).
+        move => annoying.
+        move: (annoying loc_eqtype loc_eqtype) => [one two]. rewrite one two.
+        inversion Hdiff; subst.
+        apply (H4 el).
+        intros. split; apply ifF;
+        move/eqP: (negbT Hbool) => Hneq;
+        apply negbTE;
+        apply/eqP; intros contra; inversion contra; subst;
+          by apply Hneq.
+Qed.
 
  Lemma add_skip_ins {N1 V l N2}: all_diff_in_fww N1 V (Ins l) N2 ->
                                  all_diff_in_fww N1 V (l;; skip) N2.
@@ -46,15 +134,6 @@ the maps are not error <-> in the domain
  map =1 map' ->
  N = N' *)
 
- Lemma agreeonread_w: forall{N Nend N2: nvmem} {V Vend: vmem}
-                        {c c1: command}
-                   {O : obseq} {W: the_write_stuff},
-  all_diff_in_fww N V c N2 ->
-             cceval_w (N2, V, c) O (Nend, Vend, c1) W ->
-            ( forall(z: loc), z \in (getrd W) -> (*z was read immediately cuz trace is only 1
-                                thing long*)
-                   (getmap N2) z = (getmap N) z). (*since z isnt in FW of trace from Ins l to skip*)
-    Admitted.
 
  Lemma same_com_hc {N N1 V c Nend2 V1 c1 O W}:
   all_diff_in_fww N V c N1 ->

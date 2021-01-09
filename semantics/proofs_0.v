@@ -264,7 +264,12 @@ Lemma single_step_alls_rev: forall{C1 C3: context}
 /\ subseq O1 Obig /\ Wbig = (append_write W1 Wrest).
 Admitted.
 
-Lemma fw_split {W W1} {l: loc}:
+ Lemma genloc_contents: forall(l: loc) (a: array),
+              l \in generate_locs a ->
+                    exists (el: el_loc), inr el = l.
+   Admitted.
+
+ Lemma fw_split {W W1} {l: loc}:
            l \in getfstwt (append_write W1 W) ->
                  l \in (getfstwt W1) \/ (
                          l \notin (getrd W1)
