@@ -372,27 +372,23 @@ Fixpoint get_smallvars (w: warvars) :=
             inl x \notin w1 -> inl x \notin w2.
           Admitted.
 
-    Lemma agsv_war {w W1 W2 R c}:
-       WARok w W1 R c ->
-       (get_smallvars W2) = (get_smallvars W1) ->
-       WARok w W2 R c.
 
 
-    Lemma agsv_war_bc {w N W1 W2 R l W' R'}:
-             WAR_ins N W1 R l W' R' ->
+    Lemma agsv_war_bc {w W1 W2 R l W' R'}:
+             WAR_ins w W1 R l W' R' ->
        (get_smallvars W2) = (get_smallvars W1) ->
-      exists(W2': warvars), WAR_ins N W2 R l W2' R' c.
+      exists(W2': warvars), WAR_ins w W2 R l W2' R'.
       intros. 
-      move: H H0 => Hwarok Hsv. dependent induction Hwarok; simpl.
-      inversion H; subst; eapply WAR_I.
-      - eapply WAR_Skip.
-      - eapply WAR_Vol; try assumption. apply H0.
+      inversion H; subst.
+      - exists W2. eapply WAR_Skip.
+      - exists W2. eapply WAR_Vol; try assumption. 
         by apply (agsv_war_h W' W2).
-      - eapply WAR_NoRd; try apply H1; try assumption.
-      - eapply WAR_Checkpointed; try apply H0; try assumption.
+      - exists(inl x :: W2).
+        eapply WAR_NoRd; try apply H1; try assumption.
+      - exists(inl x :: W2). eapply WAR_Checkpointed; try apply H0; try assumption.
         apply/ negP.
-        apply (agsv_war_h W W2). assumption. by
-            move/negP: H3.
+        apply (agsv_war_h W1 W2). assumption. by
+            move/negP: H4.
       - eapply WAR_WT; try apply H0; try assumption.
         symmetry in Hsv.
         apply/ negPn.
@@ -411,7 +407,12 @@ Fixpoint get_smallvars (w: warvars) :=
         intros contra.
 
 
+    Lemma agsv_war {w W1 W2 R c}:
+       WARok w W1 R c ->
+       (get_smallvars W2) = (get_smallvars W1) ->
+       WARok w W2 R c.
 
+      move: H H0 => Hwarok Hsv. dependent induction Hwarok; simpl.
 
   Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} {O: obseq} {W: the_write_stuff} {Wstart Rstart: warvars},
     cceval_w (N, V, c) O (Nmid, Vmid, cmid) W ->
