@@ -363,9 +363,26 @@ Fixpoint get_smallvars (w: warvars) :=
           /\ (R' =  (getrd W) ++ Rstart).
     Admitted.
 
+     Lemma agsv_war {w W1 W2 R c}:
+       WARok w W1 R c ->
+       (get_smallvars W1) = (get_smallvars W2) ->
+       WARok w W2 R c.
+       Admitted.
+
   Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} {O: obseq} {W: the_write_stuff} {Wstart Rstart: warvars},
-    trace_cs (N, V, c) (Nmid, Vmid, cmid) O W ->
+    cceval_w (N, V, c) O (Nmid, Vmid, cmid) W ->
     checkpoint \notin O ->
     WARok (getdomain N0) Wstart Rstart c ->
     WARok (getdomain N0) ((getwt W) ++ Wstart) ((getrd W) ++ Rstart) cmid.
-    Admitted.
+    intros. move: H H0 H1 => Hcceval Ho Hwarok.
+    dependent induction Hwarok; simpl.
+    - apply cceval_skip in Hcceval. subst. eapply WAR_I. constructor.
+    - inversion Hcceval; subst. discriminate Ho.
+      exfalso. by apply (H8 w).
+   - move: (war_cceval Hcceval H) => [Hsubseq [Hsmallvars Hr] ]. subst. apply cceval_steps in Hcceval. subst. 
+
+
+       
+
+
+      dependent induction Hcceval; simpl.

@@ -541,7 +541,7 @@ Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} 
    lemma saying that if smallvar part of two diff write sets are equal
    then warok works for both?*)
 Admitted.
-  (* intros.
+  intros.
   move: H1.
   move : Wstart Rstart.
   dependent induction H; intros.

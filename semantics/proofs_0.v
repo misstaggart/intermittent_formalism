@@ -533,3 +533,10 @@ Lemma read_deterministic: forall{e: exp} {w1 w2: warvars},
                            rd e w2 ->
                            w1 = w2.
   Admitted.
+
+Lemma cceval_steps: forall{N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
+                   {O: obseq} {W: the_write_stuff} {l: instruction},
+
+        cceval_w (N, V, l;;c) O (Nmid, Vmid, cmid) W ->
+        c = cmid.
+intros. inversion H; subst; try reflexivity. Qed.

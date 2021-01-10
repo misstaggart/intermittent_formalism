@@ -337,7 +337,7 @@ Lemma war_works_loc_c {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
   move: Rstart Wstart Hwarok Ho. remember Hcceval as Hcceval1.
   clear HeqHcceval1.
   dependent induction Hcceval1; intros; simpl in H;
-    try discriminate H0.
+    try discriminate H0; try discriminate H1.
   -  remember H3 as Hwt.
     clear HeqHwt.
     simpl in H3. rewrite mem_seq1 in H3.
@@ -414,16 +414,8 @@ Lemma war_works_loc_c {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
              try reflexivity;
              try assumption.
            eapply WAR_I; try apply H8; try reflexivity; try assumption. assumption.
-(*tactics are writing the proof object
- which is a function*)
-    inversion H2; subst. (*invert WARok to get warins*)
-    + (*CP case warok*)
-    exfalso. by apply (H1 w).
-    + (*seq case warok*)
-      eapply WAR_I; apply H11; try assumption.
-      assumption.
-      (*clean up above*)
-    + (*trace inductive step*)
+           Qed.
+
 
 Lemma war_works_loc {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
       {Wstart Rstart: warvars}:
@@ -449,7 +441,7 @@ dependent induction T; intros.
   remember Ho as Hoo. clear HeqHoo.
   rewrite mem_cat in Hoo. move/ norP : Hoo => [Ho1 Ho2].
   move: (war_works_loc_c H0 Hwarok Ho1) => Hl1.
-  move: (warok_partial (CsTrace_Single H0) Ho1 Hwarok) => Hwarok2.
+  move: (warok_partial H0 Ho1 Hwarok) => Hwarok2.
   simpl in Hwarok2.
   suffices: 
         (forall l : loc,
@@ -494,7 +486,6 @@ rewrite mem_filter. apply/nandP. by left.
   Qed.
 
 
-  Focus 2eapply IHT; try reflexivity; try assumption.
 
 Lemma war_works {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}:
     trace_cs (N, V, c) (Nend, Vend, cend) O W ->
