@@ -364,7 +364,7 @@ Fixpoint get_smallvars (w: warvars) :=
     Admitted.
 
   Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} {O: obseq} {W: the_write_stuff} {Wstart Rstart: warvars},
-    trace_c (N, V, c) (Nmid, Vmid, cmid) O W ->
+    trace_cs (N, V, c) (Nmid, Vmid, cmid) O W ->
     checkpoint \notin O ->
     WARok (getdomain N0) Wstart Rstart c ->
     WARok (getdomain N0) ((getwt W) ++ Wstart) ((getrd W) ++ Rstart) cmid.

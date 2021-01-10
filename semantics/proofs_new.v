@@ -321,6 +321,21 @@ Qed.
     end_com c2 /\ checkpoint \notin Osmall). Admitted.
 
 
+Lemma war_works_loc_c {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
+      {Wstart Rstart: warvars}:
+    cceval_w (N, V, c) O (Nend, Vend, cend) W ->
+    WARok (getdomain N0) Wstart Rstart c ->
+    checkpoint \notin O ->
+    (*O <> [::] -> empty trace annoying and i dont think
+               i have to deal w it*)
+  forall (l: loc),
+(l \notin (remove Rstart (getfstwt W)) -> (*l not in OVERALL FW for this trace*)
+    l \in (getwt W) -> (*l written to
+                       IN THIS trace*)
+          l \in (getdomain N0) \/ l \in Wstart).
+  Admitted.
+
+
 
 Lemma war_works_loc {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
       {Wstart Rstart: warvars}:
@@ -334,7 +349,75 @@ Lemma war_works_loc {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obse
     l \in (getwt W) -> (*l written to
                        IN THIS trace*)
           l \in (getdomain N0) \/ l \in Wstart).
-  Admitted.
+intros T Hwarok Ho.
+move: Wstart Rstart Hwarok.
+dependent induction T; intros.
++ rewrite in_nil in H0. discriminate H0.
++ eapply war_works_loc_c; try apply H; try apply Hwarok; try assumption.
++ destruct W1 as [ [wW1 rW1] fwW1].
+  destruct W2 as [ [wW2 rW2] fwW2].
+  destruct Cmid as [ [Nmid Vmid] cmid].
+  simpl in H1. simpl in H2. simpl in IHT.
+  remember Ho as Hoo. clear HeqHoo.
+  rewrite mem_cat in Hoo. move/ norP : Hoo => [Ho1 Ho2].
+  move: (war_works_loc_c H0 Hwarok Ho1) => Hl1.
+  move: (warok_partial (CsTrace_Single H0) Ho1 Hwarok) => Hwarok2.
+  simpl in Hwarok2.
+  suffices: 
+        (forall l : loc,
+        l \notin remove (rW1 ++ Rstart) fwW2 ->
+        l \in wW2 -> l \in getdomain N0 \/ l \in (wW1 ++ Wstart)).
+  move => Hl2. simpl in Hl1.
+  rewrite mem_cat in H2. move/orP: H2 => Happ.
+destruct (l \in wW1) eqn: Hbool;
+  rewrite mem_filter in H1; move/nandP : H1 => [Hr1 | Hweird].
++ suffices: (l \notin remove Rstart fwW1).
+intros H500. apply Hl1; try assumption.
+rewrite mem_filter. apply/nandP. by left.
++ rewrite mem_cat in Hweird. move/ norP: Hweird => [Hdone H600].
+  apply Hl1. rewrite mem_filter. apply/ nandP. by right.
+    by [].
+ +suffices: (l \notin remove (rW1 ++ Rstart) fwW2).
+  intros H500. destruct Happ as [Hw2 | contra].
+  suffices: (l \in getdomain N0 \/ l \in wW1 ++ Wstart).
+  move => [one | two]. by left. right. rewrite mem_cat in two.
+  move/ orP : two => [contra | done]. rewrite Hbool in contra.
+  discriminate contra. assumption.
+  eapply Hl2; try assumption.
+  rewrite Hbool in contra. discriminate contra.
+  rewrite mem_filter. apply/nandP. left. rewrite mem_cat.
+  apply/negPn / orP. right. apply/negPn: Hr1.
+ +
+(*what's below could well be stupid*)
+   suffices: (l \notin remove (rW1 ++ Rstart) fwW2).
+  intros H500. destruct Happ as [Hw2 | contra].
+  suffices: (l \in getdomain N0 \/ l \in wW1 ++ Wstart).
+  move => [one | two]. by left. right. rewrite mem_cat in two.
+  move/ orP : two => [contra | done]. rewrite Hbool in contra.
+  discriminate contra. assumption.
+  eapply Hl2; try assumption.
+  rewrite Hbool in contra. discriminate contra.
+  rewrite mem_cat in Hweird. move/ norP: Hweird => [Hdone H600].
+  rewrite mem_filter. apply/nandP.
+  apply Hl1. rewrite mem_filter. apply/ nandP. by right.
+    by [].
+
+  rewrite mem_filter. apply/nandP. left. rewrite mem_cat.
+  apply/negPn / orP. right. apply/negPn: Hr1.
+
+
+   rewrite mem_cat in Hweird. move/ norP: Hweird => [Hdone H600].
+  apply Hl1. rewrite mem_filter. apply/ nandP. by right.
+    by [].
+
+  apply Hl1; try assumption.
+rewrite mem_filter. apply/nandP. by left.
+
+  suffices: l \notin remove (rW1 ++ Rstart) fwW2.
+  intros Hnin.
+
+
+  Focus 2eapply IHT; try reflexivity; try assumption.
 
 Lemma war_works {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}:
     trace_cs (N, V, c) (Nend, Vend, cend) O W ->
