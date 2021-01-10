@@ -362,26 +362,30 @@ Lemma war_works_loc_c {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
      + (*written case*)
        by right.
      - (*vol case*)
-       simpl in H6. rewrite in_nil in H6.
-       discriminate H6.
+       rewrite in_nil in H3.
+       discriminate H3.
      - (*array case*)
     (*showing x = l*)
-       remember H7 as Hwt. clear HeqHwt.
-       simpl in H7.
-       simpl in H6.
-       (*  rewrite mem_seq1 in H7.
-         move/ eqP : H7 => H7. subst.*)
-       inversion H4; inversion H12;
+       remember H4 as Hwt. clear HeqHwt.
+       simpl in H4.
+       simpl in H3.
+       rewrite mem_seq1 in H4. move/ eqP : H4 => Heq. subst.
+       inversion Hwarok; subst; inversion H8;
        subst. (*casing on warIns*)
        + (*nord arr*)
          (*showing l in rd W*)
-         suffices: (l \notin Rstart).
-         - intros Hstart.
-        (* rewrite mem_cat in H22.
+         -         (* rewrite mem_cat in H22.
          move / negP / norP : H16 => [H160 H161].*)
-         rewrite mem_filter in H6.
-         rewrite negb_and in H6.
-         rewrite Hstart in H6.
+           rewrite mem_filter in H3.
+           move/nandP : H3 => [contra | H3].
+           unfold intersect in H15. exfalso. apply H15.
+           remember (inr element) as l. exists l.
+           split. subst.
+           destruct element as [a0 index].
+           eapply gen_locs_works. apply H1.
+           repeat rewrite mem_cat.
+           repeat (apply/ orP; right).
+           apply /negPn : contra.
          rewrite orFb in H6.
          pose proof (negfwandw_means_r (CTrace_Single H) H6 Hwt) as Hrd. simpl in Hrd.
        (*showing x notin RD(W)*)
