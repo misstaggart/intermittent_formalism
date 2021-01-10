@@ -84,10 +84,7 @@ move: (agreeonread_ins_w Hdiff Hcceval1) => agr.
         destruct N as [Nmap ND].
         destruct N1 as [N1map N1D].
         unfold updateNV_arr. simpl.
-        move: (genloc_contents l a Hin) => [el Heq].
-        subst.
-        destruct (el == element) eqn: Hbool.
-        move/ eqP : Hbool => Heq. subst.
+        rewrite mem_seq1 in Hin. move/ eqP : Hin => Hin. subst.
         unfold updatemap.
         suffices: 
           ((if inr element == inr element then v else Nmap (inr element)) = v
@@ -96,8 +93,9 @@ move: (agreeonread_ins_w Hdiff Hcceval1) => agr.
         move => annoying.
         move: (annoying loc_eqtype loc_eqtype) => [one two].
           by rewrite one two. 
-       intros. split; by apply ifT.
-        unfold updatemap.
+          intros. split; by apply ifT.
+          Qed.
+      (*  unfold updatemap.
         suffices: 
           ((if inr el == inr element then v else Nmap (inr el)) =
            Nmap (inr el) /\
@@ -111,7 +109,7 @@ move: (agreeonread_ins_w Hdiff Hcceval1) => agr.
         apply negbTE;
         apply/eqP; intros contra; inversion contra; subst;
           by apply Hneq.
-Qed.
+Qed.*)
 
  Lemma add_skip_ins {N1 V l N2}: all_diff_in_fww N1 V (Ins l) N2 ->
                                  all_diff_in_fww N1 V (l;; skip) N2.
@@ -170,13 +168,13 @@ the maps are not error <-> in the domain
          inversion Hcceval; subst.
          move: (single_step_alls T Hneq Hcceval). =>
                                                   [Wrest [Orest [Trest [Hsubseq Hwrite] ] ] ].
-         rewrite append_write_empty_l in H1.
+         rewrite append_write_empty_l in H0.
          repeat rewrite append_write_empty_l in Hwrite. subst.
          econstructor; try apply Trest; try assumption.
        apply/negP. intros contra.
        apply/negP / negPn: H.
        apply (in_subseq Hsubseq contra).
-       exfalso. by apply H10.
+       exfalso. by apply H9.
          + move: (same_com_hcbc Hdiff H10). => [Nend [ Hcceval Hloc] ].
            exists Nend. split.
        apply Seq; try assumption.
@@ -190,9 +188,9 @@ the maps are not error <-> in the domain
       move: (determinism_c H10 Hcceval) => [ [one two] ]. subst.
       econstructor; try apply CsTrace_Empty; try assumption.
       by [].
-      intros l0 contra. exfalso. by apply contra.
+      (*intros l0 contra. exfalso. by apply contra.*)
       intros l0. apply/ eqP /negPn /negP. intros contra.
-      move/ eqPn / (H1 l0) : contra.
+      move/ eqPn / (H0 l0) : contra.
       by rewrite in_nil. auto.
        - move/ negbT / eqP : Hbool => Hneq.
          suffices: cceval_w (N, V, l;;c1) [:: o] (Nend, V1, c1) W.
@@ -204,7 +202,7 @@ move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
        apply/negP. intros contra.
        apply/negP / negPn: H.
        apply (in_subseq Hsubseq contra).
-       intros. destruct ((inr el) \in (getwt W)) eqn: Hbool.
+       (*intros. destruct ((inr el) \in (getwt W)) eqn: Hbool.
          by apply Hloc in Hbool.
        move : (update_one_contra (inr el) Hcceval) => Ho2ni.
        move : (update_one_contra (inr el) Hcceval1) => Ho2nc.
@@ -216,7 +214,7 @@ move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
        intros Heq3. symmetry in Hbooli.
          by move: (trans_eq (trans_eq Hbooli Heq3) Hboolc).
          apply/eqP/ negPn/ negP. move/eqP => contra.
-           by apply contra.
+           by apply contra.*)
            intros l0 Hl0. remember Hl0 as Hneql.
            clear HeqHneql.
            suffices: getmap Nend l0 <> getmap Nend2 l0 -> l0 \notin getwt W.
@@ -228,7 +226,7 @@ move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
                  )) in one.
            exfalso. move/ negP : Hl0. by apply.
              by move: two => [whatever done].
-             apply H1.
+             apply H0.
              move: (update_one_contra l0 Hcceval Hl0) => Heq1.
              move: (update_one_contra l0 Hcceval1 Hl0) => Heq2.
              by rewrite Heq1 Heq2.
@@ -244,7 +242,7 @@ move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
       suffices: (getmap N2) =1 (getmap Nend2). move/hack => H500. subst. split; try assumption.
       econstructor; try apply CsTrace_Empty; try assumption.
       intros l0. apply/ eqP /negPn /negP. intros contra.
-      move/ eqPn / (H1 l0) : contra.
+      move/ eqPn / (H0 l0) : contra.
       by rewrite in_nil. auto.
           - move/ negbT / eqP : Hbool => Hneq.
             move: (agreeonread_w Hdiff Hcceval1) => agr.
@@ -268,17 +266,17 @@ move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
          destruct Wrest1 as [ [w1 w2 ] w3].
          destruct Wrest as [ [wr1 wr2] wr3]. inversion Hwrite.
         
-         repeat rewrite cats0 in H3.
-         repeat rewrite cats0 in H5.
+         repeat rewrite cats0 in H2.
+         repeat rewrite cats0 in H4.
          intros l Hneql.
          simpl.
-         apply H1 in Hneql. subst. simpl in Hneq.
+         apply H0 in Hneql. subst. simpl in Hneq.
          unfold append_write in Hneql.
          simpl in Hneql. rewrite cats0 in Hneql.
-         rewrite H5 in Hneql.
+         rewrite H4 in Hneql.
          rewrite mem_filter in Hneql.
            by move/ andP : Hneql => [one two].
-           move: (determinism_e H13 Heval) => [one two].
+           move: (determinism_e H12 Heval) => [one two].
            inversion two.
           -  move/ eqP : Hbool => Hbool. subst.
       apply empty_trace_cs1 in T. move: T =>
@@ -287,7 +285,7 @@ move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
       suffices: (getmap N2) =1 (getmap Nend2). move/hack => H500. subst. split; try assumption.
       econstructor; try apply CsTrace_Empty; try assumption.
       intros l0. apply/ eqP /negPn /negP. intros contra.
-      move/ eqPn / (H1 l0) : contra.
+      move/ eqPn / (H0 l0) : contra.
       by rewrite in_nil. auto.
           - move/ negbT / eqP : Hbool => Hneq.
             move: (agreeonread_w Hdiff Hcceval1) => agr.
@@ -304,7 +302,7 @@ move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
                                                         [Hsubseq Hwrite] ] ] ].
        destruct Cmid as [ [Nmid Vmid] cmid].
        inversion Hcceval; subst.
-           move: (determinism_e H13 Heval) => [one two].
+           move: (determinism_e H12 Heval) => [one two].
            inversion two.
        econstructor; try apply Trest; try assumption.
        apply/negP.
@@ -313,14 +311,14 @@ move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
          destruct Wrest1 as [ [w1 w2 ] w3].
          destruct Wrest as [ [wr1 wr2] wr3]. inversion Hwrite.
         
-         repeat rewrite cats0 in H3.
-         repeat rewrite cats0 in H5.
+         repeat rewrite cats0 in H2.
+         repeat rewrite cats0 in H4.
          intros l Hneql.
          simpl.
-         apply H1 in Hneql. subst. simpl in Hneq.
+         apply H0 in Hneql. subst. simpl in Hneq.
          unfold append_write in Hneql.
          simpl in Hneql. rewrite cats0 in Hneql.
-         rewrite H5 in Hneql.
+         rewrite H4 in Hneql.
          rewrite mem_filter in Hneql.
            by move/ andP : Hneql => [one two].
 Qed.
