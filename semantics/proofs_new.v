@@ -356,6 +356,15 @@ Lemma war_works {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {
   assumption.
   rewrite ifF in Hneq.
   apply (update T) in Hneq.
+  move: (war_works_loc T Hwarok Ho) => Hl.
+  rewrite remove_empty in Hl.
+  apply/ negPn/ negP. intros contra.
+  move/ Hl : contra. => [contra1 | contra2].
+  assumption.
+  move/negP: Hnin0. by apply.
+    by [].
+    by apply negbTE. 
+Qed.
 
 Lemma same_com {N0 N V c Nmid Vmid cmid O1 W1 Nend1 Vend cend O2 W2}:
   WARok (getdomain N0) [::] [::] c ->
