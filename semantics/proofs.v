@@ -473,12 +473,6 @@ Qed.*)
 (*probs should have inducted over
  cceval instead of warok below, clean up*)
 
-Fixpoint get_smallvars (w: warvars) :=
-  filter (fun v =>
-          match v with
-            (inl _) => true
-          | (inr _) => false
-          end) w.
 
 
 Lemma war_cceval: forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}

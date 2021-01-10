@@ -5,7 +5,7 @@ Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq fintype ssrnat ssrfun.
 From TLC Require Import LibTactics LibLogic.
 From Semantics Require Export programs semantics algorithms lemmas_1
-     lemmas_0 proofs_0 proofs_sc. (*shouldn't have to import both of these*)
+     lemmas_0 proofs_0 proofs_w. (*shouldn't have to import both of these*)
 
 Implicit Types N: nvmem. Implicit Types V: vmem.
 Implicit Types O: obseq.
@@ -344,8 +344,18 @@ Lemma war_works {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {
     all_diff_in_fww N V c (N0 U! Nend).
   intros T Hsub Hwarok Ho.
   econstructor; try apply T; try assumption.
-  Admitted.
-
+  intros l Hneq.
+  destruct N as [Nmap Nd].
+  destruct N0 as [N0map N0d].
+  destruct Nend as [Nendmap Nendd].
+  unfold updatemaps in Hneq. simpl in Hneq.
+  assert (l \notin N0d) as Hnin0.
+  apply/negP. intros contra.
+  rewrite ifT in Hneq. apply Hneq.
+  unfold subset_nvm in Hsub. symmetry. by eapply Hsub.
+  assumption.
+  rewrite ifF in Hneq.
+  apply (update T) in Hneq.
 
 Lemma same_com {N0 N V c Nmid Vmid cmid O1 W1 Nend1 Vend cend O2 W2}:
   WARok (getdomain N0) [::] [::] c ->
