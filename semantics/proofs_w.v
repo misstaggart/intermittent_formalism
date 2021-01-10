@@ -363,11 +363,55 @@ Fixpoint get_smallvars (w: warvars) :=
           /\ (R' =  (getrd W) ++ Rstart).
     Admitted.
 
-     Lemma agsv_war {w W1 W2 R c}:
+  Lemma get_sv_works: forall (w1: warvars) (x: smallvar),
+    (inl x \in w1) <->
+    (inl x \in (get_smallvars w1)). Admitted.
+
+        Lemma agsv_war_h : forall(w1 w2: warvars) (x: smallvar),
+            get_smallvars w2 = get_smallvars w1 ->
+            inl x \notin w1 -> inl x \notin w2.
+          Admitted.
+
+    Lemma agsv_war {w W1 W2 R c}:
        WARok w W1 R c ->
-       (get_smallvars W1) = (get_smallvars W2) ->
+       (get_smallvars W2) = (get_smallvars W1) ->
        WARok w W2 R c.
-       Admitted.
+
+
+    Lemma agsv_war_bc {w N W1 W2 R l W' R'}:
+             WAR_ins N W1 R l W' R' ->
+       (get_smallvars W2) = (get_smallvars W1) ->
+      exists(W2': warvars), WAR_ins N W2 R l W2' R' c.
+      intros. 
+      move: H H0 => Hwarok Hsv. dependent induction Hwarok; simpl.
+      inversion H; subst; eapply WAR_I.
+      - eapply WAR_Skip.
+      - eapply WAR_Vol; try assumption. apply H0.
+        by apply (agsv_war_h W' W2).
+      - eapply WAR_NoRd; try apply H1; try assumption.
+      - eapply WAR_Checkpointed; try apply H0; try assumption.
+        apply/ negP.
+        apply (agsv_war_h W W2). assumption. by
+            move/negP: H3.
+      - eapply WAR_WT; try apply H0; try assumption.
+        symmetry in Hsv.
+        apply/ negPn.
+        apply (contra (agsv_war_h W2 W x Hsv)).
+          by apply/negPn.
+      - eapply WAR_NoRd_Arr. apply H0. apply H1. assumption.
+      - eapply WAR_Checkpointed_Arr; try apply H0; try apply H1; try assumption.
+      - eapply WAR_CP; assumption.
+      - eapply WAR_Seq; try assumption.
+        move: (agsv_war_h W W2)
+      move: (get_sv_works W x) => [Hsv10 Hsv11].
+      move: (get_sv_works W2 x) => [Hsv20 Hsv21].
+      intros Hc. apply Hsv20 in Hc. rewrite Hsv in Hc.
+        apply (contra Hsv20). rewrite Hsv.
+          by apply (contra Hsv11).
+        intros contra.
+
+
+
 
   Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} {O: obseq} {W: the_write_stuff} {Wstart Rstart: warvars},
     cceval_w (N, V, c) O (Nmid, Vmid, cmid) W ->
@@ -379,10 +423,9 @@ Fixpoint get_smallvars (w: warvars) :=
     - apply cceval_skip in Hcceval. subst. eapply WAR_I. constructor.
     - inversion Hcceval; subst. discriminate Ho.
       exfalso. by apply (H8 w).
-   - move: (war_cceval Hcceval H) => [Hsubseq [Hsmallvars Hr] ]. subst. apply cceval_steps in Hcceval. subst. 
+   - move: (war_cceval Hcceval H) => [Hsubseq [Hsmallvars Hr] ]. subst. apply cceval_steps in Hcceval. subst.  eapply agsv_war. apply Hwarok. assumption.
+ - inversion Hcceval; subst; 
+    pose proof (read_deterministic H (RD H10));
+    subst; assumption.
+Qed.
 
-
-       
-
-
-      dependent induction Hcceval; simpl.
