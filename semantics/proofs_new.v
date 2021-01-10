@@ -397,24 +397,12 @@ rewrite mem_filter. apply/nandP. by left.
   discriminate contra. assumption.
   eapply Hl2; try assumption.
   rewrite Hbool in contra. discriminate contra.
-  rewrite mem_cat in Hweird. move/ norP: Hweird => [Hdone H600].
   rewrite mem_filter. apply/nandP.
-  apply Hl1. rewrite mem_filter. apply/ nandP. by right.
-    by [].
-
-  rewrite mem_filter. apply/nandP. left. rewrite mem_cat.
-  apply/negPn / orP. right. apply/negPn: Hr1.
-
-
-   rewrite mem_cat in Hweird. move/ norP: Hweird => [Hdone H600].
-  apply Hl1. rewrite mem_filter. apply/ nandP. by right.
-    by [].
-
-  apply Hl1; try assumption.
-rewrite mem_filter. apply/nandP. by left.
-
-  suffices: l \notin remove (rW1 ++ Rstart) fwW2.
-  intros Hnin.
+  rewrite mem_cat in Hweird. move/ norP: Hweird. => [Hdone H600].
+  rewrite mem_filter in Hdone. move/ nandP : Hdone => [Hd1 | Hd2].
+  left. rewrite mem_cat. apply/negPn/ orP. left.
+  by apply/negPn. by right.
+eapply IHT; try reflexivity; try assumption.
 
 
   Focus 2eapply IHT; try reflexivity; try assumption.
