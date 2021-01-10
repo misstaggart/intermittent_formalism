@@ -1,4 +1,4 @@
-DIGEST 139d5d6d3338128e2c628bcc743f9421
+DIGEST af664b30932f5320057a4b0868416166
 FSemantics.proofs_0
 R70:78 Coq.Bool.Bool <> <> lib
 R80:87 Coq.Init.Nat <> <> lib
@@ -1429,3 +1429,53 @@ R18574:18579 Semantics.semantics <> :::'TEST'_x_'THEN'_x_'ELSE'_x not
 R18565:18565 Semantics.proofs_0 <> e:203 var
 R18572:18573 Semantics.proofs_0 <> c1:206 var
 R18580:18581 Semantics.proofs_0 <> c2:207 var
+prf 18641:18657 <> negfwandw_means_r
+R18675:18681 Semantics.semantics <> context syndef
+binder 18667:18667 <> C:211
+binder 18669:18672 <> Cend:212
+R18689:18693 Semantics.semantics <> obseq syndef
+binder 18686:18686 <> O:213
+R18700:18714 Semantics.semantics <> the_write_stuff syndef
+binder 18697:18697 <> W:214
+R18723:18725 Semantics.semantics <> loc def
+binder 18720:18720 <> l:215
+R18752:18759 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R18781:18784 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R18800:18803 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R18805:18810 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R18818:18818 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R18804:18804 Semantics.proofs_0 <> l:215 var
+R18811:18815 Semantics.semantics <> getrd def
+R18817:18817 Semantics.proofs_0 <> W:214 var
+R18786:18791 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R18799:18799 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R18785:18785 Semantics.proofs_0 <> l:215 var
+R18792:18796 Semantics.semantics <> getwt def
+R18798:18798 Semantics.proofs_0 <> W:214 var
+R18761:18769 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
+R18780:18780 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
+R18760:18760 Semantics.proofs_0 <> l:215 var
+R18770:18777 Semantics.semantics <> getfstwt def
+R18779:18779 Semantics.proofs_0 <> W:214 var
+R18733:18740 Semantics.semantics <> cceval_w ind
+R18751:18751 Semantics.proofs_0 <> W:214 var
+R18746:18749 Semantics.proofs_0 <> Cend:212 var
+R18744:18744 Semantics.proofs_0 <> O:213 var
+R18742:18742 Semantics.proofs_0 <> C:211 var
+prf 18838:18855 <> read_deterministic
+R18868:18870 Semantics.semantics <> exp ind
+binder 18865:18865 <> e:216
+R18881:18887 Semantics.semantics <> warvars syndef
+binder 18874:18875 <> w1:217
+binder 18877:18878 <> w2:218
+R18925:18955 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R18963:18993 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R18996:18998 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R18994:18995 Semantics.proofs_0 <> w1:217 var
+R18999:19000 Semantics.proofs_0 <> w2:218 var
+R18956:18957 Semantics.algorithms <> rd ind
+R18961:18962 Semantics.proofs_0 <> w2:218 var
+R18959:18959 Semantics.proofs_0 <> e:216 var
+R18918:18919 Semantics.algorithms <> rd ind
+R18923:18924 Semantics.proofs_0 <> w1:217 var
+R18921:18921 Semantics.proofs_0 <> e:216 var

@@ -333,9 +333,102 @@ Lemma war_works_loc_c {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
     l \in (getwt W) -> (*l written to
                        IN THIS trace*)
           l \in (getdomain N0) \/ l \in Wstart).
-  Admitted.
-
-
+  intros Hcceval Hwarok Ho.
+  move: Rstart Wstart Hwarok Ho. remember Hcceval as Hcceval1.
+  clear HeqHcceval1.
+  dependent induction Hcceval1; intros; simpl in H.
+  - discriminate H0.
+  -  remember H3 as Hwt.
+    clear HeqHwt.
+    simpl in H3. rewrite mem_seq1 in H3.
+    move/eqP : H3 => Heq. subst.
+   inversion Hwarok; subst; inversion H7;
+       subst. (*casing on warIns*)
+     (*vol case, x \notin getwt W*)
+       +  exfalso. apply (negNVandV x H0 H10).
+       + (*nord case*)
+         (*showing l in rd W*)
+         rewrite mem_cat in H13.
+         move / negP / norP : H13 => [Hre Hrs].
+         rewrite mem_filter in H2.
+         move/nandP: H2. => [contra | H2].
+         rewrite Hrs in contra. discriminate contra.
+         pose proof (negfwandw_means_r Hcceval H2 Hwt) as Hrd. simpl in Hrd.
+       (*showing x notin RD(W)*)
+         move: (read_deterministic H10 (RD H)) => Heq. subst.
+         exfalso. move/negP : Hre. by apply.
+     + (*CP case*)
+        by left.
+     + (*written case*)
+       by right.
+     - (*vol case*)
+       simpl in H6. rewrite in_nil in H6.
+       discriminate H6.
+     - (*array case*)
+    (*showing x = l*)
+       remember H7 as Hwt. clear HeqHwt.
+       simpl in H7.
+       simpl in H6.
+       (*  rewrite mem_seq1 in H7.
+         move/ eqP : H7 => H7. subst.*)
+       inversion H4; inversion H12;
+       subst. (*casing on warIns*)
+       + (*nord arr*)
+         (*showing l in rd W*)
+         suffices: (l \notin Rstart).
+         - intros Hstart.
+        (* rewrite mem_cat in H22.
+         move / negP / norP : H16 => [H160 H161].*)
+         rewrite mem_filter in H6.
+         rewrite negb_and in H6.
+         rewrite Hstart in H6.
+         rewrite orFb in H6.
+         pose proof (negfwandw_means_r (CTrace_Single H) H6 Hwt) as Hrd. simpl in Hrd.
+       (*showing x notin RD(W)*)
+       exfalso.
+       apply H23.
+       exists (l : loc).
+       split.
+       apply Hwt.
+       (*showing rd sets are same*)
+       pose proof
+            (read_deterministic (RD H0) H19).
+       pose proof
+            (read_deterministic (RD H3) H22).
+       subst.
+       rewrite catA.
+       rewrite <- readobs_app_wvs.
+       rewrite mem_cat.
+       apply (introT orP).
+       left.
+       apply Hrd.
+         - apply (introT negP).
+           intros contra. apply H23.
+           exists (l : loc).
+       split.
+       destruct element.
+       apply Hwt.
+       rewrite catA.
+       rewrite mem_cat.
+       apply (introT orP).
+      by right.
+     + (*CP array*)
+         destruct element.
+         pose proof (equal_index_arr H1). subst.
+         left.
+         apply (in_subseq H24 H7).
+ - (*seq case*)
+   eapply IHH01; try apply H01; try reflexivity; try assumption. Show Proof.
+(*tactics are writing the proof object
+ which is a function*)
+    inversion H2; subst. (*invert WARok to get warins*)
+    + (*CP case warok*)
+    exfalso. by apply (H1 w).
+    + (*seq case warok*)
+      eapply WAR_I; apply H11; try assumption.
+      assumption.
+      (*clean up above*)
+    + (*trace inductive step*)
 
 Lemma war_works_loc {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
       {Wstart Rstart: warvars}:
@@ -402,7 +495,8 @@ rewrite mem_filter. apply/nandP. by left.
   rewrite mem_filter in Hdone. move/ nandP : Hdone => [Hd1 | Hd2].
   left. rewrite mem_cat. apply/negPn/ orP. left.
   by apply/negPn. by right.
-eapply IHT; try reflexivity; try assumption.
+  eapply IHT; try reflexivity; try assumption.
+  Qed.
 
 
   Focus 2eapply IHT; try reflexivity; try assumption.

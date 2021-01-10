@@ -518,3 +518,15 @@ Lemma if_ctx {N V e N1 V1 c1 c2 c3 O W}:
   cceval_w (N, V, TEST e THEN c1 ELSE c2) O (N1, V1, c3) W ->
   N = N1 /\ V = V1.
 Admitted.
+
+Lemma negfwandw_means_r: forall{C Cend: context}  {O: obseq} {W: the_write_stuff}
+  {l: loc},
+    cceval_w C O Cend W ->
+    l \notin (getfstwt W) -> l \in (getwt W) -> l \in (getrd W).
+Admitted.
+
+Lemma read_deterministic: forall{e: exp} {w1 w2: warvars},
+                           rd e w1 ->
+                           rd e w2 ->
+                           w1 = w2.
+  Admitted.
