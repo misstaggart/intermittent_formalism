@@ -113,10 +113,12 @@ Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
         destruct Ni as [Nimap NiD].
         destruct Nc as [Ncmap NcD].
         unfold updateNV_arr. simpl.
-        move: (genloc_contents l a Hin) => [el Heq].
+        rewrite mem_seq1 in Hin.
+        move/ eqP : Hin => Hin. subst.
+        (*move: (genloc_contents l a Hin) => [el Heq].
         subst.
         destruct (el == element) eqn: Hbool.
-        move/ eqP : Hbool => Heq. subst.
+        move/ eqP : Hbool => Heq. subst.*)
         unfold updatemap.
         suffices: 
           ((if inr element == inr element then v else Nimap (inr element)) = v
@@ -126,7 +128,7 @@ Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
         move: (annoying loc_eqtype loc_eqtype) => [one two].
           by rewrite one two. 
        intros. split; by apply ifT.
-        unfold updatemap.
+        (*unfold updatemap.
         suffices: 
           ((if inr el == inr element then v else Nimap (inr el)) =
            Nimap (inr el) /\
@@ -139,7 +141,7 @@ Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
         move/eqP: (negbT Hbool) => Hneq;
         apply negbTE;
         apply/eqP; intros contra; inversion contra; subst;
-          by apply Hneq.
+          by apply Hneq.*)
 Qed.
     
     -(* exists Nc. split. apply Skip. move => l contra.
@@ -342,6 +344,7 @@ Lemma war_works {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {
     all_diff_in_fww N V c (N0 U! Nend).
   intros T Hsub Hwarok Ho.
   econstructor; try apply T; try assumption.
+  Admitted.
 
 
 Lemma same_com {N0 N V c Nmid Vmid cmid O1 W1 Nend1 Vend cend O2 W2}:
