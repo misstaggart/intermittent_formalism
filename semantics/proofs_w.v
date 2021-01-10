@@ -372,47 +372,64 @@ Fixpoint get_smallvars (w: warvars) :=
             inl x \notin w1 -> inl x \notin w2.
           Admitted.
 
+        Lemma sv_add_sv: forall(w1 w2 :warvars) (x: smallvar),
+            (get_smallvars w1) = (get_smallvars w2) ->
+            (get_smallvars ((inl x) :: w1) = get_smallvars ((inl x) :: w2)).
+          Admitted.
 
+        Lemma sv_add_arr: forall(w1 w2 :warvars) (a: array),
+            (get_smallvars w1) = (get_smallvars w2) ->
+            (get_smallvars ((generate_locs a) ++ w1) =
+             get_smallvars ((generate_locs a) ++ w2)).
+          Admitted.
 
-    Lemma agsv_war_bc {w W1 W2 R l W' R'}:
+        Lemma agsv_war_bc {w W1 W2 R l W' R'}:
              WAR_ins w W1 R l W' R' ->
        (get_smallvars W2) = (get_smallvars W1) ->
-      exists(W2': warvars), WAR_ins w W2 R l W2' R'.
+       exists(W2': warvars), WAR_ins w W2 R l W2' R' /\
+       (get_smallvars W2') = (get_smallvars W').
+      
       intros. 
       inversion H; subst.
-      - exists W2. eapply WAR_Skip.
-      - exists W2. eapply WAR_Vol; try assumption. 
+      - exists W2; split. eapply WAR_Skip. assumption.
+      - exists W2. split; try assumption. eapply WAR_Vol; try assumption.
         by apply (agsv_war_h W' W2).
-      - exists(inl x :: W2).
-        eapply WAR_NoRd; try apply H1; try assumption.
-      - exists(inl x :: W2). eapply WAR_Checkpointed; try apply H0; try assumption.
+      - exists(inl x :: W2). split.
+        eapply WAR_NoRd; try apply H1; try assumption. by apply sv_add_sv.
+      - exists(inl x :: W2). split. eapply WAR_Checkpointed; try apply H0; try assumption.
         apply/ negP.
         apply (agsv_war_h W1 W2). assumption. by
-            move/negP: H4.
-      - eapply WAR_WT; try apply H0; try assumption.
-        symmetry in Hsv.
+            move/negP: H4. by apply sv_add_sv.
+      - exists(inl x :: W2). split. eapply WAR_WT; try apply H0; try assumption.
+        symmetry in H0.
         apply/ negPn.
-        apply (contra (agsv_war_h W2 W x Hsv)).
-          by apply/negPn.
-      - eapply WAR_NoRd_Arr. apply H0. apply H1. assumption.
-      - eapply WAR_Checkpointed_Arr; try apply H0; try apply H1; try assumption.
+        apply (contra (agsv_war_h W2 W1 x H0)). 
+          by apply/negPn. by apply sv_add_sv.
+      - exists(generate_locs a ++ W2). split.
+        eapply WAR_NoRd_Arr. apply H1. apply H2. assumption.
+        by apply sv_add_arr.
+      -exists(generate_locs a ++ W2). split.
+       eapply WAR_Checkpointed_Arr; try apply H0; try apply H1; try assumption. by apply sv_add_arr.
+Qed.
+
+    Lemma agsv_war {w W1 W2 R c}:
+       WARok w W1 R c ->
+       (get_smallvars W2) = (get_smallvars W1) ->
+       WARok w W2 R c. intros.
+      move: W2 H0.  dependent induction H; intros; simpl.
+      - move: (agsv_war_bc H H0) => [W2' Done]. eapply WAR_I. apply Done.
       - eapply WAR_CP; assumption.
-      - eapply WAR_Seq; try assumption.
-        move: (agsv_war_h W W2)
+      - move: (agsv_war_bc H H1) => [W2' [H21 H22] ].
+        eapply WAR_Seq; try assumption.
+        apply H21. by apply IHWARok.
+        move: (agsv_war_h W W2).
       move: (get_sv_works W x) => [Hsv10 Hsv11].
       move: (get_sv_works W2 x) => [Hsv20 Hsv21].
       intros Hc. apply Hsv20 in Hc. rewrite Hsv in Hc.
         apply (contra Hsv20). rewrite Hsv.
           by apply (contra Hsv11).
-        intros contra.
+          intros contra.
 
-
-    Lemma agsv_war {w W1 W2 R c}:
-       WARok w W1 R c ->
-       (get_smallvars W2) = (get_smallvars W1) ->
-       WARok w W2 R c.
-
-      move: H H0 => Hwarok Hsv. dependent induction Hwarok; simpl.
 
   Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} {O: obseq} {W: the_write_stuff} {Wstart Rstart: warvars},
     cceval_w (N, V, c) O (Nmid, Vmid, cmid) W ->
