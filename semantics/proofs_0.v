@@ -519,6 +519,9 @@ Lemma if_ctx {N V e N1 V1 c1 c2 c3 O W}:
   N = N1 /\ V = V1.
 Admitted.
 
+(*this should be quick and fast
+ cuz i could replace it with
+ quick and fast on the spot simplification*)
 Lemma negfwandw_means_r: forall{C Cend: context}  {O: obseq} {W: the_write_stuff}
   {l: loc},
     cceval_w C O Cend W ->

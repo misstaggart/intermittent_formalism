@@ -336,8 +336,8 @@ Lemma war_works_loc_c {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
   intros Hcceval Hwarok Ho.
   move: Rstart Wstart Hwarok Ho. remember Hcceval as Hcceval1.
   clear HeqHcceval1.
-  dependent induction Hcceval1; intros; simpl in H.
-  - discriminate H0.
+  dependent induction Hcceval1; intros; simpl in H;
+    try discriminate H0.
   -  remember H3 as Hwt.
     clear HeqHwt.
     simpl in H3. rewrite mem_seq1 in H3.
@@ -353,7 +353,9 @@ Lemma war_works_loc_c {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
          rewrite mem_filter in H2.
          move/nandP: H2. => [contra | H2].
          rewrite Hrs in contra. discriminate contra.
-         pose proof (negfwandw_means_r Hcceval H2 Hwt) as Hrd. simpl in Hrd.
+         pose proof (negfwandw_means_r Hcceval H2 Hwt) as Hrd.
+         
+         simpl in Hrd.
        (*showing x notin RD(W)*)
          move: (read_deterministic H10 (RD H)) => Heq. subst.
          exfalso. move/negP : Hre. by apply.
@@ -368,61 +370,50 @@ Lemma war_works_loc_c {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
     (*showing x = l*)
        remember H4 as Hwt. clear HeqHwt.
        simpl in H4.
-       simpl in H3.
        rewrite mem_seq1 in H4. move/ eqP : H4 => Heq. subst.
        inversion Hwarok; subst; inversion H8;
        subst. (*casing on warIns*)
        + (*nord arr*)
+           remember (inr element) as l.
+           destruct element as [a0 index].
          (*showing l in rd W*)
          -         (* rewrite mem_cat in H22.
          move / negP / norP : H16 => [H160 H161].*)
            rewrite mem_filter in H3.
            move/nandP : H3 => [contra | H3].
            unfold intersect in H15. exfalso. apply H15.
-           remember (inr element) as l. exists l.
+            exists l.
            split. subst.
-           destruct element as [a0 index].
            eapply gen_locs_works. apply H1.
            repeat rewrite mem_cat.
            repeat (apply/ orP; right).
            apply /negPn : contra.
-         rewrite orFb in H6.
-         pose proof (negfwandw_means_r (CTrace_Single H) H6 Hwt) as Hrd. simpl in Hrd.
-       (*showing x notin RD(W)*)
-       exfalso.
-       apply H23.
-       exists (l : loc).
-       split.
-       apply Hwt.
+           pose proof (negfwandw_means_r Hcceval H3 Hwt) as Hrd. simpl in Hrd.
        (*showing rd sets are same*)
        pose proof
-            (read_deterministic (RD H0) H19).
+            (read_deterministic (RD H0) H11).
        pose proof
-            (read_deterministic (RD H3) H22).
+            (read_deterministic (RD H) H14).
        subst.
+       exfalso.
+       apply H15.
+       remember (inr (El a0 index)) as l. exists l.
+           split. subst.
+           eapply gen_locs_works. apply H1.
        rewrite catA.
        rewrite <- readobs_app_wvs.
        rewrite mem_cat.
-       apply (introT orP).
-       left.
-       apply Hrd.
-         - apply (introT negP).
-           intros contra. apply H23.
-           exists (l : loc).
-       split.
-       destruct element.
-       apply Hwt.
-       rewrite catA.
-       rewrite mem_cat.
-       apply (introT orP).
-      by right.
-     + (*CP array*)
+       apply/ orP. by left.
+           + (*CP array*)
          destruct element.
-         pose proof (equal_index_arr H1). subst.
-         left.
-         apply (in_subseq H24 H7).
- - (*seq case*)
-   eapply IHH01; try apply H01; try reflexivity; try assumption. Show Proof.
+             left. 
+         apply (in_subseq H16 (gen_locs_works H1)).
+- (*seq case*)
+           inversion Hwarok; subst. exfalso. by apply (H w).
+           eapply IHHcceval1; try apply Hcceval1;
+             try reflexivity;
+             try assumption.
+           eapply WAR_I; try apply H8; try reflexivity; try assumption. assumption.
 (*tactics are writing the proof object
  which is a function*)
     inversion H2; subst. (*invert WARok to get warins*)
