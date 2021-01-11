@@ -352,7 +352,33 @@ Fixpoint get_smallvars (w: warvars) :=
           | (inr _) => false
           end) w.
 
-  Lemma war_cceval: forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
+  Lemma get_sv_works: forall (w1: warvars) (x: smallvar),
+    (inl x \in w1) <->
+    (inl x \in (get_smallvars w1)). Admitted.
+
+        Lemma agsv_war_h : forall(w1 w2: warvars) (x: smallvar),
+            get_smallvars w2 = get_smallvars w1 ->
+            inl x \notin w1 -> inl x \notin w2.
+          Admitted.
+
+        Lemma sv_add_sv: forall(w1 w2 :warvars) (x: smallvar),
+            (get_smallvars w1) = (get_smallvars w2) ->
+            (get_smallvars ((inl x) :: w1) = get_smallvars ((inl x) :: w2)).
+        Admitted.
+
+        Lemma sv_add_el:forall(w1 w2 :warvars) (el: el_loc),
+            (get_smallvars w1) = (get_smallvars w2) ->
+            (get_smallvars ((inr el) :: w1) =
+             get_smallvars w2).
+Admitted.
+
+        Lemma sv_add_arr: forall(w1 w2 :warvars) (a: array),
+            (get_smallvars w1) = (get_smallvars w2) ->
+            (get_smallvars ((generate_locs a) ++ w1) =
+             (get_smallvars w2)).
+          Admitted.
+
+        Lemma war_cceval: forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
                    {l: instruction}
                    {O: obseq} {W: the_write_stuff} {Wstart Rstart W' R': warvars},
 
@@ -379,39 +405,36 @@ Fixpoint get_smallvars (w: warvars) :=
  - inversion Hcceval; subst. move: (extract_write_svnv H14 H2) => Heq.
     rewrite Heq. inversion H14; subst;
     move: (read_deterministic H (RD H11)) => Heq1; subst;
-    split; try split; try by [].
- (*written to case*)
-
-
- - (*nrd arr case*) inversion H; subst; inversion H14; subst. simpl. rewrite readobs_app_wvs. rewrite catA.
-   pose proof (read_deterministic H2 (RD H16)).
+                                              split; try split; try by [].
+ 
+ - (*nrd arr case*) inversion Hcceval; subst; inversion H13; subst.
+   split; try split. simpl.
+   rewrite - cat1s. apply cat_subseq.
+   rewrite sub1seq.
+   destruct element as [a0 index0]. eapply gen_locs_works.
+   apply H16. auto. Opaque get_smallvars. simpl.
+   rewrite (sv_add_el W0 W0); try auto.
+   symmetry. rewrite (sv_add_arr W0 W0 a); try auto.
+   simpl.
+   rewrite readobs_app_wvs. rewrite catA.
+   move: (read_deterministic H (RD H15)) => Heq1.
+   move: (read_deterministic H0 (RD H14)) => Heq2.
+   by subst. 
+ - inversion Hcceval; subst; inversion H14; subst.
+   split; try split. simpl.
+   rewrite - cat1s. apply cat_subseq.
+   rewrite sub1seq.
+   destruct element as [a0 index0]. eapply gen_locs_works.
+   apply H17. auto.
+   Opaque get_smallvars. simpl.
+   rewrite (sv_add_el W0 W0); try auto.
+   symmetry. rewrite (sv_add_arr W0 W0 a); try auto.
+   simpl. rewrite readobs_app_wvs. rewrite catA.
+   pose proof (read_deterministic H (RD H16)).
    pose proof (read_deterministic H0 (RD H15)).
-   subst. split; reflexivity.
- - inversion H; subst; inversion H15; subst. simpl. rewrite readobs_app_wvs. rewrite catA.
-   pose proof (read_deterministic H3 (RD H17)).
-   pose proof (read_deterministic H0 (RD H16)).
-   subst. split; reflexivity.
+   by subst. 
 Qed.
 
-  Lemma get_sv_works: forall (w1: warvars) (x: smallvar),
-    (inl x \in w1) <->
-    (inl x \in (get_smallvars w1)). Admitted.
-
-        Lemma agsv_war_h : forall(w1 w2: warvars) (x: smallvar),
-            get_smallvars w2 = get_smallvars w1 ->
-            inl x \notin w1 -> inl x \notin w2.
-          Admitted.
-
-        Lemma sv_add_sv: forall(w1 w2 :warvars) (x: smallvar),
-            (get_smallvars w1) = (get_smallvars w2) ->
-            (get_smallvars ((inl x) :: w1) = get_smallvars ((inl x) :: w2)).
-          Admitted.
-
-        Lemma sv_add_arr: forall(w1 w2 :warvars) (a: array),
-            (get_smallvars w1) = (get_smallvars w2) ->
-            (get_smallvars ((generate_locs a) ++ w1) =
-             get_smallvars ((generate_locs a) ++ w2)).
-          Admitted.
 
         Lemma agsv_war_bc {w W1 W2 R l W' R'}:
              WAR_ins w W1 R l W' R' ->
