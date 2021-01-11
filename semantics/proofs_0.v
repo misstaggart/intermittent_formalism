@@ -540,3 +540,29 @@ Lemma cceval_steps: forall{N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
         cceval_w (N, V, l;;c) O (Nmid, Vmid, cmid) W ->
         c = cmid.
 intros. inversion H; subst; try reflexivity. Qed.
+
+Lemma extract_write_svnv: forall {N Nend: nvmem} {V Vend: vmem}
+                      {e: exp} {x: smallvar} {O: obseq}
+                      {W: the_write_stuff}
+  {cend: command},
+    cceval_w (N, V, Ins (asgn_sv x e)) O
+             (Nend, Vend, cend) W ->
+    (isNV x) ->
+    (getwt W) = [:: inl x].
+  intros.
+  inversion H; subst; try reflexivity.
+  exfalso. apply (negNVandV x H0 H11).
+Qed.
+
+Lemma extract_write_svv: forall {N Nend: nvmem} {V Vend: vmem}
+                      {e: exp} {x: smallvar} {O: obseq}
+                      {W: the_write_stuff}
+  {cend: command},
+    cceval_w (N, V, Ins (asgn_sv x e)) O
+             (Nend, Vend, cend) W ->
+    (isV x) ->
+    (getwt W) = [:: ].
+  intros.
+  inversion H; subst; try reflexivity.
+  exfalso. apply (negNVandV x H11 H0).
+Qed.

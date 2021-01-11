@@ -361,7 +361,37 @@ Fixpoint get_smallvars (w: warvars) :=
         (subseq ((getwt W) ++ Wstart)  W')
           /\ get_smallvars ((getwt W) ++ Wstart) = (get_smallvars W')
           /\ (R' =  (getrd W) ++ Rstart).
-    Admitted.
+    intros. move: H H0 => Hcceval Hwar.
+    dependent induction Hwar.
+    - (*skip case*) inversion Hcceval; subst. split; try split; try by []. exfalso. by apply H9.
+    - inversion Hcceval; subst. move: (extract_write_svv H13 H0) => Heq.
+      rewrite Heq. split; try split; try by [].
+      inversion H13; subst; pose proof (read_deterministic H (RD H10));
+    subst; split; reflexivity. (*vol case*)
+ -inversion Hcceval; subst. move: (extract_write_svnv H13 H) => Heq.
+    rewrite Heq. split; try split; try by []. inversion H13; subst;
+    pose proof (read_deterministic H0 (RD H10));
+    subst; split; reflexivity. (*CP case*)
+ - inversion Hcceval; subst. move: (extract_write_svnv H15 H0) => Heq.
+    rewrite Heq. inversion H15; subst;
+    move: (read_deterministic H (RD H12)) => Heq1; subst;
+    split; try split; try by [].
+ - inversion Hcceval; subst. move: (extract_write_svnv H14 H2) => Heq.
+    rewrite Heq. inversion H14; subst;
+    move: (read_deterministic H (RD H11)) => Heq1; subst;
+    split; try split; try by [].
+ (*written to case*)
+
+
+ - (*nrd arr case*) inversion H; subst; inversion H14; subst. simpl. rewrite readobs_app_wvs. rewrite catA.
+   pose proof (read_deterministic H2 (RD H16)).
+   pose proof (read_deterministic H0 (RD H15)).
+   subst. split; reflexivity.
+ - inversion H; subst; inversion H15; subst. simpl. rewrite readobs_app_wvs. rewrite catA.
+   pose proof (read_deterministic H3 (RD H17)).
+   pose proof (read_deterministic H0 (RD H16)).
+   subst. split; reflexivity.
+Qed.
 
   Lemma get_sv_works: forall (w1: warvars) (x: smallvar),
     (inl x \in w1) <->
@@ -422,13 +452,8 @@ Qed.
       - move: (agsv_war_bc H H1) => [W2' [H21 H22] ].
         eapply WAR_Seq; try assumption.
         apply H21. by apply IHWARok.
-        move: (agsv_war_h W W2).
-      move: (get_sv_works W x) => [Hsv10 Hsv11].
-      move: (get_sv_works W2 x) => [Hsv20 Hsv21].
-      intros Hc. apply Hsv20 in Hc. rewrite Hsv in Hc.
-        apply (contra Hsv20). rewrite Hsv.
-          by apply (contra Hsv11).
-          intros contra.
+     - eapply WAR_If. apply H. by apply IHWARok1.by apply IHWARok2.
+Qed.
 
 
   Lemma warok_partial:  forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command} {O: obseq} {W: the_write_stuff} {Wstart Rstart: warvars},
