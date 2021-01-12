@@ -137,7 +137,7 @@ Lemma gen_locs_works: forall{a a0: array} {i: 'I_(get_length a0)}
   simpl in i.
   simpl.  intros.
   Check inE.
-  apply (map_f (fun i0 => inr (El (Array s l) i0)))
+  apply (map_f (fun i0 => inr (El (Array n l) i0)))
   .
   by rewrite mem_enum.
 Qed.

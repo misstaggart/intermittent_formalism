@@ -404,7 +404,7 @@ Definition leqvol (q: volatility) :=
   ).
 
 (*inl <= inr*)
-Definition leqwv (w: loc) :=
+Definition leqloc (w: loc) :=
   (fun v: loc =>
      match w, v with
        (inl (SV s1 q1)), (inl (SV s2 q2)) =>
@@ -616,7 +616,15 @@ Canonical loc_choiceType := Eval hnf in ChoiceType loc loc_choiceMixin.*)
 
 Print choiceMixin.
 
+Lemma loctotal: total leqloc.
+  Admitted.
 
+Lemma loctrans: transitive leqloc.
+Admitted.
+
+Lemma asyloc: antisymmetric leqloc. Admitted.
+
+Definition leqlocP := perm_sortP loctotal loctrans asyloc.
 
 (*Definition loc_leq (l1 l2: loc) :=
   match l1, l2 with
@@ -637,9 +645,6 @@ Canonical loc_ordtype := Eval hnf in OrdType loc loc_ordMixin.
 
 
  *)
-Lemma sort_wv {w1 w2: warvars}:
-  w1 =i w2 ->
-  sort w1 =i sort w2.
 
 (*******************************************************************)
 
@@ -677,11 +682,13 @@ Coercion Ins : instruction >-> command.
 Notation mem := (map_t loc_eqtype). (*memory mapping*)
 
 
+Definition loc_sorted := sort leqloc.
+
 Definition valid_nvm (m: mem) (d: warvars) := (forall(x: smallvar), (m (inl x) = error) <-> (inl x) \in d)
                                                                               /\
                         (forall(a: array),
                             (forall(el1: el_loc), (inr el1) \in (generate_locs a) -> m (inr el1) = error)
-                            <-> (not (intersect (generate_locs a) d))).
+                            <-> (not (intersect (generate_locs a) d))) /\ sorted leqloc d.
 
 Inductive nvmem := (*nonvolatile memory*)
   NonVol (m : mem) (D: warvars) (WFnvem: valid_nvm m D)
@@ -698,9 +705,6 @@ Inductive vmem := (*volatile memory*)
  of DINO and WAR, they aren't necessary.
  I won't delete them because having the domain of the checkpoint easily accessible and
  manipulable could be handy in the future*)
-
-Lemma test1 : [::1] =i [::1].
-intros l.
 
 Definition getmap (N: nvmem) :=
   match N with NonVol m _ _ => m end.
@@ -842,9 +846,6 @@ Admitted.
 Canonical wv_eqMixin := EqMixin eqwv.
 Canonical wv_eqtype := Eval hnf in EqType warvars wv_eqMixin.*)
 
-Definition test1 :warvars := [::inl( SV "h" nonvol)].
-Definition test2 :warvars := [::inl(SV "f" nonvol)].
-Compute test1 == test2.
 
 
 Definition isdomain_nvm (N: nvmem) (w: warvars) :=
