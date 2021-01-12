@@ -948,7 +948,7 @@ Inductive prefix: obseq -> obseq -> Prop :=
 | P_Ind: forall (O1 O2 O3: obseq), prefix O1 O2 ->
                               reboot \notin O3 -> checkpoint \notin O3 ->
                                                 prefix O1 (O2 ++ O3).
-Notation "S <= T" := (prefix S T).
+Notation "S <=p T" := (prefix S T) (at level 100).
 (*some sort of spec start here?*)
 
 Inductive prefix_seq: obseq -> obseq -> Prop :=
@@ -959,7 +959,7 @@ Inductive prefix_seq: obseq -> obseq -> Prop :=
     reboot \notin O1 -> checkpoint \notin O1 ->
     reboot \notin O2 -> checkpoint \notin O2 ->
     checkpoint \notin O1' ->
-    O1 <= O2 -> prefix_seq O1' O2 ->
+    (O1 <=p O2) -> prefix_seq O1' O2 ->
     prefix_seq (O1 ++ [:: reboot] ++ O1') O2.
 
 Notation "S <=m T" := (prefix_seq S T) (at level 100).

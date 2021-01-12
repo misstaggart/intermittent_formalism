@@ -20,10 +20,9 @@ Definition end_com c := c = Ins skip \/ exists(crem: command)(w: warvars), c= (i
 (*Definition nvm_eq N1 N2 := subseq (getdomain N1) (getdomain N2) /\
                            subseq (getdomain N2) (getdomain N1).
 
-Lemma hacky_nvm_eq N1 N2 : nvm_eq N1 N2 <-> (getdomain N1) = (getdomain N2).
+Lemma nvmem_eqy_nvm_eq N1 N2 : nvm_eq N1 N2 <-> (getdomain N1) = (getdomain N2).
 Admitted.*)
 
-Definition nvmem_eq N1 N2 := (getmap N1) =1 (getmap N2).
 
 
 (*why do you include the volatile memory
@@ -199,7 +198,9 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
       by rewrite in_nil.
       move => l0 contra. exfalso. by apply contra.
    - inversion H0; subst.
-     + exists Nc. repeat split. apply CheckPoint. move => l contra.
+     + exists Nc. repeat split. apply CheckPoint.
+       assumption.
+       move => l contra.
        rewrite in_nil in contra. by exfalso.
        move/ negP => contra. exfalso. by apply contra.
      + exists Nc. repeat split. apply Skip. move => l contra.
@@ -395,7 +396,7 @@ Lemma war_works_loc_c {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
            unfold intersect in H15. exfalso. apply H15.
             exists l.
            split. subst.
-           eapply gen_locs_works. apply H1.
+           eapply gen_locs_works. apply H2.
            repeat rewrite mem_cat.
            repeat (apply/ orP; right).
            apply /negPn : contra.
@@ -410,7 +411,7 @@ Lemma war_works_loc_c {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
        apply H15.
        remember (inr (El a0 index)) as l. exists l.
            split. subst.
-           eapply gen_locs_works. apply H1.
+           eapply gen_locs_works. apply H2.
        rewrite catA.
        rewrite <- readobs_app_wvs.
        rewrite mem_cat.
@@ -418,7 +419,7 @@ Lemma war_works_loc_c {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
            + (*CP array*)
          destruct element.
              left. 
-         apply (in_subseq H16 (gen_locs_works H1)).
+         apply (in_subseq H16 (gen_locs_works H2)).
 - (*seq case*)
            inversion Hwarok; subst. exfalso. by apply (H w).
            eapply IHHcceval1; try apply Hcceval1;
@@ -658,6 +659,7 @@ Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cen
     l \in (getfstwt Wmid) -> l \in (getfstwt W). Admitted.
                   
 
+Check prefix_seq. 
   Lemma ctrace_det_obs_skip {N V c Nmid Vmid cmid
                           Nend Vend Omid Wmid Oend Wend}:
     trace_cs (N, V, c)
@@ -666,7 +668,7 @@ Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cen
  trace_cs (N, V, c)
  (Nend, Vend, Ins skip) Oend Wend ->
     checkpoint \notin Oend ->
- Omid <= Oend. Admitted. (*induct over 1, then 2 nested*)
+ Omid <=p Oend. Admitted. (*induct over 1, then 2 nested*)
 
   Lemma ctrace_det_obs_CP {N V c Nmid Vmid cmid
                           Nend Vend Omid Wmid Oend Wend w crem}:
@@ -676,7 +678,7 @@ Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cen
  trace_cs (N, V, c)
  (Nend, Vend, (incheckpoint w);; crem) Oend Wend ->
     checkpoint \notin Oend ->
- Omid <= Oend. Admitted. (*induct over 1, then 2 nested*)
+ Omid <=p Oend. Admitted. (*induct over 1, then 2 nested*)
 
 
   (*need the CPs so i know which command is bigger
@@ -690,7 +692,7 @@ Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cen
  (Nend, Vend, cend) Oend Wend ->
  checkpoint \notin Oend ->
  end_com cend ->
- Omid <= Oend. Admitted. 
+ Omid <=p Oend. Admitted. 
 
   Lemma append_c {N1 V1 c1 N2 V2 crem O1 W1 N3 V3 c3 O2 W2}
         :
@@ -755,7 +757,8 @@ Admitted.
   intros. simpl. by rewrite H.
   Qed.*)
 
-   Lemma sub_restrict: forall(N1: nvmem) (w: warvars), subset_nvm (N1 |! w) N1.
+   Lemma sub_restrict: forall(N1: nvmem) (w: warvars) (Hf: wf_dom w), subset_nvm
+                                                                   (restrict N1 w Hf) N1.
      Admitted.
 
 Lemma all_diff_in_fw_sym {N1 V1 c1 Nc1}: 
@@ -782,7 +785,7 @@ Lemma adif_works {N1 N2 V c Nend Vend O1 W1 cend}:
     move: (two H0 H) => [Nend1 [Hcceval Hl2] ].
     suffices: Nend = Nend1.
     intros. subst. by apply CsTrace_Single.
-    apply hack. unfold nvmem_eq. intros l.
+    apply nvmem_eq.  intros l.
     destruct (l \in getwt(W)) eqn: Hbool.
        - apply Hl2. apply Hbool.
        -
@@ -1010,8 +1013,9 @@ by repeat rewrite - catA in ass3.
                   ).
     - move => [Oc1 [Oendc1 [Nc1 [Wc1 [Wendc1 [ Nc1end [ Vc1end
             [ ccend [H11 [H12 [Ho1 [H13 [H14 H15] ] ] ] ] ] ] ] ] ] ] ] ]. subst.
-      assert (WARok (getdomain (Nc1 |! w)) [::] [::] crem) as Hwarok2.
-      destruct Nc1 as [mc1 dc1]. rewrite/getdomain. simpl.
+      assert (WARok (getdomain
+                       (restrict Nc1 w Hw)) [::] [::] crem) as Hwarok2.
+      destruct Nc1 as [mc1 dc1 Hnc1]. rewrite/getdomain. simpl.
       apply (warok_cp H1 H11). 
         remember ((incheckpoint w);;crem) as ccp.
       move: (trace_converge H12 Hend) => Heq. subst.
@@ -1058,14 +1062,15 @@ by repeat rewrite - catA in ass3.
        subst.
        move: (exist_endcom Tendi H4) => [Oendc0 [Wendc0 [Nc1end0 [Vc1end
                                                            [cend0 [Tend [Hendcom Hoendc] ] ] ] ] ] ].
-assert (WARok (getdomain (Nc1 |! w)) [::] [::] crem) as Hwarok2.
-      destruct Nc1 as [mc1 dc1]. rewrite/getdomain. simpl.
+      assert (WARok (getdomain
+                       (restrict Nc1 w Hw)) [::] [::] crem) as Hwarok2.
+      destruct Nc1 as [mc1 dc1 Hnc1]. rewrite/getdomain. simpl.
       subst.
       move: (same_comi H1 H2 H0_ H) => [Nend1 [Oc1 [Wc1 [Tc1 Hoc1] ] ] ].
       apply (warok_cp H1 Tc1).
       Check same_comi. subst.
       apply trace_converge in Hdiff. subst.
-      move: (same_comi Hwarok2 (sub_restrict Nc1 w) Tend Hoendc).
+      move: (same_comi Hwarok2 (sub_restrict Nc1 w Hw) Tend Hoendc).
       =>
       [Nc1end [Oendc [Wendc [Tendc Hcpoendc] ] ] ].                                                            
        exists Oc Oendc Nc1 Wc Wendc Nc1end. exists Vc1end cend0. subst.
@@ -1093,8 +1098,8 @@ Theorem One {N0 V c N01 V01 c01 N Oi Nendi Vend Wi
       trace_i1 ((N0, V, c), N, V, c) ((N01, V01, c01), Nendi, Vend, Ins skip) Oi Wi ->
 subset_nvm N0 N -> 
 WARok (getdomain N0) [::] [::] c ->
-(exists(Nendc: nvmem) (Oc: obseq) (Wc: the_write_stuff) , trace_cs (N, V, c) (Nendc, Vend, Ins skip) Oc Wc /\
-                                                     (Oi <=f Oc) /\ (nvmem_eq Nendi Nendc)).
+(exists (Oc: obseq) (Wc: the_write_stuff) , trace_cs (N, V, c) (Nendi, Vend, Ins skip) Oc Wc /\
+                                                     (Oi <=f Oc)).
   intros.
 assert (end_com skip) as Hskip. by left.
 suffices: 
@@ -1109,7 +1114,7 @@ move => [Oc
                 [Wendc
                    [Tc
                       [Hdiff Tend] ] ] ] ] ] ].
-exists Nendc Oc Wc. repeat skip; try assumption.
+exists Oc Wc. repeat skip; try assumption.
 suffices: all_diff_in_fw N V c N.
 move => Hdiff.
 Check three.
