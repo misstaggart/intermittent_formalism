@@ -203,8 +203,8 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
        apply/negP / negPn: H3.
        apply (in_subseq Hsubseq contra).
        rewrite append_write_empty_l in Hwrite. by rewrite - Hwrite.
-       intros contra.
-       move: (empty_trace_cs1 T contra) => [Eq1 Eq2].
+       intros contra. subst.
+       move: (empty_trace_cs1 T) => [Eq1 Eq2].
        inversion Eq1. subst. inversion H2.
        inversion H6.
        move : H6 => [crem [w contra] ]. inversion contra.
@@ -248,8 +248,8 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
              by rewrite Heq1 Heq2.
              clear Hneq. intros Hneq. apply/negP. intros contra.
              apply Hneq. by apply Hdone.
-       intros contra.
-       move: (empty_trace_cs1 T contra) => [Eq1 Eq2].
+       intros contra. subst.
+       move: (empty_trace_cs1 T) => [Eq1 Eq2].
        inversion Eq1. subst. inversion H1.
        inversion H5.
        move : H5 => [crem [w contra] ]. inversion contra.
@@ -274,7 +274,7 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
          intros l Hneq. apply H5 in Hneq. subst. simpl in Hneq.
          simpl. rewrite mem_filter in Hneq.
          by move/ andP : Hneq => [one two].
-       intros contra. move: (empty_trace_cs1 T contra) => [Eq1 Eq2].
+       intros contra. subst. move: (empty_trace_cs1 T) => [Eq1 Eq2].
        inversion Eq1. subst. inversion H2.
        inversion H6.
        move : H6 => [crem [w contra] ]. inversion contra.
@@ -297,7 +297,7 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
          intros l Hneq. apply H5 in Hneq. subst. simpl in Hneq.
          simpl. rewrite mem_filter in Hneq.
          by move/ andP : Hneq => [one two].
-       intros contra. move: (empty_trace_cs1 T contra) => [Eq1 Eq2].
+       intros contra. subst. move: (empty_trace_cs1 T) => [Eq1 Eq2].
        inversion Eq1. subst. inversion H2.
        inversion H6.
        move : H6 => [crem [w contra] ]. inversion contra.

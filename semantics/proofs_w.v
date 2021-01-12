@@ -33,7 +33,8 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
       apply (H3 z) in contra.
       destruct (O0 == [::]) eqn: Hbool.
       - move/eqP : Hbool => Heq. subst.
-        move: (empty_trace_cs1 T).
+        move: (empty_trace_cs1 T) => [ [one two] three four].
+        subst.
 Admitted.
 
 
