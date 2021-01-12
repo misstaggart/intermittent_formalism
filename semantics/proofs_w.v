@@ -145,12 +145,32 @@ Lemma trace_converge_minus1w {N V l N' Nmid Vmid Nmid'
 Admitted.
 
 (*wellformedness condition about all the mems,
-the maps are not error <-> in the domain
+not in domain -> error (sv)
+
+error smallvar -> not in domain
+
+error (whole array) <-> not in domain (arr)
  and sorting for the domain
 
  should suffice for
  map =1 map' ->
- N = N' *)
+ N = N'
+
+for smallvar iits easy
+
+say el \in N
+exists el1 where M is not error ( 2)
+M' el1 not error either
+el \in N'
+done
+
+
+say l \in N but l \notin N'
+map' is error
+if l is smallvar, you're done
+if l is array
+
+ *)
 
 
  Lemma same_com_hc {N N1 V c Nend2 V1 c1 O W}:

@@ -330,7 +330,6 @@ Definition equal_index (e: el_loc) (a2: array) (v: value) :=
   | _ => False end
   end.
 
-
 (*'I_5 the type of all naturals < 5*)
 
 Check (enum _).
@@ -637,10 +636,16 @@ Coercion Ins : instruction >-> command.
 (*memory locations defined above warvars*)
 Notation mem := (map_t loc_eqtype). (*memory mapping*)
 
-Inductive nvmem := (*nonvolatile memory*)
-  NonVol (m : mem) (D: warvars). (*extra argument to keep track of checkpointed warvars because
-                                  it might be nice to have for when we do checkpoint proofs*)
 
+Definition valid_nvm (m: mem) (d: warvars) := (forall(x: smallvar), (m (inl x) = error) <-> (inl x) \in d)
+                                                                              /\
+                        (forall(a: array),
+                            (forall(el1: el_loc), (inr el1) \in (generate_locs a) -> m (inr el1) = error)
+                            <-> (not (intersect (generate_locs a) d))).
+
+Inductive nvmem := (*nonvolatile memory*)
+  NonVol (m : mem) (D: warvars) (WFnvem: valid_nvm m D)
+.
 Inductive vmem := (*volatile memory*)
   Vol (m : mem).
 
@@ -655,10 +660,10 @@ Inductive vmem := (*volatile memory*)
  manipulable could be handy in the future*)
 
 Definition getmap (N: nvmem) :=
-  match N with NonVol m _ => m end.
+  match N with NonVol m _ _ => m end.
 
 Definition getdomain (N: nvmem) :=
-  match N with NonVol _ D => D end.
+  match N with NonVol _ D _ => D end.
 
 Definition getvalue (N: nvmem) (i: loc) :=
   (getmap N) i.
@@ -672,32 +677,57 @@ Definition getvalue (N: nvmem) (i: loc) :=
    actually dont do this cuz domain weirdness in updatemaps makes it so that
    you'd have a nested if in update_arr which you'll need to use
    in all the eval proofs*)
+  Lemma updatemap_sv {m: mem} {d: warvars} {i: smallvar} {v: value}:
+    valid_nvm m d ->
+    valid_nvm (updatemap m (inl i) v) ((inl i):: d). Admitted.
+
+  Lemma updatemap_arr {m: mem} {d: warvars} {i: el_loc} {a: array} {v: value}
+    :
+     equal_index i a v ->
+    valid_nvm m d ->
+    valid_nvm (updatemap m (inr i) v) ((generate_locs a) ++ d). Admitted.
+
 Definition updateNV_sv (N: nvmem) (i: smallvar) (v: value) :=
-  match N with NonVol m D =>
-               NonVol (updatemap m (inl i) v) ((inl i):: D)  end.
+  match N with NonVol m D H =>
+               NonVol (updatemap m (inl i) v) ((inl i):: D) (updatemap_sv H) end.
 
 
 (*this one should only be called within in eval*)
 (*adds ENTIRE array to domain for checkpoint utility*)
-Definition updateNV_arr (N: nvmem) (i: el_loc) (a: array) (v: value) :=
-  match N with NonVol m D =>
-               NonVol (updatemap m (inr i) v) ((generate_locs a) ++ D)  end.
+Definition updateNV_arr (N: nvmem) (i: el_loc) (a: array) (v: value)
+(He: equal_index i a v)
+  :=
+  match N with NonVol m D H =>
+               NonVol (updatemap m (inr i) v) ((generate_locs a) ++ D)
+                      (updatemap_arr He H)
+  end.
 
 (*used to update NV memory with checkpoint*)
 (*checks N first, then N'*)
-Definition updatemaps (N: nvmem) (N': nvmem): nvmem :=
+  Lemma updatemaps_wf {m m': mem} {d d': warvars}
+    :
+    valid_nvm m d ->
+    valid_nvm m' d' ->
+    valid_nvm (fun j =>
+      if (j \in d)
+          then (m j)
+          else (m' j)) (d ++ d'). Admitted.
+
+  Definition updatemaps (N: nvmem) (N': nvmem): nvmem :=
   match N, N' with
-    NonVol m D, NonVol m' D' => NonVol
+    NonVol m D H, NonVol m' D' H' => NonVol
    (fun j =>
       if (j \in D)
           then (m j)
           else (m' j))
-  (D ++ D') (*inclusion of duplicates*)
+  (D ++ D') (updatemaps_wf H H') (*inclusion of duplicates...can't allow this*)
   end.
 Notation "m1 'U!' m2" := (updatemaps m1 m2) (at level 100).
 (*start here should really change the above ordering to be more intuitive*)
 
-Notation emptyNV := (NonVol (emptymap loc_eqtype) nil).
+Lemma emptymap_wf : valid_nvm (emptymap loc_eqtype) nil. Admitted.
+
+Notation emptyNV := (NonVol (emptymap loc_eqtype) nil emptymap_wf).
 Definition reset (V: vmem) := Vol (emptymap loc_eqtype).
 
 (*restricts memory map m to domain w*)
@@ -723,12 +753,19 @@ Definition remove (L1 L2 : seq loc) :=
 (*Definition interseqt (L1 L2 : seq loc) :=
   filter (fun x =>  (x \in L1)) L2.*)
 
-Definition restrict (N: nvmem) (w: warvars): nvmem :=
-  match N with NonVol m D => NonVol
-    (fun input => if (input \in w) then m input else error) w end.
+Definition wf_dom (w: warvars) := forall(el: el_loc) (a: array) (v: value),
+    equal_index el a v ->
+    (inr el) \in w -> subseq (generate_locs a) w. 
 
-Notation "N '|!' w" := (restrict N w) 
-  (at level 40, left associativity).
+Lemma restrict_wf {m: mem} {d: warvars} {w: warvars}:
+  valid_nvm m d ->
+  wf_dom w ->
+valid_nvm (fun input => if (input \in w) then m input else error) w.  Admitted.
+
+Definition restrict (N: nvmem) (w: warvars) (Hw: wf_dom w) :=
+  match N with NonVol m D H => NonVol
+    (fun input => if (input \in w) then m input else error) w (restrict_wf H Hw) end.
+
 
 (*prop determining if every location in array a is in the domain of m*)
 Definition indomain_nvm (N: nvmem) (w: loc) :=
@@ -1060,18 +1097,17 @@ CheckPoint: forall(N: nvmem)
                {e: exp}
                {r: readobs}
                {v: value}
-               {element: el_loc},
+               {element: el_loc}
+  (Hindex: equal_index element a v),
     eeval N V ei ri vi ->
     eeval N V e r v ->
     (*start here its kind of annoying that ri comies in first but down there
      its appended second*)
-    equal_index element a vi -> (*extra premise to check that inr element
-                                        is actually a[vindex] *)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
     cceval_w (N, V, Ins (asgn_arr a ei e))
            ((RdObs (cat ri r)) :: nil)
-           ((updateNV_arr N element a v), V, Ins skip)
+           ((updateNV_arr N element a v Hindex), V, Ins skip)
            ([:: inr element], (readobs_wvs (cat r ri)), (remove (readobs_wvs (cat r ri)) [:: inr element]))
 (*valuability and inboundedness of vindex are checked in sameindex*)
 | Skip: forall(N: nvmem)
@@ -1113,7 +1149,7 @@ Definition append_write (W1 W2: the_write_stuff) :=
 
 (**********intermittent execution semantics*************************)
 (*evaluation relation for commands*)
-(*accumlates write data as continuous relation does*)
+(*accumlates write data as continuous relation does
 Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
   CP_PowerFail: forall(k: context) (N: nvmem) (V: vmem) (c: command),
     c <> (Ins skip) -> (*can't have a power fail if you've terminated*)
@@ -1201,7 +1237,7 @@ Definition el_arrayexp_eq (e: el) (a: array) (eindex: exp) (N: nvmem) (V: vmem) 
   exists(r: readobs) (vindex: value), eeval N V eindex r vindex /\
                                  (eq_value (getindexel e) vindex).*)
 (******)
-
+*)
 (*ask arthur how to check in*)
 Close Scope type_scope.
 
