@@ -1069,11 +1069,10 @@ by repeat rewrite - catA in ass3.
        subst.
        move: (trace_converge Hdiff) => Hsamemem. subst.
        move/ empty_trace_cs : Tempty => [Heq
-                                          [one two] ].
+                                          blah ].
        subst.
        move: (exist_endcom Tendi H4) => [Oendc0 [Wendc0 [Nc1end0 [Vc1end
                                                            [cend0 [Tend [Hendcom Hoendc] ] ] ] ] ] ].
-       Check same_comi.
 assert (WARok (getdomain (Nc1 |! w)) [::] [::] crem) as Hwarok2.
       destruct Nc1 as [mc1 dc1]. rewrite/getdomain. simpl.
       subst.
