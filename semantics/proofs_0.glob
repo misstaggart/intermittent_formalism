@@ -1,4 +1,4 @@
-DIGEST 2ccf852b2bcb7fb4868f186ac38e7e42
+DIGEST 09a27ba6979eaec060674a1a8532386f
 FSemantics.proofs_0
 R70:78 Coq.Bool.Bool <> <> lib
 R80:87 Coq.Init.Nat <> <> lib
@@ -1706,3 +1706,30 @@ R20714:20714 Semantics.proofs_0 <> e:259 var
 R20712:20712 Semantics.proofs_0 <> x:260 var
 R20862:20870 Semantics.proofs_0 <> negNVandV thm
 R20862:20870 Semantics.proofs_0 <> negNVandV thm
+prf 20895:20904 <> fw_nin_r_c
+R20921:20927 Semantics.semantics <> context syndef
+binder 20914:20915 <> C1:264
+binder 20917:20918 <> C2:265
+R20934:20938 Semantics.semantics <> obseq syndef
+binder 20931:20931 <> O:266
+R20945:20959 Semantics.semantics <> the_write_stuff syndef
+binder 20942:20942 <> W:267
+R20966:20968 Semantics.semantics <> loc def
+binder 20963:20963 <> l:268
+R21039:21046 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R21062:21069 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R21071:21080 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
+R21091:21091 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
+R21070:21070 Semantics.proofs_0 <> l:268 var
+R21081:21088 Semantics.semantics <> getfstwt def
+R21090:21090 Semantics.proofs_0 <> W:267 var
+R21048:21053 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R21061:21061 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R21047:21047 Semantics.proofs_0 <> l:268 var
+R21054:21058 Semantics.semantics <> getrd def
+R21060:21060 Semantics.proofs_0 <> W:267 var
+R21021:21028 Semantics.semantics <> cceval_w ind
+R21038:21038 Semantics.proofs_0 <> W:267 var
+R21035:21036 Semantics.proofs_0 <> C2:265 var
+R21033:21033 Semantics.proofs_0 <> O:266 var
+R21030:21031 Semantics.proofs_0 <> C1:264 var

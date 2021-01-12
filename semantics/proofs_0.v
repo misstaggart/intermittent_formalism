@@ -587,3 +587,9 @@ Lemma extract_write_svv: forall {N Nend: nvmem} {V Vend: vmem}
   inversion H; subst; try reflexivity.
   exfalso. apply (negNVandV x H11 H0).
 Qed.
+
+Lemma fw_nin_r_c: forall{C1 C2: context} {O: obseq} {W: the_write_stuff} (l: loc),
+    (* pose proof (cceval_to_rd_sv H H5). *)
+    cceval_w C1 O C2 W ->
+    l \in (getrd W) ->
+    l \notin  (getfstwt W). Admitted.

@@ -28,15 +28,39 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
                                 thing long*)
                    (getmap N2) z = (getmap N) z). (*since z isnt in FW of trace from Ins l to skip*)
       intros. inversion H; subst. apply/ eqP /negPn /negP.
+        rename H1 into Hread.
       intros contra.
       move/ eqP: contra => contra. apply not_eq_sym in contra.
       apply (H3 z) in contra.
       destruct (O0 == [::]) eqn: Hbool.
       - move/eqP : Hbool => Heq. subst.
         move: (empty_trace_cs1 T) => [ [one two] three four].
+        subst. discriminate contra.
+      - move/ negbT /eqP : Hbool => Hneq.
+        move: (single_step_alls_rev T Hneq) =>
+        [Cmid [W1 [Wrest [O1 [Hcceval [Hsubseq Hw] ] ] ] ] ].
         subst.
-Admitted.
+        simpl in contra.
+        inversion Hcceval; subst.
+        rewrite sub1seq in Hsubseq. move/negP : H2. by apply.
+        inversion H0; subst.
+        move: (cceval_agr H0 H12) => Heqrd.
+        rewrite Heqrd in Hread.
+        move: (fw_nin_r_c z H12 Hread) => Hfw.
+        rewrite mem_cat in contra.
+        move/orP : contra => [contra1 | contra2].
+        rewrite mem_filter in contra1.
+        move/ andP : contra1  => [one two].
+        move/negP : one. by apply.
+        move/ mem_filter: contra.
+        rewrite Hread.
+        unfold append_write in H3.
+        simpl in H3. 
+    Admitted.
 
+        destruct W as [ [w r ] fw].
+        destruct W1 as [ [w1 r1 ] fw1].
+        destruct Wrest as [ [wrem rrem ] fwrem].
 
  Lemma agreeonread_w: forall{N Nend N2: nvmem} {V Vend: vmem}
                         {c c1: command}
