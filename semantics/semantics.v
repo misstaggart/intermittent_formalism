@@ -681,11 +681,13 @@ Definition getvalue (N: nvmem) (i: loc) :=
     valid_nvm m d ->
     valid_nvm (updatemap m (inl i) v) ((inl i):: d). Admitted.
 
-  Lemma updatemap_arr {m: mem} {d: warvars} {i: el_loc} {a: array} {v: value}
+Definition get_array (i: el_loc) :=
+match i with El a _ => a end.
+
+  Lemma updatemap_arr {m: mem} {d: warvars} {i: el_loc} {v: value} 
     :
-     equal_index i a v ->
     valid_nvm m d ->
-    valid_nvm (updatemap m (inr i) v) ((generate_locs a) ++ d). Admitted.
+    valid_nvm (updatemap m (inr i) v) ((generate_locs (get_array i)) ++ d). Admitted.
 
 Definition updateNV_sv (N: nvmem) (i: smallvar) (v: value) :=
   match N with NonVol m D H =>
@@ -695,11 +697,10 @@ Definition updateNV_sv (N: nvmem) (i: smallvar) (v: value) :=
 (*this one should only be called within in eval*)
 (*adds ENTIRE array to domain for checkpoint utility*)
 Definition updateNV_arr (N: nvmem) (i: el_loc) (a: array) (v: value)
-(He: equal_index i a v)
   :=
-  match N with NonVol m D H =>
-               NonVol (updatemap m (inr i) v) ((generate_locs a) ++ D)
-                      (updatemap_arr He H)
+    match N with NonVol m D H =>
+               NonVol (updatemap m (inr i) v) ((generate_locs (get_array i)) ++ D)
+                      (updatemap_arr H)
   end.
 
 (*used to update NV memory with checkpoint*)
@@ -1069,6 +1070,7 @@ CheckPoint: forall(N: nvmem)
                (V: vmem)
                (c: command)
                (w: warvars),
+    wf_dom w ->
     cceval_w (N, V, ((incheckpoint w);; c))
              (checkpoint:: nil)
              (N, V, c)
@@ -1105,9 +1107,10 @@ CheckPoint: forall(N: nvmem)
      its appended second*)
 (*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
     (isvaluable v) -> (*extra premise to check if v is valuable*)
+  (equal_index element a v) ->
     cceval_w (N, V, Ins (asgn_arr a ei e))
            ((RdObs (cat ri r)) :: nil)
-           ((updateNV_arr N element a v Hindex), V, Ins skip)
+           ((updateNV_arr N element a v), V, Ins skip)
            ([:: inr element], (readobs_wvs (cat r ri)), (remove (readobs_wvs (cat r ri)) [:: inr element]))
 (*valuability and inboundedness of vindex are checked in sameindex*)
 | Skip: forall(N: nvmem)

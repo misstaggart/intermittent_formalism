@@ -213,9 +213,10 @@ Proof. intros C1 C2 C3 O1 O2 W1 W2 cc1 cc2. destruct C1 as [blah c]. destruct bl
               inversion onee; inversion two);
          try( 
  destruct (determinism_e H3 H); destruct (determinism_e H4 H0); subst;
-   pose proof (equal_index_works H1 H5));
+   pose proof (equal_index_works Hindex Hindex0));
          try (subst;
               split; [reflexivity | (split; reflexivity)]).
+         exfalso. by apply (H0 w).
 Qed.
 
 
@@ -404,10 +405,10 @@ Lemma stupid: forall (c: command) (l: instruction),
 
     Lemma dom_gets_bigger_rb: forall(N0 N1: nvmem),
     subseq (getdomain N1) (getdomain (N0 U! N1)).
-  move => [m0 d0] [m1 d1]. simpl. apply suffix_subseq.
+  move => [m0 d0 H0] [m1 d1 H1]. simpl. apply suffix_subseq.
   Qed.
 
-Lemma dom_gets_bigger: forall{N1 N1': nvmem} {V V': vmem} {k0 k1: context}
+(*Lemma dom_gets_bigger: forall{N1 N1': nvmem} {V V': vmem} {k0 k1: context}
                         {c c': command} {O: obseq},
       multi_step_i (k0, N1, V, c) (k1, N1', V', c') O ->
    subseq (getdomain N1) (getdomain N1').
@@ -423,7 +424,7 @@ Lemma dom_gets_bigger: forall{N1 N1': nvmem} {V V': vmem} {k0 k1: context}
   eapply IHiceval_w; (try reflexivity).
   destruct Cmid as [ [ [ Kmid Nmid ] Vmid ] cmid].
   eapply subseq_trans; [eapply IHT1 | eapply IHT2]; try reflexivity.
-Qed.
+Qed.*)
 
 Lemma updateone_sv: forall{N: nvmem} {x: smallvar} {v: value}
              {l: loc},
@@ -508,7 +509,7 @@ Lemma update_onec {N11 N12 V11 V12 N21 N22 V21 V22
     (getmap N12) l <> (getmap N22) l ->
     l \in (getwt W). Admitted.
 (*start here replace this with
- iceval_cceval1*)
+ iceval_cceval1
 Lemma iceval_cceval: forall{k: context} {N Nend1 Nend2 : nvmem} {V Vend1 Vend2: vmem}
                       {c cend1 cend2 : command} {O1 O2: obseq} {W1 W2: the_write_stuff},
     iceval_w (k, N, V, c) O1 (k, Nend1, Vend1, cend1) W1 ->
@@ -636,4 +637,4 @@ Lemma fw_nin_r_c: forall{C1 C2: context} {O: obseq} {W: the_write_stuff} (l: loc
     (* pose proof (cceval_to_rd_sv H H5). *)
     cceval_w C1 O C2 W ->
     l \in (getrd W) ->
-    l \notin  (getfstwt W). Admitted.
+    l \notin  (getfstwt W). Admitted.*)

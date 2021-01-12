@@ -206,7 +206,7 @@ Lemma singletc_cceval {N V c N1 V1 c1 O W} :
 Admitted.
 (*intermittent traces*)
  (*the same as trace_c bar types as differences between
-  intermittent and continuous execution have been implemented in evals*)
+  intermittent and continuous execution have been implemented in evals
 Inductive trace_i : iconf -> iconf -> obseq -> the_write_stuff -> Prop :=
 iTrace_Empty: forall{C: iconf},
                  trace_i C C [::] ([::], [::], [::])
@@ -234,7 +234,7 @@ isTrace_Empty: forall{C: iconf},
     iceval_w C1 O1 Cmid W1 -> (*steps first section*)
     trace_is Cmid C2 O2 W2 -> (*steps rest of program*)
     O2 <> [::]  ->
-    trace_is C1 C2 (O1 ++ O2) (append_write W1 W2).
+    trace_is C1 C2 (O1 ++ O2) (append_write W1 W2).*)
 
 Inductive trace_i1: iconf -> iconf -> obseq -> the_write_stuff -> Prop :=
   iTrace_Cont: forall(N0: nvmem) (V0: vmem) (c0: command)
@@ -257,12 +257,12 @@ Inductive trace_i1: iconf -> iconf -> obseq -> the_write_stuff -> Prop :=
  | iTrace_CP: forall{Nc0 N0 Nmid Nc1 Nend: nvmem} {Vc0 V0 Vmid Vc1 Vend: vmem}
                          {cc0 c0 crem cc1 cend: command}
                          {O1 O2: obseq} {W1 W2: the_write_stuff}
-      {w: warvars},
+      {w: warvars} (Hw: wf_dom w),
       trace_i1 ((Nc0, Vc0, cc0), N0, V0, c0) ((Nc0, Vc0, cc0), Nmid, Vmid,
                                                                (incheckpoint w);;crem) O1 W1 (*1st
                                                                                                checkpointed section*)
                         -> checkpoint \notin O1
-                        -> trace_i1 (((Nmid |! w), Vmid, crem), Nmid, Vmid, crem)
+                        -> trace_i1 (((restrict Nmid w Hw), Vmid, crem), Nmid, Vmid, crem)
                                    ((Nc1, Vc1, cc1), Nend, Vend, cend) O2 W2
                         -> trace_i1 ((Nc0, Vc0, cc0), N0, V0, c0)
                                    ((Nc1, Vc1, cc1), Nend, Vend, cend)
@@ -273,9 +273,9 @@ Inductive trace_i1: iconf -> iconf -> obseq -> the_write_stuff -> Prop :=
 (*cant define it in terms of continuous (actually you can if you
 prove it equivalent to other def)
  *)
-Theorem trace_convert: forall{C1 C2: iconf} {O: obseq} {W: the_write_stuff},
+(*Theorem trace_convert: forall{C1 C2: iconf} {O: obseq} {W: the_write_stuff},
     trace_i C1 C2 O W <-> trace_i1 C1 C2 O W.
-Admitted.
+Admitted.*)
 
 
 
@@ -286,7 +286,7 @@ Open Scope nat_scope.
 Definition crbs (O: obseq) :=
   count_mem reboot O.
 
-Definition count_reboots {C1 C2: iconf} {O: obseq} {W: the_write_stuff}
+(*Definition count_reboots {C1 C2: iconf} {O: obseq} {W: the_write_stuff}
            (T: trace_i C1 C2 O W) :=
   crbs O.
 
@@ -312,14 +312,14 @@ Proof. intros.
          apply: leq_trans Hy H0.
          Qed.
 
-Close Scope nat_scope.
+Close Scope nat_scope.*)
 
 Definition multi_step_c (C1 C2: context) (O: obseq) :=
     exists W: the_write_stuff, trace_c C1 C2 O W.
           
 
-Definition multi_step_i (C1 C2: iconf) (O: obseq) :=
-    exists W: the_write_stuff, trace_i C1 C2 O W.
+(*Definition multi_step_i (C1 C2: iconf) (O: obseq) :=
+    exists W: the_write_stuff, trace_i C1 C2 O W.*)
 (*more trace helpers*)
 
 Definition Wt {C1 C2: context} {O: obseq} {W: the_write_stuff}
