@@ -27,7 +27,15 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
             ( forall(z: loc), z \in (getrd W) -> (*z was read immediately cuz trace is only 1
                                 thing long*)
                    (getmap N2) z = (getmap N) z). (*since z isnt in FW of trace from Ins l to skip*)
-    Admitted.
+      intros. inversion H; subst. apply/ eqP /negPn /negP.
+      intros contra.
+      move/ eqP: contra => contra. apply not_eq_sym in contra.
+      apply (H3 z) in contra.
+      destruct (O0 == [::]) eqn: Hbool.
+      - move/eqP : Hbool => Heq. subst.
+        move: (empty_trace_cs1 T).
+Admitted.
+
 
  Lemma agreeonread_w: forall{N Nend N2: nvmem} {V Vend: vmem}
                         {c c1: command}
@@ -460,9 +468,12 @@ Qed.
           by apply/negPn. by apply sv_add_sv.
       - exists(generate_locs a ++ W2). split.
         eapply WAR_NoRd_Arr. apply H1. apply H2. assumption.
-        by apply sv_add_arr.
+        apply sv_add_arr.
+        rewrite (sv_add_arr W1 W2 a); try by [].
       -exists(generate_locs a ++ W2). split.
-       eapply WAR_Checkpointed_Arr; try apply H0; try apply H1; try assumption. by apply sv_add_arr.
+       eapply WAR_Checkpointed_Arr; try apply H0; try apply H1; try assumption. 
+        apply sv_add_arr.
+        rewrite (sv_add_arr W1 W2 a); try by [].
 Qed.
 
     Lemma agsv_war {w W1 W2 R c}:
@@ -475,7 +486,7 @@ Qed.
       - move: (agsv_war_bc H H1) => [W2' [H21 H22] ].
         eapply WAR_Seq; try assumption.
         apply H21. by apply IHWARok.
-     - eapply WAR_If. apply H. by apply IHWARok1.by apply IHWARok2.
+     - eapply WAR_If. apply H. by apply IHWARok1. by apply IHWARok2.
 Qed.
 
 

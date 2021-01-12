@@ -141,8 +141,8 @@ Lemma empty_trace_sc:
   Admitted.
 
 Lemma empty_trace_cs:
-  forall{N1 N2: nvmem} {V1 V2: vmem} {c c1: command} {O: obseq} {W: the_write_stuff},
-    trace_cs (N1, V1, c) (N2, V2, c1) O W -> c = c1 /\ O = [::] /\ N1 = N2 /\ V1 = V2 /\ W = emptysets.
+  forall{N1 N2: nvmem} {V1 V2: vmem} {c: command} {O: obseq} {W: the_write_stuff},
+    trace_cs (N1, V1, c) (N2, V2, c) O W -> O = [::] /\ N1 = N2 /\ V1 = V2 /\ W = emptysets.
   Admitted.
 
 Lemma empty_trace_cs1: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},

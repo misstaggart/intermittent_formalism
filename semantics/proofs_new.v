@@ -693,7 +693,7 @@ Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cen
  (Nend, Vend, cend) Oend Wend ->
  checkpoint \notin Oend ->
  end_com cend ->
- Omid <= Oend. Admitted. (*induct over 1, then 2 nested*)
+ Omid <= Oend. Admitted. 
 
   Lemma append_c {N1 V1 c1 N2 V2 crem O1 W1 N3 V3 c3 O2 W2}
         :
@@ -702,7 +702,6 @@ Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cen
         trace_cs (N1, V1, c1) (N3, V3, c3) (O1 ++ O2) (append_write W1 W2).
 Admitted.
 
-  (*this is false!!! a checkpoint gets added between O1 and O2!!!!!*)
   Lemma append_cps {N1 V1 c1 N2 V2 crem O1 W1 N3 V3 c3 O2 W2}
         {w: warvars}:
         trace_cs (N1, V1, c1) (N2, V2, incheckpoint w;; crem) O1 W1 ->

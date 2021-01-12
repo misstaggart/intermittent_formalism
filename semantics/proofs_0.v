@@ -255,14 +255,6 @@ Lemma single_step_all: forall{C1 Cmid C3: context}
 Qed.
 
 
-Lemma single_step_alls_rev: forall{C1 C3: context}
-                    {Obig : obseq} {Wbig: the_write_stuff},
-    trace_cs C1 C3 Obig Wbig ->
-    Obig <> [::] ->
-    exists(Cmid: context) (W1 Wrest: the_write_stuff) (O1: obseq),
-      cceval_w C1 O1 Cmid W1
-/\ subseq O1 Obig /\ Wbig = (append_write W1 Wrest).
-Admitted.
 
  Lemma genloc_contents: forall(l: loc) (a: array),
               l \in generate_locs a ->
@@ -289,6 +281,15 @@ Admitted.
               by left.
 Qed.
 
+Lemma single_step_alls_rev: forall{C1 C3: context}
+                    {Obig : obseq} {Wbig: the_write_stuff},
+    trace_cs C1 C3 Obig Wbig ->
+    Obig <> [::] ->
+    exists(Cmid: context) (W1 Wrest: the_write_stuff) (O1: obseq),
+      cceval_w C1 O1 Cmid W1
+/\ subseq O1 Obig /\ Wbig = (append_write W1 Wrest).
+Admitted.
+
 Lemma single_step_alls: forall{C1 Cmid C3: context}
                     {Obig O1 : obseq} {W1 Wbig: the_write_stuff},
     trace_cs C1 C3 Obig Wbig ->
@@ -297,6 +298,26 @@ Lemma single_step_alls: forall{C1 Cmid C3: context}
     exists(Wrest: the_write_stuff) (Orest: obseq), trace_cs Cmid C3 Orest Wrest
 /\ subseq Orest Obig /\ Wbig = (append_write W1 Wrest).
 Admitted.
+
+(*use singlestepalls for this probably*)
+Lemma same_single_step: forall{C1 Cmid C3: context}
+                    {Obig O1 : obseq} {W1 Wbig: the_write_stuff},
+    trace_cs C1 C3 Obig Wbig ->
+    Obig <> [::] ->
+    cceval_w C1 O1 Cmid W1 ->
+    subseq (getrd W1) (getrd Wbig) /\ subseq (getwt W1) (getwt Wbig).
+Admitted.
+
+Lemma cceval_agr: forall{N1 N2 :nvmem} {V1 V2: vmem} {c: command}
+                   {O1 O2 : obseq} {W1 W2: the_write_stuff}
+  {C1 C2: context},
+    cceval_w (N1, V1, c) O1 C1 W1 ->
+    cceval_w (N2, V2, c) O2 C2 W2 ->
+    (getrd W1) = (getrd W2).
+    (*W1 = W2. NOT true as arrays written to can depend on memory state
+     arrays read you keep the generality though*)
+  Admitted.
+
 
 Lemma trace_steps: forall{C1 C3: context} 
                     {Obig: obseq} {Wbig: the_write_stuff},
