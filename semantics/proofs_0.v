@@ -308,16 +308,57 @@ Lemma same_single_step: forall{C1 Cmid C3: context}
     subseq (getrd W1) (getrd Wbig) /\ subseq (getwt W1) (getwt Wbig).
 Admitted.
 
+Lemma read_deterministic: forall{e: exp} {w1 w2: warvars},
+                           rd e w1 ->
+                           rd e w2 ->
+                           w1 = w2.
+  intros.
+ inversion H. inversion H0. subst. 
+  move: H0 H4. move: N0 V0 rs0 v0. dependent induction H1; intros.
+  + by inversion H4.
+  + inversion H4; subst. apply IHeeval1 in H8;
+                           
+                           apply IHeeval2 in H11;
+                        try(   rewrite (readobs_app_wvs r1 r2);
+    rewrite (readobs_app_wvs r0 r3);
+      by rewrite H8 H11);
+                        try ( eapply RD; (apply H11) || (apply H1_0) || (apply H1_)
+                            || (apply H8)).
+  + simpl. inversion H4; subst; simpl; auto.
+  + simpl. inversion H4; subst; simpl; auto.
+  + inversion H5. subst. rewrite (readobs_app_wvs rindex).
+    rewrite (readobs_app_wvs rindex0).
+    suffices: (readobs_wvs rindex) =(readobs_wvs rindex0).
+    move ->.
+    destruct element. destruct element0.
+ pose proof (equal_index_arr H2) as arreq. 
+ pose proof (equal_index_arr H12) as arreq1. by subst.
+ eapply IHeeval. apply (RD H1).
+ apply (RD H8). apply H8.
+Qed.
+
+Lemma cceval_agr_bc: forall{N1 N2 :nvmem} {V1 V2: vmem} {l: instruction}
+                   {O1 O2 : obseq} {W1 W2: the_write_stuff}
+  {C1 C2: context},
+    cceval_w (N1, V1, Ins l) O1 C1 W1 ->
+    cceval_w (N2, V2, Ins l) O2 C2 W2 ->
+    (getrd W1) = (getrd W2).
+  intros. move: H H0 => Hcceval1 Hcceval2.
+  dependent induction Hcceval1; inversion Hcceval2; subst; try by [];
+try by move: (read_deterministic (RD H) (RD H9)).
+  simpl. move: (read_deterministic (RD H) (RD H11))
+                 (read_deterministic (RD H0) (RD H12)) => one two.
+  repeat rewrite readobs_app_wvs. by rewrite one two. 
+Qed.
+(*W1 = W2. NOT true as arrays written to can depend on memory state
+     arrays read you keep the generality though*)
+
 Lemma cceval_agr: forall{N1 N2 :nvmem} {V1 V2: vmem} {c: command}
                    {O1 O2 : obseq} {W1 W2: the_write_stuff}
   {C1 C2: context},
     cceval_w (N1, V1, c) O1 C1 W1 ->
     cceval_w (N2, V2, c) O2 C2 W2 ->
     (getrd W1) = (getrd W2).
-    (*W1 = W2. NOT true as arrays written to can depend on memory state
-     arrays read you keep the generality though*)
-  Admitted.
-
 
 Lemma trace_steps: forall{C1 C3: context} 
                     {Obig: obseq} {Wbig: the_write_stuff},
@@ -549,11 +590,6 @@ Lemma negfwandw_means_r: forall{C Cend: context}  {O: obseq} {W: the_write_stuff
     l \notin (getfstwt W) -> l \in (getwt W) -> l \in (getrd W).
 Admitted.
 
-Lemma read_deterministic: forall{e: exp} {w1 w2: warvars},
-                           rd e w1 ->
-                           rd e w2 ->
-                           w1 = w2.
-  Admitted.
 
 Lemma cceval_steps: forall{N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
                    {O: obseq} {W: the_write_stuff} {l: instruction},

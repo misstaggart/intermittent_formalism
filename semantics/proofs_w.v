@@ -52,15 +52,8 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
         rewrite mem_filter in contra1.
         move/ andP : contra1  => [one two].
         move/negP : one. by apply.
-        move/ mem_filter: contra.
-        rewrite Hread.
-        unfold append_write in H3.
-        simpl in H3. 
-    Admitted.
-
-        destruct W as [ [w r ] fw].
-        destruct W1 as [ [w1 r1 ] fw1].
-        destruct Wrest as [ [wrem rrem ] fwrem].
+        move/negP : Hfw. by apply.
+    Qed.
 
  Lemma agreeonread_w: forall{N Nend N2: nvmem} {V Vend: vmem}
                         {c c1: command}
