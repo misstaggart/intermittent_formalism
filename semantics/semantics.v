@@ -3,8 +3,8 @@ From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Program Sumbool
      Ascii String.
 From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype fintype seq
-     choice bigop finset generic_quotient tuple.
-(*From extructures Require Import ord fset fmap.*)
+     choice bigop finset generic_quotient tuple path.
+(*From extructures Require Import ord fset fmap. *)
 (*From deriving Require Import deriving.*)
 From Semantics Require Import lemmas_0.
 
@@ -258,7 +258,7 @@ checks if a warvar is in the domain, rather than checking a location.
 (*******************************more syntax**********************************************)
 
 Inductive array :=
-  Array (s: string) (l: nat).
+  Array (n: nat) (l: nat).
 
 
 Definition array_indMixin := Eval simpl in [indMixin for array_rect].
@@ -283,7 +283,10 @@ Inductive volatility :=
  | vol.
 
 Inductive smallvar :=
-  SV (s: string) (q: volatility).
+  SV (s: nat) (q: volatility).
+
+Check CanCountMixin.
+
 
 Inductive el_loc :=
   El (a: array) (i: ('I_(get_length a))).
@@ -390,6 +393,39 @@ Definition index_loc (a: array) (i: ('I_(get_length a))) : loc :=
 Definition generate_locs (a: array): seq loc :=
   map (index_loc a) (enum ('I_(get_length a))).
 Notation warvars := (seq loc).
+
+(*nonvol <= vol *)
+Definition leqvol (q: volatility) :=
+  (fun r =>
+     match q, r with
+       vol, nonvol => false
+     | _, _ => true
+                end
+  ).
+
+(*inl <= inr*)
+Definition leqwv (w: loc) :=
+  (fun v: loc =>
+     match w, v with
+       (inl (SV s1 q1)), (inl (SV s2 q2)) =>
+       if (s1 == s2) then (leqvol q1 q2) else
+       s1 <= s2
+     | (inr (El a1 i1)), (inr (El a2 i2)) =>
+       match a1, a2 with Array n1 l1, Array n2 l2 =>
+       if (n1 == n2) then
+         (
+           if (l1 == l2) then
+             (i1 <= i2)
+           else
+             (l1 <= l2)
+         )
+       else n1 <= n2 end
+     | inl _, inr _ => true
+     | inr _, inl _ => false
+     end ).
+
+
+
 (*Coercion (inl smallvar el): smallvar >-> loc.*)
 (*Coercion inl: smallvar >-> loc.*)
 
@@ -401,6 +437,8 @@ Notation warvars := (seq loc).
 (*array and el functions*)
 
 (*equality type for arrays*)
+
+
 Open Scope seq_scope.
 Definition eqb_array (a1 a2: array) :=
   match a1, a2 with
@@ -599,7 +637,9 @@ Canonical loc_ordtype := Eval hnf in OrdType loc loc_ordMixin.
 
 
  *)
-(*start here*)
+Lemma sort_wv {w1 w2: warvars}:
+  w1 =i w2 ->
+  sort w1 =i sort w2.
 
 (*******************************************************************)
 
@@ -658,6 +698,9 @@ Inductive vmem := (*volatile memory*)
  of DINO and WAR, they aren't necessary.
  I won't delete them because having the domain of the checkpoint easily accessible and
  manipulable could be handy in the future*)
+
+Lemma test1 : [::1] =i [::1].
+intros l.
 
 Definition getmap (N: nvmem) :=
   match N with NonVol m _ _ => m end.
