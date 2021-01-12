@@ -1,7 +1,7 @@
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Program Sumbool
-     Ascii String.
+     Ascii String Logic.ProofIrrelevance.
 From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype fintype seq
      choice bigop finset generic_quotient tuple path.
 (*From extructures Require Import ord fset fmap. *)
