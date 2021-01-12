@@ -166,7 +166,18 @@ Lemma trace_converge_minus1 {N V l N' Nmid Vmid Nmid'
   Nmid = Nmid'.
 Admitted.
 
+(*use update_one_c*)
+Lemma adif_cceval {N1 N2 V c Nend Vend O1 W cend}:
+  all_diff_in_fw N1 V c N2 ->
+  cceval_w (N1, V, c) O1 (Nend, Vend, cend) W ->
+  end_com cend ->
+   (forall(el: el_loc), ((getmap N1) (inr el)) = ((getmap N2) (inr el))) /\
+   ( forall(l: loc ), ((getmap N1) l <> (getmap N2) l) -> (l \in getfstwt W)). Admitted.
 
+Lemma trace_converge {N V cend Nc} :
+  all_diff_in_fw N V cend Nc ->
+  end_com cend ->
+  N = Nc. Admitted.
 
 
 Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
@@ -486,6 +497,30 @@ rewrite mem_filter. apply/nandP. by left.
   Qed.
 
 
+(*saying the exact same thing as war_works_loc*)
+Lemma wts_cped_sv: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
+                  {Wstart Rstart: warvars} {l: loc},
+    trace_cs (N, V, c) (Nend, Vend, cend) O W ->
+    WARok (getdomain N0) Wstart Rstart c ->
+    checkpoint \notin O ->
+    (*O <> [::] -> empty trace annoying and i dont think
+               i have to deal w it*)
+    l \notin (getdomain N0) ->
+    l \in (getwt W) -> (*l written to
+                       IN THIS trace*)
+    l \in (remove Rstart (getfstwt W)) (*l not in OVERALL FW for this trace*)
+ \/ l \in Wstart. Admitted. (*14*)
+
+Lemma wts_cped_arr: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
+                  {Wstart Rstart: warvars} {el: el_loc},
+    trace_cs (N, V, c) (Nend, Vend, cend) O W ->
+    WARok (getdomain N0) Wstart Rstart c ->
+    checkpoint \notin O ->
+    (*O <> [::] -> empty trace annoying and i dont think
+               i have to deal w it*)
+    (inr el) \notin (getdomain N0) ->
+   (inr el) \notin (getwt W).
+Admitted. (*14*)
 
 Lemma war_works {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}:
     trace_cs (N, V, c) (Nend, Vend, cend) O W ->
@@ -556,11 +591,6 @@ checkpoint \notin Oc).
  
 
 
-Lemma empty_trace_s: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
-    trace_cs C1 C2 O W -> O = [::] -> C1 = C2 /\ W = emptysets.
-Admitted.
-
-
 Lemma observe_checkpt_s: forall {N N': nvmem} {V V': vmem}
                      {c c' : command} {w: warvars}
                     {O: obseq} {W: the_write_stuff},
@@ -576,18 +606,6 @@ Lemma update_domc {N11 N12 V11 V12  N21 N22 V21 V22
   (getdomain N12) = (getdomain N22).
   Admitted.
 
-Lemma update_onec {N11 N12 V11 V12 N21 N22 V21 V22
-                       c c1 c2 O1 O2 W} {l: loc} :
-  cceval_w (N11, V11, c) O1 (N12, V12, c1) W ->
-  cceval_w (N21, V21, c) O2 (N22, V22, c2) W ->
-    (getmap N11) l = (getmap N21) l ->
-    (getmap N12) l <> (getmap N22) l ->
-    l \in (getwt W). Admitted.
-
-Lemma trace_diff {N1 V1 c1 N2 V2 c2 O W} {l: loc}:
-  trace_cs (N1, V1, c1) (N2, V2, c2) O W ->
-  (getmap N2) l <> (getmap N1) l ->
-l \in (getwt W). Admitted.
 
 
 Lemma three_bc1 {Ni Ni1 V V1 c c1 Nc O W} :
@@ -601,7 +619,9 @@ intros. move: (two H H0) => [Nc1 [Hcceval Heq] ]. exists Nc1.
     inversion H. subst. 
     (*getting ready to apply single_step_alls*)
     assert (O0 <> [::]) as Ho0.
-    - move/ (empty_trace_s T) => [ [contra10 [contra11 contra12] ] contra2]. subst. case H2 as [Hskip | [crem [w Hcp] ] ]; subst.
+-
+  intros Heq1. subst.
+  move/empty_trace_cs1 : T => [ [contra10 [contra11 contra12] ] contra2]. subst. case H2 as [Hskip | [crem [w Hcp] ] ]; subst.
     inversion Hcceval. move/negP : H1. apply.
     (*start here why is apply/negP different from this*)
     apply (observe_checkpt_s Hcceval).
@@ -628,29 +648,6 @@ intros. move: (two H H0) => [Nc1 [Hcceval Heq] ]. exists Nc1.
          exfalso. by apply Hl. by destruct Hc2.
          Qed.
 
-Lemma wts_cped_sv: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
-                  {Wstart Rstart: warvars} {l: loc},
-    trace_cs (N, V, c) (Nend, Vend, cend) O W ->
-    WARok (getdomain N0) Wstart Rstart c ->
-    checkpoint \notin O ->
-    (*O <> [::] -> empty trace annoying and i dont think
-               i have to deal w it*)
-    l \notin (getdomain N0) ->
-    l \in (getwt W) -> (*l written to
-                       IN THIS trace*)
-    l \in (remove Rstart (getfstwt W)) (*l not in OVERALL FW for this trace*)
- \/ l \in Wstart. Admitted. (*14*)
-
-Lemma wts_cped_arr: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
-                  {Wstart Rstart: warvars} {el: el_loc},
-    trace_cs (N, V, c) (Nend, Vend, cend) O W ->
-    WARok (getdomain N0) Wstart Rstart c ->
-    checkpoint \notin O ->
-    (*O <> [::] -> empty trace annoying and i dont think
-               i have to deal w it*)
-    (inr el) \notin (getdomain N0) ->
-   (inr el) \notin (getwt W).
-Admitted. (*14*)
 
 Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
                          {Omid O: obseq} {Wmid W: the_write_stuff} {l: loc},
@@ -770,19 +767,7 @@ Lemma all_diff_in_fw_trans {Nc0 V1 c1 Nc1 Nc2}:
   all_diff_in_fw Nc1 V1 c1 Nc2 ->
   all_diff_in_fw Nc0 V1 c1 Nc2. Admitted.
 
-Lemma trace_converge {N V cend Nc} :
-  all_diff_in_fw N V cend Nc ->
-  end_com cend ->
-  N = Nc. Admitted.
 
-
-
-Lemma adif_cceval {N1 N2 V c Nend Vend O1 W cend}:
-  all_diff_in_fw N1 V c N2 ->
-  cceval_w (N1, V, c) O1 (Nend, Vend, cend) W ->
-  end_com cend ->
-   (forall(el: el_loc), ((getmap N1) (inr el)) = ((getmap N2) (inr el))) /\
-   ( forall(l: loc ), ((getmap N1) l <> (getmap N2) l) -> (l \in getfstwt W)). Admitted.
 
 Lemma adif_works {N1 N2 V c Nend Vend O1 W1 cend}:
   all_diff_in_fw N1 V c N2 ->
@@ -895,10 +880,10 @@ dependent induction H0; intros.
     move => el. apply/ eqP / negPn/ negP => contra.
    apply update_diff in contra. destruct contra as [ [con11 con12] | [con21 con22] ].
    apply con11. apply (H4 (inr el) con12).
-   move: (trace_diff H con21) => Hdiff.
+   move: (update H (not_eq_sym con21)) => Hdiff.
    move/negP :(wts_cped_arr H H3 H1 con22). by apply.
    move => l. move/eqP/update_diff => [ [diff11 diff12] | [diff21 diff22] ]. case diff11. apply (H4 l diff12).
-   move: (trace_diff H diff21) => Hdiff.
+   move: (update H (not_eq_sym diff21)) => Hdiff.
    (*start here clean up repeated work in above*)
    move: (wts_cped_sv H H3 H1 diff22 Hdiff)  => [good | bad].
    rewrite/remove filter_predT in good.
@@ -1099,10 +1084,6 @@ Qed.
     exfalso. move/negP: contra. by apply. Qed.*)
 
 
-Lemma empty_trace_cs:
-  forall{N1 N2: nvmem} {V1 V2: vmem} {c: command} {O: obseq} {W: the_write_stuff},
-    trace_cs (N1, V1, c) (N2, V2, c) O W -> O = [::] /\ N1 = N2 /\ V1 = V2 /\ W = emptysets.
-Admitted.
 
 Lemma notin (o: obs) : o \notin [::].
 Admitted.

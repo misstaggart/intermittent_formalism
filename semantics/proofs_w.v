@@ -7,15 +7,10 @@ From TLC Require Import LibTactics LibLogic.
 From Semantics Require Export programs semantics algorithms lemmas_1
      lemmas_0 proofs_0. (*shouldn't have to import both of these*)
 
-Lemma hack {N1 N2} : (getmap N1) =1 (getmap N2) -> N1 = N2. Admitted.
 
 Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
   Diff_in_FWw: forall{N1 V1 c1 N2 V2 c2 N1c O W} (T: trace_cs (N1, V1, c1) (N2, V2, c2) O W),
     checkpoint \notin O -> (*c2 is nearest checkpoint or termination*)
-  (*  (getdomain N1) = (getdomain N1c) -> alternatively
-                                       could check N2 domain as well instead of this
- not even clear why i need the domains                                    
-   *)
 ( forall(l: loc ), ((getmap N1) l <> (getmap N1c) l) -> (l \in getfstwt W))
 -> all_diff_in_fww N1 V1 c1 N1c.
 
@@ -387,6 +382,7 @@ Fixpoint get_smallvars (w: warvars) :=
             inl x \notin w1 -> inl x \notin w2.
           Admitted.
 
+        (*should follow from a filter lemma*)
         Lemma sv_add_sv: forall(w1 w2 :warvars) (x: smallvar),
             (get_smallvars w1) = (get_smallvars w2) ->
             (get_smallvars ((inl x) :: w1) = get_smallvars ((inl x) :: w2)).

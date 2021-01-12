@@ -358,7 +358,7 @@ Lemma cceval_agr: forall{N1 N2 :nvmem} {V1 V2: vmem} {c: command}
   {C1 C2: context},
     cceval_w (N1, V1, c) O1 C1 W1 ->
     cceval_w (N2, V2, c) O2 C2 W2 ->
-    (getrd W1) = (getrd W2).
+    (getrd W1) = (getrd W2). Admitted.
 
 Lemma trace_steps: forall{C1 C3: context} 
                     {Obig: obseq} {Wbig: the_write_stuff},
@@ -492,6 +492,7 @@ Lemma update_one_contra: forall{N Nend: nvmem} {V Vend: vmem} {c cend: command} 
     (getmap N) l = (getmap Nend) l.
 Admitted.
 
+
 Lemma update: forall{N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
   {l: loc},
     trace_cs (N, V, c) (Nend, Vend, cend) O W ->
@@ -499,6 +500,13 @@ Lemma update: forall{N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} 
     l \in (getwt W).
   Admitted.
 
+Lemma update_onec {N11 N12 V11 V12 N21 N22 V21 V22
+                       c c1 c2 O1 O2 W} {l: loc} :
+  cceval_w (N11, V11, c) O1 (N12, V12, c1) W ->
+  cceval_w (N21, V21, c) O2 (N22, V22, c2) W ->
+    (getmap N11) l = (getmap N21) l ->
+    (getmap N12) l <> (getmap N22) l ->
+    l \in (getwt W). Admitted.
 (*start here replace this with
  iceval_cceval1*)
 Lemma iceval_cceval: forall{k: context} {N Nend1 Nend2 : nvmem} {V Vend1 Vend2: vmem}
