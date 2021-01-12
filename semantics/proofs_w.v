@@ -5,7 +5,7 @@ Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq fintype ssrnat ssrfun.
 From TLC Require Import LibTactics LibLogic.
 From Semantics Require Export programs semantics algorithms lemmas_1
-     lemmas_0 proofs_0. (*shouldn't have to import both of these*)
+     lemmas_0 proofs_0 proofs_n. (*shouldn't have to import both of these*)
 
 
 Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
@@ -225,7 +225,7 @@ if l is array
       apply empty_trace_cs1 in T. move: T =>
                                   [ [one two ] three four].
       subst.
-      suffices: (getmap N2) =1 (getmap N1). move/hack => H500. subst.
+      suffices: (getmap N2) =1 (getmap N1). move/nvmem_eq => H500. subst.
       move: (determinism_c H10 Hcceval) => [ [one two] ]. subst.
       econstructor; try apply CsTrace_Empty; try assumption.
       by [].
@@ -280,7 +280,7 @@ move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
       apply empty_trace_cs1 in T. move: T =>
                                   [ [one two ] three four].
       subst.
-      suffices: (getmap N2) =1 (getmap Nend2). move/hack => H500. subst. split; try assumption.
+      suffices: (getmap N2) =1 (getmap Nend2). move/nvmem_eq => H500. subst. split; try assumption.
       econstructor; try apply CsTrace_Empty; try assumption.
       intros l0. apply/ eqP /negPn /negP. intros contra.
       move/ eqPn / (H0 l0) : contra.
@@ -323,7 +323,7 @@ move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
       apply empty_trace_cs1 in T. move: T =>
                                   [ [one two ] three four].
       subst.
-      suffices: (getmap N2) =1 (getmap Nend2). move/hack => H500. subst. split; try assumption.
+      suffices: (getmap N2) =1 (getmap Nend2). move/nvmem_eq => H500. subst. split; try assumption.
       econstructor; try apply CsTrace_Empty; try assumption.
       intros l0. apply/ eqP /negPn /negP. intros contra.
       move/ eqPn / (H0 l0) : contra.
@@ -454,7 +454,7 @@ Admitted.
    rewrite - cat1s. apply cat_subseq.
    rewrite sub1seq.
    destruct element as [a0 index0]. eapply gen_locs_works.
-   apply H16. auto. Opaque get_smallvars. simpl.
+   apply H17. auto. Opaque get_smallvars. simpl.
    rewrite (sv_add_el W0 W0); try auto.
    symmetry. rewrite (sv_add_arr W0 W0 a); try auto.
    simpl.
@@ -467,7 +467,7 @@ Admitted.
    rewrite - cat1s. apply cat_subseq.
    rewrite sub1seq.
    destruct element as [a0 index0]. eapply gen_locs_works.
-   apply H17. auto.
+   apply H18. auto.
    Opaque get_smallvars. simpl.
    rewrite (sv_add_el W0 W0); try auto.
    symmetry. rewrite (sv_add_arr W0 W0 a); try auto.

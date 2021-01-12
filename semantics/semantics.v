@@ -1099,8 +1099,7 @@ CheckPoint: forall(N: nvmem)
                {e: exp}
                {r: readobs}
                {v: value}
-               {element: el_loc}
-  (Hindex: equal_index element a v),
+               {element: el_loc},
     eeval N V ei ri vi ->
     eeval N V e r v ->
     (*start here its kind of annoying that ri comies in first but down there

@@ -213,7 +213,7 @@ Proof. intros C1 C2 C3 O1 O2 W1 W2 cc1 cc2. destruct C1 as [blah c]. destruct bl
               inversion onee; inversion two);
          try( 
  destruct (determinism_e H3 H); destruct (determinism_e H4 H0); subst;
-   pose proof (equal_index_works Hindex Hindex0));
+   pose proof (equal_index_works H2 H6));
          try (subst;
               split; [reflexivity | (split; reflexivity)]).
          exfalso. by apply (H0 w).
@@ -567,7 +567,7 @@ right.
     split; [reflexivity | split; reflexivity ].
 (*ask arthur how to do a recursive tactic
  for dealing with big conjunctions*)
-Qed.
+Qed.*)
 
 Lemma cceval_skip: forall {N N': nvmem} {V V': vmem}
                     {l: instruction} {c: command}
@@ -637,4 +637,4 @@ Lemma fw_nin_r_c: forall{C1 C2: context} {O: obseq} {W: the_write_stuff} (l: loc
     (* pose proof (cceval_to_rd_sv H H5). *)
     cceval_w C1 O C2 W ->
     l \in (getrd W) ->
-    l \notin  (getfstwt W). Admitted.*)
+    l \notin  (getfstwt W). Admitted.
