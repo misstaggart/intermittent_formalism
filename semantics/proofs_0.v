@@ -52,11 +52,6 @@ Proof. intros C1 C2 O W T. induction T.
                                     ).
 Qed.
 
-Lemma fw_s_w_ceval: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
-      (* pose proof (cceval_to_rd_sv H H5). *)
-  cceval_w C1 O C2 W ->
-    subseq (getfstwt W) (getwt W).
-Admitted.
 
 Lemma trace_stops: forall {N N': nvmem} {V V': vmem}
                     {l: instruction} {c: command}
@@ -575,6 +570,13 @@ Lemma cceval_skip: forall {N N': nvmem} {V V': vmem}
     cceval_w (N, V, Ins l) O (N', V', c) W ->
     (c = skip). Admitted.
 
+Lemma trace_skip: forall {N N': nvmem} {V V': vmem}
+                    {c: command}
+  {O: obseq} {W: the_write_stuff},
+   trace_cs (N, V, Ins skip) (N', V', c) O W ->
+ O = [::]. Admitted.
+
+
 Lemma agr_imp_age:
 forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
   eeval N0 V0 e r0 v0 ->
@@ -638,3 +640,19 @@ Lemma fw_nin_r_c: forall{C1 C2: context} {O: obseq} {W: the_write_stuff} (l: loc
     cceval_w C1 O C2 W ->
     l \in (getrd W) ->
     l \notin  (getfstwt W). Admitted.
+
+  Lemma connect_mems {N N' V Nmid Nmid' Vmid W O z} {l: instruction}:
+cceval_w (N, V, Ins l) O (Nmid, Vmid, Ins skip) W ->
+cceval_w (N', V, Ins l) O (Nmid', Vmid, Ins skip) W ->
+z \notin (getwt W) ->
+getmap N z = getmap N' z ->
+getmap Nmid z = getmap Nmid' z.
+    intros Hcceval1 Hcceval2 Hbool Heq.
+       move : (update_one_contra z Hcceval1) => Heq1.
+       move : (update_one_contra z Hcceval2) => Heq2.
+       remember Hbool as Hbool2. clear HeqHbool2.
+       apply Heq1 in Hbool.
+       apply Heq2 in Hbool2.
+symmetry in Hbool.
+  by move: (trans_eq (trans_eq Hbool Heq) Hbool2).
+  Qed.

@@ -136,14 +136,40 @@ Qed.*)
                                  all_diff_in_fww N1 V (l;; skip) N2.
    Admitted.
 
-Lemma trace_converge_minus1w {N V l N' Nmid Vmid Nmid'
-                            O W}:
+Lemma trace_converge_minus1w {N V N' Nmid Vmid Nmid'
+                            O W} {l: instruction}:
   all_diff_in_fww N V l N' ->
-  cceval_w (N, V, l) O (Nmid, Vmid, Ins skip) W ->
-  cceval_w (N', V, l) O (Nmid', Vmid, Ins skip) W ->
+  cceval_w (N, V, Ins l) O (Nmid, Vmid, Ins skip) W ->
+  cceval_w (N', V, Ins l) O (Nmid', Vmid, Ins skip) W ->
   Nmid = Nmid'.
-Admitted.
-
+  move => Hdiff Hcceval1 Hcceval2.
+  inversion Hdiff. subst.
+dependent induction T.
+-
+  suffices: N2 = N'. move => Heq. subst.
+  move: (determinism_c Hcceval1 Hcceval2). =>
+  [ one two]. inversion one. by subst.
+  simpl in H0. apply nvmem_eq. intros z.
+  apply/eqP/ negPn /negP. intros contra.
+  move/ eqP : contra => contra. apply H0 in contra.
+  discriminate contra.
+-
+  apply nvmem_eq. intros z.
+  move: (same_com_hcbc (add_skip_ins Hdiff) Hcceval2).
+  => [Nend [Hcceval3 Hloc] ].
+  move: (determinism_c Hcceval3 Hcceval1) => [one [two three] ]. inversion one. subst.
+  destruct (z \in (getwt W)) eqn:Hbool.
+  by apply (Hloc z) in Hbool.
+  suffices: (getmap N) z = (getmap N') z.
+  move => Heq.
+  apply (connect_mems Hcceval1 Hcceval2 (negbT Hbool) Heq).
+  move: (determinism_c H Hcceval1). => [eq0 [eq1 eq2] ]. inversion eq0. subst.
+  apply/eqP /negPn /negP. intros contra.
+  move/ eqP / (H1 z) : contra => contra.
+  apply (in_subseq (fw_subst_wt_c Hcceval1)) in contra.
+  rewrite Hbool in contra. discriminate contra.
+  destruct Cmid as [ [nm vm] cm]. move: (cceval_skip H0) => Heq. subst. apply trace_skip in T. exfalso. by apply H.
+Qed.
 
 
  Lemma same_com_hc {N N1 V c Nend2 V1 c1 O W}:
