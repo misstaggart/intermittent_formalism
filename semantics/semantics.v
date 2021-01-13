@@ -617,7 +617,31 @@ Canonical loc_choiceType := Eval hnf in ChoiceType loc loc_choiceMixin.*)
 Print choiceMixin.
 
 Lemma loctotal: total leqloc.
-  Admitted.
+  intros x y.
+  destruct x as [x | x]; destruct y as [y | y];
+    destruct x as [x1 x2]; destruct y as [y1 y2]; unfold leqloc; try by []; simpl.
+  destruct (x1 == y1) eqn: Hbool.
+  move/ eqP : Hbool => Heq. subst. 
+  rewrite ifT; try by []. destruct x2; destruct y2; simpl; by [].
+  move/ eqP : Hbool => Hneq. rewrite ifF. apply leq_total.
+  apply not_eq_sym in Hneq.   apply negbTE.
+    by move/ eqP: Hneq => Hneq.
+    destruct x1 as [n1 l1].
+    destruct y1 as [m1 j1].
+  destruct (n1 == m1) eqn: Hbool.
+  move/ eqP : Hbool => Heq. subst. assert (m1 == m1). by [].
+  rewrite H.
+  destruct (l1 == j1) eqn: Hbool.
+  move/ eqP : Hbool => Heq. subst. assert (j1 == j1). by [].
+  rewrite H0. apply leq_total.
+  move/ eqP : Hbool => Hneq. rewrite ifF. apply leq_total.
+  apply not_eq_sym in Hneq.   apply negbTE.
+    by move/ eqP: Hneq => Hneq.
+  move/ eqP : Hbool => Hneq. rewrite ifF. apply leq_total.
+  apply not_eq_sym in Hneq.   apply negbTE.
+    by move/ eqP: Hneq => Hneq.
+Qed.
+
 
 Lemma loctrans: transitive leqloc.
 Admitted.

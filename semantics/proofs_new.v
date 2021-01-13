@@ -39,6 +39,9 @@ Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
 ( forall(l: loc ), ((getmap N1) l <> (getmap N1c) l) -> (l \in getfstwt W))
 -> all_diff_in_fw N1 V1 c1 N1c.
 
+  Lemma adifw_adif {N V c N1}:
+    all_diff_in_fw N V c N1 ->
+    all_diff_in_fww N V c N1. Admitted.
 
     Lemma agreeonread_ins: forall{N Nend N2: nvmem} {V Vend: vmem}
                         {l: instruction} {crem c1: command}
@@ -761,15 +764,21 @@ Admitted.
                                                                    (restrict N1 w Hf) N1.
      Admitted.
 
-Lemma all_diff_in_fw_sym {N1 V1 c1 Nc1}: 
+Lemma adif_sym {N1 V1 c1 Nc1}: 
   all_diff_in_fw N1 V1 c1 Nc1 ->
 all_diff_in_fw Nc1 V1 c1 N1. Admitted.
 
-Lemma all_diff_in_fw_trans {Nc0 V1 c1 Nc1 Nc2}:
+Lemma adif_trans {Nc0 V1 c1 Nc1 Nc2}:
   all_diff_in_fw Nc0 V1 c1 Nc1 ->
   all_diff_in_fw Nc1 V1 c1 Nc2 ->
   all_diff_in_fw Nc0 V1 c1 Nc2. Admitted.
 
+Lemma adif_refl {N V c c1 Nend Vend O W}:
+  trace_cs (N, V, c) (Nend, Vend, c1) O W ->
+  end_com c1 ->
+  checkpoint \notin O ->
+        all_diff_in_fw N V c N.
+Admitted.
 
 
 Lemma adif_works {N1 N2 V c Nend Vend O1 W1 cend}:
@@ -806,7 +815,7 @@ Lemma adif_works {N1 N2 V c Nend Vend O1 W1 cend}:
           auto.
           move/ eqP : Hbool1.
           move/Hl => Hcontra.
-          move: (fw_s_w_ceval H) => Hsub.
+          move: (fw_subst_wt_c H) => Hsub.
           apply (in_subseq Hsub) in Hcontra.
             by rewrite Hbool in Hcontra.
          + destruct Cmid as [ [Ni1 V1] c1].
@@ -843,12 +852,6 @@ Lemma warok_cp {N1 N2 V1 V2 c crem O W}
   trace_cs (N1, V1, c) (N2, V2, incheckpoint w1;; crem) O W ->
   WARok w1 [::] [::] crem. Admitted.
 
-Lemma adif_refl {N V c c1 Nend Vend O W}:
-  trace_cs (N, V, c) (Nend, Vend, c1) O W ->
-  end_com c1 ->
-  checkpoint \notin O ->
-        all_diff_in_fw N V c N.
-Admitted.
 
 Lemma no_CP_in_seq: forall{O1 O2: obseq},
     (O1 <=m O2) -> checkpoint \notin O1 /\ checkpoint \notin O2.
@@ -926,7 +929,7 @@ dependent induction H0; intros.
       move: (append_c ass1 ass4) => bigtrace.
       apply (ctrace_det_obs threetrace H1 bigtrace); try assumption.
    eapply IHtrace_i1; try reflexivity; try assumption.
-   apply sub_update. apply (all_diff_in_fw_trans (all_diff_in_fw_sym Hdiffrb) H8).
+   apply sub_update. apply (adif_trans (adif_sym Hdiffrb) H8).
 
   + repeat rewrite mem_cat in H3. move/norP: H3 => [Hb H3].
         move/norP: H3 => [contra Hb1]. by case/negP : contra. 
