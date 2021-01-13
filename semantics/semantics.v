@@ -642,9 +642,30 @@ Lemma loctotal: total leqloc.
     by move/ eqP: Hneq => Hneq.
 Qed.
 
+Lemma voltrans: transitive leqvol. Admitted.
 
 Lemma loctrans: transitive leqloc.
-Admitted.
+intros y x z Hxy Hyz.
+  destruct x as [x | x]; destruct y as [y | y]; destruct z as [z | z];
+    destruct x as [x1 x2]; destruct y as [y1 y2];
+      destruct z as [z1 z2];
+      unfold leqloc; unfold leqloc in Hxy; unfold leqloc in Hyz;
+                            try by []; simpl.
+  destruct (x1 == z1) eqn: Hboolxz; destruct (x1 == y1) eqn: Hboolxy. 
+  move/ eqP: Hboolxy => one. subst.
+  move/ eqP: Hboolxz => one. subst. rewrite ifT in Hyz.
+  apply (voltrans y2 x2 z2); try assumption. by [].
+  move/ eqP: Hboolxz => one. subst. rewrite ifF in Hyz.
+  assert (z1 <= y1 /\ y1 <= z1). by [].
+  move/andP : H => H.
+  move: (anti_leq H) => one. subst. exfalso. move/ negbT /eqP: Hboolxy.
+  by apply. apply negbTE.
+  move/ negbT /eqP : Hboolxy => contra. apply not_eq_sym in contra.
+    by apply/ eqP.
+    move/ eqP : Hboolxy => one. subst. by rewrite ifF in Hyz.
+  destruct (y1 == z1) eqn: Hboolyz. 
+  move/ eqP : Hboolyz => one. by subst.
+  apply (leq_trans Hxy Hyz).
 
 Lemma asyloc: antisymmetric leqloc. Admitted.
 
