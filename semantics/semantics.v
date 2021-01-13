@@ -686,9 +686,10 @@ Definition loc_sorted := sort leqloc.
 
 Definition valid_nvm (m: mem) (d: warvars) := (forall(x: smallvar), (m (inl x) == error) <-> (inl x) \in d)
                                                                               /\
-                        (forall(a: array),
-                            (forall(el1: el_loc), (inr el1) \in (generate_locs a) -> m (inr el1) == error)
-                            <-> (not (intersect (generate_locs a) d))) /\ sorted leqloc d /\ uniq d.
+       (forall(a: array),
+           ( exists(el1: el_loc), (inr el1) \in (generate_locs a) /\ (m inr el1 != error))
+           <->
+           subseq (generate_locs a) d) /\ sorted leqloc d /\ uniq d.
 
 Inductive nvmem := (*nonvolatile memory*)
   NonVol (m : mem) (D: warvars) (WFnvem: valid_nvm m D)
