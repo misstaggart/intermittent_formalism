@@ -46,7 +46,7 @@ Proof. intros C1 C2 O W T. induction T.
        + auto.
        + induction H; auto; try (unfold getfstwt; unfold getwt;
          apply filter_subseq).
-       - simpl. apply (cat_subseq (subseq_trans
+       - simpl. apply (cat_suibseq (subseq_trans
                                     (filter_subseq _ _ )
                                     IHT2) IHT1
                                     ).
@@ -251,11 +251,6 @@ Lemma single_step_all: forall{C1 Cmid C3: context}
 Qed.
 
 
-
- Lemma genloc_contents: forall(l: loc) (a: array),
-              l \in generate_locs a ->
-                    exists (el: el_loc), inr el = l.
-   Admitted.
 
  Lemma fw_split {W W1} {l: loc}:
            l \in getfstwt (append_write W1 W) ->

@@ -25,11 +25,6 @@ Fixpoint member {A: Type} (eq: A -> A -> bool) (a: A)  (L: seq A) :=
   | x::xs => orb (eq a x) (member eq a xs)
   end.
 
-
-Definition intersect {A: eqType} (O1: seq A) (O2: seq A) :=
-  exists(l: A), l \in O1 /\ l \in O2.
-
-
 Definition bar := forall n: nat, n= 0.
 Definition foo := fun n: nat => n = 0.
 
@@ -758,6 +753,10 @@ Canonical loc_ordtype := Eval hnf in OrdType loc loc_ordMixin.
 
  *)
 
+ Lemma genloc_contents: forall(l: loc) (a: array),
+              l \in generate_locs a ->
+                    exists (el: el_loc), inr el = l.
+   Admitted.
 (*******************************************************************)
 
 (*more syntax*)
@@ -796,12 +795,13 @@ Notation mem := (map_t loc_eqtype). (*memory mapping*)
 
 Definition loc_sorted := sort leqloc.
 
+
 Definition valid_nvm (m: mem) (d: warvars) := (forall(x: smallvar), (m (inl x) != error) <-> (inl x) \in d)
                                                                               /\
        (forall(a: array),
            (( exists(el1: el_loc), (inr el1) \in (generate_locs a) /\ (m (inr el1) != error))
            ->
-           subseq (generate_locs a) d) /\
+           subseq_w (generate_locs a) d) /\
            ((intersect (generate_locs a) d) ->
             exists(el1: el_loc), (inr el1) \in (generate_locs a) /\ (m (inr el1) != error)) )
   /\ sorted leqloc d /\ uniq d.
@@ -851,7 +851,7 @@ Definition getvalue (N: nvmem) (i: loc) :=
     valid_nvm (updatemap m (inl i) v) (update_dom_sv i v d).
     unfold valid_nvm. move => [Hsv [Ha [Hsort Huniq] ] ].
    - repeat split; unfold updatemap; unfold update_dom_sv; destruct (v == error) eqn: Hbool; try 
-        (move/ eqP : Hbool => Heq; subst); try apply (Hsv x).
+        (move/ eqP : Hbool => Heq; subst); try apply (Hsv x); try assumption.
         remember (inl x) as sv.
         remember (inl i) as sv1.
         destruct (sv == sv1) eqn: Hbool1.
@@ -879,12 +879,22 @@ Definition getvalue (N: nvmem) (i: loc) :=
         remember (inl i) as sv1.
    - move: (Ha a) => [Hd1 Hd2].
      suffices: 
-       subseq (generate_locs a) d.
+       subseq_w (generate_locs a) d.
      move => Hsub1. rewrite - (undup_id Huniq) in Hsub1.
-     apply (subseq_undup Hsub1).
+     apply (subw_undup Hsub1).
      apply Hd1. exists el1. split; try assumption. apply/ eqP. assumption.
      move: (Ha a) => [Hd1 Hd2]. apply Hd2.
-     move: (Ha a) => [Hd1 Hd2]. apply Hd2.
+     move: (Ha a) => [Hd1 Hd2].
+     move => Hint. apply (intersect_undup (generate_locs a)
+                                         (inl i :: d)
+                        ) in Hint.
+     assert (inl i \notin (generate_locs a)).
+     apply/ negP. intros contra.
+     apply genloc_contents in contra. move : contra => [elc contra].
+     discriminate contra.
+     apply (intersect_cons Hint) in H.
+     move: (Hd2 H) => [el1 [Hel1 Hel2 ] ]. exists el1.
+     split; try rewrite ifF; try assumption.
   Admitted.
 
 Definition get_array (i: el_loc) :=

@@ -24,6 +24,8 @@ Ltac generalize_5 N N' V V' O := generalize dependent N;
                                generalize dependent O.
 Ltac appldis applier appliee := apply applier in appliee; destruct appliee.
 
+Definition subseq_w {A: eqType} (L1: seq A) (L2: seq A) := forall(l: A), l \in L1 ->
+                                                                          l \in L2.
 Lemma reflect_conj: forall{b0 b1: bool} {P0 P1: Prop},
                       reflect P0 b0 ->
                       reflect P1 b1 ->
@@ -75,16 +77,18 @@ Proof. intros.
 Qed.
 
 
-Lemma subseq_undup {A: eqType} {L1 L2: seq A} {x: A}:
-  subseq L1 (undup L2) -> subseq L1 (undup (x::L2)).
-  intros Hsub.
-   destruct (x \in L2) eqn: Hbool. simpl.
-  induction L2.
-  rewrite in_nil in Hbool. discriminate Hbool.
-  rewrite ifT; try assumption.
-  simpl. rewrite ifF; try assumption.
-  apply (subseq_trans Hsub (suffix_subseq [::x] (undup L2))).
-  Qed.
+Lemma subw_undup {A: eqType} {L1 L2: seq A} {x: A}:
+  subseq_w L1 (undup L2) -> subseq_w L1 (undup (x::L2)).
+Admitted.
 
 Definition intersect {A: eqType} (O1: seq A) (O2: seq A) :=
   exists(l: A), l \in O1 /\ l \in O2.
+
+Lemma intersect_undup {A: eqType}: forall (L1 L2: seq A),
+  intersect L1 (undup L2) -> intersect L1 L2. Admitted.
+
+Lemma intersect_cons{A: eqType} {L1 L2: seq A} {x: A}:
+  intersect L1 (x::L2) -> x \notin L1 ->
+  intersect L1 L2. Admitted.
+
+
