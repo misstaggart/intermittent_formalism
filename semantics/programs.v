@@ -257,7 +257,7 @@ Inductive trace_i1: iconf -> iconf -> obseq -> the_write_stuff -> Prop :=
  | iTrace_CP: forall{Nc0 N0 Nmid Nc1 Nend: nvmem} {Vc0 V0 Vmid Vc1 Vend: vmem}
                          {cc0 c0 crem cc1 cend: command}
                          {O1 O2: obseq} {W1 W2: the_write_stuff}
-      {w: warvars} (Hw: wf_dom w),
+      {w: warvars} (Hw: wf_dom w (getmap Nmid)),
       trace_i1 ((Nc0, Vc0, cc0), N0, V0, c0) ((Nc0, Vc0, cc0), Nmid, Vmid,
                                                                (incheckpoint w);;crem) O1 W1 (*1st
                                                                                                checkpointed section*)

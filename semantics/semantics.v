@@ -1360,7 +1360,7 @@ CheckPoint: forall(N: nvmem)
                (V: vmem)
                (c: command)
                (w: warvars),
-    wf_dom N w ->
+    wf_dom w (getmap N) ->
     cceval_w (N, V, ((incheckpoint w);; c))
              (checkpoint:: nil)
              (N, V, c)

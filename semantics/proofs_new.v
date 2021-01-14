@@ -184,7 +184,9 @@ Lemma adif_cceval {N1 N2 V c Nend Vend O1 W cend}:
 Lemma trace_converge {N V cend Nc} :
   all_diff_in_fw N V cend Nc ->
   end_com cend ->
-  N = Nc. Admitted.
+  N = Nc.
+  intros Hdiff Hend. apply nvmem_eq.
+  inversion Hdiff. subst. Admitted.
 
 
 Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
@@ -206,10 +208,13 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
       by rewrite in_nil.
       move => l0 contra. exfalso. by apply contra.
    - inversion H0; subst.
-     + exists Nc. repeat split. apply CheckPoint.
-       assumption.
-       move => l contra.
-       rewrite in_nil in contra. by exfalso.
+     +
+       assert (end_com (incheckpoint w;; c1)) as Hcp.
+       right. by exists c1 w.
+       move: (trace_converge H Hcp) => one. subst.
+       exists Nc. repeat split. apply CheckPoint; try assumption.
+       (*move => l contra.
+       rewrite in_nil in contra. by exfalso.*)
        move/ negP => contra. exfalso. by apply contra.
      + exists Nc. repeat split. apply Skip. move => l contra.
        rewrite in_nil in contra. by exfalso. intros.
@@ -765,7 +770,7 @@ Admitted.
   intros. simpl. by rewrite H.
   Qed.*)
 
-   Lemma sub_restrict: forall(N1: nvmem) (w: warvars) (Hf: wf_dom w), subset_nvm
+   Lemma sub_restrict: forall(N1: nvmem) (w: warvars) (Hf: wf_dom w (getmap N1)), subset_nvm
                                                                    (restrict N1 w Hf) N1.
      Admitted.
 
@@ -1021,12 +1026,12 @@ by repeat rewrite - catA in ass3.
                   ).
     - move => [Oc1 [Oendc1 [Nc1 [Wc1 [Wendc1 [ Nc1end [ Vc1end
             [ ccend [H11 [H12 [Ho1 [H13 [H14 H15] ] ] ] ] ] ] ] ] ] ] ] ]. subst.
+      move: (trace_converge H12 Hend) => Heq. subst.
       assert (WARok (getdomain
                        (restrict Nc1 w Hw)) [::] [::] crem) as Hwarok2.
       destruct Nc1 as [mc1 dc1 Hnc1]. rewrite/getdomain. simpl.
       apply (warok_cp H1 H11). 
         remember ((incheckpoint w);;crem) as ccp.
-      move: (trace_converge H12 Hend) => Heq. subst.
       suffices: (
                  exists Oc2 Oendc2 Nc2 Wc2 Wendc2,
                    trace_cs (Nc1, Vmid, crem)
@@ -1039,7 +1044,7 @@ by repeat rewrite - catA in ass3.
       move => [Oc2 [Oendc2 [Nc2 [Wc2 [Wendc2 [H21 [H22 [Ho2 H23] ] ] ] ] ] ] ].
       (*consider: maybe your type should just split by reboots
        rather than checkpoints*)
-     - move: (append_cps H11 H21) => T1.
+     - subst. move: (append_cps H11 H21) => T1.
       exists (Oc1 ++ [::checkpoint] ++ Oc2) Oendc2 Nc2 (append_write Wc1 Wc2) Wendc2.
       repeat split; try assumption.
       repeat rewrite - catA. apply CP_IND; try assumption.
@@ -1070,6 +1075,7 @@ by repeat rewrite - catA in ass3.
        subst.
        move: (exist_endcom Tendi H4) => [Oendc0 [Wendc0 [Nc1end0 [Vc1end
                                                            [cend0 [Tend [Hendcom Hoendc] ] ] ] ] ] ].
+      apply trace_converge in Hdiff. subst.
       assert (WARok (getdomain
                        (restrict Nc1 w Hw)) [::] [::] crem) as Hwarok2.
       destruct Nc1 as [mc1 dc1 Hnc1]. rewrite/getdomain. simpl.
@@ -1077,7 +1083,6 @@ by repeat rewrite - catA in ass3.
       move: (same_comi H1 H2 H0_ H) => [Nend1 [Oc1 [Wc1 [Tc1 Hoc1] ] ] ].
       apply (warok_cp H1 Tc1).
       Check same_comi. subst.
-      apply trace_converge in Hdiff. subst.
       move: (same_comi Hwarok2 (sub_restrict Nc1 w Hw) Tend Hoendc).
       =>
       [Nc1end [Oendc [Wendc [Tendc Hcpoendc] ] ] ].                                                            
