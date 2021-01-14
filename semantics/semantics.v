@@ -757,7 +757,27 @@ Canonical loc_ordtype := Eval hnf in OrdType loc loc_ordMixin.
               l \in generate_locs a ->
                     exists (el: el_loc), inr el = l.
    Admitted.
-(*******************************************************************)
+
+Definition get_array (i: el_loc) :=
+match i with El a _ => a end.
+
+ Lemma genloc_getarr: forall(i: el_loc) (a: array),
+           inr i \in (generate_locs a) ->
+                     (get_array i) = a. Admitted.
+
+ Lemma genloc_int: forall(a a1: array),
+  ( intersect (generate_locs a)
+              (generate_locs a1)) -> (a = a1).
+   intros. move: H => [z [Hel1 Hel2 ] ].
+   move: (genloc_contents z a Hel1) => [el Heq]. subst.
+   destruct el as [a0 i].
+   move/mapP: Hel2 => [i1 [Hi1 Hi2] ].
+   unfold index_loc in Hi2. inversion Hi2.
+   move/mapP: Hel1 => [j1 [Hj1 Hj2] ].
+   unfold index_loc in Hj2. inversion Hj2.
+   by [].
+Qed.
+   (*******************************************************************)
 
 (*more syntax*)
 Inductive instruction :=
@@ -793,7 +813,7 @@ Coercion Ins : instruction >-> command.
 Notation mem := (map_t loc_eqtype). (*memory mapping*)
 
 
-Definition loc_sorted := sort leqloc.
+Definition locsort := sort leqloc.
 
 
 Definition valid_nvm (m: mem) (d: warvars) := (forall(x: smallvar), (m (inl x) != error) <-> (inl x) \in d)
@@ -833,7 +853,6 @@ Definition getvalue (N: nvmem) (i: loc) :=
   Notation "v '<-' N" := (getvalue N v)
                            (at level 40).
 
-
   (*updates domain and mapping function*)
   (*start here consider defining the two below in terms of updatemaps
    for more generality in proofs
@@ -841,8 +860,7 @@ Definition getvalue (N: nvmem) (i: loc) :=
    you'd have a nested if in update_arr which you'll need to use
    in all the eval proofs*)
   Definition update_dom_sv (i: smallvar) (v: value) (d: warvars) :=
-    if (v == error) then d else undup ((inl i) :: d).
-
+    if (v == error) then d else locsort (undup ((inl i) :: d)).
 
 
 
@@ -856,9 +874,11 @@ Definition getvalue (N: nvmem) (i: loc) :=
         remember (inl i) as sv1.
         destruct (sv == sv1) eqn: Hbool1.
         move/ eqP : Hbool1 => Hbool1. rewrite Hbool1.
-        rewrite ifT. intros. rewrite mem_undup.
+        rewrite ifT. intros.
+        rewrite mem_sort. rewrite mem_undup.
         apply (mem_head sv1 d). auto.
-        rewrite ifF. intros Hm. subst. apply (Hsv x) in Hm. rewrite mem_undup.
+        rewrite ifF. intros Hm. subst. apply (Hsv x) in Hm.
+        rewrite mem_sort. rewrite mem_undup.
         rewrite in_cons. apply/orP. by right. by []. 
         remember (inl x) as sv.
         remember (inl i) as sv1.
@@ -866,7 +886,7 @@ Definition getvalue (N: nvmem) (i: loc) :=
         move/ eqP : Hbool1 => Hbool1. rewrite Hbool1.
         rewrite ifT. intros. by move/eqP : Heq. auto.
         move => Hin.
-        rewrite mem_undup in Hin.
+        rewrite mem_sort in Hin. rewrite mem_undup in Hin.
         rewrite in_cons in Hin. move/ orP : Hin => [Hin1 | Hin2]. exfalso. move/ eqP : Hin1 => Heq1. subst.
         move/ negbT / eqP : Hbool1. by apply.
         move: (Hsv x) => [Hsv1 Hsv2]. subst.
@@ -881,11 +901,17 @@ Definition getvalue (N: nvmem) (i: loc) :=
      suffices: 
        subseq_w (generate_locs a) d.
      move => Hsub1. rewrite - (undup_id Huniq) in Hsub1.
-     apply (subw_undup Hsub1).
+     rewrite - subw_sort.
+     remember (sv1 :: d) as S.
+     rewrite subw_undup. subst.
+     rewrite subw_undup in Hsub1.
+     apply (subw_cons Hsub1).
      apply Hd1. exists el1. split; try assumption. apply/ eqP. assumption.
      move: (Ha a) => [Hd1 Hd2]. apply Hd2.
      move: (Ha a) => [Hd1 Hd2].
-     move => Hint. apply (intersect_undup (generate_locs a)
+     move => Hint.
+     rewrite intersect_sort in Hint.
+     rewrite (intersect_undup (generate_locs a)
                                          (inl i :: d)
                         ) in Hint.
      assert (inl i \notin (generate_locs a)).
@@ -895,18 +921,72 @@ Definition getvalue (N: nvmem) (i: loc) :=
      apply (intersect_cons Hint) in H.
      move: (Hd2 H) => [el1 [Hel1 Hel2 ] ]. exists el1.
      split; try rewrite ifF; try assumption.
-  Admitted.
+     apply sort_sorted. apply loctotal. rewrite sort_uniq.
+     apply (undup_uniq (inl i :: d)).
+Qed.
 
-Definition get_array (i: el_loc) :=
-match i with El a _ => a end.
 
-Definition update_dom_arr (i: el_loc) (v: value) (d: warvars) :=
-    if (v == error) then d else (generate_locs (get_array i)) ++ d.
+
+ Definition update_dom_arr (i: el_loc) (v: value) (d: warvars) :=
+    if (v == error) then d else locsort (generate_locs (get_array i) ++ d).
 
   Lemma updatemap_arr {m: mem} {d: warvars} {i: el_loc} {v: value} 
     :
     valid_nvm m d ->
-    valid_nvm (updatemap m (inr i) v) (update_dom_arr i v d). Admitted.
+    valid_nvm (updatemap m (inr i) v) (update_dom_arr i v d). 
+    unfold valid_nvm. move => [Hsv [Ha [Hsort Huniq] ] ].
+   - repeat split; unfold updatemap; unfold update_dom_arr; destruct (v == error) eqn: Hbool; try 
+                                                                                                (move/ eqP : Hbool => Heq; subst); try apply (Hsv x); try assumption.
+     intros.
+     assert (inl x != inr i). by [].
+     (*start here ask arthur why ifF doesnt work here but this does*)
+     move/ eqP /eqP : H => Hneq.
+     apply (Hsv x) in Hneq.
+     rewrite mem_sort.
+     rewrite mem_cat. apply/ orP. by right.
+     rewrite mem_sort mem_cat => Hin. move/ orP : Hin => [Hcontra | Hin].
+     apply genloc_contents in Hcontra.
+     move: Hcontra => [el contra]. discriminate contra.
+     move: (Hsv x) => [Hsv1 Hsv2]. apply Hsv2 in Hin.
+     by apply/eqP / eqP. 
+   - move: (Ha a) => [Ha1 Ha2]. assumption.
+     move => [el1 [H1 H2] ].
+     remember (inr el1) as z.
+     destruct (z == inr i) eqn: Hbool. move/ eqP: Hbool => one.
+     subst. inversion one. subst.
+     apply genloc_getarr in H1.
+     rewrite H1. rewrite - subw_sort. apply subw_prefix. apply subw_refl.
+     rewrite ifF in H2; try assumption.
+     rewrite - subw_sort. apply subw_suffix. move: (Ha a) => [Ha1 Ha2].
+     apply Ha1. subst. exists el1. split; try assumption.
+   - move: (Ha a) => [Hd1 Hd2]. assumption.
+     rewrite intersect_sort intersect_cat => Hint.
+     destruct Hint as [Hint | Hint].
+     rewrite intersect_cat in Hint.
+
+     suffices: 
+       subseq_w (generate_locs a) d.
+     move => Hsub1. rewrite - (undup_id Huniq) in Hsub1.
+    eapply subw_sort.  apply (subw_undup Hsub1).
+     apply Hd1. exists el1. split; try assumption. apply/ eqP. assumption.
+     move: (Ha a) => [Hd1 Hd2]. apply Hd2.
+     move: (Ha a) => [Hd1 Hd2].
+     move => Hint.
+     apply intersect_sort in Hint.
+     apply (intersect_undup (generate_locs a)
+                                         (inl i :: d)
+                        ) in Hint.
+     assert (inl i \notin (generate_locs a)).
+     apply/ negP. intros contra.
+     apply genloc_contents in contra. move : contra => [elc contra].
+     discriminate contra.
+     apply (intersect_cons Hint) in H.
+     move: (Hd2 H) => [el1 [Hel1 Hel2 ] ]. exists el1.
+     split; try rewrite ifF; try assumption.
+     apply sort_sorted. apply loctotal. rewrite sort_uniq.
+     apply (undup_uniq (inl i :: d)).
+Qed.
+
 
 Definition updateNV_sv (N: nvmem) (i: smallvar) (v: value) :=
   match N with NonVol m D H =>
@@ -931,7 +1011,7 @@ Definition updateNV_arr (N: nvmem) (i: el_loc) (a: array) (v: value)
     valid_nvm (fun j =>
       if (j \in d)
           then (m j)
-          else (m' j)) (d ++ d'). Admitted.
+          else (m' j)) locsort (undup (d ++ d')). Admitted.
 
   Definition updatemaps (N: nvmem) (N': nvmem): nvmem :=
   match N, N' with
@@ -940,7 +1020,7 @@ Definition updateNV_arr (N: nvmem) (i: el_loc) (a: array) (v: value)
       if (j \in D)
           then (m j)
           else (m' j))
-  (D ++ D') (updatemaps_wf H H') (*inclusion of duplicates...can't allow this*)
+  locsort (undup (D ++ D')) (updatemaps_wf H H') (*inclusion of duplicates...can't allow this*)
   end.
 Notation "m1 'U!' m2" := (updatemaps m1 m2) (at level 100).
 (*start here should really change the above ordering to be more intuitive*)

@@ -1,7 +1,7 @@
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
-     Init.Datatypes Lists.List Strings.String Program.
+     Init.Datatypes Lists.List Strings.String Program Logic.PropExtensionality.
 Require Export Coq.Strings.String.
-From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype seq.
+From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype seq path.
 From TLC Require Import LibTactics.
 
 Ltac destruct4r H L1 L2 L3 L4 := destruct H as [L1 rest];
@@ -77,18 +77,42 @@ Proof. intros.
 Qed.
 
 
-Lemma subw_undup {A: eqType} {L1 L2: seq A} {x: A}:
-  subseq_w L1 (undup L2) -> subseq_w L1 (undup (x::L2)).
+Lemma subw_undup {A: eqType} {L1 L2: seq A}:
+  subseq_w L1 (undup L2) = subseq_w L1 L2.
 Admitted.
 
 Definition intersect {A: eqType} (O1: seq A) (O2: seq A) :=
   exists(l: A), l \in O1 /\ l \in O2.
 
 Lemma intersect_undup {A: eqType}: forall (L1 L2: seq A),
-  intersect L1 (undup L2) -> intersect L1 L2. Admitted.
+    intersect L1 (undup L2) = intersect L1 L2.
+  intros. apply propositional_extensionality.
+Admitted.
 
 Lemma intersect_cons{A: eqType} {L1 L2: seq A} {x: A}:
   intersect L1 (x::L2) -> x \notin L1 ->
   intersect L1 L2. Admitted.
 
+Lemma subw_sort {A: eqType} {L1 L2: seq A} {R: rel A}:
+  subseq_w L1 L2 = subseq_w L1 (sort R L2).
+Admitted.
+
+Lemma subw_cons {A: eqType} {L1 L2: seq A} {x: A}:
+subseq_w L1 L2 -> subseq_w L1 (x:: L2). Admitted.
+
+Lemma intersect_sort {A: eqType} {R: rel A}: forall {L1 L2: seq A},
+    intersect L1 (sort R L2) = intersect L1 L2.
+Admitted.
+
+Lemma subw_prefix {A: eqType} {L1 L2 L3: seq A}:
+  subseq_w L1 L2 -> subseq_w L1 (L2 ++ L3). Admitted.
+
+Lemma subw_suffix {A: eqType} {L1 L2 L3: seq A}:
+  subseq_w L1 L3 -> subseq_w L1 (L2 ++ L3). Admitted.
+
+Lemma subw_refl {A: eqType} {L1: seq A}:
+  subseq_w L1 L1. Admitted.
+
+Lemma intersect_cat {A: eqType} {R: rel A}: forall {L1 L2 L3: seq A},
+  intersect L1 (L2 ++ L3) = (intersect L1 L2 \/ intersect L1 L3). Admitted.
 
