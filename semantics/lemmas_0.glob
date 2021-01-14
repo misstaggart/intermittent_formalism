@@ -1,4 +1,4 @@
-DIGEST 37e589ee214fb9d34bb3ea6f19adc0d5
+DIGEST 9c94119f28ebed3c7b155e82cef080a4
 FSemantics.lemmas_0
 R24:32 Coq.Bool.Bool <> <> lib
 R34:41 Coq.Init.Nat <> <> lib
@@ -161,3 +161,44 @@ R2397:2398 Semantics.lemmas_0 <> L2:22 var
 R2394:2395 Semantics.lemmas_0 <> L1:21 var
 R2462:2468 mathcomp.ssreflect.seq <> subseqP thm
 R2547:2554 mathcomp.ssreflect.seq <> mem_mask thm
+prf 2575:2586 <> subseq_undup
+R2592:2597 mathcomp.ssreflect.eqtype Equality.Exports eqType syndef
+binder 2589:2589 <> A:24
+R2608:2610 mathcomp.ssreflect.seq <> seq syndef
+R2612:2612 Semantics.lemmas_0 <> A:24 var
+binder 2601:2602 <> L1:25
+binder 2604:2605 <> L2:26
+R2619:2619 Semantics.lemmas_0 <> A:24 var
+binder 2616:2616 <> x:27
+R2645:2648 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2649:2654 mathcomp.ssreflect.seq <> subseq def
+R2660:2664 mathcomp.ssreflect.seq <> undup def
+R2668:2669 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R2667:2667 Semantics.lemmas_0 <> x:27 var
+R2670:2671 Semantics.lemmas_0 <> L2:26 var
+R2656:2657 Semantics.lemmas_0 <> L1:25 var
+R2625:2630 mathcomp.ssreflect.seq <> subseq def
+R2636:2640 mathcomp.ssreflect.seq <> undup def
+R2642:2643 Semantics.lemmas_0 <> L2:26 var
+R2632:2633 Semantics.lemmas_0 <> L1:25 var
+R2705:2709 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R2705:2709 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R2759:2764 mathcomp.ssreflect.seq <> in_nil thm
+R2759:2764 mathcomp.ssreflect.seq <> in_nil thm
+R2759:2764 mathcomp.ssreflect.seq <> in_nil thm
+R2806:2808 Coq.ssr.ssrbool <> ifT thm
+R2806:2808 Coq.ssr.ssrbool <> ifT thm
+R2806:2808 Coq.ssr.ssrbool <> ifT thm
+R2844:2846 Coq.ssr.ssrbool <> ifF thm
+R2844:2846 Coq.ssr.ssrbool <> ifF thm
+R2844:2846 Coq.ssr.ssrbool <> ifF thm
+R2874:2885 mathcomp.ssreflect.seq <> subseq_trans thm
+R2893:2905 mathcomp.ssreflect.seq <> suffix_subseq thm
+R2914:2918 mathcomp.ssreflect.seq <> undup def
+R2907:2909 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_x_']' not
+R2911:2911 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_x_']' not
+R2874:2885 mathcomp.ssreflect.seq <> subseq_trans thm
+R2893:2905 mathcomp.ssreflect.seq <> suffix_subseq thm
+R2914:2918 mathcomp.ssreflect.seq <> undup def
+R2907:2909 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_x_']' not
+R2911:2911 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_x_']' not

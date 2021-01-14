@@ -85,3 +85,6 @@ Lemma subseq_undup {A: eqType} {L1 L2: seq A} {x: A}:
   simpl. rewrite ifF; try assumption.
   apply (subseq_trans Hsub (suffix_subseq [::x] (undup L2))).
   Qed.
+
+Definition intersect {A: eqType} (O1: seq A) (O2: seq A) :=
+  exists(l: A), l \in O1 /\ l \in O2.

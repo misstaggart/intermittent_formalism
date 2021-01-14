@@ -876,8 +876,15 @@ Definition getvalue (N: nvmem) (i: loc) :=
      move => [el1 [H1 H2] ].
      assert (inr el1 != inl i). by [].
      move/ eqP : H2 => Herr.
-
-   - move: (Ha a) => [Hd1 Hd2]. assumption.
+        remember (inl i) as sv1.
+   - move: (Ha a) => [Hd1 Hd2].
+     suffices: 
+       subseq (generate_locs a) d.
+     move => Hsub1. rewrite - (undup_id Huniq) in Hsub1.
+     apply (subseq_undup Hsub1).
+     apply Hd1. exists el1. split; try assumption. apply/ eqP. assumption.
+     move: (Ha a) => [Hd1 Hd2]. apply Hd2.
+     move: (Ha a) => [Hd1 Hd2]. apply Hd2.
   Admitted.
 
 Definition get_array (i: el_loc) :=
