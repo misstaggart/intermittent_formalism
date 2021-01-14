@@ -46,7 +46,7 @@ Proof. intros C1 C2 O W T. induction T.
        + auto.
        + induction H; auto; try (unfold getfstwt; unfold getwt;
          apply filter_subseq).
-       - simpl. apply (cat_suibseq (subseq_trans
+       - simpl. apply (cat_subseq (subseq_trans
                                     (filter_subseq _ _ )
                                     IHT2) IHT1
                                     ).

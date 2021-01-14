@@ -1,4 +1,4 @@
-DIGEST ad62f41014fae96f7de393fa01012127
+DIGEST bdd24da7205ac1a1787290d3b78e8625
 FSemantics.algorithms
 R70:78 Coq.Bool.Bool <> <> lib
 R80:87 Coq.Init.Nat <> <> lib
@@ -14,961 +14,962 @@ R238:244 mathcomp.ssreflect.ssrbool <> <> lib
 R246:251 mathcomp.ssreflect.eqtype <> <> lib
 R253:255 mathcomp.ssreflect.seq <> <> lib
 R288:296 Semantics.semantics <> <> lib
-ind 513:514 <> rd
-constr 547:548 <> RD
-R520:523 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R531:534 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R524:530 Semantics.semantics <> warvars syndef
-R517:519 Semantics.semantics <> exp ind
-R562:564 Semantics.semantics <> exp ind
-binder 559:559 <> e:3
-R571:575 Semantics.semantics <> nvmem ind
-binder 568:568 <> N:4
-R582:585 Semantics.semantics <> vmem ind
-binder 579:579 <> V:5
-R593:599 Semantics.semantics <> readobs def
-binder 589:590 <> rs:6
-R606:610 Semantics.semantics <> value ind
-binder 603:603 <> v:7
-R636:639 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R640:641 Semantics.algorithms <> rd:1 ind
-R646:656 Semantics.semantics <> readobs_wvs def
-R658:659 Semantics.algorithms <> rs:6 var
-R643:643 Semantics.algorithms <> e:3 var
-R620:624 Semantics.semantics <> eeval ind
-R635:635 Semantics.algorithms <> v:7 var
-R632:633 Semantics.algorithms <> rs:6 var
-R630:630 Semantics.algorithms <> e:3 var
-R628:628 Semantics.algorithms <> V:5 var
-R626:626 Semantics.algorithms <> N:4 var
-ind 676:682 <> WAR_ins
-constr 763:770 <> WAR_Skip
-constr 826:832 <> WAR_Vol
-constr 1253:1260 <> WAR_NoRd
-constr 1597:1612 <> WAR_Checkpointed
-constr 2010:2015 <> WAR_WT
-constr 2590:2601 <> WAR_NoRd_Arr
-constr 3372:3391 <> WAR_Checkpointed_Arr
-R692:695 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R703:706 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R714:717 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R729:732 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R740:743 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R751:754 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R744:750 Semantics.semantics <> warvars syndef
-R733:739 Semantics.semantics <> warvars syndef
-R718:728 Semantics.semantics <> instruction ind
-R707:713 Semantics.semantics <> warvars syndef
-R696:702 Semantics.semantics <> warvars syndef
-R685:691 Semantics.semantics <> warvars syndef
-R787:793 Semantics.semantics <> warvars syndef
-binder 780:780 <> N:10
-binder 782:782 <> W:11
-binder 784:784 <> R:12
-R801:807 Semantics.algorithms <> WAR_ins:8 ind
+R298:305 Semantics.lemmas_0 <> <> lib
+ind 522:523 <> rd
+constr 556:557 <> RD
+R529:532 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R540:543 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R533:539 Semantics.semantics <> warvars syndef
+R526:528 Semantics.semantics <> exp ind
+R571:573 Semantics.semantics <> exp ind
+binder 568:568 <> e:3
+R580:584 Semantics.semantics <> nvmem ind
+binder 577:577 <> N:4
+R591:594 Semantics.semantics <> vmem ind
+binder 588:588 <> V:5
+R602:608 Semantics.semantics <> readobs def
+binder 598:599 <> rs:6
+R615:619 Semantics.semantics <> value ind
+binder 612:612 <> v:7
+R645:648 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R649:650 Semantics.algorithms <> rd:1 ind
+R655:665 Semantics.semantics <> readobs_wvs def
+R667:668 Semantics.algorithms <> rs:6 var
+R652:652 Semantics.algorithms <> e:3 var
+R629:633 Semantics.semantics <> eeval ind
+R644:644 Semantics.algorithms <> v:7 var
+R641:642 Semantics.algorithms <> rs:6 var
+R639:639 Semantics.algorithms <> e:3 var
+R637:637 Semantics.algorithms <> V:5 var
+R635:635 Semantics.algorithms <> N:4 var
+ind 685:691 <> WAR_ins
+constr 772:779 <> WAR_Skip
+constr 835:841 <> WAR_Vol
+constr 1262:1269 <> WAR_NoRd
+constr 1606:1621 <> WAR_Checkpointed
+constr 2019:2024 <> WAR_WT
+constr 2599:2610 <> WAR_NoRd_Arr
+constr 3381:3400 <> WAR_Checkpointed_Arr
+R701:704 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R712:715 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R723:726 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R738:741 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R749:752 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R760:763 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R753:759 Semantics.semantics <> warvars syndef
+R742:748 Semantics.semantics <> warvars syndef
+R727:737 Semantics.semantics <> instruction ind
+R716:722 Semantics.semantics <> warvars syndef
+R705:711 Semantics.semantics <> warvars syndef
+R694:700 Semantics.semantics <> warvars syndef
+R796:802 Semantics.semantics <> warvars syndef
+binder 789:789 <> N:10
+binder 791:791 <> W:11
+binder 793:793 <> R:12
+R810:816 Semantics.algorithms <> WAR_ins:8 ind
+R831:831 Semantics.algorithms <> R:12 var
+R829:829 Semantics.algorithms <> W:11 var
+R824:827 Semantics.semantics <> skip constr
 R822:822 Semantics.algorithms <> R:12 var
 R820:820 Semantics.algorithms <> W:11 var
-R815:818 Semantics.semantics <> skip constr
-R813:813 Semantics.algorithms <> R:12 var
-R811:811 Semantics.algorithms <> W:11 var
-R809:809 Semantics.algorithms <> N:10 var
-R852:858 Semantics.semantics <> warvars syndef
-binder 842:842 <> N:13
-binder 844:844 <> W:14
-binder 846:846 <> R:15
-binder 848:849 <> Re:16
-R865:872 Semantics.semantics <> smallvar ind
-binder 862:862 <> x:17
-R879:881 Semantics.semantics <> exp ind
-binder 876:876 <> e:18
-R990:990 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R998:1097 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R1103:1137 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R1154:1210 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R1211:1217 Semantics.algorithms <> WAR_ins:8 ind
-R1244:1247 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R1242:1243 Semantics.algorithms <> Re:16 var
-R1248:1248 Semantics.algorithms <> R:15 var
-R1239:1239 Semantics.algorithms <> W:14 var
-R1226:1232 Semantics.semantics <> asgn_sv constr
-R1236:1236 Semantics.algorithms <> e:18 var
-R1234:1234 Semantics.algorithms <> x:17 var
-R1223:1223 Semantics.algorithms <> R:15 var
-R1221:1221 Semantics.algorithms <> W:14 var
-R1219:1219 Semantics.algorithms <> N:13 var
-R1138:1138 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
-R1144:1152 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
-R1139:1141 Coq.Init.Datatypes <> inl constr
-R1143:1143 Semantics.algorithms <> x:17 var
-R1153:1153 Semantics.algorithms <> W:14 var
-R1098:1100 Semantics.semantics <> isV def
-R1102:1102 Semantics.algorithms <> x:17 var
-R991:992 Semantics.algorithms <> rd ind
-R996:997 Semantics.algorithms <> Re:16 var
-R994:994 Semantics.algorithms <> e:18 var
-R1280:1286 Semantics.semantics <> warvars syndef
-binder 1270:1270 <> N:19
-binder 1272:1272 <> W:20
-binder 1274:1274 <> R:21
-binder 1276:1277 <> Re:22
-R1306:1313 Semantics.semantics <> smallvar ind
-binder 1303:1303 <> x:23
-R1320:1322 Semantics.semantics <> exp ind
-binder 1317:1317 <> e:24
-R1345:1391 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R1392:1392 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R1400:1499 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R1526:1543 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R1544:1550 Semantics.algorithms <> WAR_ins:8 ind
-R1588:1591 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R1586:1587 Semantics.algorithms <> Re:22 var
-R1592:1592 Semantics.algorithms <> R:21 var
-R1573:1573 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R1579:1581 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R1574:1576 Coq.Init.Datatypes <> inl constr
-R1578:1578 Semantics.algorithms <> x:23 var
-R1582:1582 Semantics.algorithms <> W:20 var
-R1559:1565 Semantics.semantics <> asgn_sv constr
-R1569:1569 Semantics.algorithms <> e:24 var
-R1567:1567 Semantics.algorithms <> x:23 var
-R1556:1556 Semantics.algorithms <> R:21 var
-R1554:1554 Semantics.algorithms <> W:20 var
-R1552:1552 Semantics.algorithms <> N:19 var
-R1500:1502 Coq.Init.Logic <> not def
-R1504:1504 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R1510:1516 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R1524:1524 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R1505:1507 Coq.Init.Datatypes <> inl constr
-R1509:1509 Semantics.algorithms <> x:23 var
-R1519:1522 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R1517:1518 Semantics.algorithms <> Re:22 var
-R1523:1523 Semantics.algorithms <> R:21 var
-R1393:1394 Semantics.algorithms <> rd ind
-R1398:1399 Semantics.algorithms <> Re:22 var
-R1396:1396 Semantics.algorithms <> e:24 var
-R1339:1342 Semantics.semantics <> isNV def
-R1344:1344 Semantics.algorithms <> x:23 var
-R1632:1638 Semantics.semantics <> warvars syndef
-binder 1622:1622 <> N:25
-binder 1624:1624 <> W:26
-binder 1626:1626 <> R:27
-binder 1628:1629 <> Re:28
-R1658:1665 Semantics.semantics <> smallvar ind
-binder 1655:1655 <> x:29
-R1672:1674 Semantics.semantics <> exp ind
-binder 1669:1669 <> e:30
-R1691:1691 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R1699:1798 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R1805:1851 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R1873:1889 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R1908:1924 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R1925:1925 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R1939:1956 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R1957:1963 Semantics.algorithms <> WAR_ins:8 ind
-R2001:2004 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R1999:2000 Semantics.algorithms <> Re:28 var
-R2005:2005 Semantics.algorithms <> R:27 var
-R1986:1986 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R1992:1994 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R1987:1989 Coq.Init.Datatypes <> inl constr
-R1991:1991 Semantics.algorithms <> x:29 var
-R1995:1995 Semantics.algorithms <> W:26 var
-R1972:1978 Semantics.semantics <> asgn_sv constr
-R1982:1982 Semantics.algorithms <> e:30 var
-R1980:1980 Semantics.algorithms <> x:29 var
-R1969:1969 Semantics.algorithms <> R:27 var
-R1967:1967 Semantics.algorithms <> W:26 var
-R1965:1965 Semantics.algorithms <> N:25 var
-R1926:1926 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R1932:1937 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R1927:1929 Coq.Init.Datatypes <> inl constr
-R1931:1931 Semantics.algorithms <> x:29 var
-R1938:1938 Semantics.algorithms <> N:25 var
-R1890:1892 Coq.Init.Logic <> not def
-R1894:1894 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R1900:1905 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R1895:1897 Coq.Init.Datatypes <> inl constr
-R1899:1899 Semantics.algorithms <> x:29 var
-R1906:1906 Semantics.algorithms <> W:26 var
-R1852:1852 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R1858:1864 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R1872:1872 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R1853:1855 Coq.Init.Datatypes <> inl constr
-R1857:1857 Semantics.algorithms <> x:29 var
-R1867:1870 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R1865:1866 Semantics.algorithms <> Re:28 var
-R1871:1871 Semantics.algorithms <> R:27 var
-R1799:1802 Semantics.semantics <> isNV def
-R1804:1804 Semantics.algorithms <> x:29 var
-R1692:1693 Semantics.algorithms <> rd ind
-R1697:1698 Semantics.algorithms <> Re:28 var
-R1695:1695 Semantics.algorithms <> e:30 var
-R2035:2041 Semantics.semantics <> warvars syndef
-binder 2025:2025 <> N:31
-binder 2027:2027 <> W:32
-binder 2029:2029 <> R:33
-binder 2031:2032 <> Re:34
-R2061:2068 Semantics.semantics <> smallvar ind
-binder 2058:2058 <> x:35
-R2075:2077 Semantics.semantics <> exp ind
-binder 2072:2072 <> e:36
-R2094:2094 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R2102:2201 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R2223:2251 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R2252:2252 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R2266:2283 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R2290:2336 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R2337:2343 Semantics.algorithms <> WAR_ins:8 ind
-R2382:2385 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R2380:2381 Semantics.algorithms <> Re:34 var
-R2386:2386 Semantics.algorithms <> R:33 var
-R2366:2366 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R2372:2375 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R2367:2369 Coq.Init.Datatypes <> inl constr
-R2371:2371 Semantics.algorithms <> x:35 var
-R2376:2376 Semantics.algorithms <> W:32 var
-R2352:2358 Semantics.semantics <> asgn_sv constr
-R2362:2362 Semantics.algorithms <> e:36 var
-R2360:2360 Semantics.algorithms <> x:35 var
-R2349:2349 Semantics.algorithms <> R:33 var
-R2347:2347 Semantics.algorithms <> W:32 var
-R2345:2345 Semantics.algorithms <> N:31 var
-R2284:2287 Semantics.semantics <> isNV def
-R2289:2289 Semantics.algorithms <> x:35 var
-R2253:2253 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R2259:2264 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R2254:2256 Coq.Init.Datatypes <> inl constr
-R2258:2258 Semantics.algorithms <> x:35 var
-R2265:2265 Semantics.algorithms <> W:32 var
-R2202:2202 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R2208:2214 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R2222:2222 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R2203:2205 Coq.Init.Datatypes <> inl constr
-R2207:2207 Semantics.algorithms <> x:35 var
-R2217:2220 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R2215:2216 Semantics.algorithms <> Re:34 var
-R2221:2221 Semantics.algorithms <> R:33 var
-R2095:2096 Semantics.algorithms <> rd ind
-R2100:2101 Semantics.algorithms <> Re:34 var
-R2098:2098 Semantics.algorithms <> e:36 var
-R2628:2634 Semantics.semantics <> warvars syndef
-binder 2611:2611 <> N:37
-binder 2613:2613 <> W:38
-binder 2615:2615 <> R:39
-binder 2617:2618 <> Re:40
-binder 2620:2625 <> Rindex:41
-R2658:2662 Semantics.semantics <> array ind
-binder 2655:2655 <> a:42
-R2675:2677 Semantics.semantics <> exp ind
-binder 2666:2666 <> e:43
-binder 2668:2672 <> index:44
-R2685:2685 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R2693:2783 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R2784:2784 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R2800:2898 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R2951:3135 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R3136:3142 Semantics.algorithms <> WAR_ins:8 ind
-R3199:3202 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R3197:3198 Semantics.algorithms <> Re:40 var
-R3209:3212 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R3203:3208 Semantics.algorithms <> Rindex:41 var
-R3213:3213 Semantics.algorithms <> R:39 var
-R3172:3172 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R3188:3192 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R3173:3185 Semantics.semantics <> generate_locs def
-R3187:3187 Semantics.algorithms <> a:42 var
-R3193:3193 Semantics.algorithms <> W:38 var
-R3151:3158 Semantics.semantics <> asgn_arr constr
-R3168:3168 Semantics.algorithms <> e:43 var
-R3162:3166 Semantics.algorithms <> index:44 var
-R3160:3160 Semantics.algorithms <> a:42 var
-R3148:3148 Semantics.algorithms <> R:39 var
-R3146:3146 Semantics.algorithms <> W:38 var
-R3144:3144 Semantics.algorithms <> N:37 var
-R2899:2901 Coq.Init.Logic <> not def
-R2903:2911 Semantics.semantics <> intersect def
-R2934:2937 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R2932:2933 Semantics.algorithms <> Re:40 var
-R2944:2947 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R2938:2943 Semantics.algorithms <> Rindex:41 var
-R2948:2948 Semantics.algorithms <> R:39 var
-R2914:2926 Semantics.semantics <> generate_locs def
-R2928:2928 Semantics.algorithms <> a:42 var
-R2785:2786 Semantics.algorithms <> rd ind
-R2794:2799 Semantics.algorithms <> Rindex:41 var
-R2788:2792 Semantics.algorithms <> index:44 var
-R2686:2687 Semantics.algorithms <> rd ind
-R2691:2692 Semantics.algorithms <> Re:40 var
-R2689:2689 Semantics.algorithms <> e:43 var
-R3418:3424 Semantics.semantics <> warvars syndef
-binder 3401:3401 <> N:45
-binder 3403:3403 <> W:46
-binder 3405:3405 <> R:47
-binder 3407:3408 <> Re:48
-binder 3410:3415 <> Rindex:49
-R3448:3452 Semantics.semantics <> array ind
-binder 3445:3445 <> a:50
-R3465:3467 Semantics.semantics <> exp ind
-binder 3456:3456 <> e:51
-binder 3458:3462 <> index:52
-R3475:3475 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R3483:3573 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R3574:3574 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R3590:3688 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R3689:3689 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R3734:3742 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R3743:3743 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R3771:3779 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R3780:3786 Semantics.algorithms <> WAR_ins:8 ind
-R3843:3846 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R3841:3842 Semantics.algorithms <> Re:48 var
-R3853:3856 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R3847:3852 Semantics.algorithms <> Rindex:49 var
-R3857:3857 Semantics.algorithms <> R:47 var
-R3816:3816 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R3832:3836 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R3817:3829 Semantics.semantics <> generate_locs def
-R3831:3831 Semantics.algorithms <> a:50 var
-R3837:3837 Semantics.algorithms <> W:46 var
-R3795:3802 Semantics.semantics <> asgn_arr constr
-R3812:3812 Semantics.algorithms <> e:51 var
-R3806:3810 Semantics.algorithms <> index:52 var
-R3804:3804 Semantics.algorithms <> a:50 var
-R3792:3792 Semantics.algorithms <> R:47 var
-R3790:3790 Semantics.algorithms <> W:46 var
-R3788:3788 Semantics.algorithms <> N:45 var
-R3744:3749 mathcomp.ssreflect.seq <> subseq def
-R3770:3770 Semantics.algorithms <> N:45 var
-R3752:3764 Semantics.semantics <> generate_locs def
-R3766:3766 Semantics.algorithms <> a:50 var
-R3690:3695 mathcomp.ssreflect.seq <> subseq def
-R3718:3721 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R3716:3717 Semantics.algorithms <> Re:48 var
-R3728:3731 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R3722:3727 Semantics.algorithms <> Rindex:49 var
-R3732:3732 Semantics.algorithms <> R:47 var
-R3698:3710 Semantics.semantics <> generate_locs def
-R3712:3712 Semantics.algorithms <> a:50 var
-R3575:3576 Semantics.algorithms <> rd ind
-R3584:3589 Semantics.algorithms <> Rindex:49 var
-R3578:3582 Semantics.algorithms <> index:52 var
-R3476:3477 Semantics.algorithms <> rd ind
-R3481:3482 Semantics.algorithms <> Re:48 var
-R3479:3479 Semantics.algorithms <> e:51 var
-ind 3873:3877 <> WARok
-constr 3933:3937 <> WAR_I
-constr 4033:4038 <> WAR_CP
-constr 4152:4158 <> WAR_Seq
-constr 4339:4344 <> WAR_If
-R3887:3890 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R3898:3901 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R3909:3912 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R3920:3923 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R3913:3919 Semantics.semantics <> command ind
-R3902:3908 Semantics.semantics <> warvars syndef
-R3891:3897 Semantics.semantics <> warvars syndef
-R3880:3886 Semantics.semantics <> warvars syndef
-R3960:3966 Semantics.semantics <> warvars syndef
-binder 3947:3947 <> N:55
-binder 3949:3949 <> W:56
-binder 3951:3951 <> R:57
-binder 3953:3954 <> W':58
-binder 3956:3957 <> R':59
-R3973:3983 Semantics.semantics <> instruction ind
-binder 3970:3970 <> l:60
-R4012:4015 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R4016:4020 Semantics.algorithms <> WARok:53 ind
-R4028:4028 Semantics.algorithms <> l:60 var
-R4026:4026 Semantics.algorithms <> R:57 var
-R4024:4024 Semantics.algorithms <> W:56 var
-R4022:4022 Semantics.algorithms <> N:55 var
-R3991:3997 Semantics.algorithms <> WAR_ins ind
-R4010:4011 Semantics.algorithms <> R':59 var
-R4007:4008 Semantics.algorithms <> W':58 var
-R4005:4005 Semantics.algorithms <> l:60 var
-R4003:4003 Semantics.algorithms <> R:57 var
-R4001:4001 Semantics.algorithms <> W:56 var
-R3999:3999 Semantics.algorithms <> N:55 var
-R4057:4063 Semantics.semantics <> warvars syndef
-binder 4048:4048 <> w:61
-binder 4050:4050 <> N:62
-binder 4052:4052 <> W:63
-binder 4054:4054 <> R:64
-R4070:4076 Semantics.semantics <> command ind
-binder 4067:4067 <> c:65
-R4104:4114 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R4115:4119 Semantics.algorithms <> WARok:53 ind
-R4128:4128 Semantics.semantics <> :::x_';;'_x not
-R4143:4145 Semantics.semantics <> :::x_';;'_x not
-R4129:4140 Semantics.semantics <> incheckpoint constr
-R4142:4142 Semantics.algorithms <> w:61 var
-R4146:4146 Semantics.algorithms <> c:65 var
-R4125:4125 Semantics.algorithms <> R:64 var
-R4123:4123 Semantics.algorithms <> W:63 var
-R4121:4121 Semantics.algorithms <> N:62 var
-R4087:4091 Semantics.algorithms <> WARok:53 ind
-R4103:4103 Semantics.algorithms <> c:65 var
-R4099:4101 Coq.Init.Datatypes <> nil constr
-R4095:4097 Coq.Init.Datatypes <> nil constr
-R4093:4093 Semantics.algorithms <> w:61 var
-R4181:4187 Semantics.semantics <> warvars syndef
-binder 4168:4168 <> N:66
-binder 4170:4170 <> W:67
-binder 4172:4172 <> R:68
-binder 4174:4175 <> W':69
-binder 4177:4178 <> R':70
-R4207:4217 Semantics.semantics <> instruction ind
-binder 4204:4204 <> l:71
-R4224:4230 Semantics.semantics <> command ind
-binder 4221:4221 <> c:72
-R4268:4284 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R4300:4316 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R4317:4321 Semantics.algorithms <> WARok:53 ind
-R4331:4332 Semantics.semantics <> :::x_';;'_x not
-R4330:4330 Semantics.algorithms <> l:71 var
-R4333:4333 Semantics.algorithms <> c:72 var
-R4327:4327 Semantics.algorithms <> R:68 var
-R4325:4325 Semantics.algorithms <> W:67 var
-R4323:4323 Semantics.algorithms <> N:66 var
-R4285:4289 Semantics.algorithms <> WARok:53 ind
-R4299:4299 Semantics.algorithms <> c:72 var
-R4296:4297 Semantics.algorithms <> R':70 var
-R4293:4294 Semantics.algorithms <> W':69 var
-R4291:4291 Semantics.algorithms <> N:66 var
-R4247:4253 Semantics.algorithms <> WAR_ins ind
-R4266:4267 Semantics.algorithms <> R':70 var
-R4263:4264 Semantics.algorithms <> W':69 var
-R4261:4261 Semantics.algorithms <> l:71 var
-R4259:4259 Semantics.algorithms <> R:68 var
-R4257:4257 Semantics.algorithms <> W:67 var
-R4255:4255 Semantics.algorithms <> N:66 var
-R4364:4370 Semantics.semantics <> warvars syndef
-binder 4354:4354 <> N:73
-binder 4356:4356 <> W:74
-binder 4358:4358 <> R:75
-binder 4360:4361 <> Re:76
-R4389:4391 Semantics.semantics <> exp ind
-binder 4386:4386 <> e:77
-R4414:4420 Semantics.semantics <> command ind
-binder 4407:4408 <> c1:78
-binder 4410:4411 <> c2:79
-R4429:4429 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R4437:4528 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R4551:4559 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R4582:4590 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R4591:4595 Semantics.algorithms <> WARok:53 ind
-R4604:4608 Semantics.semantics <> :::'TEST'_x_'THEN'_x_'ELSE'_x not
-R4610:4615 Semantics.semantics <> :::'TEST'_x_'THEN'_x_'ELSE'_x not
-R4618:4623 Semantics.semantics <> :::'TEST'_x_'THEN'_x_'ELSE'_x not
-R4609:4609 Semantics.algorithms <> e:77 var
-R4616:4617 Semantics.algorithms <> c1:78 var
-R4624:4625 Semantics.algorithms <> c2:79 var
-R4601:4601 Semantics.algorithms <> R:75 var
-R4599:4599 Semantics.algorithms <> W:74 var
-R4597:4597 Semantics.algorithms <> N:73 var
-R4560:4564 Semantics.algorithms <> WARok:53 ind
-R4580:4581 Semantics.algorithms <> c2:79 var
-R4573:4576 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R4571:4572 Semantics.algorithms <> Re:76 var
-R4577:4577 Semantics.algorithms <> R:75 var
-R4568:4568 Semantics.algorithms <> W:74 var
-R4566:4566 Semantics.algorithms <> N:73 var
-R4529:4533 Semantics.algorithms <> WARok:53 ind
-R4549:4550 Semantics.algorithms <> c1:78 var
-R4542:4545 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R4540:4541 Semantics.algorithms <> Re:76 var
-R4546:4546 Semantics.algorithms <> R:75 var
-R4537:4537 Semantics.algorithms <> W:74 var
-R4535:4535 Semantics.algorithms <> N:73 var
-R4430:4431 Semantics.algorithms <> rd ind
-R4435:4436 Semantics.algorithms <> Re:76 var
-R4433:4433 Semantics.algorithms <> e:77 var
-ind 4641:4648 <> DINO_ins
-constr 4757:4766 <> D_WAR_Skip
-constr 4825:4833 <> D_WAR_Vol
-constr 5217:5229 <> D_WAR_Written
-constr 5573:5585 <> D_WAR_CP_Asgn
-constr 6025:6035 <> D_WAR_WtDom
-constr 6397:6408 <> D_WAR_Wt_Arr
-constr 6851:6862 <> D_WAR_CP_Arr
-R4658:4661 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R4669:4672 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R4680:4683 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R4695:4714 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R4722:4725 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R4733:4736 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R4744:4747 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R4737:4743 Semantics.semantics <> warvars syndef
-R4726:4732 Semantics.semantics <> warvars syndef
-R4715:4721 Semantics.semantics <> warvars syndef
-R4684:4694 Semantics.semantics <> instruction ind
-R4673:4679 Semantics.semantics <> warvars syndef
-R4662:4668 Semantics.semantics <> warvars syndef
-R4651:4657 Semantics.semantics <> warvars syndef
-R4783:4789 Semantics.semantics <> warvars syndef
-binder 4776:4776 <> N:82
-binder 4778:4778 <> W:83
-binder 4780:4780 <> R:84
-R4797:4804 Semantics.algorithms <> DINO_ins:80 ind
-R4821:4821 Semantics.algorithms <> R:84 var
-R4819:4819 Semantics.algorithms <> W:83 var
-R4817:4817 Semantics.algorithms <> N:82 var
-R4812:4815 Semantics.semantics <> skip constr
-R4810:4810 Semantics.algorithms <> R:84 var
-R4808:4808 Semantics.algorithms <> W:83 var
-R4806:4806 Semantics.algorithms <> N:82 var
-R4853:4859 Semantics.semantics <> warvars syndef
-binder 4843:4843 <> N:85
-binder 4845:4845 <> W:86
-binder 4847:4847 <> R:87
-binder 4849:4850 <> Re:88
-R4866:4873 Semantics.semantics <> smallvar ind
-binder 4863:4863 <> x:89
-R4880:4882 Semantics.semantics <> exp ind
-binder 4877:4877 <> e:90
-R4991:4991 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R4999:5098 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R5104:5138 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R5155:5171 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R5172:5179 Semantics.algorithms <> DINO_ins:80 ind
-R5208:5211 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R5206:5207 Semantics.algorithms <> Re:88 var
-R5212:5212 Semantics.algorithms <> R:87 var
-R5203:5203 Semantics.algorithms <> W:86 var
-R5201:5201 Semantics.algorithms <> N:85 var
-R5188:5194 Semantics.semantics <> asgn_sv constr
-R5198:5198 Semantics.algorithms <> e:90 var
-R5196:5196 Semantics.algorithms <> x:89 var
-R5185:5185 Semantics.algorithms <> R:87 var
-R5183:5183 Semantics.algorithms <> W:86 var
-R5181:5181 Semantics.algorithms <> N:85 var
-R5139:5139 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
-R5145:5153 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
-R5140:5142 Coq.Init.Datatypes <> inl constr
-R5144:5144 Semantics.algorithms <> x:89 var
-R5154:5154 Semantics.algorithms <> W:86 var
-R5099:5101 Semantics.semantics <> isV def
-R5103:5103 Semantics.algorithms <> x:89 var
-R4992:4993 Semantics.algorithms <> rd ind
-R4997:4998 Semantics.algorithms <> Re:88 var
-R4995:4995 Semantics.algorithms <> e:90 var
-R5249:5255 Semantics.semantics <> warvars syndef
-binder 5239:5239 <> N:91
-binder 5241:5241 <> W:92
-binder 5243:5243 <> R:93
-binder 5245:5246 <> Re:94
-R5280:5287 Semantics.semantics <> smallvar ind
-binder 5277:5277 <> x:95
-R5294:5296 Semantics.semantics <> exp ind
-binder 5291:5291 <> e:96
-R5313:5313 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R5321:5420 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R5427:5473 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R5500:5516 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R5517:5524 Semantics.algorithms <> DINO_ins:80 ind
-R5564:5567 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R5562:5563 Semantics.algorithms <> Re:94 var
-R5568:5568 Semantics.algorithms <> R:93 var
-R5549:5549 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R5555:5557 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R5550:5552 Coq.Init.Datatypes <> inl constr
-R5554:5554 Semantics.algorithms <> x:95 var
-R5558:5558 Semantics.algorithms <> W:92 var
-R5546:5546 Semantics.algorithms <> N:91 var
-R5533:5539 Semantics.semantics <> asgn_sv constr
-R5543:5543 Semantics.algorithms <> e:96 var
-R5541:5541 Semantics.algorithms <> x:95 var
-R5530:5530 Semantics.algorithms <> R:93 var
-R5528:5528 Semantics.algorithms <> W:92 var
-R5526:5526 Semantics.algorithms <> N:91 var
-R5474:5476 Coq.Init.Logic <> not def
-R5478:5478 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R5484:5490 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R5498:5498 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R5479:5481 Coq.Init.Datatypes <> inl constr
-R5483:5483 Semantics.algorithms <> x:95 var
-R5493:5496 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R5491:5492 Semantics.algorithms <> Re:94 var
-R5497:5497 Semantics.algorithms <> R:93 var
-R5421:5424 Semantics.semantics <> isNV def
-R5426:5426 Semantics.algorithms <> x:95 var
-R5314:5315 Semantics.algorithms <> rd ind
-R5319:5320 Semantics.algorithms <> Re:94 var
-R5317:5317 Semantics.algorithms <> e:96 var
-R5605:5611 Semantics.semantics <> warvars syndef
-binder 5595:5595 <> N:97
-binder 5597:5597 <> W:98
-binder 5599:5599 <> R:99
-binder 5601:5602 <> Re:100
-R5618:5625 Semantics.semantics <> smallvar ind
-binder 5615:5615 <> x:101
-R5632:5634 Semantics.semantics <> exp ind
-binder 5629:5629 <> e:102
-R5706:5706 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R5714:5813 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R5820:5866 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R5888:5904 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R5923:5939 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R5940:5947 Semantics.algorithms <> DINO_ins:80 ind
-R6016:6019 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R6014:6015 Semantics.algorithms <> Re:100 var
-R6020:6020 Semantics.algorithms <> R:99 var
-R6001:6001 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R6007:6009 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R6002:6004 Coq.Init.Datatypes <> inl constr
-R6006:6006 Semantics.algorithms <> x:101 var
-R6010:6010 Semantics.algorithms <> W:98 var
-R5988:5988 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R5994:5996 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R5989:5991 Coq.Init.Datatypes <> inl constr
-R5993:5993 Semantics.algorithms <> x:101 var
-R5997:5997 Semantics.algorithms <> N:97 var
-R5956:5962 Semantics.semantics <> asgn_sv constr
-R5966:5966 Semantics.algorithms <> e:102 var
-R5964:5964 Semantics.algorithms <> x:101 var
-R5953:5953 Semantics.algorithms <> R:99 var
-R5951:5951 Semantics.algorithms <> W:98 var
-R5949:5949 Semantics.algorithms <> N:97 var
-R5905:5907 Coq.Init.Logic <> not def
-R5909:5909 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R5915:5920 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R5910:5912 Coq.Init.Datatypes <> inl constr
-R5914:5914 Semantics.algorithms <> x:101 var
-R5921:5921 Semantics.algorithms <> W:98 var
-R5867:5867 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R5873:5879 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R5887:5887 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R5868:5870 Coq.Init.Datatypes <> inl constr
-R5872:5872 Semantics.algorithms <> x:101 var
-R5882:5885 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R5880:5881 Semantics.algorithms <> Re:100 var
-R5886:5886 Semantics.algorithms <> R:99 var
-R5814:5817 Semantics.semantics <> isNV def
-R5819:5819 Semantics.algorithms <> x:101 var
-R5707:5708 Semantics.algorithms <> rd ind
-R5712:5713 Semantics.algorithms <> Re:100 var
-R5710:5710 Semantics.algorithms <> e:102 var
-R6055:6061 Semantics.semantics <> warvars syndef
-binder 6045:6045 <> N:103
-binder 6047:6047 <> W:104
-binder 6049:6049 <> R:105
-binder 6051:6052 <> Re:106
-R6082:6089 Semantics.semantics <> smallvar ind
-binder 6079:6079 <> x:107
-R6096:6098 Semantics.semantics <> exp ind
-binder 6093:6093 <> e:108
-R6115:6115 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R6123:6222 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R6244:6272 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R6273:6273 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R6287:6316 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R6323:6339 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R6340:6347 Semantics.algorithms <> DINO_ins:80 ind
-R6388:6391 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R6386:6387 Semantics.algorithms <> Re:106 var
-R6392:6392 Semantics.algorithms <> R:105 var
-R6372:6372 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R6378:6381 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R6373:6375 Coq.Init.Datatypes <> inl constr
-R6377:6377 Semantics.algorithms <> x:107 var
-R6382:6382 Semantics.algorithms <> W:104 var
-R6369:6369 Semantics.algorithms <> N:103 var
-R6356:6362 Semantics.semantics <> asgn_sv constr
-R6366:6366 Semantics.algorithms <> e:108 var
-R6364:6364 Semantics.algorithms <> x:107 var
-R6353:6353 Semantics.algorithms <> R:105 var
-R6351:6351 Semantics.algorithms <> W:104 var
-R6349:6349 Semantics.algorithms <> N:103 var
-R6317:6320 Semantics.semantics <> isNV def
-R6322:6322 Semantics.algorithms <> x:107 var
-R6274:6274 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R6280:6285 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R6275:6277 Coq.Init.Datatypes <> inl constr
-R6279:6279 Semantics.algorithms <> x:107 var
-R6286:6286 Semantics.algorithms <> W:104 var
-R6223:6223 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R6229:6235 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R6243:6243 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R6224:6226 Coq.Init.Datatypes <> inl constr
-R6228:6228 Semantics.algorithms <> x:107 var
-R6238:6241 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R6236:6237 Semantics.algorithms <> Re:106 var
-R6242:6242 Semantics.algorithms <> R:105 var
-R6116:6117 Semantics.algorithms <> rd ind
-R6121:6122 Semantics.algorithms <> Re:106 var
-R6119:6119 Semantics.algorithms <> e:108 var
-R6435:6441 Semantics.semantics <> warvars syndef
-binder 6418:6418 <> N:109
-binder 6420:6420 <> W:110
-binder 6422:6422 <> R:111
-binder 6424:6425 <> Re:112
-binder 6427:6432 <> Rindex:113
-R6465:6469 Semantics.semantics <> array ind
-binder 6462:6462 <> a:114
-R6482:6484 Semantics.semantics <> exp ind
-binder 6473:6473 <> e:115
-binder 6475:6479 <> index:116
-R6492:6492 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R6500:6590 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R6591:6591 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R6607:6705 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R6758:6765 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R6766:6773 Semantics.algorithms <> DINO_ins:80 ind
-R6832:6835 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R6830:6831 Semantics.algorithms <> Re:112 var
-R6842:6845 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R6836:6841 Semantics.algorithms <> Rindex:113 var
-R6846:6846 Semantics.algorithms <> R:111 var
-R6805:6805 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R6821:6825 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R6806:6818 Semantics.semantics <> generate_locs def
-R6820:6820 Semantics.algorithms <> a:114 var
-R6826:6826 Semantics.algorithms <> W:110 var
-R6802:6802 Semantics.algorithms <> N:109 var
-R6782:6789 Semantics.semantics <> asgn_arr constr
-R6799:6799 Semantics.algorithms <> e:115 var
-R6793:6797 Semantics.algorithms <> index:116 var
-R6791:6791 Semantics.algorithms <> a:114 var
-R6779:6779 Semantics.algorithms <> R:111 var
-R6777:6777 Semantics.algorithms <> W:110 var
-R6775:6775 Semantics.algorithms <> N:109 var
-R6706:6708 Coq.Init.Logic <> not def
-R6710:6718 Semantics.semantics <> intersect def
-R6741:6744 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R6739:6740 Semantics.algorithms <> Re:112 var
-R6751:6754 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R6745:6750 Semantics.algorithms <> Rindex:113 var
-R6755:6755 Semantics.algorithms <> R:111 var
-R6721:6733 Semantics.semantics <> generate_locs def
-R6735:6735 Semantics.algorithms <> a:114 var
-R6592:6593 Semantics.algorithms <> rd ind
-R6601:6606 Semantics.algorithms <> Rindex:113 var
-R6595:6599 Semantics.algorithms <> index:116 var
-R6493:6494 Semantics.algorithms <> rd ind
-R6498:6499 Semantics.algorithms <> Re:112 var
-R6496:6496 Semantics.algorithms <> e:115 var
-R6889:6895 Semantics.semantics <> warvars syndef
-binder 6872:6872 <> N:117
-binder 6874:6874 <> W:118
-binder 6876:6876 <> R:119
-binder 6878:6879 <> Re:120
-binder 6881:6886 <> Rindex:121
-R6919:6923 Semantics.semantics <> array ind
-binder 6916:6916 <> a:122
-R6936:6938 Semantics.semantics <> exp ind
-binder 6927:6927 <> e:123
-binder 6929:6933 <> index:124
-R6947:6947 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R6955:7045 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R7046:7046 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R7062:7172 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R7217:7237 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R7238:7245 Semantics.algorithms <> DINO_ins:80 ind
-R7339:7342 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R7337:7338 Semantics.algorithms <> Re:120 var
-R7349:7352 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R7343:7348 Semantics.algorithms <> Rindex:121 var
-R7353:7353 Semantics.algorithms <> R:119 var
-R7313:7313 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R7329:7332 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R7314:7326 Semantics.semantics <> generate_locs def
-R7328:7328 Semantics.algorithms <> a:122 var
-R7333:7333 Semantics.algorithms <> W:118 var
-R7288:7288 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R7304:7308 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R7289:7301 Semantics.semantics <> generate_locs def
-R7303:7303 Semantics.algorithms <> a:122 var
-R7309:7309 Semantics.algorithms <> N:117 var
-R7254:7261 Semantics.semantics <> asgn_arr constr
-R7271:7271 Semantics.algorithms <> e:123 var
-R7265:7269 Semantics.algorithms <> index:124 var
-R7263:7263 Semantics.algorithms <> a:122 var
-R7251:7251 Semantics.algorithms <> R:119 var
-R7249:7249 Semantics.algorithms <> W:118 var
-R7247:7247 Semantics.algorithms <> N:117 var
-R7173:7178 mathcomp.ssreflect.seq <> subseq def
-R7201:7204 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R7199:7200 Semantics.algorithms <> Re:120 var
-R7211:7214 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R7205:7210 Semantics.algorithms <> Rindex:121 var
-R7215:7215 Semantics.algorithms <> R:119 var
-R7181:7193 Semantics.semantics <> generate_locs def
-R7195:7195 Semantics.algorithms <> a:122 var
-R7047:7048 Semantics.algorithms <> rd ind
-R7056:7061 Semantics.algorithms <> Rindex:121 var
-R7050:7054 Semantics.algorithms <> index:124 var
-R6948:6949 Semantics.algorithms <> rd ind
-R6953:6954 Semantics.algorithms <> Re:120 var
-R6951:6951 Semantics.algorithms <> e:123 var
-ind 7369:7372 <> DINO
-constr 7466:7476 <> D_WAR_Instr
-constr 7586:7594 <> D_WAR_Seq
-constr 7781:7788 <> D_WAR_If
-constr 8121:8128 <> D_WAR_CP
-R7382:7385 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R7393:7396 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R7404:7407 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R7415:7434 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R7442:7445 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R7453:7456 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R7446:7452 Semantics.semantics <> warvars syndef
-R7435:7441 Semantics.semantics <> command ind
-R7408:7414 Semantics.semantics <> command ind
-R7397:7403 Semantics.semantics <> warvars syndef
-R7386:7392 Semantics.semantics <> warvars syndef
-R7375:7381 Semantics.semantics <> warvars syndef
-R7502:7508 Semantics.semantics <> warvars syndef
-binder 7486:7486 <> N:127
-binder 7488:7489 <> N':128
-binder 7491:7491 <> W:129
-binder 7493:7493 <> R:130
-binder 7495:7496 <> W':131
-binder 7498:7499 <> R':132
-R7515:7525 Semantics.semantics <> instruction ind
-binder 7512:7512 <> l:133
-R7558:7565 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R7566:7569 Semantics.algorithms <> DINO:125 ind
-R7581:7582 Semantics.algorithms <> N':128 var
-R7579:7579 Semantics.algorithms <> l:133 var
-R7577:7577 Semantics.algorithms <> l:133 var
-R7575:7575 Semantics.algorithms <> R:130 var
-R7573:7573 Semantics.algorithms <> W:129 var
-R7571:7571 Semantics.algorithms <> N:127 var
-R7533:7540 Semantics.algorithms <> DINO_ins ind
-R7556:7557 Semantics.algorithms <> R':132 var
-R7553:7554 Semantics.algorithms <> W':131 var
-R7550:7551 Semantics.algorithms <> N':128 var
-R7548:7548 Semantics.algorithms <> l:133 var
-R7546:7546 Semantics.algorithms <> R:130 var
-R7544:7544 Semantics.algorithms <> W:129 var
-R7542:7542 Semantics.algorithms <> N:127 var
-R7624:7630 Semantics.semantics <> warvars syndef
-binder 7604:7604 <> N:134
-binder 7606:7607 <> N':135
-binder 7609:7611 <> N'':136
-binder 7613:7613 <> W:137
-binder 7615:7615 <> R:138
-binder 7617:7618 <> W':139
-binder 7620:7621 <> R':140
-R7651:7661 Semantics.semantics <> instruction ind
-binder 7648:7648 <> l:141
-R7671:7677 Semantics.semantics <> command ind
-binder 7665:7665 <> c:142
-binder 7667:7668 <> c':143
-R7710:7717 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R7740:7748 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R7749:7752 Semantics.algorithms <> DINO:125 ind
-R7775:7777 Semantics.algorithms <> N'':136 var
-R7769:7770 Semantics.semantics <> :::x_';;'_x not
-R7768:7768 Semantics.algorithms <> l:141 var
-R7771:7772 Semantics.algorithms <> c':143 var
-R7762:7763 Semantics.semantics <> :::x_';;'_x not
-R7761:7761 Semantics.algorithms <> l:141 var
-R7764:7764 Semantics.algorithms <> c:142 var
-R7758:7758 Semantics.algorithms <> R:138 var
-R7756:7756 Semantics.algorithms <> W:137 var
-R7754:7754 Semantics.algorithms <> N:134 var
-R7718:7721 Semantics.algorithms <> DINO:125 ind
-R7737:7739 Semantics.algorithms <> N'':136 var
-R7734:7735 Semantics.algorithms <> c':143 var
-R7732:7732 Semantics.algorithms <> c:142 var
-R7729:7730 Semantics.algorithms <> R':140 var
-R7726:7727 Semantics.algorithms <> W':139 var
-R7723:7724 Semantics.algorithms <> N':135 var
-R7685:7692 Semantics.algorithms <> DINO_ins ind
-R7708:7709 Semantics.algorithms <> R':140 var
-R7705:7706 Semantics.algorithms <> W':139 var
-R7702:7703 Semantics.algorithms <> N':135 var
-R7700:7700 Semantics.algorithms <> l:141 var
-R7698:7698 Semantics.algorithms <> R:138 var
-R7696:7696 Semantics.algorithms <> W:137 var
-R7694:7694 Semantics.algorithms <> N:134 var
-R7814:7820 Semantics.semantics <> warvars syndef
-binder 7798:7798 <> N:144
-binder 7800:7801 <> N1:145
-binder 7803:7804 <> N2:146
-binder 7806:7806 <> W:147
-binder 7808:7808 <> R:148
-binder 7810:7811 <> Re:149
-R7839:7845 Semantics.semantics <> command ind
-binder 7824:7825 <> c1:150
-binder 7827:7829 <> c1':151
-binder 7831:7832 <> c2:152
-binder 7834:7836 <> c2':153
-R7852:7854 Semantics.semantics <> exp ind
-binder 7849:7849 <> e:154
-R7871:7871 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R7879:7970 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R7999:8007 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R8036:8044 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R8045:8048 Semantics.algorithms <> DINO:125 ind
-R8111:8114 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R8109:8110 Semantics.algorithms <> N1:145 var
-R8115:8116 Semantics.algorithms <> N2:146 var
-R8082:8086 Semantics.semantics <> :::'TEST'_x_'THEN'_x_'ELSE'_x not
-R8088:8093 Semantics.semantics <> :::'TEST'_x_'THEN'_x_'ELSE'_x not
+R818:818 Semantics.algorithms <> N:10 var
+R861:867 Semantics.semantics <> warvars syndef
+binder 851:851 <> N:13
+binder 853:853 <> W:14
+binder 855:855 <> R:15
+binder 857:858 <> Re:16
+R874:881 Semantics.semantics <> smallvar ind
+binder 871:871 <> x:17
+R888:890 Semantics.semantics <> exp ind
+binder 885:885 <> e:18
+R999:999 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1007:1106 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1112:1146 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1163:1219 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1220:1226 Semantics.algorithms <> WAR_ins:8 ind
+R1253:1256 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R1251:1252 Semantics.algorithms <> Re:16 var
+R1257:1257 Semantics.algorithms <> R:15 var
+R1248:1248 Semantics.algorithms <> W:14 var
+R1235:1241 Semantics.semantics <> asgn_sv constr
+R1245:1245 Semantics.algorithms <> e:18 var
+R1243:1243 Semantics.algorithms <> x:17 var
+R1232:1232 Semantics.algorithms <> R:15 var
+R1230:1230 Semantics.algorithms <> W:14 var
+R1228:1228 Semantics.algorithms <> N:13 var
+R1147:1147 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
+R1153:1161 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
+R1148:1150 Coq.Init.Datatypes <> inl constr
+R1152:1152 Semantics.algorithms <> x:17 var
+R1162:1162 Semantics.algorithms <> W:14 var
+R1107:1109 Semantics.semantics <> isV def
+R1111:1111 Semantics.algorithms <> x:17 var
+R1000:1001 Semantics.algorithms <> rd ind
+R1005:1006 Semantics.algorithms <> Re:16 var
+R1003:1003 Semantics.algorithms <> e:18 var
+R1289:1295 Semantics.semantics <> warvars syndef
+binder 1279:1279 <> N:19
+binder 1281:1281 <> W:20
+binder 1283:1283 <> R:21
+binder 1285:1286 <> Re:22
+R1315:1322 Semantics.semantics <> smallvar ind
+binder 1312:1312 <> x:23
+R1329:1331 Semantics.semantics <> exp ind
+binder 1326:1326 <> e:24
+R1354:1400 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1401:1401 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1409:1508 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1535:1552 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1553:1559 Semantics.algorithms <> WAR_ins:8 ind
+R1597:1600 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R1595:1596 Semantics.algorithms <> Re:22 var
+R1601:1601 Semantics.algorithms <> R:21 var
+R1582:1582 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R1588:1590 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R1583:1585 Coq.Init.Datatypes <> inl constr
+R1587:1587 Semantics.algorithms <> x:23 var
+R1591:1591 Semantics.algorithms <> W:20 var
+R1568:1574 Semantics.semantics <> asgn_sv constr
+R1578:1578 Semantics.algorithms <> e:24 var
+R1576:1576 Semantics.algorithms <> x:23 var
+R1565:1565 Semantics.algorithms <> R:21 var
+R1563:1563 Semantics.algorithms <> W:20 var
+R1561:1561 Semantics.algorithms <> N:19 var
+R1509:1511 Coq.Init.Logic <> not def
+R1513:1513 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R1519:1525 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R1533:1533 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R1514:1516 Coq.Init.Datatypes <> inl constr
+R1518:1518 Semantics.algorithms <> x:23 var
+R1528:1531 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R1526:1527 Semantics.algorithms <> Re:22 var
+R1532:1532 Semantics.algorithms <> R:21 var
+R1402:1403 Semantics.algorithms <> rd ind
+R1407:1408 Semantics.algorithms <> Re:22 var
+R1405:1405 Semantics.algorithms <> e:24 var
+R1348:1351 Semantics.semantics <> isNV def
+R1353:1353 Semantics.algorithms <> x:23 var
+R1641:1647 Semantics.semantics <> warvars syndef
+binder 1631:1631 <> N:25
+binder 1633:1633 <> W:26
+binder 1635:1635 <> R:27
+binder 1637:1638 <> Re:28
+R1667:1674 Semantics.semantics <> smallvar ind
+binder 1664:1664 <> x:29
+R1681:1683 Semantics.semantics <> exp ind
+binder 1678:1678 <> e:30
+R1700:1700 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1708:1807 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1814:1860 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1882:1898 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1917:1933 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1934:1934 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1948:1965 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1966:1972 Semantics.algorithms <> WAR_ins:8 ind
+R2010:2013 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R2008:2009 Semantics.algorithms <> Re:28 var
+R2014:2014 Semantics.algorithms <> R:27 var
+R1995:1995 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R2001:2003 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R1996:1998 Coq.Init.Datatypes <> inl constr
+R2000:2000 Semantics.algorithms <> x:29 var
+R2004:2004 Semantics.algorithms <> W:26 var
+R1981:1987 Semantics.semantics <> asgn_sv constr
+R1991:1991 Semantics.algorithms <> e:30 var
+R1989:1989 Semantics.algorithms <> x:29 var
+R1978:1978 Semantics.algorithms <> R:27 var
+R1976:1976 Semantics.algorithms <> W:26 var
+R1974:1974 Semantics.algorithms <> N:25 var
+R1935:1935 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R1941:1946 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R1936:1938 Coq.Init.Datatypes <> inl constr
+R1940:1940 Semantics.algorithms <> x:29 var
+R1947:1947 Semantics.algorithms <> N:25 var
+R1899:1901 Coq.Init.Logic <> not def
+R1903:1903 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R1909:1914 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R1904:1906 Coq.Init.Datatypes <> inl constr
+R1908:1908 Semantics.algorithms <> x:29 var
+R1915:1915 Semantics.algorithms <> W:26 var
+R1861:1861 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R1867:1873 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R1881:1881 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R1862:1864 Coq.Init.Datatypes <> inl constr
+R1866:1866 Semantics.algorithms <> x:29 var
+R1876:1879 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R1874:1875 Semantics.algorithms <> Re:28 var
+R1880:1880 Semantics.algorithms <> R:27 var
+R1808:1811 Semantics.semantics <> isNV def
+R1813:1813 Semantics.algorithms <> x:29 var
+R1701:1702 Semantics.algorithms <> rd ind
+R1706:1707 Semantics.algorithms <> Re:28 var
+R1704:1704 Semantics.algorithms <> e:30 var
+R2044:2050 Semantics.semantics <> warvars syndef
+binder 2034:2034 <> N:31
+binder 2036:2036 <> W:32
+binder 2038:2038 <> R:33
+binder 2040:2041 <> Re:34
+R2070:2077 Semantics.semantics <> smallvar ind
+binder 2067:2067 <> x:35
+R2084:2086 Semantics.semantics <> exp ind
+binder 2081:2081 <> e:36
+R2103:2103 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2111:2210 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2232:2260 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2261:2261 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2275:2292 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2299:2345 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2346:2352 Semantics.algorithms <> WAR_ins:8 ind
+R2391:2394 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R2389:2390 Semantics.algorithms <> Re:34 var
+R2395:2395 Semantics.algorithms <> R:33 var
+R2375:2375 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R2381:2384 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R2376:2378 Coq.Init.Datatypes <> inl constr
+R2380:2380 Semantics.algorithms <> x:35 var
+R2385:2385 Semantics.algorithms <> W:32 var
+R2361:2367 Semantics.semantics <> asgn_sv constr
+R2371:2371 Semantics.algorithms <> e:36 var
+R2369:2369 Semantics.algorithms <> x:35 var
+R2358:2358 Semantics.algorithms <> R:33 var
+R2356:2356 Semantics.algorithms <> W:32 var
+R2354:2354 Semantics.algorithms <> N:31 var
+R2293:2296 Semantics.semantics <> isNV def
+R2298:2298 Semantics.algorithms <> x:35 var
+R2262:2262 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R2268:2273 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R2263:2265 Coq.Init.Datatypes <> inl constr
+R2267:2267 Semantics.algorithms <> x:35 var
+R2274:2274 Semantics.algorithms <> W:32 var
+R2211:2211 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R2217:2223 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R2231:2231 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R2212:2214 Coq.Init.Datatypes <> inl constr
+R2216:2216 Semantics.algorithms <> x:35 var
+R2226:2229 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R2224:2225 Semantics.algorithms <> Re:34 var
+R2230:2230 Semantics.algorithms <> R:33 var
+R2104:2105 Semantics.algorithms <> rd ind
+R2109:2110 Semantics.algorithms <> Re:34 var
+R2107:2107 Semantics.algorithms <> e:36 var
+R2637:2643 Semantics.semantics <> warvars syndef
+binder 2620:2620 <> N:37
+binder 2622:2622 <> W:38
+binder 2624:2624 <> R:39
+binder 2626:2627 <> Re:40
+binder 2629:2634 <> Rindex:41
+R2667:2671 Semantics.semantics <> array ind
+binder 2664:2664 <> a:42
+R2684:2686 Semantics.semantics <> exp ind
+binder 2675:2675 <> e:43
+binder 2677:2681 <> index:44
+R2694:2694 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2702:2792 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2793:2793 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2809:2907 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2960:3144 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3145:3151 Semantics.algorithms <> WAR_ins:8 ind
+R3208:3211 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R3206:3207 Semantics.algorithms <> Re:40 var
+R3218:3221 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R3212:3217 Semantics.algorithms <> Rindex:41 var
+R3222:3222 Semantics.algorithms <> R:39 var
+R3181:3181 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R3197:3201 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R3182:3194 Semantics.semantics <> generate_locs def
+R3196:3196 Semantics.algorithms <> a:42 var
+R3202:3202 Semantics.algorithms <> W:38 var
+R3160:3167 Semantics.semantics <> asgn_arr constr
+R3177:3177 Semantics.algorithms <> e:43 var
+R3171:3175 Semantics.algorithms <> index:44 var
+R3169:3169 Semantics.algorithms <> a:42 var
+R3157:3157 Semantics.algorithms <> R:39 var
+R3155:3155 Semantics.algorithms <> W:38 var
+R3153:3153 Semantics.algorithms <> N:37 var
+R2908:2910 Coq.Init.Logic <> not def
+R2912:2920 Semantics.lemmas_0 <> intersect def
+R2943:2946 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R2941:2942 Semantics.algorithms <> Re:40 var
+R2953:2956 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R2947:2952 Semantics.algorithms <> Rindex:41 var
+R2957:2957 Semantics.algorithms <> R:39 var
+R2923:2935 Semantics.semantics <> generate_locs def
+R2937:2937 Semantics.algorithms <> a:42 var
+R2794:2795 Semantics.algorithms <> rd ind
+R2803:2808 Semantics.algorithms <> Rindex:41 var
+R2797:2801 Semantics.algorithms <> index:44 var
+R2695:2696 Semantics.algorithms <> rd ind
+R2700:2701 Semantics.algorithms <> Re:40 var
+R2698:2698 Semantics.algorithms <> e:43 var
+R3427:3433 Semantics.semantics <> warvars syndef
+binder 3410:3410 <> N:45
+binder 3412:3412 <> W:46
+binder 3414:3414 <> R:47
+binder 3416:3417 <> Re:48
+binder 3419:3424 <> Rindex:49
+R3457:3461 Semantics.semantics <> array ind
+binder 3454:3454 <> a:50
+R3474:3476 Semantics.semantics <> exp ind
+binder 3465:3465 <> e:51
+binder 3467:3471 <> index:52
+R3484:3484 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3492:3582 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3583:3583 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3599:3697 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3698:3698 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3743:3751 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3752:3752 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3780:3788 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3789:3795 Semantics.algorithms <> WAR_ins:8 ind
+R3852:3855 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R3850:3851 Semantics.algorithms <> Re:48 var
+R3862:3865 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R3856:3861 Semantics.algorithms <> Rindex:49 var
+R3866:3866 Semantics.algorithms <> R:47 var
+R3825:3825 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R3841:3845 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R3826:3838 Semantics.semantics <> generate_locs def
+R3840:3840 Semantics.algorithms <> a:50 var
+R3846:3846 Semantics.algorithms <> W:46 var
+R3804:3811 Semantics.semantics <> asgn_arr constr
+R3821:3821 Semantics.algorithms <> e:51 var
+R3815:3819 Semantics.algorithms <> index:52 var
+R3813:3813 Semantics.algorithms <> a:50 var
+R3801:3801 Semantics.algorithms <> R:47 var
+R3799:3799 Semantics.algorithms <> W:46 var
+R3797:3797 Semantics.algorithms <> N:45 var
+R3753:3758 mathcomp.ssreflect.seq <> subseq def
+R3779:3779 Semantics.algorithms <> N:45 var
+R3761:3773 Semantics.semantics <> generate_locs def
+R3775:3775 Semantics.algorithms <> a:50 var
+R3699:3704 mathcomp.ssreflect.seq <> subseq def
+R3727:3730 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R3725:3726 Semantics.algorithms <> Re:48 var
+R3737:3740 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R3731:3736 Semantics.algorithms <> Rindex:49 var
+R3741:3741 Semantics.algorithms <> R:47 var
+R3707:3719 Semantics.semantics <> generate_locs def
+R3721:3721 Semantics.algorithms <> a:50 var
+R3584:3585 Semantics.algorithms <> rd ind
+R3593:3598 Semantics.algorithms <> Rindex:49 var
+R3587:3591 Semantics.algorithms <> index:52 var
+R3485:3486 Semantics.algorithms <> rd ind
+R3490:3491 Semantics.algorithms <> Re:48 var
+R3488:3488 Semantics.algorithms <> e:51 var
+ind 3882:3886 <> WARok
+constr 3942:3946 <> WAR_I
+constr 4042:4047 <> WAR_CP
+constr 4161:4167 <> WAR_Seq
+constr 4348:4353 <> WAR_If
+R3896:3899 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3907:3910 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3918:3921 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3929:3932 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3922:3928 Semantics.semantics <> command ind
+R3911:3917 Semantics.semantics <> warvars syndef
+R3900:3906 Semantics.semantics <> warvars syndef
+R3889:3895 Semantics.semantics <> warvars syndef
+R3969:3975 Semantics.semantics <> warvars syndef
+binder 3956:3956 <> N:55
+binder 3958:3958 <> W:56
+binder 3960:3960 <> R:57
+binder 3962:3963 <> W':58
+binder 3965:3966 <> R':59
+R3982:3992 Semantics.semantics <> instruction ind
+binder 3979:3979 <> l:60
+R4021:4024 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4025:4029 Semantics.algorithms <> WARok:53 ind
+R4037:4037 Semantics.algorithms <> l:60 var
+R4035:4035 Semantics.algorithms <> R:57 var
+R4033:4033 Semantics.algorithms <> W:56 var
+R4031:4031 Semantics.algorithms <> N:55 var
+R4000:4006 Semantics.algorithms <> WAR_ins ind
+R4019:4020 Semantics.algorithms <> R':59 var
+R4016:4017 Semantics.algorithms <> W':58 var
+R4014:4014 Semantics.algorithms <> l:60 var
+R4012:4012 Semantics.algorithms <> R:57 var
+R4010:4010 Semantics.algorithms <> W:56 var
+R4008:4008 Semantics.algorithms <> N:55 var
+R4066:4072 Semantics.semantics <> warvars syndef
+binder 4057:4057 <> w:61
+binder 4059:4059 <> N:62
+binder 4061:4061 <> W:63
+binder 4063:4063 <> R:64
+R4079:4085 Semantics.semantics <> command ind
+binder 4076:4076 <> c:65
+R4113:4123 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4124:4128 Semantics.algorithms <> WARok:53 ind
+R4137:4137 Semantics.semantics <> :::x_';;'_x not
+R4152:4154 Semantics.semantics <> :::x_';;'_x not
+R4138:4149 Semantics.semantics <> incheckpoint constr
+R4151:4151 Semantics.algorithms <> w:61 var
+R4155:4155 Semantics.algorithms <> c:65 var
+R4134:4134 Semantics.algorithms <> R:64 var
+R4132:4132 Semantics.algorithms <> W:63 var
+R4130:4130 Semantics.algorithms <> N:62 var
+R4096:4100 Semantics.algorithms <> WARok:53 ind
+R4112:4112 Semantics.algorithms <> c:65 var
+R4108:4110 Coq.Init.Datatypes <> nil constr
+R4104:4106 Coq.Init.Datatypes <> nil constr
+R4102:4102 Semantics.algorithms <> w:61 var
+R4190:4196 Semantics.semantics <> warvars syndef
+binder 4177:4177 <> N:66
+binder 4179:4179 <> W:67
+binder 4181:4181 <> R:68
+binder 4183:4184 <> W':69
+binder 4186:4187 <> R':70
+R4216:4226 Semantics.semantics <> instruction ind
+binder 4213:4213 <> l:71
+R4233:4239 Semantics.semantics <> command ind
+binder 4230:4230 <> c:72
+R4277:4293 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4309:4325 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4326:4330 Semantics.algorithms <> WARok:53 ind
+R4340:4341 Semantics.semantics <> :::x_';;'_x not
+R4339:4339 Semantics.algorithms <> l:71 var
+R4342:4342 Semantics.algorithms <> c:72 var
+R4336:4336 Semantics.algorithms <> R:68 var
+R4334:4334 Semantics.algorithms <> W:67 var
+R4332:4332 Semantics.algorithms <> N:66 var
+R4294:4298 Semantics.algorithms <> WARok:53 ind
+R4308:4308 Semantics.algorithms <> c:72 var
+R4305:4306 Semantics.algorithms <> R':70 var
+R4302:4303 Semantics.algorithms <> W':69 var
+R4300:4300 Semantics.algorithms <> N:66 var
+R4256:4262 Semantics.algorithms <> WAR_ins ind
+R4275:4276 Semantics.algorithms <> R':70 var
+R4272:4273 Semantics.algorithms <> W':69 var
+R4270:4270 Semantics.algorithms <> l:71 var
+R4268:4268 Semantics.algorithms <> R:68 var
+R4266:4266 Semantics.algorithms <> W:67 var
+R4264:4264 Semantics.algorithms <> N:66 var
+R4373:4379 Semantics.semantics <> warvars syndef
+binder 4363:4363 <> N:73
+binder 4365:4365 <> W:74
+binder 4367:4367 <> R:75
+binder 4369:4370 <> Re:76
+R4398:4400 Semantics.semantics <> exp ind
+binder 4395:4395 <> e:77
+R4423:4429 Semantics.semantics <> command ind
+binder 4416:4417 <> c1:78
+binder 4419:4420 <> c2:79
+R4438:4438 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4446:4537 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4560:4568 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4591:4599 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4600:4604 Semantics.algorithms <> WARok:53 ind
+R4613:4617 Semantics.semantics <> :::'TEST'_x_'THEN'_x_'ELSE'_x not
+R4619:4624 Semantics.semantics <> :::'TEST'_x_'THEN'_x_'ELSE'_x not
+R4627:4632 Semantics.semantics <> :::'TEST'_x_'THEN'_x_'ELSE'_x not
+R4618:4618 Semantics.algorithms <> e:77 var
+R4625:4626 Semantics.algorithms <> c1:78 var
+R4633:4634 Semantics.algorithms <> c2:79 var
+R4610:4610 Semantics.algorithms <> R:75 var
+R4608:4608 Semantics.algorithms <> W:74 var
+R4606:4606 Semantics.algorithms <> N:73 var
+R4569:4573 Semantics.algorithms <> WARok:53 ind
+R4589:4590 Semantics.algorithms <> c2:79 var
+R4582:4585 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R4580:4581 Semantics.algorithms <> Re:76 var
+R4586:4586 Semantics.algorithms <> R:75 var
+R4577:4577 Semantics.algorithms <> W:74 var
+R4575:4575 Semantics.algorithms <> N:73 var
+R4538:4542 Semantics.algorithms <> WARok:53 ind
+R4558:4559 Semantics.algorithms <> c1:78 var
+R4551:4554 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R4549:4550 Semantics.algorithms <> Re:76 var
+R4555:4555 Semantics.algorithms <> R:75 var
+R4546:4546 Semantics.algorithms <> W:74 var
+R4544:4544 Semantics.algorithms <> N:73 var
+R4439:4440 Semantics.algorithms <> rd ind
+R4444:4445 Semantics.algorithms <> Re:76 var
+R4442:4442 Semantics.algorithms <> e:77 var
+ind 4650:4657 <> DINO_ins
+constr 4766:4775 <> D_WAR_Skip
+constr 4834:4842 <> D_WAR_Vol
+constr 5226:5238 <> D_WAR_Written
+constr 5582:5594 <> D_WAR_CP_Asgn
+constr 6034:6044 <> D_WAR_WtDom
+constr 6406:6417 <> D_WAR_Wt_Arr
+constr 6860:6871 <> D_WAR_CP_Arr
+R4667:4670 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4678:4681 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4689:4692 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4704:4723 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4731:4734 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4742:4745 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4753:4756 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4746:4752 Semantics.semantics <> warvars syndef
+R4735:4741 Semantics.semantics <> warvars syndef
+R4724:4730 Semantics.semantics <> warvars syndef
+R4693:4703 Semantics.semantics <> instruction ind
+R4682:4688 Semantics.semantics <> warvars syndef
+R4671:4677 Semantics.semantics <> warvars syndef
+R4660:4666 Semantics.semantics <> warvars syndef
+R4792:4798 Semantics.semantics <> warvars syndef
+binder 4785:4785 <> N:82
+binder 4787:4787 <> W:83
+binder 4789:4789 <> R:84
+R4806:4813 Semantics.algorithms <> DINO_ins:80 ind
+R4830:4830 Semantics.algorithms <> R:84 var
+R4828:4828 Semantics.algorithms <> W:83 var
+R4826:4826 Semantics.algorithms <> N:82 var
+R4821:4824 Semantics.semantics <> skip constr
+R4819:4819 Semantics.algorithms <> R:84 var
+R4817:4817 Semantics.algorithms <> W:83 var
+R4815:4815 Semantics.algorithms <> N:82 var
+R4862:4868 Semantics.semantics <> warvars syndef
+binder 4852:4852 <> N:85
+binder 4854:4854 <> W:86
+binder 4856:4856 <> R:87
+binder 4858:4859 <> Re:88
+R4875:4882 Semantics.semantics <> smallvar ind
+binder 4872:4872 <> x:89
+R4889:4891 Semantics.semantics <> exp ind
+binder 4886:4886 <> e:90
+R5000:5000 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5008:5107 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5113:5147 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5164:5180 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5181:5188 Semantics.algorithms <> DINO_ins:80 ind
+R5217:5220 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R5215:5216 Semantics.algorithms <> Re:88 var
+R5221:5221 Semantics.algorithms <> R:87 var
+R5212:5212 Semantics.algorithms <> W:86 var
+R5210:5210 Semantics.algorithms <> N:85 var
+R5197:5203 Semantics.semantics <> asgn_sv constr
+R5207:5207 Semantics.algorithms <> e:90 var
+R5205:5205 Semantics.algorithms <> x:89 var
+R5194:5194 Semantics.algorithms <> R:87 var
+R5192:5192 Semantics.algorithms <> W:86 var
+R5190:5190 Semantics.algorithms <> N:85 var
+R5148:5148 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
+R5154:5162 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
+R5149:5151 Coq.Init.Datatypes <> inl constr
+R5153:5153 Semantics.algorithms <> x:89 var
+R5163:5163 Semantics.algorithms <> W:86 var
+R5108:5110 Semantics.semantics <> isV def
+R5112:5112 Semantics.algorithms <> x:89 var
+R5001:5002 Semantics.algorithms <> rd ind
+R5006:5007 Semantics.algorithms <> Re:88 var
+R5004:5004 Semantics.algorithms <> e:90 var
+R5258:5264 Semantics.semantics <> warvars syndef
+binder 5248:5248 <> N:91
+binder 5250:5250 <> W:92
+binder 5252:5252 <> R:93
+binder 5254:5255 <> Re:94
+R5289:5296 Semantics.semantics <> smallvar ind
+binder 5286:5286 <> x:95
+R5303:5305 Semantics.semantics <> exp ind
+binder 5300:5300 <> e:96
+R5322:5322 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5330:5429 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5436:5482 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5509:5525 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5526:5533 Semantics.algorithms <> DINO_ins:80 ind
+R5573:5576 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R5571:5572 Semantics.algorithms <> Re:94 var
+R5577:5577 Semantics.algorithms <> R:93 var
+R5558:5558 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R5564:5566 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R5559:5561 Coq.Init.Datatypes <> inl constr
+R5563:5563 Semantics.algorithms <> x:95 var
+R5567:5567 Semantics.algorithms <> W:92 var
+R5555:5555 Semantics.algorithms <> N:91 var
+R5542:5548 Semantics.semantics <> asgn_sv constr
+R5552:5552 Semantics.algorithms <> e:96 var
+R5550:5550 Semantics.algorithms <> x:95 var
+R5539:5539 Semantics.algorithms <> R:93 var
+R5537:5537 Semantics.algorithms <> W:92 var
+R5535:5535 Semantics.algorithms <> N:91 var
+R5483:5485 Coq.Init.Logic <> not def
+R5487:5487 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R5493:5499 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R5507:5507 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R5488:5490 Coq.Init.Datatypes <> inl constr
+R5492:5492 Semantics.algorithms <> x:95 var
+R5502:5505 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R5500:5501 Semantics.algorithms <> Re:94 var
+R5506:5506 Semantics.algorithms <> R:93 var
+R5430:5433 Semantics.semantics <> isNV def
+R5435:5435 Semantics.algorithms <> x:95 var
+R5323:5324 Semantics.algorithms <> rd ind
+R5328:5329 Semantics.algorithms <> Re:94 var
+R5326:5326 Semantics.algorithms <> e:96 var
+R5614:5620 Semantics.semantics <> warvars syndef
+binder 5604:5604 <> N:97
+binder 5606:5606 <> W:98
+binder 5608:5608 <> R:99
+binder 5610:5611 <> Re:100
+R5627:5634 Semantics.semantics <> smallvar ind
+binder 5624:5624 <> x:101
+R5641:5643 Semantics.semantics <> exp ind
+binder 5638:5638 <> e:102
+R5715:5715 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5723:5822 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5829:5875 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5897:5913 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5932:5948 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5949:5956 Semantics.algorithms <> DINO_ins:80 ind
+R6025:6028 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R6023:6024 Semantics.algorithms <> Re:100 var
+R6029:6029 Semantics.algorithms <> R:99 var
+R6010:6010 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R6016:6018 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R6011:6013 Coq.Init.Datatypes <> inl constr
+R6015:6015 Semantics.algorithms <> x:101 var
+R6019:6019 Semantics.algorithms <> W:98 var
+R5997:5997 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R6003:6005 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R5998:6000 Coq.Init.Datatypes <> inl constr
+R6002:6002 Semantics.algorithms <> x:101 var
+R6006:6006 Semantics.algorithms <> N:97 var
+R5965:5971 Semantics.semantics <> asgn_sv constr
+R5975:5975 Semantics.algorithms <> e:102 var
+R5973:5973 Semantics.algorithms <> x:101 var
+R5962:5962 Semantics.algorithms <> R:99 var
+R5960:5960 Semantics.algorithms <> W:98 var
+R5958:5958 Semantics.algorithms <> N:97 var
+R5914:5916 Coq.Init.Logic <> not def
+R5918:5918 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R5924:5929 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R5919:5921 Coq.Init.Datatypes <> inl constr
+R5923:5923 Semantics.algorithms <> x:101 var
+R5930:5930 Semantics.algorithms <> W:98 var
+R5876:5876 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R5882:5888 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R5896:5896 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R5877:5879 Coq.Init.Datatypes <> inl constr
+R5881:5881 Semantics.algorithms <> x:101 var
+R5891:5894 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R5889:5890 Semantics.algorithms <> Re:100 var
+R5895:5895 Semantics.algorithms <> R:99 var
+R5823:5826 Semantics.semantics <> isNV def
+R5828:5828 Semantics.algorithms <> x:101 var
+R5716:5717 Semantics.algorithms <> rd ind
+R5721:5722 Semantics.algorithms <> Re:100 var
+R5719:5719 Semantics.algorithms <> e:102 var
+R6064:6070 Semantics.semantics <> warvars syndef
+binder 6054:6054 <> N:103
+binder 6056:6056 <> W:104
+binder 6058:6058 <> R:105
+binder 6060:6061 <> Re:106
+R6091:6098 Semantics.semantics <> smallvar ind
+binder 6088:6088 <> x:107
+R6105:6107 Semantics.semantics <> exp ind
+binder 6102:6102 <> e:108
+R6124:6124 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6132:6231 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6253:6281 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6282:6282 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6296:6325 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6332:6348 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6349:6356 Semantics.algorithms <> DINO_ins:80 ind
+R6397:6400 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R6395:6396 Semantics.algorithms <> Re:106 var
+R6401:6401 Semantics.algorithms <> R:105 var
+R6381:6381 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R6387:6390 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R6382:6384 Coq.Init.Datatypes <> inl constr
+R6386:6386 Semantics.algorithms <> x:107 var
+R6391:6391 Semantics.algorithms <> W:104 var
+R6378:6378 Semantics.algorithms <> N:103 var
+R6365:6371 Semantics.semantics <> asgn_sv constr
+R6375:6375 Semantics.algorithms <> e:108 var
+R6373:6373 Semantics.algorithms <> x:107 var
+R6362:6362 Semantics.algorithms <> R:105 var
+R6360:6360 Semantics.algorithms <> W:104 var
+R6358:6358 Semantics.algorithms <> N:103 var
+R6326:6329 Semantics.semantics <> isNV def
+R6331:6331 Semantics.algorithms <> x:107 var
+R6283:6283 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R6289:6294 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R6284:6286 Coq.Init.Datatypes <> inl constr
+R6288:6288 Semantics.algorithms <> x:107 var
+R6295:6295 Semantics.algorithms <> W:104 var
+R6232:6232 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R6238:6244 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R6252:6252 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R6233:6235 Coq.Init.Datatypes <> inl constr
+R6237:6237 Semantics.algorithms <> x:107 var
+R6247:6250 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R6245:6246 Semantics.algorithms <> Re:106 var
+R6251:6251 Semantics.algorithms <> R:105 var
+R6125:6126 Semantics.algorithms <> rd ind
+R6130:6131 Semantics.algorithms <> Re:106 var
+R6128:6128 Semantics.algorithms <> e:108 var
+R6444:6450 Semantics.semantics <> warvars syndef
+binder 6427:6427 <> N:109
+binder 6429:6429 <> W:110
+binder 6431:6431 <> R:111
+binder 6433:6434 <> Re:112
+binder 6436:6441 <> Rindex:113
+R6474:6478 Semantics.semantics <> array ind
+binder 6471:6471 <> a:114
+R6491:6493 Semantics.semantics <> exp ind
+binder 6482:6482 <> e:115
+binder 6484:6488 <> index:116
+R6501:6501 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6509:6599 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6600:6600 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6616:6714 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6767:6774 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6775:6782 Semantics.algorithms <> DINO_ins:80 ind
+R6841:6844 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R6839:6840 Semantics.algorithms <> Re:112 var
+R6851:6854 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R6845:6850 Semantics.algorithms <> Rindex:113 var
+R6855:6855 Semantics.algorithms <> R:111 var
+R6814:6814 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R6830:6834 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R6815:6827 Semantics.semantics <> generate_locs def
+R6829:6829 Semantics.algorithms <> a:114 var
+R6835:6835 Semantics.algorithms <> W:110 var
+R6811:6811 Semantics.algorithms <> N:109 var
+R6791:6798 Semantics.semantics <> asgn_arr constr
+R6808:6808 Semantics.algorithms <> e:115 var
+R6802:6806 Semantics.algorithms <> index:116 var
+R6800:6800 Semantics.algorithms <> a:114 var
+R6788:6788 Semantics.algorithms <> R:111 var
+R6786:6786 Semantics.algorithms <> W:110 var
+R6784:6784 Semantics.algorithms <> N:109 var
+R6715:6717 Coq.Init.Logic <> not def
+R6719:6727 Semantics.lemmas_0 <> intersect def
+R6750:6753 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R6748:6749 Semantics.algorithms <> Re:112 var
+R6760:6763 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R6754:6759 Semantics.algorithms <> Rindex:113 var
+R6764:6764 Semantics.algorithms <> R:111 var
+R6730:6742 Semantics.semantics <> generate_locs def
+R6744:6744 Semantics.algorithms <> a:114 var
+R6601:6602 Semantics.algorithms <> rd ind
+R6610:6615 Semantics.algorithms <> Rindex:113 var
+R6604:6608 Semantics.algorithms <> index:116 var
+R6502:6503 Semantics.algorithms <> rd ind
+R6507:6508 Semantics.algorithms <> Re:112 var
+R6505:6505 Semantics.algorithms <> e:115 var
+R6898:6904 Semantics.semantics <> warvars syndef
+binder 6881:6881 <> N:117
+binder 6883:6883 <> W:118
+binder 6885:6885 <> R:119
+binder 6887:6888 <> Re:120
+binder 6890:6895 <> Rindex:121
+R6928:6932 Semantics.semantics <> array ind
+binder 6925:6925 <> a:122
+R6945:6947 Semantics.semantics <> exp ind
+binder 6936:6936 <> e:123
+binder 6938:6942 <> index:124
+R6956:6956 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6964:7054 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7055:7055 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7071:7181 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7226:7246 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7247:7254 Semantics.algorithms <> DINO_ins:80 ind
+R7348:7351 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R7346:7347 Semantics.algorithms <> Re:120 var
+R7358:7361 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R7352:7357 Semantics.algorithms <> Rindex:121 var
+R7362:7362 Semantics.algorithms <> R:119 var
+R7322:7322 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R7338:7341 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R7323:7335 Semantics.semantics <> generate_locs def
+R7337:7337 Semantics.algorithms <> a:122 var
+R7342:7342 Semantics.algorithms <> W:118 var
+R7297:7297 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R7313:7317 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R7298:7310 Semantics.semantics <> generate_locs def
+R7312:7312 Semantics.algorithms <> a:122 var
+R7318:7318 Semantics.algorithms <> N:117 var
+R7263:7270 Semantics.semantics <> asgn_arr constr
+R7280:7280 Semantics.algorithms <> e:123 var
+R7274:7278 Semantics.algorithms <> index:124 var
+R7272:7272 Semantics.algorithms <> a:122 var
+R7260:7260 Semantics.algorithms <> R:119 var
+R7258:7258 Semantics.algorithms <> W:118 var
+R7256:7256 Semantics.algorithms <> N:117 var
+R7182:7187 mathcomp.ssreflect.seq <> subseq def
+R7210:7213 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R7208:7209 Semantics.algorithms <> Re:120 var
+R7220:7223 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R7214:7219 Semantics.algorithms <> Rindex:121 var
+R7224:7224 Semantics.algorithms <> R:119 var
+R7190:7202 Semantics.semantics <> generate_locs def
+R7204:7204 Semantics.algorithms <> a:122 var
+R7056:7057 Semantics.algorithms <> rd ind
+R7065:7070 Semantics.algorithms <> Rindex:121 var
+R7059:7063 Semantics.algorithms <> index:124 var
+R6957:6958 Semantics.algorithms <> rd ind
+R6962:6963 Semantics.algorithms <> Re:120 var
+R6960:6960 Semantics.algorithms <> e:123 var
+ind 7378:7381 <> DINO
+constr 7475:7485 <> D_WAR_Instr
+constr 7595:7603 <> D_WAR_Seq
+constr 7790:7797 <> D_WAR_If
+constr 8130:8137 <> D_WAR_CP
+R7391:7394 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7402:7405 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7413:7416 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7424:7443 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7451:7454 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7462:7465 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7455:7461 Semantics.semantics <> warvars syndef
+R7444:7450 Semantics.semantics <> command ind
+R7417:7423 Semantics.semantics <> command ind
+R7406:7412 Semantics.semantics <> warvars syndef
+R7395:7401 Semantics.semantics <> warvars syndef
+R7384:7390 Semantics.semantics <> warvars syndef
+R7511:7517 Semantics.semantics <> warvars syndef
+binder 7495:7495 <> N:127
+binder 7497:7498 <> N':128
+binder 7500:7500 <> W:129
+binder 7502:7502 <> R:130
+binder 7504:7505 <> W':131
+binder 7507:7508 <> R':132
+R7524:7534 Semantics.semantics <> instruction ind
+binder 7521:7521 <> l:133
+R7567:7574 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7575:7578 Semantics.algorithms <> DINO:125 ind
+R7590:7591 Semantics.algorithms <> N':128 var
+R7588:7588 Semantics.algorithms <> l:133 var
+R7586:7586 Semantics.algorithms <> l:133 var
+R7584:7584 Semantics.algorithms <> R:130 var
+R7582:7582 Semantics.algorithms <> W:129 var
+R7580:7580 Semantics.algorithms <> N:127 var
+R7542:7549 Semantics.algorithms <> DINO_ins ind
+R7565:7566 Semantics.algorithms <> R':132 var
+R7562:7563 Semantics.algorithms <> W':131 var
+R7559:7560 Semantics.algorithms <> N':128 var
+R7557:7557 Semantics.algorithms <> l:133 var
+R7555:7555 Semantics.algorithms <> R:130 var
+R7553:7553 Semantics.algorithms <> W:129 var
+R7551:7551 Semantics.algorithms <> N:127 var
+R7633:7639 Semantics.semantics <> warvars syndef
+binder 7613:7613 <> N:134
+binder 7615:7616 <> N':135
+binder 7618:7620 <> N'':136
+binder 7622:7622 <> W:137
+binder 7624:7624 <> R:138
+binder 7626:7627 <> W':139
+binder 7629:7630 <> R':140
+R7660:7670 Semantics.semantics <> instruction ind
+binder 7657:7657 <> l:141
+R7680:7686 Semantics.semantics <> command ind
+binder 7674:7674 <> c:142
+binder 7676:7677 <> c':143
+R7719:7726 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7749:7757 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7758:7761 Semantics.algorithms <> DINO:125 ind
+R7784:7786 Semantics.algorithms <> N'':136 var
+R7778:7779 Semantics.semantics <> :::x_';;'_x not
+R7777:7777 Semantics.algorithms <> l:141 var
+R7780:7781 Semantics.algorithms <> c':143 var
+R7771:7772 Semantics.semantics <> :::x_';;'_x not
+R7770:7770 Semantics.algorithms <> l:141 var
+R7773:7773 Semantics.algorithms <> c:142 var
+R7767:7767 Semantics.algorithms <> R:138 var
+R7765:7765 Semantics.algorithms <> W:137 var
+R7763:7763 Semantics.algorithms <> N:134 var
+R7727:7730 Semantics.algorithms <> DINO:125 ind
+R7746:7748 Semantics.algorithms <> N'':136 var
+R7743:7744 Semantics.algorithms <> c':143 var
+R7741:7741 Semantics.algorithms <> c:142 var
+R7738:7739 Semantics.algorithms <> R':140 var
+R7735:7736 Semantics.algorithms <> W':139 var
+R7732:7733 Semantics.algorithms <> N':135 var
+R7694:7701 Semantics.algorithms <> DINO_ins ind
+R7717:7718 Semantics.algorithms <> R':140 var
+R7714:7715 Semantics.algorithms <> W':139 var
+R7711:7712 Semantics.algorithms <> N':135 var
+R7709:7709 Semantics.algorithms <> l:141 var
+R7707:7707 Semantics.algorithms <> R:138 var
+R7705:7705 Semantics.algorithms <> W:137 var
+R7703:7703 Semantics.algorithms <> N:134 var
+R7823:7829 Semantics.semantics <> warvars syndef
+binder 7807:7807 <> N:144
+binder 7809:7810 <> N1:145
+binder 7812:7813 <> N2:146
+binder 7815:7815 <> W:147
+binder 7817:7817 <> R:148
+binder 7819:7820 <> Re:149
+R7848:7854 Semantics.semantics <> command ind
+binder 7833:7834 <> c1:150
+binder 7836:7838 <> c1':151
+binder 7840:7841 <> c2:152
+binder 7843:7845 <> c2':153
+R7861:7863 Semantics.semantics <> exp ind
+binder 7858:7858 <> e:154
+R7880:7880 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7888:7979 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8008:8016 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8045:8053 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8054:8057 Semantics.algorithms <> DINO:125 ind
+R8120:8123 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R8118:8119 Semantics.algorithms <> N1:145 var
+R8124:8125 Semantics.algorithms <> N2:146 var
+R8091:8095 Semantics.semantics <> :::'TEST'_x_'THEN'_x_'ELSE'_x not
 R8097:8102 Semantics.semantics <> :::'TEST'_x_'THEN'_x_'ELSE'_x not
-R8087:8087 Semantics.algorithms <> e:154 var
-R8094:8096 Semantics.algorithms <> c1':151 var
-R8103:8105 Semantics.algorithms <> c2':153 var
-R8057:8061 Semantics.semantics <> :::'TEST'_x_'THEN'_x_'ELSE'_x not
-R8063:8068 Semantics.semantics <> :::'TEST'_x_'THEN'_x_'ELSE'_x not
-R8071:8076 Semantics.semantics <> :::'TEST'_x_'THEN'_x_'ELSE'_x not
-R8062:8062 Semantics.algorithms <> e:154 var
-R8069:8070 Semantics.algorithms <> c1:150 var
-R8077:8078 Semantics.algorithms <> c2:152 var
-R8054:8054 Semantics.algorithms <> R:148 var
-R8052:8052 Semantics.algorithms <> W:147 var
-R8050:8050 Semantics.algorithms <> N:144 var
-R8008:8011 Semantics.algorithms <> DINO:125 ind
-R8034:8035 Semantics.algorithms <> N2:146 var
-R8030:8032 Semantics.algorithms <> c2':153 var
-R8027:8028 Semantics.algorithms <> c2:152 var
-R8020:8023 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R8018:8019 Semantics.algorithms <> Re:149 var
-R8024:8024 Semantics.algorithms <> R:148 var
-R8015:8015 Semantics.algorithms <> W:147 var
-R8013:8013 Semantics.algorithms <> N:144 var
-R7971:7974 Semantics.algorithms <> DINO:125 ind
-R7997:7998 Semantics.algorithms <> N1:145 var
-R7993:7995 Semantics.algorithms <> c1':151 var
-R7990:7991 Semantics.algorithms <> c1:150 var
-R7983:7986 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R7981:7982 Semantics.algorithms <> Re:149 var
-R7987:7987 Semantics.algorithms <> R:148 var
-R7978:7978 Semantics.algorithms <> W:147 var
-R7976:7976 Semantics.algorithms <> N:144 var
-R7872:7873 Semantics.algorithms <> rd ind
-R7877:7878 Semantics.algorithms <> Re:149 var
-R7875:7875 Semantics.algorithms <> e:154 var
-R8148:8154 Semantics.semantics <> warvars syndef
-binder 8138:8138 <> N:155
-binder 8140:8141 <> N':156
-binder 8143:8143 <> W:157
-binder 8145:8145 <> R:158
-R8164:8170 Semantics.semantics <> command ind
-binder 8158:8158 <> c:159
-binder 8160:8161 <> c':160
-R8202:8209 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R8210:8213 Semantics.algorithms <> DINO:125 ind
-R8269:8269 Semantics.algorithms <> N:155 var
-R8246:8246 Semantics.semantics <> :::x_';;'_x not
-R8262:8264 Semantics.semantics <> :::x_';;'_x not
-R8247:8258 Semantics.semantics <> incheckpoint constr
-R8260:8261 Semantics.algorithms <> N':156 var
-R8265:8266 Semantics.algorithms <> c':160 var
-R8222:8222 Semantics.semantics <> :::x_';;'_x not
-R8239:8241 Semantics.semantics <> :::x_';;'_x not
-R8223:8234 Semantics.semantics <> incheckpoint constr
-R8236:8238 Coq.Init.Datatypes <> nil constr
-R8242:8242 Semantics.algorithms <> c:159 var
-R8219:8219 Semantics.algorithms <> R:158 var
-R8217:8217 Semantics.algorithms <> W:157 var
-R8215:8215 Semantics.algorithms <> N:155 var
-R8178:8181 Semantics.algorithms <> DINO:125 ind
-R8200:8201 Semantics.algorithms <> N':156 var
-R8197:8198 Semantics.algorithms <> c':160 var
-R8195:8195 Semantics.algorithms <> c:159 var
-R8191:8193 Coq.Init.Datatypes <> nil constr
-R8187:8189 Coq.Init.Datatypes <> nil constr
-R8183:8185 Coq.Init.Datatypes <> nil constr
+R8106:8111 Semantics.semantics <> :::'TEST'_x_'THEN'_x_'ELSE'_x not
+R8096:8096 Semantics.algorithms <> e:154 var
+R8103:8105 Semantics.algorithms <> c1':151 var
+R8112:8114 Semantics.algorithms <> c2':153 var
+R8066:8070 Semantics.semantics <> :::'TEST'_x_'THEN'_x_'ELSE'_x not
+R8072:8077 Semantics.semantics <> :::'TEST'_x_'THEN'_x_'ELSE'_x not
+R8080:8085 Semantics.semantics <> :::'TEST'_x_'THEN'_x_'ELSE'_x not
+R8071:8071 Semantics.algorithms <> e:154 var
+R8078:8079 Semantics.algorithms <> c1:150 var
+R8086:8087 Semantics.algorithms <> c2:152 var
+R8063:8063 Semantics.algorithms <> R:148 var
+R8061:8061 Semantics.algorithms <> W:147 var
+R8059:8059 Semantics.algorithms <> N:144 var
+R8017:8020 Semantics.algorithms <> DINO:125 ind
+R8043:8044 Semantics.algorithms <> N2:146 var
+R8039:8041 Semantics.algorithms <> c2':153 var
+R8036:8037 Semantics.algorithms <> c2:152 var
+R8029:8032 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R8027:8028 Semantics.algorithms <> Re:149 var
+R8033:8033 Semantics.algorithms <> R:148 var
+R8024:8024 Semantics.algorithms <> W:147 var
+R8022:8022 Semantics.algorithms <> N:144 var
+R7980:7983 Semantics.algorithms <> DINO:125 ind
+R8006:8007 Semantics.algorithms <> N1:145 var
+R8002:8004 Semantics.algorithms <> c1':151 var
+R7999:8000 Semantics.algorithms <> c1:150 var
+R7992:7995 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R7990:7991 Semantics.algorithms <> Re:149 var
+R7996:7996 Semantics.algorithms <> R:148 var
+R7987:7987 Semantics.algorithms <> W:147 var
+R7985:7985 Semantics.algorithms <> N:144 var
+R7881:7882 Semantics.algorithms <> rd ind
+R7886:7887 Semantics.algorithms <> Re:149 var
+R7884:7884 Semantics.algorithms <> e:154 var
+R8157:8163 Semantics.semantics <> warvars syndef
+binder 8147:8147 <> N:155
+binder 8149:8150 <> N':156
+binder 8152:8152 <> W:157
+binder 8154:8154 <> R:158
+R8173:8179 Semantics.semantics <> command ind
+binder 8167:8167 <> c:159
+binder 8169:8170 <> c':160
+R8211:8218 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8219:8222 Semantics.algorithms <> DINO:125 ind
+R8278:8278 Semantics.algorithms <> N:155 var
+R8255:8255 Semantics.semantics <> :::x_';;'_x not
+R8271:8273 Semantics.semantics <> :::x_';;'_x not
+R8256:8267 Semantics.semantics <> incheckpoint constr
+R8269:8270 Semantics.algorithms <> N':156 var
+R8274:8275 Semantics.algorithms <> c':160 var
+R8231:8231 Semantics.semantics <> :::x_';;'_x not
+R8248:8250 Semantics.semantics <> :::x_';;'_x not
+R8232:8243 Semantics.semantics <> incheckpoint constr
+R8245:8247 Coq.Init.Datatypes <> nil constr
+R8251:8251 Semantics.algorithms <> c:159 var
+R8228:8228 Semantics.algorithms <> R:158 var
+R8226:8226 Semantics.algorithms <> W:157 var
+R8224:8224 Semantics.algorithms <> N:155 var
+R8187:8190 Semantics.algorithms <> DINO:125 ind
+R8209:8210 Semantics.algorithms <> N':156 var
+R8206:8207 Semantics.algorithms <> c':160 var
+R8204:8204 Semantics.algorithms <> c:159 var
+R8200:8202 Coq.Init.Datatypes <> nil constr
+R8196:8198 Coq.Init.Datatypes <> nil constr
+R8192:8194 Coq.Init.Datatypes <> nil constr
