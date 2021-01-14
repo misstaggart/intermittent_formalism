@@ -89,7 +89,10 @@ Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
         remember (inl x) as xloc.
         suffices: (if xloc == xloc then v else Nimap xloc) = v /\
                   (if xloc == xloc then v else Ncmap xloc) = v.
-        move => [one two]. by rewrite one two.
+        move => [one two].
+        destruct (v == error) eqn: Hbool.
+        move/ eqP : Hbool => Heq. subst. inversion H1.
+          by rewrite one two.
         split; by apply ifT.
      - exists Nc. split. apply V_Assign; try assumption.
        eapply agr_imp_age; try apply H2; try assumption.
@@ -128,6 +131,8 @@ Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
   (if inr element == inr element then v else Ncmap (inr element)) = v).
         move => annoying.
         move: (annoying loc_eqtype loc_eqtype) => [one two].
+        destruct (v == error) eqn: Hbool.
+        move/ eqP : Hbool => Heq. subst. inversion H1.
           by rewrite one two. 
        intros. split; by apply ifT.
         (*unfold updatemap.
