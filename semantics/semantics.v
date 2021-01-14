@@ -733,7 +733,7 @@ Lemma loctrans: transitive leqloc.
   move/ eqP: Hbool2 => Heq. subst.
   assert (m1 <= o1 /\ o1 <= m1). by [].
   move/andP : H => H.
-  move: (anti_leq H) => one. subst. exfalso.by move/ negbT /eqP: Hbool.
+  move: (anti_leq H) => one. subst. exfalso. by move/ negbT /eqP: Hbool.
   apply (leq_trans Hxy Hyz).
 Qed.
 Definition leqlocP := perm_sortP loctotal loctrans asyloc.
@@ -840,23 +840,29 @@ Definition getvalue (N: nvmem) (i: loc) :=
    actually dont do this cuz domain weirdness in updatemaps makes it so that
    you'd have a nested if in update_arr which you'll need to use
    in all the eval proofs*)
+  Definition update_dom_sv (i: smallvar) (v: value) (d: warvars) :=
+    if (v == error) then d else (inl i) :: d.
+
   Lemma updatemap_sv {m: mem} {d: warvars} {i: smallvar} {v: value}:
     valid_nvm m d ->
-    valid_nvm (updatemap m (inl i) v) ((inl i):: d).
+    valid_nvm (updatemap m (inl i) v) (update_dom_sv i v d).
     unfold valid_nvm. move => [Hsv [Ha [Hsort Huniq] ] ].
-    repeat split.
+    repeat split. Admitted.
 
 Definition get_array (i: el_loc) :=
 match i with El a _ => a end.
 
+Definition update_dom_arr (i: el_loc) (v: value) (d: warvars) :=
+    if (v == error) then d else (generate_locs (get_array i)) ++ d.
+
   Lemma updatemap_arr {m: mem} {d: warvars} {i: el_loc} {v: value} 
     :
     valid_nvm m d ->
-    valid_nvm (updatemap m (inr i) v) ((generate_locs (get_array i)) ++ d). Admitted.
+    valid_nvm (updatemap m (inr i) v) (update_dom_arr i v d). Admitted.
 
 Definition updateNV_sv (N: nvmem) (i: smallvar) (v: value) :=
   match N with NonVol m D H =>
-               NonVol (updatemap m (inl i) v) ((inl i):: D) (updatemap_sv H) end.
+               NonVol (updatemap m (inl i) v) (update_dom_sv i v D) (updatemap_sv H) end.
 
 
 (*this one should only be called within in eval*)
@@ -864,7 +870,7 @@ Definition updateNV_sv (N: nvmem) (i: smallvar) (v: value) :=
 Definition updateNV_arr (N: nvmem) (i: el_loc) (a: array) (v: value)
   :=
     match N with NonVol m D H =>
-               NonVol (updatemap m (inr i) v) ((generate_locs (get_array i)) ++ D)
+               NonVol (updatemap m (inr i) v) (update_dom_arr i v D)
                       (updatemap_arr H)
   end.
 

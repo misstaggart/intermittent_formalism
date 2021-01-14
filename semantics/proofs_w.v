@@ -76,10 +76,13 @@ move: (agreeonread_ins_w Hdiff Hcceval1) => agr.
         destruct N as [Nmap ND].
         destruct N1 as [N1map N1D].
         unfold updateNV_sv. unfold updatemap. simpl.
+        destruct (v == error) eqn: Hbool. simpl in agr.
+        move/ eqP: Hbool => Heq. subst. inversion H1.
         remember (inl x) as xloc.
         suffices: (if xloc == xloc then v else Nmap xloc) = v /\
                   (if xloc == xloc then v else N1map xloc) = v.
-        move => [one two]. by rewrite one two.
+        move => [one two].
+          by rewrite one two.
         split; by apply ifT.
      - exists N. split. apply V_Assign; try assumption.
        eapply agr_imp_age; try apply H; try assumption.
@@ -113,7 +116,9 @@ move: (agreeonread_ins_w Hdiff Hcceval1) => agr.
   (if inr element == inr element then v else N1map (inr element)) = v).
         move => annoying.
         move: (annoying loc_eqtype loc_eqtype) => [one two].
-          by rewrite one two. 
+        destruct (v == error) eqn: Hbool.
+        move/ eqP: Hbool => three. subst. inversion H1.
+          by rewrite one two.
           intros. split; by apply ifT.
           Qed.
       (*  unfold updatemap.

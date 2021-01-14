@@ -432,6 +432,7 @@ Lemma updateone_sv: forall{N: nvmem} {x: smallvar} {v: value}
   unfold updateNV_sv in H.
   simpl in H.
   unfold updatemap in H.
+  destruct (v == error) eqn: Hbool. exfalso. by apply H.
   rewrite beq in H.
   exfalso. by apply H. 
   Qed.
@@ -447,6 +448,8 @@ Lemma updateone_arr: forall{N: nvmem} {a: array} {v: value}
   unfold updateNV_arr in H.
   simpl in H.
   unfold updatemap in H.
+  unfold updatemap in H.
+  destruct (v == error) eqn: Hbool. exfalso. by apply H.
   rewrite beq in H.
   exfalso. by apply H. 
   Qed.
