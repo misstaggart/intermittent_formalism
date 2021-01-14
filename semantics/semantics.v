@@ -232,7 +232,8 @@ Definition map_t (A: eqType) := A -> value.
 
 (*memory helpers*)
 Definition emptymap A :(map_t A) := (fun _ => error).
-Definition updatemap {A} (m: map_t A) (i: A) (v: value) : map_t A := (fun j =>
+Definition updatemap {A} (m: map_t A) (i: A) (v: value) : map_t A :=
+  if v == error then m else (fun j =>
                                                                if (j ==i) then v
                                                                else (m j)).
 Notation "i '|->' v ';' m" := (updatemap m i v)
@@ -795,7 +796,7 @@ Notation mem := (map_t loc_eqtype). (*memory mapping*)
 
 Definition loc_sorted := sort leqloc.
 
-Definition valid_nvm (m: mem) (d: warvars) := (forall(x: smallvar), (m (inl x) == error) <-> (inl x) \in d)
+Definition valid_nvm (m: mem) (d: warvars) := (forall(x: smallvar), (m (inl x) != error) <-> (inl x) \in d)
                                                                               /\
        (forall(a: array),
            (( exists(el1: el_loc), (inr el1) \in (generate_locs a) /\ (m (inr el1) != error))
@@ -841,7 +842,9 @@ Definition getvalue (N: nvmem) (i: loc) :=
    in all the eval proofs*)
   Lemma updatemap_sv {m: mem} {d: warvars} {i: smallvar} {v: value}:
     valid_nvm m d ->
-    valid_nvm (updatemap m (inl i) v) ((inl i):: d). Admitted.
+    valid_nvm (updatemap m (inl i) v) ((inl i):: d).
+    unfold valid_nvm. move => [Hsv [Ha [Hsort Huniq] ] ].
+    repeat split.
 
 Definition get_array (i: el_loc) :=
 match i with El a _ => a end.
