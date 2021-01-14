@@ -762,8 +762,8 @@ Definition get_array (i: el_loc) :=
 match i with El a _ => a end.
 
  Lemma genloc_getarr: forall(i: el_loc) (a: array),
-           inr i \in (generate_locs a) ->
-                     (get_array i) = a. Admitted.
+           (inr i \in (generate_locs a)) =
+                     ((get_array i) == a). Admitted.
 
  Lemma genloc_int: forall(a a1: array),
   ( intersect (generate_locs a)
@@ -928,7 +928,7 @@ Qed.
 
 
  Definition update_dom_arr (i: el_loc) (v: value) (d: warvars) :=
-    if (v == error) then d else locsort (generate_locs (get_array i) ++ d).
+    if (v == error) then d else locsort (undup (generate_locs (get_array i) ++ d)).
 
   Lemma updatemap_arr {m: mem} {d: warvars} {i: el_loc} {v: value} 
     :
@@ -942,9 +942,9 @@ Qed.
      (*start here ask arthur why ifF doesnt work here but this does*)
      move/ eqP /eqP : H => Hneq.
      apply (Hsv x) in Hneq.
-     rewrite mem_sort.
+     rewrite mem_sort. rewrite mem_undup.
      rewrite mem_cat. apply/ orP. by right.
-     rewrite mem_sort mem_cat => Hin. move/ orP : Hin => [Hcontra | Hin].
+     rewrite mem_sort mem_undup mem_cat => Hin. move/ orP : Hin => [Hcontra | Hin].
      apply genloc_contents in Hcontra.
      move: Hcontra => [el contra]. discriminate contra.
      move: (Hsv x) => [Hsv1 Hsv2]. apply Hsv2 in Hin.
@@ -954,37 +954,30 @@ Qed.
      remember (inr el1) as z.
      destruct (z == inr i) eqn: Hbool. move/ eqP: Hbool => one.
      subst. inversion one. subst.
-     apply genloc_getarr in H1.
-     rewrite H1. rewrite - subw_sort. apply subw_prefix. apply subw_refl.
+     rewrite genloc_getarr in H1. move/ eqP: H1 => H1.
+     rewrite H1. rewrite - subw_sort.
+     rewrite subw_undup.
+     apply subw_prefix. apply subw_refl.
      rewrite ifF in H2; try assumption.
-     rewrite - subw_sort. apply subw_suffix. move: (Ha a) => [Ha1 Ha2].
+     rewrite - subw_sort. rewrite subw_undup. apply subw_suffix. move: (Ha a) => [Ha1 Ha2].
      apply Ha1. subst. exists el1. split; try assumption.
    - move: (Ha a) => [Hd1 Hd2]. assumption.
-     rewrite intersect_sort intersect_cat => Hint.
+     rewrite intersect_sort intersect_undup intersect_cat => Hint.
      destruct Hint as [Hint | Hint].
-     rewrite intersect_cat in Hint.
-
-     suffices: 
-       subseq_w (generate_locs a) d.
-     move => Hsub1. rewrite - (undup_id Huniq) in Hsub1.
-    eapply subw_sort.  apply (subw_undup Hsub1).
-     apply Hd1. exists el1. split; try assumption. apply/ eqP. assumption.
-     move: (Ha a) => [Hd1 Hd2]. apply Hd2.
-     move: (Ha a) => [Hd1 Hd2].
-     move => Hint.
-     apply intersect_sort in Hint.
-     apply (intersect_undup (generate_locs a)
-                                         (inl i :: d)
-                        ) in Hint.
-     assert (inl i \notin (generate_locs a)).
-     apply/ negP. intros contra.
-     apply genloc_contents in contra. move : contra => [elc contra].
-     discriminate contra.
-     apply (intersect_cons Hint) in H.
-     move: (Hd2 H) => [el1 [Hel1 Hel2 ] ]. exists el1.
-     split; try rewrite ifF; try assumption.
-     apply sort_sorted. apply loctotal. rewrite sort_uniq.
-     apply (undup_uniq (inl i :: d)).
+     apply genloc_int in Hint. 
+     exists i. split. rewrite genloc_getarr. by rewrite Hint.
+     rewrite ifT; try by []. move/eqP : Heq. by apply.
+     move: (Ha a) => [Ha1 Ha2].
+     apply Ha2 in Hint.
+     move: Hint => [el1 [Hin Herr] ].
+     exists el1. split; try by [].
+     destruct (el1 == i) eqn: Hbool.
+     move/ eqP: Hbool => one. subst.
+     rewrite ifT; try by []. by apply/ eqP.
+     rewrite ifF; try by [].
+     apply sort_sorted. apply loctotal.
+     rewrite sort_uniq.
+     apply (undup_uniq (generate_locs (get_array i) ++ d)).
 Qed.
 
 

@@ -1,4 +1,4 @@
-DIGEST 891249da16ac797873e506fd50ab748b
+DIGEST 1c6515c49e240f27d39744588633085d
 FSemantics.lemmas_0
 R24:32 Coq.Bool.Bool <> <> lib
 R34:41 Coq.Init.Nat <> <> lib
@@ -357,25 +357,22 @@ R3853:3854 Semantics.lemmas_0 <> L1:63 var
 prf 3877:3889 <> intersect_cat
 R3895:3900 mathcomp.ssreflect.eqtype Equality.Exports eqType syndef
 binder 3892:3892 <> A:64
-R3907:3909 Coq.ssr.ssrbool <> rel def
-R3911:3911 Semantics.lemmas_0 <> A:64 var
-binder 3904:3904 <> R:65
-R3933:3935 mathcomp.ssreflect.seq <> seq syndef
-R3937:3937 Semantics.lemmas_0 <> A:64 var
-binder 3923:3924 <> L1:66
-binder 3926:3927 <> L2:67
-binder 3929:3930 <> L3:68
-R3966:3969 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R4004:4004 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R3943:3951 Semantics.lemmas_0 <> intersect def
-R3959:3962 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R3957:3958 Semantics.lemmas_0 <> L2:67 var
-R3963:3964 Semantics.lemmas_0 <> L3:68 var
-R3953:3954 Semantics.lemmas_0 <> L1:66 var
-R3985:3988 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
-R3970:3978 Semantics.lemmas_0 <> intersect def
-R3983:3984 Semantics.lemmas_0 <> L2:67 var
-R3980:3981 Semantics.lemmas_0 <> L1:66 var
-R3989:3997 Semantics.lemmas_0 <> intersect def
-R4002:4003 Semantics.lemmas_0 <> L3:68 var
-R3999:4000 Semantics.lemmas_0 <> L1:66 var
+R3923:3925 mathcomp.ssreflect.seq <> seq syndef
+R3927:3927 Semantics.lemmas_0 <> A:64 var
+binder 3913:3914 <> L1:65
+binder 3916:3917 <> L2:66
+binder 3919:3920 <> L3:67
+R3956:3959 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3994:3994 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3933:3941 Semantics.lemmas_0 <> intersect def
+R3949:3952 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R3947:3948 Semantics.lemmas_0 <> L2:66 var
+R3953:3954 Semantics.lemmas_0 <> L3:67 var
+R3943:3944 Semantics.lemmas_0 <> L1:65 var
+R3975:3978 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R3960:3968 Semantics.lemmas_0 <> intersect def
+R3973:3974 Semantics.lemmas_0 <> L2:66 var
+R3970:3971 Semantics.lemmas_0 <> L1:65 var
+R3979:3987 Semantics.lemmas_0 <> intersect def
+R3992:3993 Semantics.lemmas_0 <> L3:67 var
+R3989:3990 Semantics.lemmas_0 <> L1:65 var

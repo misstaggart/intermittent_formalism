@@ -113,6 +113,6 @@ Lemma subw_suffix {A: eqType} {L1 L2 L3: seq A}:
 Lemma subw_refl {A: eqType} {L1: seq A}:
   subseq_w L1 L1. Admitted.
 
-Lemma intersect_cat {A: eqType} {R: rel A}: forall {L1 L2 L3: seq A},
+Lemma intersect_cat {A: eqType} : forall {L1 L2 L3: seq A},
   intersect L1 (L2 ++ L3) = (intersect L1 L2 \/ intersect L1 L3). Admitted.
 
