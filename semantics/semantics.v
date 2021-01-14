@@ -642,10 +642,53 @@ Lemma loctotal: total leqloc.
     by move/ eqP: Hneq => Hneq.
 Qed.
 
-Lemma voltrans: transitive leqvol. Admitted.
+Lemma transvol: transitive leqvol. Admitted.
+
+Lemma asyloc: antisymmetric leqloc.
+intros x y. move/ andP => [Hxy Hyx].
+  destruct x as [x | x]; destruct y as [y | y];
+    destruct x as [x1 x2]; destruct y as [y1 y2]; unfold leqloc in Hxy;
+      unfold leqloc in Hyx;
+      try by []; simpl.
+  destruct (x1 == y1) eqn: Hbool.
+  move/ eqP : Hbool => Heq. subst. 
+  rewrite ifT in Hyx; try by []. destruct x2; destruct y2; simpl; by [].
+ rewrite ifF in Hyx; try by [].
+  assert (x1 <= y1 /\ y1 <= x1). by [].
+  move/andP : H => H.
+  move: (anti_leq H) => one. subst. exfalso. by move/ negbT /eqP: Hbool.
+  move/ negbT / eqP : Hbool => Hbool. apply not_eq_sym in Hbool.
+  apply negbTE. by move / eqP : Hbool.
+    destruct x1 as [n1 l1].
+    destruct y1 as [m1 j1].
+  destruct (n1 == m1) eqn: Hbool.
+  move/ eqP : Hbool => Heq. subst. assert (m1 == m1). by [].
+  rewrite H in Hyx.
+  destruct (l1 == j1) eqn: Hbool.
+  move/ eqP : Hbool => Heq. subst. assert (j1 == j1). by [].
+  rewrite H0 in Hyx.
+  assert (x2 <= y2 /\ y2 <= x2). by [].
+  move/andP : H1 => H1.
+  move: (anti_leq H1) => one.
+  assert (x2 = y2). by apply ord_inj. by subst.
+  rewrite ifF in Hyx.
+  assert (l1 <= j1 /\ j1 <= l1). by [].
+  move/andP : H0 => H0.
+  move: (anti_leq H0) => one. subst.
+  exfalso. by move/negbT /eqP: Hbool.
+  move/ negbT / eqP : Hbool => Hbool. apply not_eq_sym in Hbool.
+  apply negbTE. by move / eqP : Hbool.
+  rewrite ifF in Hyx.
+  assert (n1 <= m1 /\ m1 <= n1). by [].
+  move/andP : H => H.
+  move: (anti_leq H) => one. subst.
+  exfalso. by move/ negbT /eqP : Hbool.
+  move/ negbT / eqP : Hbool => Hbool. apply not_eq_sym in Hbool.
+  apply negbTE. by move / eqP : Hbool.
+Qed.
 
 Lemma loctrans: transitive leqloc.
-intros y x z Hxy Hyz.
+  intros y x z Hxy Hyz.
   destruct x as [x | x]; destruct y as [y | y]; destruct z as [z | z];
     destruct x as [x1 x2]; destruct y as [y1 y2];
       destruct z as [z1 z2];
@@ -654,7 +697,7 @@ intros y x z Hxy Hyz.
   destruct (x1 == z1) eqn: Hboolxz; destruct (x1 == y1) eqn: Hboolxy. 
   move/ eqP: Hboolxy => one. subst.
   move/ eqP: Hboolxz => one. subst. rewrite ifT in Hyz.
-  apply (voltrans y2 x2 z2); try assumption. by [].
+  apply (transvol y2 x2 z2); try assumption. by [].
   move/ eqP: Hboolxz => one. subst. rewrite ifF in Hyz.
   assert (z1 <= y1 /\ y1 <= z1). by [].
   move/andP : H => H.
@@ -666,9 +709,32 @@ intros y x z Hxy Hyz.
   destruct (y1 == z1) eqn: Hboolyz. 
   move/ eqP : Hboolyz => one. by subst.
   apply (leq_trans Hxy Hyz).
-
-Lemma asyloc: antisymmetric leqloc. Admitted.
-
+  destruct x1 as [n1 l1]. destruct y1 as [m1 j1]. destruct z1 as [o1 k1].
+  destruct (n1 == m1) eqn: Hbool.
+  move/ eqP : Hbool => Heq. subst. assert (m1 == m1). by [].
+  destruct (m1 == o1) eqn: Hbool.
+  move/ eqP : Hbool => Heq. subst.
+  destruct (j1 == k1) eqn: Hbool.
+  move/ eqP : Hbool => Heq. subst.
+  destruct (l1 == k1) eqn: Hbool; try by [].
+  apply (leq_trans Hxy Hyz).
+  destruct (l1 == j1) eqn: Hbool1; try by [].
+  move/ eqP : Hbool1 => one. subst. rewrite ifF; try by [].
+  destruct (l1 == k1) eqn: Hbool2; try by [].
+  move/ eqP: Hbool2 => two. subst.
+  assert (j1 <= k1 /\ k1 <= j1). by [].
+  move/andP : H0 => H0.
+  move: (anti_leq H0) => one. subst. exfalso. by move/ negbT /eqP: Hbool.
+  apply (leq_trans Hxy Hyz). by [].
+  destruct (m1 == o1) eqn: Hbool1.
+  move/ eqP : Hbool1 => Heq. subst. rewrite ifF; try by []. 
+  destruct (n1 == o1) eqn: Hbool2.
+  move/ eqP: Hbool2 => Heq. subst.
+  assert (m1 <= o1 /\ o1 <= m1). by [].
+  move/andP : H => H.
+  move: (anti_leq H) => one. subst. exfalso.by move/ negbT /eqP: Hbool.
+  apply (leq_trans Hxy Hyz).
+Qed.
 Definition leqlocP := perm_sortP loctotal loctrans asyloc.
 
 (*Definition loc_leq (l1 l2: loc) :=
