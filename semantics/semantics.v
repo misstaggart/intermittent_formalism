@@ -826,6 +826,7 @@ Definition valid_nvm (m: mem) (d: warvars) := (forall(x: smallvar), (m (inl x) !
             exists(el1: el_loc), (inr el1) \in (generate_locs a) /\ (m (inr el1) != error)) )
   /\ sorted leqloc d /\ uniq d.
 
+
 Inductive nvmem := (*nonvolatile memory*)
   NonVol (m : mem) (D: warvars) (WFnvem: valid_nvm m D)
 .
@@ -859,7 +860,19 @@ Definition getvalue (N: nvmem) (i: loc) :=
    actually dont do this cuz domain weirdness in updatemaps makes it so that
    you'd have a nested if in update_arr which you'll need to use
    in all the eval proofs*)
-  Definition update_dom_sv (i: smallvar) (v: value) (d: warvars) :=
+  Definition wf_dom (w: warvars) (m: mem) :=
+    valid_nvm (fun input => if (input \in w) then m input else error) w.
+
+
+Lemma restrict_wf {N: nvmem} {w: warvars}:
+  wf_dom w (getmap N)->
+valid_nvm (fun input => if (input \in w) then (getmap N) input else error) w.  Admitted.
+
+Definition restrict (N: nvmem) (w: warvars) (Hw: wf_dom w (getmap N)) :=
+    NonVol (fun input => if (input \in w) then (getmap N) input else error) w (restrict_wf Hw).
+
+
+Definition update_dom_sv (i: smallvar) (v: value) (d: warvars) :=
     if (v == error) then d else locsort (undup ((inl i) :: d)).
 
 
@@ -1046,18 +1059,6 @@ Definition remove (L1 L2 : seq loc) :=
 (*Definition interseqt (L1 L2 : seq loc) :=
   filter (fun x =>  (x \in L1)) L2.*)
 
-Definition wf_dom (w: warvars) := forall(el: el_loc) (a: array) (v: value),
-    equal_index el a v ->
-    (inr el) \in w -> subseq (generate_locs a) w. 
-
-Lemma restrict_wf {m: mem} {d: warvars} {w: warvars}:
-  valid_nvm m d ->
-  wf_dom w ->
-valid_nvm (fun input => if (input \in w) then m input else error) w.  Admitted.
-
-Definition restrict (N: nvmem) (w: warvars) (Hw: wf_dom w) :=
-  match N with NonVol m D H => NonVol
-    (fun input => if (input \in w) then m input else error) w (restrict_wf H Hw) end.
 
 
 (*prop determining if every location in array a is in the domain of m*)
@@ -1359,7 +1360,7 @@ CheckPoint: forall(N: nvmem)
                (V: vmem)
                (c: command)
                (w: warvars),
-    wf_dom w ->
+    wf_dom N w ->
     cceval_w (N, V, ((incheckpoint w);; c))
              (checkpoint:: nil)
              (N, V, c)
