@@ -393,12 +393,12 @@ Lemma stupid: forall (c: command) (l: instruction),
   induction c; inversion contra.
     by apply IHc. Qed.
 
-    Lemma dom_gets_bigger_rb: forall(N0 N1: nvmem),
+  (*  Lemma dom_gets_bigger_rb: forall(N0 N1: nvmem),
     subseq (getdomain N1) (getdomain (N0 U! N1)).
   move => [m0 d0 H0] [m1 d1 H1]. simpl. apply suffix_subseq.
   Qed.
 
-(*Lemma dom_gets_bigger: forall{N1 N1': nvmem} {V V': vmem} {k0 k1: context}
+Lemma dom_gets_bigger: forall{N1 N1': nvmem} {V V': vmem} {k0 k1: context}
                         {c c': command} {O: obseq},
       multi_step_i (k0, N1, V, c) (k1, N1', V', c') O ->
    subseq (getdomain N1) (getdomain N1').

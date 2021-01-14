@@ -1004,7 +1004,7 @@ Definition updateNV_arr (N: nvmem) (i: el_loc) (a: array) (v: value)
     valid_nvm (fun j =>
       if (j \in d)
           then (m j)
-          else (m' j)) locsort (undup (d ++ d')). Admitted.
+          else (m' j)) (locsort (undup (d ++ d'))). Admitted.
 
   Definition updatemaps (N: nvmem) (N': nvmem): nvmem :=
   match N, N' with
@@ -1013,7 +1013,7 @@ Definition updateNV_arr (N: nvmem) (i: el_loc) (a: array) (v: value)
       if (j \in D)
           then (m j)
           else (m' j))
-  locsort (undup (D ++ D')) (updatemaps_wf H H') (*inclusion of duplicates...can't allow this*)
+  (locsort (undup (D ++ D'))) (updatemaps_wf H H') (*inclusion of duplicates...can't allow this*)
   end.
 Notation "m1 'U!' m2" := (updatemaps m1 m2) (at level 100).
 (*start here should really change the above ordering to be more intuitive*)

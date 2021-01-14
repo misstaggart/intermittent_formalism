@@ -1,4 +1,4 @@
-DIGEST aa53e708beac3cf48f134a6b02f8daeb
+DIGEST 531e52777ed286251a9bab0f2425695f
 FSemantics.proofs_0
 R70:78 Coq.Bool.Bool <> <> lib
 R80:87 Coq.Init.Nat <> <> lib
@@ -1090,48 +1090,35 @@ R14431:14431 Semantics.proofs_0 <> c:148 var
 R14438:14441 Semantics.semantics <> :::x_';;'_x not
 R14437:14437 Semantics.proofs_0 <> l:149 var
 R14442:14442 Semantics.proofs_0 <> c:148 var
-prf 14535:14552 <> dom_gets_bigger_rb
-R14569:14573 Semantics.semantics <> nvmem ind
-binder 14562:14563 <> N0:150
-binder 14565:14566 <> N1:151
-R14581:14586 mathcomp.ssreflect.seq <> subseq def
-R14604:14612 Semantics.semantics <> getdomain def
-R14617:14620 Semantics.semantics <> :::x_'U!'_x not
-R14615:14616 Semantics.proofs_0 <> N0:150 var
-R14621:14622 Semantics.proofs_0 <> N1:151 var
-R14589:14597 Semantics.semantics <> getdomain def
-R14599:14600 Semantics.proofs_0 <> N1:151 var
-R14673:14685 mathcomp.ssreflect.seq <> suffix_subseq thm
-R14673:14685 mathcomp.ssreflect.seq <> suffix_subseq thm
 prf 15492:15503 <> updateone_sv
 R15516:15520 Semantics.semantics <> nvmem ind
-binder 15513:15513 <> N:152
+binder 15513:15513 <> N:150
 R15527:15534 Semantics.semantics <> smallvar ind
-binder 15524:15524 <> x:153
+binder 15524:15524 <> x:151
 R15541:15545 Semantics.semantics <> value ind
-binder 15538:15538 <> v:154
+binder 15538:15538 <> v:152
 R15565:15567 Semantics.semantics <> loc def
-binder 15562:15562 <> l:155
+binder 15562:15562 <> l:153
 R15631:15650 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R15662:15662 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R15652:15655 Coq.Init.Logic <> ::type_scope:x_'='_x not
 R15661:15661 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R15651:15651 Semantics.proofs_0 <> l:155 var
+R15651:15651 Semantics.proofs_0 <> l:153 var
 R15656:15658 Coq.Init.Datatypes <> inl constr
-R15660:15660 Semantics.proofs_0 <> x:153 var
+R15660:15660 Semantics.proofs_0 <> x:151 var
 R15575:15577 Coq.Init.Logic <> not def
 R15580:15580 Coq.Init.Logic <> ::type_scope:x_'='_x not
 R15611:15615 Coq.Init.Logic <> ::type_scope:x_'='_x not
 R15628:15628 Coq.Init.Logic <> ::type_scope:x_'='_x not
 R15582:15587 Semantics.semantics <> getmap def
 R15590:15600 Semantics.semantics <> updateNV_sv def
-R15606:15606 Semantics.proofs_0 <> v:154 var
-R15604:15604 Semantics.proofs_0 <> x:153 var
-R15602:15602 Semantics.proofs_0 <> N:152 var
-R15610:15610 Semantics.proofs_0 <> l:155 var
+R15606:15606 Semantics.proofs_0 <> v:152 var
+R15604:15604 Semantics.proofs_0 <> x:151 var
+R15602:15602 Semantics.proofs_0 <> N:150 var
+R15610:15610 Semantics.proofs_0 <> l:153 var
 R15617:15622 Semantics.semantics <> getmap def
-R15624:15624 Semantics.proofs_0 <> N:152 var
-R15627:15627 Semantics.proofs_0 <> l:155 var
+R15624:15624 Semantics.proofs_0 <> N:150 var
+R15627:15627 Semantics.proofs_0 <> l:153 var
 R15688:15691 mathcomp.ssreflect.eqtype <> ::bool_scope:x_'=='_x not
 R15692:15694 Coq.Init.Datatypes <> inl constr
 R15688:15691 mathcomp.ssreflect.eqtype <> ::bool_scope:x_'=='_x not
@@ -1146,36 +1133,36 @@ R15831:15834 mathcomp.ssreflect.eqtype <> ::bool_scope:x_'=='_x not
 R15835:15839 Semantics.semantics <> error constr
 prf 15933:15945 <> updateone_arr
 R15958:15962 Semantics.semantics <> nvmem ind
-binder 15955:15955 <> N:156
+binder 15955:15955 <> N:154
 R15969:15973 Semantics.semantics <> array ind
-binder 15966:15966 <> a:157
+binder 15966:15966 <> a:155
 R15980:15984 Semantics.semantics <> value ind
-binder 15977:15977 <> v:158
+binder 15977:15977 <> v:156
 R16004:16009 Semantics.semantics <> el_loc ind
-binder 16001:16001 <> i:159
+binder 16001:16001 <> i:157
 R16016:16018 Semantics.semantics <> loc def
-binder 16013:16013 <> l:160
+binder 16013:16013 <> l:158
 R16085:16104 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R16116:16116 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R16106:16109 Coq.Init.Logic <> ::type_scope:x_'='_x not
 R16115:16115 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R16105:16105 Semantics.proofs_0 <> l:160 var
+R16105:16105 Semantics.proofs_0 <> l:158 var
 R16110:16112 Coq.Init.Datatypes <> inr constr
-R16114:16114 Semantics.proofs_0 <> i:159 var
+R16114:16114 Semantics.proofs_0 <> i:157 var
 R16026:16028 Coq.Init.Logic <> not def
 R16031:16031 Coq.Init.Logic <> ::type_scope:x_'='_x not
 R16065:16069 Coq.Init.Logic <> ::type_scope:x_'='_x not
 R16082:16082 Coq.Init.Logic <> ::type_scope:x_'='_x not
 R16033:16038 Semantics.semantics <> getmap def
 R16041:16052 Semantics.semantics <> updateNV_arr def
-R16060:16060 Semantics.proofs_0 <> v:158 var
-R16058:16058 Semantics.proofs_0 <> a:157 var
-R16056:16056 Semantics.proofs_0 <> i:159 var
-R16054:16054 Semantics.proofs_0 <> N:156 var
-R16064:16064 Semantics.proofs_0 <> l:160 var
+R16060:16060 Semantics.proofs_0 <> v:156 var
+R16058:16058 Semantics.proofs_0 <> a:155 var
+R16056:16056 Semantics.proofs_0 <> i:157 var
+R16054:16054 Semantics.proofs_0 <> N:154 var
+R16064:16064 Semantics.proofs_0 <> l:158 var
 R16071:16076 Semantics.semantics <> getmap def
-R16078:16078 Semantics.proofs_0 <> N:156 var
-R16081:16081 Semantics.proofs_0 <> l:160 var
+R16078:16078 Semantics.proofs_0 <> N:154 var
+R16081:16081 Semantics.proofs_0 <> l:158 var
 R16142:16145 mathcomp.ssreflect.eqtype <> ::bool_scope:x_'=='_x not
 R16146:16148 Coq.Init.Datatypes <> inr constr
 R16142:16145 mathcomp.ssreflect.eqtype <> ::bool_scope:x_'=='_x not
@@ -1191,650 +1178,650 @@ R16311:16314 mathcomp.ssreflect.eqtype <> ::bool_scope:x_'=='_x not
 R16315:16319 Semantics.semantics <> error constr
 prf 17202:17213 <> update_one_c
 R17231:17235 Semantics.semantics <> nvmem ind
-binder 17223:17223 <> N:161
-binder 17225:17228 <> Nend:162
+binder 17223:17223 <> N:159
+binder 17225:17228 <> Nend:160
 R17247:17250 Semantics.semantics <> vmem ind
-binder 17239:17239 <> V:163
-binder 17241:17244 <> Vend:164
+binder 17239:17239 <> V:161
+binder 17241:17244 <> Vend:162
 R17262:17268 Semantics.semantics <> command ind
-binder 17254:17254 <> c:165
-binder 17256:17259 <> cend:166
+binder 17254:17254 <> c:163
+binder 17256:17259 <> cend:164
 R17275:17279 Semantics.semantics <> obseq syndef
-binder 17272:17272 <> O:167
+binder 17272:17272 <> O:165
 R17286:17300 Semantics.semantics <> the_write_stuff syndef
-binder 17283:17283 <> W:168
+binder 17283:17283 <> W:166
 R17309:17311 Semantics.semantics <> loc def
-binder 17306:17306 <> l:169
+binder 17306:17306 <> l:167
 R17360:17367 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R17403:17410 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R17412:17417 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
 R17425:17425 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R17411:17411 Semantics.proofs_0 <> l:169 var
+R17411:17411 Semantics.proofs_0 <> l:167 var
 R17418:17422 Semantics.semantics <> getwt def
-R17424:17424 Semantics.proofs_0 <> W:168 var
+R17424:17424 Semantics.proofs_0 <> W:166 var
 R17368:17370 Coq.ssr.ssrbool <> ::bool_scope:'~~'_x not
 R17402:17402 Coq.ssr.ssrbool <> ::bool_scope:'~~'_x not
 R17383:17386 mathcomp.ssreflect.eqtype <> ::bool_scope:x_'=='_x not
 R17372:17377 Semantics.semantics <> getmap def
-R17379:17379 Semantics.proofs_0 <> N:161 var
-R17382:17382 Semantics.proofs_0 <> l:169 var
+R17379:17379 Semantics.proofs_0 <> N:159 var
+R17382:17382 Semantics.proofs_0 <> l:167 var
 R17388:17393 Semantics.semantics <> getmap def
-R17395:17398 Semantics.proofs_0 <> Nend:162 var
-R17401:17401 Semantics.proofs_0 <> l:169 var
+R17395:17398 Semantics.proofs_0 <> Nend:160 var
+R17401:17401 Semantics.proofs_0 <> l:167 var
 R17319:17326 Semantics.semantics <> cceval_w ind
-R17359:17359 Semantics.proofs_0 <> W:168 var
+R17359:17359 Semantics.proofs_0 <> W:166 var
 R17340:17340 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R17345:17346 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R17351:17352 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R17357:17357 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R17341:17344 Semantics.proofs_0 <> Nend:162 var
-R17347:17350 Semantics.proofs_0 <> Vend:164 var
-R17353:17356 Semantics.proofs_0 <> cend:166 var
-R17338:17338 Semantics.proofs_0 <> O:167 var
+R17341:17344 Semantics.proofs_0 <> Nend:160 var
+R17347:17350 Semantics.proofs_0 <> Vend:162 var
+R17353:17356 Semantics.proofs_0 <> cend:164 var
+R17338:17338 Semantics.proofs_0 <> O:165 var
 R17328:17328 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R17330:17331 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R17333:17334 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R17336:17336 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R17329:17329 Semantics.proofs_0 <> N:161 var
-R17332:17332 Semantics.proofs_0 <> V:163 var
-R17335:17335 Semantics.proofs_0 <> c:165 var
+R17329:17329 Semantics.proofs_0 <> N:159 var
+R17332:17332 Semantics.proofs_0 <> V:161 var
+R17335:17335 Semantics.proofs_0 <> c:163 var
 prf 17445:17461 <> update_one_contra
 R17479:17483 Semantics.semantics <> nvmem ind
-binder 17471:17471 <> N:170
-binder 17473:17476 <> Nend:171
+binder 17471:17471 <> N:168
+binder 17473:17476 <> Nend:169
 R17495:17498 Semantics.semantics <> vmem ind
-binder 17487:17487 <> V:172
-binder 17489:17492 <> Vend:173
+binder 17487:17487 <> V:170
+binder 17489:17492 <> Vend:171
 R17510:17516 Semantics.semantics <> command ind
-binder 17502:17502 <> c:174
-binder 17504:17507 <> cend:175
+binder 17502:17502 <> c:172
+binder 17504:17507 <> cend:173
 R17523:17527 Semantics.semantics <> obseq syndef
-binder 17520:17520 <> O:176
+binder 17520:17520 <> O:174
 R17534:17548 Semantics.semantics <> the_write_stuff syndef
-binder 17531:17531 <> W:177
+binder 17531:17531 <> W:175
 R17557:17559 Semantics.semantics <> loc def
-binder 17554:17554 <> l:178
+binder 17554:17554 <> l:176
 R17608:17615 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R17634:17642 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R17655:17657 Coq.Init.Logic <> ::type_scope:x_'='_x not
 R17644:17649 Semantics.semantics <> getmap def
-R17651:17651 Semantics.proofs_0 <> N:170 var
-R17654:17654 Semantics.proofs_0 <> l:178 var
+R17651:17651 Semantics.proofs_0 <> N:168 var
+R17654:17654 Semantics.proofs_0 <> l:176 var
 R17659:17664 Semantics.semantics <> getmap def
-R17666:17669 Semantics.proofs_0 <> Nend:171 var
-R17672:17672 Semantics.proofs_0 <> l:178 var
+R17666:17669 Semantics.proofs_0 <> Nend:169 var
+R17672:17672 Semantics.proofs_0 <> l:176 var
 R17617:17625 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
 R17633:17633 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
-R17616:17616 Semantics.proofs_0 <> l:178 var
+R17616:17616 Semantics.proofs_0 <> l:176 var
 R17626:17630 Semantics.semantics <> getwt def
-R17632:17632 Semantics.proofs_0 <> W:177 var
+R17632:17632 Semantics.proofs_0 <> W:175 var
 R17567:17574 Semantics.semantics <> cceval_w ind
-R17607:17607 Semantics.proofs_0 <> W:177 var
+R17607:17607 Semantics.proofs_0 <> W:175 var
 R17588:17588 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R17593:17594 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R17599:17600 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R17605:17605 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R17589:17592 Semantics.proofs_0 <> Nend:171 var
-R17595:17598 Semantics.proofs_0 <> Vend:173 var
-R17601:17604 Semantics.proofs_0 <> cend:175 var
-R17586:17586 Semantics.proofs_0 <> O:176 var
+R17589:17592 Semantics.proofs_0 <> Nend:169 var
+R17595:17598 Semantics.proofs_0 <> Vend:171 var
+R17601:17604 Semantics.proofs_0 <> cend:173 var
+R17586:17586 Semantics.proofs_0 <> O:174 var
 R17576:17576 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R17578:17579 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R17581:17582 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R17584:17584 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R17577:17577 Semantics.proofs_0 <> N:170 var
-R17580:17580 Semantics.proofs_0 <> V:172 var
-R17583:17583 Semantics.proofs_0 <> c:174 var
+R17577:17577 Semantics.proofs_0 <> N:168 var
+R17580:17580 Semantics.proofs_0 <> V:170 var
+R17583:17583 Semantics.proofs_0 <> c:172 var
 prf 17693:17698 <> update
 R17716:17720 Semantics.semantics <> nvmem ind
-binder 17708:17708 <> N:179
-binder 17710:17713 <> Nend:180
+binder 17708:17708 <> N:177
+binder 17710:17713 <> Nend:178
 R17732:17735 Semantics.semantics <> vmem ind
-binder 17724:17724 <> V:181
-binder 17726:17729 <> Vend:182
+binder 17724:17724 <> V:179
+binder 17726:17729 <> Vend:180
 R17747:17753 Semantics.semantics <> command ind
-binder 17739:17739 <> c:183
-binder 17741:17744 <> cend:184
+binder 17739:17739 <> c:181
+binder 17741:17744 <> cend:182
 R17760:17764 Semantics.semantics <> obseq syndef
-binder 17757:17757 <> O:185
+binder 17757:17757 <> O:183
 R17771:17785 Semantics.semantics <> the_write_stuff syndef
-binder 17768:17768 <> W:186
+binder 17768:17768 <> W:184
 R17794:17796 Semantics.semantics <> loc def
-binder 17791:17791 <> l:187
+binder 17791:17791 <> l:185
 R17845:17852 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R17884:17891 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R17893:17898 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
 R17906:17906 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R17892:17892 Semantics.proofs_0 <> l:187 var
+R17892:17892 Semantics.proofs_0 <> l:185 var
 R17899:17903 Semantics.semantics <> getwt def
-R17905:17905 Semantics.proofs_0 <> W:186 var
+R17905:17905 Semantics.proofs_0 <> W:184 var
 R17865:17868 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
 R17854:17859 Semantics.semantics <> getmap def
-R17861:17861 Semantics.proofs_0 <> N:179 var
-R17864:17864 Semantics.proofs_0 <> l:187 var
+R17861:17861 Semantics.proofs_0 <> N:177 var
+R17864:17864 Semantics.proofs_0 <> l:185 var
 R17870:17875 Semantics.semantics <> getmap def
-R17877:17880 Semantics.proofs_0 <> Nend:180 var
-R17883:17883 Semantics.proofs_0 <> l:187 var
+R17877:17880 Semantics.proofs_0 <> Nend:178 var
+R17883:17883 Semantics.proofs_0 <> l:185 var
 R17804:17811 Semantics.programs <> trace_cs ind
-R17844:17844 Semantics.proofs_0 <> W:186 var
-R17842:17842 Semantics.proofs_0 <> O:185 var
+R17844:17844 Semantics.proofs_0 <> W:184 var
+R17842:17842 Semantics.proofs_0 <> O:183 var
 R17823:17823 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R17828:17829 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R17834:17835 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R17840:17840 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R17824:17827 Semantics.proofs_0 <> Nend:180 var
-R17830:17833 Semantics.proofs_0 <> Vend:182 var
-R17836:17839 Semantics.proofs_0 <> cend:184 var
+R17824:17827 Semantics.proofs_0 <> Nend:178 var
+R17830:17833 Semantics.proofs_0 <> Vend:180 var
+R17836:17839 Semantics.proofs_0 <> cend:182 var
 R17813:17813 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R17815:17816 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R17818:17819 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R17821:17821 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R17814:17814 Semantics.proofs_0 <> N:179 var
-R17817:17817 Semantics.proofs_0 <> V:181 var
-R17820:17820 Semantics.proofs_0 <> c:183 var
+R17814:17814 Semantics.proofs_0 <> N:177 var
+R17817:17817 Semantics.proofs_0 <> V:179 var
+R17820:17820 Semantics.proofs_0 <> c:181 var
 prf 17928:17938 <> update_onec
-binder 17941:17943 <> N11:188
-binder 17945:17947 <> N12:189
-binder 17949:17951 <> V11:190
-binder 17953:17955 <> V12:191
-binder 17957:17959 <> N21:192
-binder 17961:17963 <> N22:193
-binder 17965:17967 <> V21:194
-binder 17969:17971 <> V22:195
-binder 17996:17996 <> c:196
-binder 17998:17999 <> c1:197
-binder 18001:18002 <> c2:198
-binder 18004:18005 <> O1:199
-binder 18007:18008 <> O2:200
-binder 18010:18010 <> W:201
+binder 17941:17943 <> N11:186
+binder 17945:17947 <> N12:187
+binder 17949:17951 <> V11:188
+binder 17953:17955 <> V12:189
+binder 17957:17959 <> N21:190
+binder 17961:17963 <> N22:191
+binder 17965:17967 <> V21:192
+binder 17969:17971 <> V22:193
+binder 17996:17996 <> c:194
+binder 17998:17999 <> c1:195
+binder 18001:18002 <> c2:196
+binder 18004:18005 <> O1:197
+binder 18007:18008 <> O2:198
+binder 18010:18010 <> W:199
 R18017:18019 Semantics.semantics <> loc def
-binder 18014:18014 <> l:202
+binder 18014:18014 <> l:200
 R18068:18073 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R18116:18123 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R18155:18162 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R18195:18202 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R18204:18209 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
 R18217:18217 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R18203:18203 Semantics.proofs_0 <> l:202 var
+R18203:18203 Semantics.proofs_0 <> l:200 var
 R18210:18214 Semantics.semantics <> getwt def
-R18216:18216 Semantics.proofs_0 <> W:201 var
+R18216:18216 Semantics.proofs_0 <> W:199 var
 R18177:18180 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
 R18164:18169 Semantics.semantics <> getmap def
-R18171:18173 Semantics.proofs_0 <> N12:189 var
-R18176:18176 Semantics.proofs_0 <> l:202 var
+R18171:18173 Semantics.proofs_0 <> N12:187 var
+R18176:18176 Semantics.proofs_0 <> l:200 var
 R18182:18187 Semantics.semantics <> getmap def
-R18189:18191 Semantics.proofs_0 <> N22:193 var
-R18194:18194 Semantics.proofs_0 <> l:202 var
+R18189:18191 Semantics.proofs_0 <> N22:191 var
+R18194:18194 Semantics.proofs_0 <> l:200 var
 R18138:18140 Coq.Init.Logic <> ::type_scope:x_'='_x not
 R18125:18130 Semantics.semantics <> getmap def
-R18132:18134 Semantics.proofs_0 <> N11:188 var
-R18137:18137 Semantics.proofs_0 <> l:202 var
+R18132:18134 Semantics.proofs_0 <> N11:186 var
+R18137:18137 Semantics.proofs_0 <> l:200 var
 R18142:18147 Semantics.semantics <> getmap def
-R18149:18151 Semantics.proofs_0 <> N21:192 var
-R18154:18154 Semantics.proofs_0 <> l:202 var
+R18149:18151 Semantics.proofs_0 <> N21:190 var
+R18154:18154 Semantics.proofs_0 <> l:200 var
 R18074:18081 Semantics.semantics <> cceval_w ind
-R18115:18115 Semantics.proofs_0 <> W:201 var
+R18115:18115 Semantics.proofs_0 <> W:199 var
 R18100:18100 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R18104:18105 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R18109:18110 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R18113:18113 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R18101:18103 Semantics.proofs_0 <> N22:193 var
-R18106:18108 Semantics.proofs_0 <> V22:195 var
-R18111:18112 Semantics.proofs_0 <> c2:198 var
-R18097:18098 Semantics.proofs_0 <> O2:200 var
+R18101:18103 Semantics.proofs_0 <> N22:191 var
+R18106:18108 Semantics.proofs_0 <> V22:193 var
+R18111:18112 Semantics.proofs_0 <> c2:196 var
+R18097:18098 Semantics.proofs_0 <> O2:198 var
 R18083:18083 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R18087:18088 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R18092:18093 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R18095:18095 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R18084:18086 Semantics.proofs_0 <> N21:192 var
-R18089:18091 Semantics.proofs_0 <> V21:194 var
-R18094:18094 Semantics.proofs_0 <> c:196 var
+R18084:18086 Semantics.proofs_0 <> N21:190 var
+R18089:18091 Semantics.proofs_0 <> V21:192 var
+R18094:18094 Semantics.proofs_0 <> c:194 var
 R18026:18033 Semantics.semantics <> cceval_w ind
-R18067:18067 Semantics.proofs_0 <> W:201 var
+R18067:18067 Semantics.proofs_0 <> W:199 var
 R18052:18052 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R18056:18057 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R18061:18062 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R18065:18065 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R18053:18055 Semantics.proofs_0 <> N12:189 var
-R18058:18060 Semantics.proofs_0 <> V12:191 var
-R18063:18064 Semantics.proofs_0 <> c1:197 var
-R18049:18050 Semantics.proofs_0 <> O1:199 var
+R18053:18055 Semantics.proofs_0 <> N12:187 var
+R18058:18060 Semantics.proofs_0 <> V12:189 var
+R18063:18064 Semantics.proofs_0 <> c1:195 var
+R18049:18050 Semantics.proofs_0 <> O1:197 var
 R18035:18035 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R18039:18040 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R18044:18045 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R18047:18047 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R18036:18038 Semantics.proofs_0 <> N11:188 var
-R18041:18043 Semantics.proofs_0 <> V11:190 var
-R18046:18046 Semantics.proofs_0 <> c:196 var
+R18036:18038 Semantics.proofs_0 <> N11:186 var
+R18041:18043 Semantics.proofs_0 <> V11:188 var
+R18046:18046 Semantics.proofs_0 <> c:194 var
 prf 20387:20397 <> cceval_skip
 R20414:20418 Semantics.semantics <> nvmem ind
-binder 20408:20408 <> N:203
-binder 20410:20411 <> N':204
+binder 20408:20408 <> N:201
+binder 20410:20411 <> N':202
 R20428:20431 Semantics.semantics <> vmem ind
-binder 20422:20422 <> V:205
-binder 20424:20425 <> V':206
+binder 20422:20422 <> V:203
+binder 20424:20425 <> V':204
 R20458:20468 Semantics.semantics <> instruction ind
-binder 20455:20455 <> l:207
+binder 20455:20455 <> l:205
 R20475:20481 Semantics.semantics <> command ind
-binder 20472:20472 <> c:208
+binder 20472:20472 <> c:206
 R20490:20494 Semantics.semantics <> obseq syndef
-binder 20487:20487 <> O:209
+binder 20487:20487 <> O:207
 R20501:20515 Semantics.semantics <> the_write_stuff syndef
-binder 20498:20498 <> W:210
+binder 20498:20498 <> W:208
 R20561:20569 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R20578:20578 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R20571:20573 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R20570:20570 Semantics.proofs_0 <> c:208 var
+R20570:20570 Semantics.proofs_0 <> c:206 var
 R20574:20577 Semantics.semantics <> skip constr
 R20523:20530 Semantics.semantics <> cceval_w ind
-R20560:20560 Semantics.proofs_0 <> W:210 var
+R20560:20560 Semantics.proofs_0 <> W:208 var
 R20548:20548 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R20551:20552 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R20555:20556 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R20558:20558 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R20549:20550 Semantics.proofs_0 <> N':204 var
-R20553:20554 Semantics.proofs_0 <> V':206 var
-R20557:20557 Semantics.proofs_0 <> c:208 var
-R20546:20546 Semantics.proofs_0 <> O:209 var
+R20549:20550 Semantics.proofs_0 <> N':202 var
+R20553:20554 Semantics.proofs_0 <> V':204 var
+R20557:20557 Semantics.proofs_0 <> c:206 var
+R20546:20546 Semantics.proofs_0 <> O:207 var
 R20532:20532 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R20534:20535 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R20537:20538 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R20544:20544 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R20533:20533 Semantics.proofs_0 <> N:203 var
-R20536:20536 Semantics.proofs_0 <> V:205 var
+R20533:20533 Semantics.proofs_0 <> N:201 var
+R20536:20536 Semantics.proofs_0 <> V:203 var
 R20539:20541 Semantics.semantics <> Ins constr
-R20543:20543 Semantics.proofs_0 <> l:207 var
+R20543:20543 Semantics.proofs_0 <> l:205 var
 prf 20598:20607 <> trace_skip
 R20624:20628 Semantics.semantics <> nvmem ind
-binder 20618:20618 <> N:211
-binder 20620:20621 <> N':212
+binder 20618:20618 <> N:209
+binder 20620:20621 <> N':210
 R20638:20641 Semantics.semantics <> vmem ind
-binder 20632:20632 <> V:213
-binder 20634:20635 <> V':214
+binder 20632:20632 <> V:211
+binder 20634:20635 <> V':212
 R20668:20674 Semantics.semantics <> command ind
-binder 20665:20665 <> c:215
+binder 20665:20665 <> c:213
 R20683:20687 Semantics.semantics <> obseq syndef
-binder 20680:20680 <> O:216
+binder 20680:20680 <> O:214
 R20694:20708 Semantics.semantics <> the_write_stuff syndef
-binder 20691:20691 <> W:217
+binder 20691:20691 <> W:215
 R20756:20760 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R20762:20764 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R20761:20761 Semantics.proofs_0 <> O:216 var
+R20761:20761 Semantics.proofs_0 <> O:214 var
 R20765:20768 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_']' not
 R20715:20722 Semantics.programs <> trace_cs ind
-R20755:20755 Semantics.proofs_0 <> W:217 var
-R20753:20753 Semantics.proofs_0 <> O:216 var
+R20755:20755 Semantics.proofs_0 <> W:215 var
+R20753:20753 Semantics.proofs_0 <> O:214 var
 R20741:20741 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R20744:20745 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R20748:20749 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R20751:20751 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R20742:20743 Semantics.proofs_0 <> N':212 var
-R20746:20747 Semantics.proofs_0 <> V':214 var
-R20750:20750 Semantics.proofs_0 <> c:215 var
+R20742:20743 Semantics.proofs_0 <> N':210 var
+R20746:20747 Semantics.proofs_0 <> V':212 var
+R20750:20750 Semantics.proofs_0 <> c:213 var
 R20724:20724 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R20726:20727 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R20729:20730 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R20739:20739 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R20725:20725 Semantics.proofs_0 <> N:211 var
-R20728:20728 Semantics.proofs_0 <> V:213 var
+R20725:20725 Semantics.proofs_0 <> N:209 var
+R20728:20728 Semantics.proofs_0 <> V:211 var
 R20731:20733 Semantics.semantics <> Ins constr
 R20735:20738 Semantics.semantics <> skip constr
 prf 20789:20799 <> agr_imp_age
 R20816:20820 Semantics.semantics <> nvmem ind
-binder 20809:20810 <> N0:218
-binder 20812:20813 <> N1:219
+binder 20809:20810 <> N0:216
+binder 20812:20813 <> N1:217
 R20828:20831 Semantics.semantics <> vmem ind
-binder 20824:20825 <> V0:220
+binder 20824:20825 <> V0:218
 R20838:20840 Semantics.semantics <> exp ind
-binder 20835:20835 <> e:221
+binder 20835:20835 <> e:219
 R20848:20854 Semantics.semantics <> readobs def
-binder 20844:20845 <> r0:222
+binder 20844:20845 <> r0:220
 R20862:20866 Semantics.semantics <> value ind
-binder 20858:20859 <> v0:223
+binder 20858:20859 <> v0:221
 R20891:20896 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R20897:20897 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R20970:21250 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R21251:21255 Semantics.semantics <> eeval ind
-R21268:21269 Semantics.proofs_0 <> v0:223 var
-R21265:21266 Semantics.proofs_0 <> r0:222 var
-R21263:21263 Semantics.proofs_0 <> e:221 var
-R21260:21261 Semantics.proofs_0 <> V0:220 var
-R21257:21258 Semantics.proofs_0 <> N1:219 var
+R21268:21269 Semantics.proofs_0 <> v0:221 var
+R21265:21266 Semantics.proofs_0 <> r0:220 var
+R21263:21263 Semantics.proofs_0 <> e:219 var
+R21260:21261 Semantics.proofs_0 <> V0:218 var
+R21257:21258 Semantics.proofs_0 <> N1:217 var
 R20908:20910 Semantics.semantics <> loc def
-binder 20905:20905 <> z:224
+binder 20905:20905 <> z:222
 R20937:20940 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R20954:20956 Coq.Init.Logic <> ::type_scope:x_'='_x not
 R20942:20947 Semantics.semantics <> getmap def
-R20949:20950 Semantics.proofs_0 <> N0:218 var
-R20953:20953 Semantics.proofs_0 <> z:224 var
+R20949:20950 Semantics.proofs_0 <> N0:216 var
+R20953:20953 Semantics.proofs_0 <> z:222 var
 R20958:20963 Semantics.semantics <> getmap def
-R20965:20966 Semantics.proofs_0 <> N1:219 var
-R20969:20969 Semantics.proofs_0 <> z:224 var
+R20965:20966 Semantics.proofs_0 <> N1:217 var
+R20969:20969 Semantics.proofs_0 <> z:222 var
 R20915:20920 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
 R20935:20936 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R20914:20914 Semantics.proofs_0 <> z:224 var
+R20914:20914 Semantics.proofs_0 <> z:222 var
 R20921:20931 Semantics.semantics <> readobs_wvs def
-R20933:20934 Semantics.proofs_0 <> r0:222 var
+R20933:20934 Semantics.proofs_0 <> r0:220 var
 R20872:20876 Semantics.semantics <> eeval ind
-R20889:20890 Semantics.proofs_0 <> v0:223 var
-R20886:20887 Semantics.proofs_0 <> r0:222 var
-R20884:20884 Semantics.proofs_0 <> e:221 var
-R20881:20882 Semantics.proofs_0 <> V0:220 var
-R20878:20879 Semantics.proofs_0 <> N0:218 var
+R20889:20890 Semantics.proofs_0 <> v0:221 var
+R20886:20887 Semantics.proofs_0 <> r0:220 var
+R20884:20884 Semantics.proofs_0 <> e:219 var
+R20881:20882 Semantics.proofs_0 <> V0:218 var
+R20878:20879 Semantics.proofs_0 <> N0:216 var
 prf 21299:21304 <> if_ctx
-binder 21307:21307 <> N:225
-binder 21309:21309 <> V:226
-binder 21311:21311 <> e:227
-binder 21313:21314 <> N1:228
-binder 21316:21317 <> V1:229
-binder 21319:21320 <> c1:230
-binder 21322:21323 <> c2:231
-binder 21325:21326 <> c3:232
-binder 21328:21328 <> O:233
-binder 21330:21330 <> W:234
+binder 21307:21307 <> N:223
+binder 21309:21309 <> V:224
+binder 21311:21311 <> e:225
+binder 21313:21314 <> N1:226
+binder 21316:21317 <> V1:227
+binder 21319:21320 <> c1:228
+binder 21322:21323 <> c2:229
+binder 21325:21326 <> c3:230
+binder 21328:21328 <> O:231
+binder 21330:21330 <> W:232
 R21392:21397 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R21404:21407 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
 R21399:21401 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R21398:21398 Semantics.proofs_0 <> N:225 var
-R21402:21403 Semantics.proofs_0 <> N1:228 var
+R21398:21398 Semantics.proofs_0 <> N:223 var
+R21402:21403 Semantics.proofs_0 <> N1:226 var
 R21409:21411 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R21408:21408 Semantics.proofs_0 <> V:226 var
-R21412:21413 Semantics.proofs_0 <> V1:229 var
+R21408:21408 Semantics.proofs_0 <> V:224 var
+R21412:21413 Semantics.proofs_0 <> V1:227 var
 R21336:21343 Semantics.semantics <> cceval_w ind
-R21391:21391 Semantics.proofs_0 <> W:234 var
+R21391:21391 Semantics.proofs_0 <> W:232 var
 R21378:21378 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R21381:21382 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R21385:21386 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R21389:21389 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R21379:21380 Semantics.proofs_0 <> N1:228 var
-R21383:21384 Semantics.proofs_0 <> V1:229 var
-R21387:21388 Semantics.proofs_0 <> c3:232 var
-R21376:21376 Semantics.proofs_0 <> O:233 var
+R21379:21380 Semantics.proofs_0 <> N1:226 var
+R21383:21384 Semantics.proofs_0 <> V1:227 var
+R21387:21388 Semantics.proofs_0 <> c3:230 var
+R21376:21376 Semantics.proofs_0 <> O:231 var
 R21345:21345 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R21347:21348 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R21350:21351 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R21374:21374 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R21346:21346 Semantics.proofs_0 <> N:225 var
-R21349:21349 Semantics.proofs_0 <> V:226 var
+R21346:21346 Semantics.proofs_0 <> N:223 var
+R21349:21349 Semantics.proofs_0 <> V:224 var
 R21352:21356 Semantics.semantics <> :::'TEST'_x_'THEN'_x_'ELSE'_x not
 R21358:21363 Semantics.semantics <> :::'TEST'_x_'THEN'_x_'ELSE'_x not
 R21366:21371 Semantics.semantics <> :::'TEST'_x_'THEN'_x_'ELSE'_x not
-R21357:21357 Semantics.proofs_0 <> e:227 var
-R21364:21365 Semantics.proofs_0 <> c1:230 var
-R21372:21373 Semantics.proofs_0 <> c2:231 var
+R21357:21357 Semantics.proofs_0 <> e:225 var
+R21364:21365 Semantics.proofs_0 <> c1:228 var
+R21372:21373 Semantics.proofs_0 <> c2:229 var
 prf 21539:21555 <> negfwandw_means_r
 R21573:21579 Semantics.semantics <> context syndef
-binder 21565:21565 <> C:235
-binder 21567:21570 <> Cend:236
+binder 21565:21565 <> C:233
+binder 21567:21570 <> Cend:234
 R21587:21591 Semantics.semantics <> obseq syndef
-binder 21584:21584 <> O:237
+binder 21584:21584 <> O:235
 R21598:21612 Semantics.semantics <> the_write_stuff syndef
-binder 21595:21595 <> W:238
+binder 21595:21595 <> W:236
 R21621:21623 Semantics.semantics <> loc def
-binder 21618:21618 <> l:239
+binder 21618:21618 <> l:237
 R21650:21657 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R21679:21682 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R21698:21701 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R21703:21708 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
 R21716:21716 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R21702:21702 Semantics.proofs_0 <> l:239 var
+R21702:21702 Semantics.proofs_0 <> l:237 var
 R21709:21713 Semantics.semantics <> getrd def
-R21715:21715 Semantics.proofs_0 <> W:238 var
+R21715:21715 Semantics.proofs_0 <> W:236 var
 R21684:21689 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
 R21697:21697 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R21683:21683 Semantics.proofs_0 <> l:239 var
+R21683:21683 Semantics.proofs_0 <> l:237 var
 R21690:21694 Semantics.semantics <> getwt def
-R21696:21696 Semantics.proofs_0 <> W:238 var
+R21696:21696 Semantics.proofs_0 <> W:236 var
 R21659:21667 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
 R21678:21678 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
-R21658:21658 Semantics.proofs_0 <> l:239 var
+R21658:21658 Semantics.proofs_0 <> l:237 var
 R21668:21675 Semantics.semantics <> getfstwt def
-R21677:21677 Semantics.proofs_0 <> W:238 var
+R21677:21677 Semantics.proofs_0 <> W:236 var
 R21631:21638 Semantics.semantics <> cceval_w ind
-R21649:21649 Semantics.proofs_0 <> W:238 var
-R21644:21647 Semantics.proofs_0 <> Cend:236 var
-R21642:21642 Semantics.proofs_0 <> O:237 var
-R21640:21640 Semantics.proofs_0 <> C:235 var
+R21649:21649 Semantics.proofs_0 <> W:236 var
+R21644:21647 Semantics.proofs_0 <> Cend:234 var
+R21642:21642 Semantics.proofs_0 <> O:235 var
+R21640:21640 Semantics.proofs_0 <> C:233 var
 prf 21737:21748 <> cceval_steps
 R21766:21770 Semantics.semantics <> nvmem ind
-binder 21758:21758 <> N:240
-binder 21760:21763 <> Nmid:241
+binder 21758:21758 <> N:238
+binder 21760:21763 <> Nmid:239
 R21782:21785 Semantics.semantics <> vmem ind
-binder 21774:21774 <> V:242
-binder 21776:21779 <> Vmid:243
+binder 21774:21774 <> V:240
+binder 21776:21779 <> Vmid:241
 R21797:21803 Semantics.semantics <> command ind
-binder 21789:21789 <> c:244
-binder 21791:21794 <> cmid:245
+binder 21789:21789 <> c:242
+binder 21791:21794 <> cmid:243
 R21829:21833 Semantics.semantics <> obseq syndef
-binder 21826:21826 <> O:246
+binder 21826:21826 <> O:244
 R21840:21854 Semantics.semantics <> the_write_stuff syndef
-binder 21837:21837 <> W:247
+binder 21837:21837 <> W:245
 R21861:21871 Semantics.semantics <> instruction ind
-binder 21858:21858 <> l:248
+binder 21858:21858 <> l:246
 R21928:21939 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R21941:21943 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R21940:21940 Semantics.proofs_0 <> c:244 var
-R21944:21947 Semantics.proofs_0 <> cmid:245 var
+R21940:21940 Semantics.proofs_0 <> c:242 var
+R21944:21947 Semantics.proofs_0 <> cmid:243 var
 R21884:21891 Semantics.semantics <> cceval_w ind
-R21927:21927 Semantics.proofs_0 <> W:247 var
+R21927:21927 Semantics.proofs_0 <> W:245 var
 R21908:21908 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R21913:21914 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R21919:21920 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R21925:21925 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R21909:21912 Semantics.proofs_0 <> Nmid:241 var
-R21915:21918 Semantics.proofs_0 <> Vmid:243 var
-R21921:21924 Semantics.proofs_0 <> cmid:245 var
-R21906:21906 Semantics.proofs_0 <> O:246 var
+R21909:21912 Semantics.proofs_0 <> Nmid:239 var
+R21915:21918 Semantics.proofs_0 <> Vmid:241 var
+R21921:21924 Semantics.proofs_0 <> cmid:243 var
+R21906:21906 Semantics.proofs_0 <> O:244 var
 R21893:21893 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R21895:21896 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R21898:21899 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R21904:21904 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R21894:21894 Semantics.proofs_0 <> N:240 var
-R21897:21897 Semantics.proofs_0 <> V:242 var
+R21894:21894 Semantics.proofs_0 <> N:238 var
+R21897:21897 Semantics.proofs_0 <> V:240 var
 R21901:21902 Semantics.semantics <> :::x_';;'_x not
-R21900:21900 Semantics.proofs_0 <> l:248 var
-R21903:21903 Semantics.proofs_0 <> c:244 var
+R21900:21900 Semantics.proofs_0 <> l:246 var
+R21903:21903 Semantics.proofs_0 <> c:242 var
 prf 22007:22024 <> extract_write_svnv
 R22043:22047 Semantics.semantics <> nvmem ind
-binder 22035:22035 <> N:249
-binder 22037:22040 <> Nend:250
+binder 22035:22035 <> N:247
+binder 22037:22040 <> Nend:248
 R22059:22062 Semantics.semantics <> vmem ind
-binder 22051:22051 <> V:251
-binder 22053:22056 <> Vend:252
+binder 22051:22051 <> V:249
+binder 22053:22056 <> Vend:250
 R22091:22093 Semantics.semantics <> exp ind
-binder 22088:22088 <> e:253
+binder 22088:22088 <> e:251
 R22100:22107 Semantics.semantics <> smallvar ind
-binder 22097:22097 <> x:254
+binder 22097:22097 <> x:252
 R22114:22118 Semantics.semantics <> obseq syndef
-binder 22111:22111 <> O:255
+binder 22111:22111 <> O:253
 R22147:22161 Semantics.semantics <> the_write_stuff syndef
-binder 22144:22144 <> W:256
+binder 22144:22144 <> W:254
 R22173:22179 Semantics.semantics <> command ind
-binder 22167:22170 <> cend:257
+binder 22167:22170 <> cend:255
 R22257:22264 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R22265:22265 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R22272:22280 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R22281:22281 Coq.Init.Logic <> ::type_scope:x_'='_x not
 R22289:22292 Coq.Init.Logic <> ::type_scope:x_'='_x not
 R22282:22286 Semantics.semantics <> getwt def
-R22288:22288 Semantics.proofs_0 <> W:256 var
+R22288:22288 Semantics.proofs_0 <> W:254 var
 R22293:22296 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_x_']' not
 R22302:22302 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_x_']' not
 R22297:22299 Coq.Init.Datatypes <> inl constr
-R22301:22301 Semantics.proofs_0 <> x:254 var
+R22301:22301 Semantics.proofs_0 <> x:252 var
 R22266:22269 Semantics.semantics <> isNV def
-R22271:22271 Semantics.proofs_0 <> x:254 var
+R22271:22271 Semantics.proofs_0 <> x:252 var
 R22187:22194 Semantics.semantics <> cceval_w ind
-R22256:22256 Semantics.proofs_0 <> W:256 var
+R22256:22256 Semantics.proofs_0 <> W:254 var
 R22237:22237 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R22242:22243 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R22248:22249 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R22254:22254 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R22238:22241 Semantics.proofs_0 <> Nend:250 var
-R22244:22247 Semantics.proofs_0 <> Vend:252 var
-R22250:22253 Semantics.proofs_0 <> cend:257 var
-R22222:22222 Semantics.proofs_0 <> O:255 var
+R22238:22241 Semantics.proofs_0 <> Nend:248 var
+R22244:22247 Semantics.proofs_0 <> Vend:250 var
+R22250:22253 Semantics.proofs_0 <> cend:255 var
+R22222:22222 Semantics.proofs_0 <> O:253 var
 R22196:22196 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R22198:22199 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R22201:22202 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R22220:22220 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R22197:22197 Semantics.proofs_0 <> N:249 var
-R22200:22200 Semantics.proofs_0 <> V:251 var
+R22197:22197 Semantics.proofs_0 <> N:247 var
+R22200:22200 Semantics.proofs_0 <> V:249 var
 R22203:22205 Semantics.semantics <> Ins constr
 R22208:22214 Semantics.semantics <> asgn_sv constr
-R22218:22218 Semantics.proofs_0 <> e:253 var
-R22216:22216 Semantics.proofs_0 <> x:254 var
+R22218:22218 Semantics.proofs_0 <> e:251 var
+R22216:22216 Semantics.proofs_0 <> x:252 var
 R22372:22380 Semantics.proofs_0 <> negNVandV thm
 R22372:22380 Semantics.proofs_0 <> negNVandV thm
 prf 22405:22421 <> extract_write_svv
 R22440:22444 Semantics.semantics <> nvmem ind
-binder 22432:22432 <> N:258
-binder 22434:22437 <> Nend:259
+binder 22432:22432 <> N:256
+binder 22434:22437 <> Nend:257
 R22456:22459 Semantics.semantics <> vmem ind
-binder 22448:22448 <> V:260
-binder 22450:22453 <> Vend:261
+binder 22448:22448 <> V:258
+binder 22450:22453 <> Vend:259
 R22488:22490 Semantics.semantics <> exp ind
-binder 22485:22485 <> e:262
+binder 22485:22485 <> e:260
 R22497:22504 Semantics.semantics <> smallvar ind
-binder 22494:22494 <> x:263
+binder 22494:22494 <> x:261
 R22511:22515 Semantics.semantics <> obseq syndef
-binder 22508:22508 <> O:264
+binder 22508:22508 <> O:262
 R22544:22558 Semantics.semantics <> the_write_stuff syndef
-binder 22541:22541 <> W:265
+binder 22541:22541 <> W:263
 R22570:22576 Semantics.semantics <> command ind
-binder 22564:22567 <> cend:266
+binder 22564:22567 <> cend:264
 R22654:22661 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R22662:22662 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R22668:22676 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R22677:22677 Coq.Init.Logic <> ::type_scope:x_'='_x not
 R22685:22688 Coq.Init.Logic <> ::type_scope:x_'='_x not
 R22678:22682 Semantics.semantics <> getwt def
-R22684:22684 Semantics.proofs_0 <> W:265 var
+R22684:22684 Semantics.proofs_0 <> W:263 var
 R22689:22693 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_']' not
 R22663:22665 Semantics.semantics <> isV def
-R22667:22667 Semantics.proofs_0 <> x:263 var
+R22667:22667 Semantics.proofs_0 <> x:261 var
 R22584:22591 Semantics.semantics <> cceval_w ind
-R22653:22653 Semantics.proofs_0 <> W:265 var
+R22653:22653 Semantics.proofs_0 <> W:263 var
 R22634:22634 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R22639:22640 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R22645:22646 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R22651:22651 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R22635:22638 Semantics.proofs_0 <> Nend:259 var
-R22641:22644 Semantics.proofs_0 <> Vend:261 var
-R22647:22650 Semantics.proofs_0 <> cend:266 var
-R22619:22619 Semantics.proofs_0 <> O:264 var
+R22635:22638 Semantics.proofs_0 <> Nend:257 var
+R22641:22644 Semantics.proofs_0 <> Vend:259 var
+R22647:22650 Semantics.proofs_0 <> cend:264 var
+R22619:22619 Semantics.proofs_0 <> O:262 var
 R22593:22593 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R22595:22596 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R22598:22599 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R22617:22617 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R22594:22594 Semantics.proofs_0 <> N:258 var
-R22597:22597 Semantics.proofs_0 <> V:260 var
+R22594:22594 Semantics.proofs_0 <> N:256 var
+R22597:22597 Semantics.proofs_0 <> V:258 var
 R22600:22602 Semantics.semantics <> Ins constr
 R22605:22611 Semantics.semantics <> asgn_sv constr
-R22615:22615 Semantics.proofs_0 <> e:262 var
-R22613:22613 Semantics.proofs_0 <> x:263 var
+R22615:22615 Semantics.proofs_0 <> e:260 var
+R22613:22613 Semantics.proofs_0 <> x:261 var
 R22763:22771 Semantics.proofs_0 <> negNVandV thm
 R22763:22771 Semantics.proofs_0 <> negNVandV thm
 prf 22796:22805 <> fw_nin_r_c
 R22822:22828 Semantics.semantics <> context syndef
-binder 22815:22816 <> C1:267
-binder 22818:22819 <> C2:268
+binder 22815:22816 <> C1:265
+binder 22818:22819 <> C2:266
 R22835:22839 Semantics.semantics <> obseq syndef
-binder 22832:22832 <> O:269
+binder 22832:22832 <> O:267
 R22846:22860 Semantics.semantics <> the_write_stuff syndef
-binder 22843:22843 <> W:270
+binder 22843:22843 <> W:268
 R22867:22869 Semantics.semantics <> loc def
-binder 22864:22864 <> l:271
+binder 22864:22864 <> l:269
 R22940:22947 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R22963:22970 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R22972:22981 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
 R22992:22992 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
-R22971:22971 Semantics.proofs_0 <> l:271 var
+R22971:22971 Semantics.proofs_0 <> l:269 var
 R22982:22989 Semantics.semantics <> getfstwt def
-R22991:22991 Semantics.proofs_0 <> W:270 var
+R22991:22991 Semantics.proofs_0 <> W:268 var
 R22949:22954 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
 R22962:22962 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R22948:22948 Semantics.proofs_0 <> l:271 var
+R22948:22948 Semantics.proofs_0 <> l:269 var
 R22955:22959 Semantics.semantics <> getrd def
-R22961:22961 Semantics.proofs_0 <> W:270 var
+R22961:22961 Semantics.proofs_0 <> W:268 var
 R22922:22929 Semantics.semantics <> cceval_w ind
-R22939:22939 Semantics.proofs_0 <> W:270 var
-R22936:22937 Semantics.proofs_0 <> C2:268 var
-R22934:22934 Semantics.proofs_0 <> O:269 var
-R22931:22932 Semantics.proofs_0 <> C1:267 var
+R22939:22939 Semantics.proofs_0 <> W:268 var
+R22936:22937 Semantics.proofs_0 <> C2:266 var
+R22934:22934 Semantics.proofs_0 <> O:267 var
+R22931:22932 Semantics.proofs_0 <> C1:265 var
 prf 23014:23025 <> connect_mems
-binder 23028:23028 <> N:272
-binder 23030:23031 <> N':273
-binder 23033:23033 <> V:274
-binder 23035:23038 <> Nmid:275
-binder 23040:23044 <> Nmid':276
-binder 23046:23049 <> Vmid:277
-binder 23051:23051 <> W:278
-binder 23053:23053 <> O:279
-binder 23055:23055 <> z:280
+binder 23028:23028 <> N:270
+binder 23030:23031 <> N':271
+binder 23033:23033 <> V:272
+binder 23035:23038 <> Nmid:273
+binder 23040:23044 <> Nmid':274
+binder 23046:23049 <> Vmid:275
+binder 23051:23051 <> W:276
+binder 23053:23053 <> O:277
+binder 23055:23055 <> z:278
 R23062:23072 Semantics.semantics <> instruction ind
-binder 23059:23059 <> l:281
+binder 23059:23059 <> l:279
 R23125:23128 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R23180:23183 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R23202:23205 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R23230:23233 Coq.Init.Logic <> ::type_scope:x_'->'_x not
 R23247:23249 Coq.Init.Logic <> ::type_scope:x_'='_x not
 R23234:23239 Semantics.semantics <> getmap def
-R23246:23246 Semantics.proofs_0 <> z:280 var
-R23241:23244 Semantics.proofs_0 <> Nmid:275 var
+R23246:23246 Semantics.proofs_0 <> z:278 var
+R23241:23244 Semantics.proofs_0 <> Nmid:273 var
 R23250:23255 Semantics.semantics <> getmap def
-R23263:23263 Semantics.proofs_0 <> z:280 var
-R23257:23261 Semantics.proofs_0 <> Nmid':276 var
+R23263:23263 Semantics.proofs_0 <> z:278 var
+R23257:23261 Semantics.proofs_0 <> Nmid':274 var
 R23216:23218 Coq.Init.Logic <> ::type_scope:x_'='_x not
 R23206:23211 Semantics.semantics <> getmap def
-R23215:23215 Semantics.proofs_0 <> z:280 var
-R23213:23213 Semantics.proofs_0 <> N:272 var
+R23215:23215 Semantics.proofs_0 <> z:278 var
+R23213:23213 Semantics.proofs_0 <> N:270 var
 R23219:23224 Semantics.semantics <> getmap def
-R23229:23229 Semantics.proofs_0 <> z:280 var
-R23226:23227 Semantics.proofs_0 <> N':273 var
+R23229:23229 Semantics.proofs_0 <> z:278 var
+R23226:23227 Semantics.proofs_0 <> N':271 var
 R23185:23193 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
 R23201:23201 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
-R23184:23184 Semantics.proofs_0 <> z:280 var
+R23184:23184 Semantics.proofs_0 <> z:278 var
 R23194:23198 Semantics.semantics <> getwt def
-R23200:23200 Semantics.proofs_0 <> W:278 var
+R23200:23200 Semantics.proofs_0 <> W:276 var
 R23129:23136 Semantics.semantics <> cceval_w ind
-R23179:23179 Semantics.proofs_0 <> W:278 var
+R23179:23179 Semantics.proofs_0 <> W:276 var
 R23155:23155 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R23161:23162 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R23167:23168 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R23177:23177 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R23156:23160 Semantics.proofs_0 <> Nmid':276 var
-R23163:23166 Semantics.proofs_0 <> Vmid:277 var
+R23156:23160 Semantics.proofs_0 <> Nmid':274 var
+R23163:23166 Semantics.proofs_0 <> Vmid:275 var
 R23169:23171 Semantics.semantics <> Ins constr
 R23173:23176 Semantics.semantics <> skip constr
-R23153:23153 Semantics.proofs_0 <> O:279 var
+R23153:23153 Semantics.proofs_0 <> O:277 var
 R23138:23138 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R23141:23142 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R23144:23145 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R23151:23151 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R23139:23140 Semantics.proofs_0 <> N':273 var
-R23143:23143 Semantics.proofs_0 <> V:274 var
+R23139:23140 Semantics.proofs_0 <> N':271 var
+R23143:23143 Semantics.proofs_0 <> V:272 var
 R23146:23148 Semantics.semantics <> Ins constr
-R23150:23150 Semantics.proofs_0 <> l:281 var
+R23150:23150 Semantics.proofs_0 <> l:279 var
 R23076:23083 Semantics.semantics <> cceval_w ind
-R23124:23124 Semantics.proofs_0 <> W:278 var
+R23124:23124 Semantics.proofs_0 <> W:276 var
 R23101:23101 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R23106:23107 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R23112:23113 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R23122:23122 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R23102:23105 Semantics.proofs_0 <> Nmid:275 var
-R23108:23111 Semantics.proofs_0 <> Vmid:277 var
+R23102:23105 Semantics.proofs_0 <> Nmid:273 var
+R23108:23111 Semantics.proofs_0 <> Vmid:275 var
 R23114:23116 Semantics.semantics <> Ins constr
 R23118:23121 Semantics.semantics <> skip constr
-R23099:23099 Semantics.proofs_0 <> O:279 var
+R23099:23099 Semantics.proofs_0 <> O:277 var
 R23085:23085 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R23087:23088 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R23090:23091 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R23097:23097 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R23086:23086 Semantics.proofs_0 <> N:272 var
-R23089:23089 Semantics.proofs_0 <> V:274 var
+R23086:23086 Semantics.proofs_0 <> N:270 var
+R23089:23089 Semantics.proofs_0 <> V:272 var
 R23092:23094 Semantics.semantics <> Ins constr
-R23096:23096 Semantics.proofs_0 <> l:281 var
+R23096:23096 Semantics.proofs_0 <> l:279 var
 R23321:23337 Semantics.proofs_0 <> update_one_contra prfax
 R23321:23337 Semantics.proofs_0 <> update_one_contra prfax
 R23321:23337 Semantics.proofs_0 <> update_one_contra prfax
