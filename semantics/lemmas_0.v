@@ -1,7 +1,7 @@
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Lists.List Strings.String Program.
 Require Export Coq.Strings.String.
-From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype.
+From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype seq.
 From TLC Require Import LibTactics.
 
 Ltac destruct4r H L1 L2 L3 L4 := destruct H as [L1 rest];
@@ -40,3 +40,48 @@ Check eqP.
 Lemma eqPn {T: eqType} {x: Equality.sort T}
       {y: Equality.sort T}: reflect (x <> y) (x != y).
   Admitted.
+
+
+Lemma in_app_r: forall{A: eqType} {a: A} {L1 L2: seq A},
+    a \in L2 -> a \in (L1 ++ L2).
+  intros. rewrite mem_cat.
+  apply (introT orP).
+  by right.
+  Qed.
+
+Lemma in_app_l: forall{A: eqType} {a: A} {L1 L2: seq A},
+    a \in L1 -> a \in (L1 ++ L2).
+  intros. rewrite mem_cat.
+  apply (introT orP).
+  by left.
+Qed.
+
+Lemma subseq_app_rr: forall {A: eqType} {L1 L2 L3: seq A},
+                          subseq L1 L2 ->
+                          subseq L1 (L2 ++ L3).
+Proof. intros. apply (subseq_trans H (prefix_subseq L2 L3)).
+Qed.
+
+
+Lemma in_subseq: forall {A: eqType} {L1 L2: seq A} {x: A},
+    subseq L1 L2 ->
+    x \in L1 ->
+    x \in L2.
+Proof. intros.
+       move / subseqP : H.
+       intros. destruct H as [m H H1].
+       subst.
+         by move / mem_mask : H0.
+Qed.
+
+
+Lemma subseq_undup {A: eqType} {L1 L2: seq A} {x: A}:
+  subseq L1 (undup L2) -> subseq L1 (undup (x::L2)).
+  intros Hsub.
+   destruct (x \in L2) eqn: Hbool. simpl.
+  induction L2.
+  rewrite in_nil in Hbool. discriminate Hbool.
+  rewrite ifT; try assumption.
+  simpl. rewrite ifF; try assumption.
+  apply (subseq_trans Hsub (suffix_subseq [::x] (undup L2))).
+  Qed.

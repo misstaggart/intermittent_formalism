@@ -841,13 +841,44 @@ Definition getvalue (N: nvmem) (i: loc) :=
    you'd have a nested if in update_arr which you'll need to use
    in all the eval proofs*)
   Definition update_dom_sv (i: smallvar) (v: value) (d: warvars) :=
-    if (v == error) then d else (inl i) :: d.
+    if (v == error) then d else undup ((inl i) :: d).
+
+
+
 
   Lemma updatemap_sv {m: mem} {d: warvars} {i: smallvar} {v: value}:
     valid_nvm m d ->
     valid_nvm (updatemap m (inl i) v) (update_dom_sv i v d).
     unfold valid_nvm. move => [Hsv [Ha [Hsort Huniq] ] ].
-    repeat split. Admitted.
+   - repeat split; unfold updatemap; unfold update_dom_sv; destruct (v == error) eqn: Hbool; try 
+        (move/ eqP : Hbool => Heq; subst); try apply (Hsv x).
+        remember (inl x) as sv.
+        remember (inl i) as sv1.
+        destruct (sv == sv1) eqn: Hbool1.
+        move/ eqP : Hbool1 => Hbool1. rewrite Hbool1.
+        rewrite ifT. intros. rewrite mem_undup.
+        apply (mem_head sv1 d). auto.
+        rewrite ifF. intros Hm. subst. apply (Hsv x) in Hm. rewrite mem_undup.
+        rewrite in_cons. apply/orP. by right. by []. 
+        remember (inl x) as sv.
+        remember (inl i) as sv1.
+        destruct (sv == sv1) eqn: Hbool1.
+        move/ eqP : Hbool1 => Hbool1. rewrite Hbool1.
+        rewrite ifT. intros. by move/eqP : Heq. auto.
+        move => Hin.
+        rewrite mem_undup in Hin.
+        rewrite in_cons in Hin. move/ orP : Hin => [Hin1 | Hin2]. exfalso. move/ eqP : Hin1 => Heq1. subst.
+        move/ negbT / eqP : Hbool1. by apply.
+        move: (Hsv x) => [Hsv1 Hsv2]. subst.
+        apply Hsv2 in Hin2.
+        by rewrite ifF.
+   - move: (Ha a) => [Hd1 Hd2]. assumption.
+     move => [el1 [H1 H2] ].
+     assert (inr el1 != inl i). by [].
+     move/ eqP : H2 => Herr.
+
+   - move: (Ha a) => [Hd1 Hd2]. assumption.
+  Admitted.
 
 Definition get_array (i: el_loc) :=
 match i with El a _ => a end.

@@ -1,4 +1,4 @@
-DIGEST 0bc938af9f1444a6b023146627dedf0f
+DIGEST 37e589ee214fb9d34bb3ea6f19adc0d5
 FSemantics.lemmas_0
 R24:32 Coq.Bool.Bool <> <> lib
 R34:41 Coq.Init.Nat <> <> lib
@@ -14,54 +14,150 @@ R193:201 mathcomp.ssreflect.ssreflect <> <> lib
 R203:208 mathcomp.ssreflect.ssrfun <> <> lib
 R210:216 mathcomp.ssreflect.ssrbool <> <> lib
 R218:223 mathcomp.ssreflect.eqtype <> <> lib
-R250:259 TLC.LibTactics <> <> lib
-prf 1172:1183 <> reflect_conj
-R1200:1203 Coq.Init.Datatypes <> bool ind
-binder 1193:1194 <> b0:1
-binder 1196:1197 <> b1:2
-binder 1207:1208 <> P0:3
-binder 1210:1211 <> P1:4
-R1256:1281 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R1295:1320 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R1321:1327 Coq.Bool.Bool <> reflect ind
-R1343:1346 Coq.Init.Datatypes <> ::bool_scope:x_'&&'_x not
-R1341:1342 Semantics.lemmas_0 <> b0:1 var
-R1347:1348 Semantics.lemmas_0 <> b1:2 var
-R1332:1335 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
-R1330:1331 Semantics.lemmas_0 <> P0:3 var
-R1336:1337 Semantics.lemmas_0 <> P1:4 var
-R1282:1288 Coq.Bool.Bool <> reflect ind
-R1293:1294 Semantics.lemmas_0 <> b1:2 var
-R1290:1291 Semantics.lemmas_0 <> P1:4 var
-R1243:1249 Coq.Bool.Bool <> reflect ind
-R1254:1255 Semantics.lemmas_0 <> b0:1 var
-R1251:1252 Semantics.lemmas_0 <> P0:3 var
-R1375:1378 Coq.Init.Datatypes <> ::bool_scope:x_'&&'_x not
-R1375:1378 Coq.Init.Datatypes <> ::bool_scope:x_'&&'_x not
-R1423:1435 Coq.Bool.Bool <> andb_true_iff thm
-R1449:1453 Coq.ssr.ssrbool <> elimT thm
-R1449:1453 Coq.ssr.ssrbool <> elimT thm
-R1481:1485 Coq.ssr.ssrbool <> elimT thm
-R1481:1485 Coq.ssr.ssrbool <> elimT thm
-R1534:1547 Coq.Bool.Bool <> andb_false_iff thm
-R1596:1600 Coq.ssr.ssrbool <> elimF thm
-R1596:1600 Coq.ssr.ssrbool <> elimF thm
-R1634:1638 Coq.ssr.ssrbool <> elimF thm
-R1634:1638 Coq.ssr.ssrbool <> elimF thm
-R1668:1670 mathcomp.ssreflect.eqtype <> eqP thm
-prf 1679:1682 <> eqPn
-R1688:1693 mathcomp.ssreflect.eqtype Equality.Exports eqType syndef
-binder 1685:1685 <> T:5
-R1700:1712 mathcomp.ssreflect.eqtype Equality sort proj
-R1714:1714 Semantics.lemmas_0 <> T:5 var
-binder 1697:1697 <> x:6
-R1727:1739 mathcomp.ssreflect.eqtype Equality sort proj
-R1741:1741 Semantics.lemmas_0 <> T:5 var
-binder 1724:1724 <> y:7
-R1745:1751 Coq.Bool.Bool <> reflect ind
-R1764:1767 mathcomp.ssreflect.eqtype <> ::bool_scope:x_'!='_x not
-R1763:1763 Semantics.lemmas_0 <> x:6 var
-R1768:1768 Semantics.lemmas_0 <> y:7 var
-R1755:1758 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
-R1754:1754 Semantics.lemmas_0 <> x:6 var
-R1759:1759 Semantics.lemmas_0 <> y:7 var
+R225:227 mathcomp.ssreflect.seq <> <> lib
+R254:263 TLC.LibTactics <> <> lib
+prf 1176:1187 <> reflect_conj
+R1204:1207 Coq.Init.Datatypes <> bool ind
+binder 1197:1198 <> b0:1
+binder 1200:1201 <> b1:2
+binder 1211:1212 <> P0:3
+binder 1214:1215 <> P1:4
+R1260:1285 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1299:1324 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1325:1331 Coq.Bool.Bool <> reflect ind
+R1347:1350 Coq.Init.Datatypes <> ::bool_scope:x_'&&'_x not
+R1345:1346 Semantics.lemmas_0 <> b0:1 var
+R1351:1352 Semantics.lemmas_0 <> b1:2 var
+R1336:1339 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R1334:1335 Semantics.lemmas_0 <> P0:3 var
+R1340:1341 Semantics.lemmas_0 <> P1:4 var
+R1286:1292 Coq.Bool.Bool <> reflect ind
+R1297:1298 Semantics.lemmas_0 <> b1:2 var
+R1294:1295 Semantics.lemmas_0 <> P1:4 var
+R1247:1253 Coq.Bool.Bool <> reflect ind
+R1258:1259 Semantics.lemmas_0 <> b0:1 var
+R1255:1256 Semantics.lemmas_0 <> P0:3 var
+R1379:1382 Coq.Init.Datatypes <> ::bool_scope:x_'&&'_x not
+R1379:1382 Coq.Init.Datatypes <> ::bool_scope:x_'&&'_x not
+R1427:1439 Coq.Bool.Bool <> andb_true_iff thm
+R1453:1457 Coq.ssr.ssrbool <> elimT thm
+R1453:1457 Coq.ssr.ssrbool <> elimT thm
+R1485:1489 Coq.ssr.ssrbool <> elimT thm
+R1485:1489 Coq.ssr.ssrbool <> elimT thm
+R1538:1551 Coq.Bool.Bool <> andb_false_iff thm
+R1600:1604 Coq.ssr.ssrbool <> elimF thm
+R1600:1604 Coq.ssr.ssrbool <> elimF thm
+R1638:1642 Coq.ssr.ssrbool <> elimF thm
+R1638:1642 Coq.ssr.ssrbool <> elimF thm
+R1672:1674 mathcomp.ssreflect.eqtype <> eqP thm
+prf 1683:1686 <> eqPn
+R1692:1697 mathcomp.ssreflect.eqtype Equality.Exports eqType syndef
+binder 1689:1689 <> T:5
+R1704:1716 mathcomp.ssreflect.eqtype Equality sort proj
+R1718:1718 Semantics.lemmas_0 <> T:5 var
+binder 1701:1701 <> x:6
+R1731:1743 mathcomp.ssreflect.eqtype Equality sort proj
+R1745:1745 Semantics.lemmas_0 <> T:5 var
+binder 1728:1728 <> y:7
+R1749:1755 Coq.Bool.Bool <> reflect ind
+R1768:1771 mathcomp.ssreflect.eqtype <> ::bool_scope:x_'!='_x not
+R1767:1767 Semantics.lemmas_0 <> x:6 var
+R1772:1772 Semantics.lemmas_0 <> y:7 var
+R1759:1762 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R1758:1758 Semantics.lemmas_0 <> x:6 var
+R1763:1763 Semantics.lemmas_0 <> y:7 var
+prf 1796:1803 <> in_app_r
+R1816:1821 mathcomp.ssreflect.eqtype Equality.Exports eqType syndef
+binder 1813:1813 <> A:8
+R1828:1828 Semantics.lemmas_0 <> A:8 var
+binder 1825:1825 <> a:9
+R1839:1841 mathcomp.ssreflect.seq <> seq syndef
+R1843:1843 Semantics.lemmas_0 <> A:8 var
+binder 1832:1833 <> L1:10
+binder 1835:1836 <> L2:11
+R1859:1862 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1864:1869 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R1878:1878 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R1863:1863 Semantics.lemmas_0 <> a:9 var
+R1872:1875 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R1870:1871 Semantics.lemmas_0 <> L1:10 var
+R1876:1877 Semantics.lemmas_0 <> L2:11 var
+R1852:1856 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R1851:1851 Semantics.lemmas_0 <> a:9 var
+R1857:1858 Semantics.lemmas_0 <> L2:11 var
+R1899:1905 mathcomp.ssreflect.seq <> mem_cat thm
+R1899:1905 mathcomp.ssreflect.seq <> mem_cat thm
+R1899:1905 mathcomp.ssreflect.seq <> mem_cat thm
+R1917:1922 Coq.ssr.ssrbool <> introT thm
+R1924:1926 Coq.ssr.ssrbool <> orP thm
+R1917:1922 Coq.ssr.ssrbool <> introT thm
+R1924:1926 Coq.ssr.ssrbool <> orP thm
+prf 1956:1963 <> in_app_l
+R1976:1981 mathcomp.ssreflect.eqtype Equality.Exports eqType syndef
+binder 1973:1973 <> A:12
+R1988:1988 Semantics.lemmas_0 <> A:12 var
+binder 1985:1985 <> a:13
+R1999:2001 mathcomp.ssreflect.seq <> seq syndef
+R2003:2003 Semantics.lemmas_0 <> A:12 var
+binder 1992:1993 <> L1:14
+binder 1995:1996 <> L2:15
+R2019:2022 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2024:2029 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R2038:2038 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R2023:2023 Semantics.lemmas_0 <> a:13 var
+R2032:2035 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R2030:2031 Semantics.lemmas_0 <> L1:14 var
+R2036:2037 Semantics.lemmas_0 <> L2:15 var
+R2012:2016 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R2011:2011 Semantics.lemmas_0 <> a:13 var
+R2017:2018 Semantics.lemmas_0 <> L1:14 var
+R2059:2065 mathcomp.ssreflect.seq <> mem_cat thm
+R2059:2065 mathcomp.ssreflect.seq <> mem_cat thm
+R2059:2065 mathcomp.ssreflect.seq <> mem_cat thm
+R2077:2082 Coq.ssr.ssrbool <> introT thm
+R2084:2086 Coq.ssr.ssrbool <> orP thm
+R2077:2082 Coq.ssr.ssrbool <> introT thm
+R2084:2086 Coq.ssr.ssrbool <> orP thm
+prf 2113:2125 <> subseq_app_rr
+R2139:2144 mathcomp.ssreflect.eqtype Equality.Exports eqType syndef
+binder 2136:2136 <> A:16
+R2158:2160 mathcomp.ssreflect.seq <> seq syndef
+R2162:2162 Semantics.lemmas_0 <> A:16 var
+binder 2148:2149 <> L1:17
+binder 2151:2152 <> L2:18
+binder 2154:2155 <> L3:19
+R2204:2233 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2234:2239 mathcomp.ssreflect.seq <> subseq def
+R2247:2250 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R2245:2246 Semantics.lemmas_0 <> L2:18 var
+R2251:2252 Semantics.lemmas_0 <> L3:19 var
+R2241:2242 Semantics.lemmas_0 <> L1:17 var
+R2192:2197 mathcomp.ssreflect.seq <> subseq def
+R2202:2203 Semantics.lemmas_0 <> L2:18 var
+R2199:2200 Semantics.lemmas_0 <> L1:17 var
+R2278:2289 mathcomp.ssreflect.seq <> subseq_trans thm
+R2294:2306 mathcomp.ssreflect.seq <> prefix_subseq thm
+R2278:2289 mathcomp.ssreflect.seq <> subseq_trans thm
+R2294:2306 mathcomp.ssreflect.seq <> prefix_subseq thm
+prf 2330:2338 <> in_subseq
+R2352:2357 mathcomp.ssreflect.eqtype Equality.Exports eqType syndef
+binder 2349:2349 <> A:20
+R2368:2370 mathcomp.ssreflect.seq <> seq syndef
+R2372:2372 Semantics.lemmas_0 <> A:20 var
+binder 2361:2362 <> L1:21
+binder 2364:2365 <> L2:22
+R2379:2379 Semantics.lemmas_0 <> A:20 var
+binder 2376:2376 <> x:23
+R2399:2406 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2415:2422 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2424:2428 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R2423:2423 Semantics.lemmas_0 <> x:23 var
+R2429:2430 Semantics.lemmas_0 <> L2:22 var
+R2408:2412 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R2407:2407 Semantics.lemmas_0 <> x:23 var
+R2413:2414 Semantics.lemmas_0 <> L1:21 var
+R2387:2392 mathcomp.ssreflect.seq <> subseq def
+R2397:2398 Semantics.lemmas_0 <> L2:22 var
+R2394:2395 Semantics.lemmas_0 <> L1:21 var
+R2462:2468 mathcomp.ssreflect.seq <> subseqP thm
+R2547:2554 mathcomp.ssreflect.seq <> mem_mask thm
