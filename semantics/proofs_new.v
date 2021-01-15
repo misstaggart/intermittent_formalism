@@ -5,29 +5,17 @@ Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq fintype ssrnat ssrfun.
 From TLC Require Import LibTactics LibLogic.
 From Semantics Require Export programs semantics algorithms lemmas_1
-     lemmas_0 proofs_0 proofs_w. (*shouldn't have to import both of these*)
-
+     lemmas_0 proofs_0 proofs_w. 
 Implicit Types N: nvmem. Implicit Types V: vmem.
 Implicit Types O: obseq.
 Implicit Types c: command.
 Implicit Types W: the_write_stuff.
 Implicit Types x: smallvar.
-(*actually ask arthur about that thing with the quantifer
- as against the implication*)
 
 Definition end_com c := c = Ins skip \/ exists(crem: command)(w: warvars), c= (incheckpoint w);; crem.
 
-(*Definition nvm_eq N1 N2 := subseq (getdomain N1) (getdomain N2) /\
-                           subseq (getdomain N2) (getdomain N1).
-
-Lemma nvmem_eqy_nvm_eq N1 N2 : nvm_eq N1 N2 <-> (getdomain N1) = (getdomain N2).
-Admitted.*)
 
 
-
-(*why do you include the volatile memory
- maybe to make the traces more tractable
- leave it in for now, can always take it out*)
 Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
   Diff_in_FW: forall{N1 V1 c1 N2 V2 c2 N1c O W} (T: trace_cs (N1, V1, c1) (N2, V2, c2) O W),
     end_com c2 -> checkpoint \notin O -> (*c2 is nearest checkpoint or termination*)
@@ -41,9 +29,9 @@ Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
 
   Lemma adifw_adif {N V c N1}:
     all_diff_in_fw N V c N1 ->
-    all_diff_in_fww N V c N1. Admitted.
-
-
+    all_diff_in_fww N V c N1.
+    intros Hdiff. inversion Hdiff. subst.
+    econstructor; try apply T; try assumption. Qed.
 
 
  Lemma agreeonread: forall{N Nend N2: nvmem} {V Vend: vmem}
@@ -51,10 +39,8 @@ Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
                    {O : obseq} {W: the_write_stuff},
   all_diff_in_fw N V c N2 ->
              cceval_w (N, V, c) O (Nend, Vend, c1) W ->
-            ( forall(z: loc), z \in (getrd W) -> (*z was read immediately cuz trace is only 1
-                                thing long*)
-                   (getmap N) z = (getmap N2) z). (*since z isnt in FW of trace from Ins l to skip*)
-intros. apply adifw_adif in H. eapply agreeonread_w_l; try apply H; try apply H0; try assumption. Qed.
+             ( forall(z: loc), z \in (getrd W) ->                    (getmap N) z = (getmap N2) z).
+   intros. apply adifw_adif in H. eapply agreeonread_w_l; try apply H; try apply H0; try assumption. Qed.
 
 
 
@@ -770,7 +756,6 @@ Lemma same_endcom_help {N V c N1 V1 c1 O1 W1}:
     move/negP : one. 
   by apply. Qed.
 
-Lemma observe_checkpt_s: forall {N N': nvmem} {V V': vmem}
 
   Lemma same_endcom_bc {N V c N1 V1 c1 O1 O2 W1 N2 V2 c2 W2}:
 cceval_w (N, V, c) O1 (N1, V1, c1) W1 ->
