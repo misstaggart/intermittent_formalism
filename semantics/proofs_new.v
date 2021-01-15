@@ -80,7 +80,21 @@ move: (determinism_c H0 H3) => [one [two three] ]. inversion one. subst.
 eapply IHT1; try reflexivity; try (apply H1); try assumption.
 Qed.
 
-Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
+  Lemma exist_endcom {N0 V0 c0 N01 V01 c01 N V c N1 V1 O W cend}:
+  trace_i1 ((N0, V0, c0), N, V, c) ((N01, V01, c01), N1, V1, cend) O W ->
+  end_com cend ->
+  (exists(Osmall: obseq) (Wsmall: the_write_stuff) (N2: nvmem) (V2: vmem) (c2: command),
+    trace_i1 ((N0, V0, c0), N, V, c) ((N0, V0, c0), N2, V2, c2) Osmall Wsmall /\
+    end_com c2 /\ checkpoint \notin Osmall).
+    intros T Hend.
+    inversion T; subst; try (exists O W N1 V1 cend; repeat split; try assumption).
+    exists (O1 ++ [::reboot] ++ O2) (append_write W1 W2) N1 V1 cend.
+    repeat split; try assumption.
+    rewrite/ eqP mem_cat. rewrite/ norP mem_cat.
+    apply/ norP. split; try assumption; apply/ norP.
+exists O1 W1 Nmid Vmid (incheckpoint w;; crem). split; try split; try assumption. right. by exists crem w. Qed.
+
+  Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
   Diff_in_FW: forall{N1 V1 c1 N2 V2 c2 N1c O W} (T: trace_cs (N1, V1, c1) (N2, V2, c2) O W),
     end_com c2 -> checkpoint \notin O -> (*c2 is nearest checkpoint or termination*)
   (*  (getdomain N1) = (getdomain N1c) -> alternatively
@@ -395,12 +409,6 @@ Lemma two_p_five {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
 Qed.
 
 
-  Lemma exist_endcom {N0 V0 c0 N01 V01 c01 N V c N1 V1 O W cend}:
-  trace_i1 ((N0, V0, c0), N, V, c) ((N01, V01, c01), N1, V1, cend) O W ->
-  end_com cend ->
-  (exists(Osmall: obseq) (Wsmall: the_write_stuff) (N2: nvmem) (V2: vmem) (c2: command),
-    trace_i1 ((N0, V0, c0), N, V, c) ((N0, V0, c0), N2, V2, c2) Osmall Wsmall /\
-    end_com c2 /\ checkpoint \notin Osmall). Admitted.
 
 
 Lemma war_works_loc_c {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
