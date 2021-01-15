@@ -62,8 +62,33 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
              cceval_w (N, V, Ins l) O (Nend, Vend, c1) W ->
             ( forall(z: loc), z \in (getrd W) -> (*z was read immediately cuz trace is only 1
                                 thing long*)
-                   (getmap N) z = (getmap N2) z). (*since z isnt in FW of trace from Ins l to skip*)
-    Admitted.
+                   (getmap N) z = (getmap N2) z). (*since z isnt in FW of trace from Ins l to skip
+      intros. inversion H; subst. apply/ eqP /negPn /negP.
+        rename H1 into Hread.
+      intros contra.
+      move/ eqP: contra => contra. 
+      apply (H3 z) in contra.
+      destruct (O0 == [::]) eqn: Hbool.
+      - move/eqP : Hbool => Heq. subst.
+        move: (empty_trace_cs1 T) => [ [one two] three four].
+        subst. discriminate contra.
+      - move/ negbT /eqP : Hbool => Hneq.
+        move: (single_step_alls T Hneq). =>
+        [Cmid [W1 [Wrest [O1 [Hcceval [Hsubseq Hw] ] ] ] ] ].
+        subst.
+        simpl in contra.
+        inversion Hcceval; subst.
+        rewrite sub1seq in Hsubseq. move/negP : H2. by apply.
+        inversion H0; subst.
+        move: (cceval_agr H0 H12) => Heqrd.
+        rewrite Heqrd in Hread.
+        move: (fw_nin_r_c z H12 Hread) => Hfw.
+        rewrite mem_cat in contra.
+        move/orP : contra => [contra1 | contra2].
+        rewrite mem_filter in contra1.
+        move/ andP : contra1  => [one two].
+        move/negP : one. by apply.
+        move/negP : Hfw. by apply.*) Admitted.
 
     (*needed below*)
  Lemma agreeonread_w_r: forall{N Nend N2: nvmem} {V Vend: vmem}
@@ -108,7 +133,29 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
             ( forall(z: loc), z \in (getrd W) -> (*z was read immediately cuz trace is only 1
                                 thing long*)
                    (getmap N) z = (getmap N2) z). (*since z isnt in FW of trace from Ins l to skip*)
- Admitted.
+   intros. move: H H0 H1 => Hdiff Hcc Hr. dependent induction c.
+   apply add_skip_ins_w in Hdiff.
+   eapply agreeonread_ins_w_l; try apply Hdiff; try apply Hcc; try assumption.
+   inversion Hcc; subst; try( rewrite in_nil in Hr; discriminate Hr).
+   eapply agreeonread_ins_w_l; try apply Hdiff; try apply H10; try assumption.
+   inversion Hdiff; subst.
+   apply/eqP /negPn/ negP. intros contra. move/eqP: contra => contra.
+   apply (H0 z) in contra.
+      destruct (O0 == [::]) eqn: Hbool; move/eqP : Hbool => Heq; subst.
+      - 
+        move: (empty_trace_cs1 T) => [ [one two] three four].
+        subst. discriminate contra.
+      - 
+        move: (single_step_alls T Heq Hcc). =>
+        [Wrest [Orest [Trest [Hsubseq Hw] ] ] ].
+        rewrite Hw in contra.
+        unfold append_write in contra. simpl in contra.
+        move: (r_means_negfw Hcc Hr) => Hfw.
+        rewrite mem_cat in contra.
+        move/ orP : contra. => [con1 | con2].
+        rewrite mem_filter in con1. move/andP: con1 => [con11 con12]. move/ negP: con11. by apply. 
+        move/ negP: Hfw. by apply.
+    Qed.
 
  Lemma same_com_hcbc {N N1 Nend1 V V1 l crem O W c1} : all_diff_in_fww N V (l;;crem) N1 ->
                               cceval_w (N1, V, Ins l) O (Nend1, V1, c1) W ->
