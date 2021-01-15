@@ -753,7 +753,12 @@ Admitted.
                                                                    (restrict N1 w Hf) N1.
    Admitted.
 
- Lemma same_endcom_bc {N V c N1 V1 c1 O1 O2 W1 N2 V2 c2 W2}:
+Lemma same_endcom_help {N V c N1 V1 c1 O1 W1}:
+  trace_cs (N, V, c) (N1, V1, c1) O1 W1 ->
+  checkpoint \notin O1 ->
+end_com c -> end_com c1 -> c1 = c. Admitted.
+
+  Lemma same_endcom_bc {N V c N1 V1 c1 O1 O2 W1 N2 V2 c2 W2}:
 cceval_w (N, V, c) O1 (N1, V1, c1) W1 ->
 trace_cs (N, V, c) (N2, V2, c2) O2 W2 ->
 end_com c1 ->
@@ -761,30 +766,16 @@ end_com c2 ->
 checkpoint \notin O1 ->
 checkpoint \notin O2 ->
 c1 = c2.
-Admitted.
-
-Lemma same_endcom_help {N V c N1 V1 c1 O1 W1}:
-  trace_cs (N, V, c) (N1, V1, c1) O1 W1 ->
-  checkpoint \notin O1 ->
-end_com c -> end_com c1 -> c1 = c.
-(*destruct Hc1. subst.
-move: (trace_skip T2) => Hneq. exfalso. by apply Heq.
-apply single_step_alls_rev in T2.
-destruct T2 as [Cmid [W1 [Wrest [O1 [
-                                      Hcceval
-                                        [Hsub Hw]
-                                    ]
-                                 ]
-                          ]
-                      ]
-               ].
-destruct H as [crem [w Hrem] ]. subst.
+    move => Hcc T Hc1 Hc2 Ho1 Ho2.
+move: V1 N1 O1 W1 c1 Hcc Hc1 Ho1. dependent induction T; intros.
+apply (same_endcom_help (CsTrace_Single Hcc) Ho1 Hc2 Hc1).
+move: (determinism_c H Hcc) => [one [two three] ]. inversion one. by subst.
 destruct Cmid as [ [nm vm] cm].
-apply observe_checkpt_s in Hcceval.
-exfalso. move/ negP : Ho2.
-apply. apply (in_subseq Hsub Hcceval). assumption.
-move/ empty_trace_cs1 : T2 => [one two]. by inversion one.*)
-  Admitted.
+move: (determinism_c H0 Hcc) => [one [two three] ].
+inversion one. subst. rewrite mem_cat in Ho2. move/norP: Ho2 => [H11 H12].
+symmetry. eapply same_endcom_help; try apply T; try assumption.
+Qed.
+
 
 Lemma same_endcom {N V c N1 V1 c1 O1 O2 W1 N2 V2 c2 W2}:
 trace_cs (N, V, c) (N1, V1, c1) O1 W1 ->
