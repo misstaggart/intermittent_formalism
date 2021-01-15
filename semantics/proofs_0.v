@@ -214,6 +214,11 @@ Proof. intros C1 C2 C3 O1 O2 W1 W2 cc1 cc2. destruct C1 as [blah c]. destruct bl
          exfalso. by apply (H0 w).
 Qed.
 
+Lemma determinism: forall{C1: context} {N1 N2: nvmem} {V1 V2: vmem} {cend: command} {O1 O2: obseq} {W1 W2: the_write_stuff},
+    trace_cs C1 (N1, V1, cend) O1 W1 ->
+    trace_cs C1 (N2, V2, cend) O2 W2 ->
+    O1 = O2 /\ W1 = W2. Admitted.
+
 
 (*concern: the theorem below is not true for programs with io
  but then again neither is lemma 10*)

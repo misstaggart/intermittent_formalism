@@ -50,6 +50,8 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
         move/negP : Hfw. by apply.
     Qed.
 
+
+    (*will probably need for l below*)
     Lemma agreeonread_ins_w_l: forall{N Nend N2: nvmem} {V Vend: vmem}
                         {l: instruction} {crem c1: command}
                    {O : obseq} {W: the_write_stuff},
@@ -60,6 +62,7 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
                    (getmap N) z = (getmap N2) z). (*since z isnt in FW of trace from Ins l to skip*)
     Admitted.
 
+    (*needed below*)
  Lemma agreeonread_w_r: forall{N Nend N2: nvmem} {V Vend: vmem}
                         {c c1: command}
                    {O : obseq} {W: the_write_stuff},
@@ -70,6 +73,7 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
                    (getmap N2) z = (getmap N) z). (*since z isnt in FW of trace from Ins l to skip*)
  Admitted.
 
+ (*bassically same as proving proofs_new lemma*)
  Lemma agreeonread_w_l: forall{N Nend N2: nvmem} {V Vend: vmem}
                         {c c1: command}
                    {O : obseq} {W: the_write_stuff},
@@ -157,7 +161,7 @@ move: (agreeonread_ins_w_r Hdiff Hcceval1) => agr.
           by apply Hneq.
 Qed.*)
 
- Lemma add_skip_ins {N1 V l N2}: all_diff_in_fww N1 V (Ins l) N2 ->
+ Lemma add_skip_ins_w {N1 V l N2}: all_diff_in_fww N1 V (Ins l) N2 ->
                                  all_diff_in_fww N1 V (l;; skip) N2.
    Admitted.
 
@@ -180,7 +184,7 @@ dependent induction T.
   discriminate contra.
 -
   apply nvmem_eq. intros z.
-  move: (same_com_hcbc (add_skip_ins Hdiff) Hcceval2).
+  move: (same_com_hcbc (add_skip_ins_w Hdiff) Hcceval2).
   => [Nend [Hcceval3 Hloc] ].
   move: (determinism_c Hcceval3 Hcceval1) => [one [two three] ]. inversion one. subst.
   destruct (z \in (getwt W)) eqn:Hbool.
@@ -205,7 +209,7 @@ Qed.
                              /\ all_diff_in_fww Nend1 V1 c1 Nend2.
     intros Hdiff Hcceval1 Ho.
    induction c.
-  - move: (same_com_hcbc (add_skip_ins Hdiff) Hcceval1). => [Nend [Hcceval Hloc] ].
+  - move: (same_com_hcbc (add_skip_ins_w Hdiff) Hcceval1). => [Nend [Hcceval Hloc] ].
     exists Nend. split; try assumption.
     move: (cceval_skip Hcceval1) => Heq. subst.
     pose proof (trace_converge_minus1w Hdiff Hcceval Hcceval1). subst.
@@ -565,7 +569,3 @@ Qed.
 Qed.
 
 
-Lemma adif_sym {N1 V1 c1 Nc1}: 
-  all_diff_in_fww N1 V1 c1 Nc1 ->
-  all_diff_in_fww Nc1 V1 c1 N1.
-  intros Hdiff. Admitted.
