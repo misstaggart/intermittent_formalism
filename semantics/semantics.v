@@ -741,7 +741,6 @@ inl x, inl y => (getstring_sv x) <= (getstring_sv y)
 (*Check Ord.axioms.
 Open Scope ord_scope.
 Definition ord_loc: Ord.axioms loc_leq.
-Admitted.
 
 Check ord_loc.
 Definition loc_ordMixin := OrdMixin ord_loc.
@@ -756,14 +755,26 @@ Canonical loc_ordtype := Eval hnf in OrdType loc loc_ordMixin.
  Lemma genloc_contents: forall(l: loc) (a: array),
               l \in generate_locs a ->
                     exists (el: el_loc), inr el = l.
-   Admitted.
+   intros. unfold generate_locs in H.
+   move/ mapP: H => [x Hx1 Hx2]. unfold index_loc in Hx2.
+   exists (El a x). auto. Qed.
 
 Definition get_array (i: el_loc) :=
 match i with El a _ => a end.
 
  Lemma genloc_getarr: forall(i: el_loc) (a: array),
            (inr i \in (generate_locs a)) =
-                     ((get_array i) == a). Admitted.
+           ((get_array i) == a).
+   intros. destruct (get_array i == a) eqn: Hbool.
+   destruct i as [i1 i2]. simpl in Hbool.
+   move/ eqP: Hbool => Heq. subst. apply/ mapP. exists i2; try by [].
+   rewrite mem_enum. by []. 
+
+   destruct i as [i1 i2]. simpl in Hbool.
+   apply/ negbTE/ mapP.
+   intros contra. move: contra => [x Hx1 Hx2].
+   inversion Hx2. move / negbT / eqP : Hbool. by apply.
+Qed.
 
  Lemma genloc_int: forall(a a1: array),
   ( intersect (generate_locs a)
@@ -866,7 +877,8 @@ Definition getvalue (N: nvmem) (i: loc) :=
 
 Lemma restrict_wf {N: nvmem} {w: warvars}:
   wf_dom w (getmap N)->
-valid_nvm (fun input => if (input \in w) then (getmap N) input else error) w.  Admitted.
+  valid_nvm (fun input => if (input \in w) then (getmap N) input else error) w.
+intros. destruct N as [m d Hn]. apply H. Qed.
 
 Definition restrict (N: nvmem) (w: warvars) (Hw: wf_dom w (getmap N)) :=
     NonVol (fun input => if (input \in w) then (getmap N) input else error) w (restrict_wf Hw).
@@ -952,7 +964,8 @@ Qed.
                                                                                                 (move/ eqP : Hbool => Heq; subst); try apply (Hsv x); try assumption.
      intros.
      assert (inl x != inr i). by [].
-     (*start here ask arthur why ifF doesnt work here but this does*)
+     (*start here ask arthur why ifF doesnt work here but this does
+      this might no longer work since you added prop_extentionality to lemmas0*)
      move/ eqP /eqP : H => Hneq.
      apply (Hsv x) in Hneq.
      rewrite mem_sort. rewrite mem_undup.
@@ -1017,7 +1030,60 @@ Definition updateNV_arr (N: nvmem) (i: el_loc) (a: array) (v: value)
     valid_nvm (fun j =>
       if (j \in d)
           then (m j)
-          else (m' j)) (locsort (undup (d ++ d'))). Admitted.
+      else (m' j)) (locsort (undup (d ++ d'))).
+    intros. unfold valid_nvm in H. move: H => [Hsv [Ha [Hsort Huniq] ] ].
+move: H0 => [Hsv0 [Ha0 [Hsort0 Huniq0] ] ].
+repeat split.
+destruct ((inl x) \in d) eqn: Hbool. rewrite ifT.
+intros Herr.
+move: (Hsv x) => [Hsv1 Hsv2]. apply Hsv1 in Herr.
+rewrite mem_sort mem_undup mem_cat. apply/orP. by left.
+  by rewrite Hbool.
+  rewrite ifF; try by [].
+move: (Hsv0 x) => [Hsv1 Hsv2] Herr. apply Hsv1 in Herr.
+rewrite mem_sort mem_undup mem_cat. apply/orP. by right.
+intros Hin. rewrite mem_sort mem_undup mem_cat in Hin.
+destruct (inl x \in d) eqn: Hbool.
+rewrite ifT; try by [].
+move: (Hsv x) => [Hsv1 Hsv2]. by apply Hsv2 in Hbool.
+move/ orP : Hin => [contra | Hin]. rewrite Hbool in contra. discriminate contra. rewrite ifF; try by [].
+move: (Hsv0 x) => [Hsv1 Hsv2]. by apply Hsv2 in Hin.
+intros [el1 [Hel1 Hel2] ]. destruct (inr el1 \in d) eqn: Hbool.
+rewrite ifT in Hel2; try by []. rewrite - subw_sort. rewrite subw_undup.
+apply subw_prefix.
+move:  (Ha a) => [Ha1 Ha2]. apply Ha1. exists el1. split; try assumption.
+rewrite ifF in Hel2; try by []. rewrite - subw_sort. rewrite subw_undup.
+apply subw_suffix.
+move:  (Ha0 a) => [Ha1 Ha2]. apply Ha1. exists el1. split; try assumption.
+move => Hint. rewrite intersect_sort intersect_undup intersect_cat in Hint.
+destruct Hint.
+move:  (Ha a) => [Ha1 Ha2].
+move/ Ha2 : H => H.
+remember H as Hint. clear HeqHint.
+move: H => [el1 [Hel1 Hel2] ].
+exists el1; split; try assumption.
+apply Ha1 in Hint. apply Hint in Hel1.
+rewrite ifT; try by [].
+
+move:  (Ha a) => [Ha1 Ha2].
+move:  (Ha0 a) => [Ha1' Ha2'].
+move/ Ha2' : H => H.
+move: H => [el1 [Hel1 Hel2] ].
+destruct ((inr el1) \in d) eqn: Hbool.
+suffices: intersect (generate_locs a) d.
+move => Hint. 
+move/ Ha2 : Hint => Hint.
+remember Hint as Hsub. clear HeqHsub. apply Ha1 in Hsub.
+move: Hint => [el11 Hel11].
+exists el11. rewrite ifT; try by []. apply Hsub.
+  by destruct Hel11.
+  exists (inr el1). split; try by [].
+  exists el1; split; try assumption. rewrite ifF; try by [].
+  apply sort_sorted. apply loctotal.
+     rewrite sort_uniq.
+     apply (undup_uniq (d ++ d')).
+     Qed.
+
 
   Definition updatemaps (N: nvmem) (N': nvmem): nvmem :=
   match N, N' with
@@ -1075,7 +1141,6 @@ Fixpoint eqb_warvars (w1: warvars) (w2: warvars) :=
   end.
 
 Lemma eqb_wv_refl: forall y: warvars, is_true (eqb_warvars y y).
-  Admitted.
 
 Lemma eqb_wv_true_iff : forall x y : warvars,
     is_true(eqb_warvars x y) <-> x = y.
@@ -1083,11 +1148,9 @@ Proof.
   intros. induction x.
   + split. destruct y. simpl. auto.
     unfold eqb_warvars. simpl. intros contra. discriminate contra.
-    move ->. Admitted.
 
 Lemma eqwv: Equality.axiom eqb_warvars.
 Proof.
-Admitted.
 
 Canonical wv_eqMixin := EqMixin eqwv.
 Canonical wv_eqtype := Eval hnf in EqType warvars wv_eqMixin.*)
@@ -1257,8 +1320,7 @@ Notation "S <=m T" := (prefix_seq S T) (at level 100).
 (* For when I change the types
 Theorem ps_correct: forall(O1 O2: obseq),
     prefix_seq O1 O2 ->
-    checkpoint \notin O1 /\ reboot \notin O2 /\ checkpoint \notin O2.
-  Admitted.*)
+    checkpoint \notin O1 /\ reboot \notin O2 /\ checkpoint \notin O2.*)
 
 (* Where
 O1 is a sequence of ((read observation seq sequences), where
