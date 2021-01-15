@@ -753,15 +753,46 @@ Admitted.
                                                                    (restrict N1 w Hf) N1.
    Admitted.
 
- Lemma same_endcom {N V c N1 V1 c1 O1 O2 W1 N2 V2 c2 W2}:
+ Lemma same_endcom_bc {N V c N1 V1 c1 O1 O2 W1 N2 V2 c2 W2}:
+cceval_w (N, V, c) O2 (N1, V1, c1) W1 ->
+trace_cs (N, V, c) (N2, V2, c2) O2 W2 ->
+end_com c1 ->
+end_com c2 ->
+checkpoint \notin O1 ->
+checkpoint \notin O2 ->
+c1 = c2.
+Admitted.
+
+Lemma same_endcom {N V c N1 V1 c1 O1 O2 W1 N2 V2 c2 W2}:
 trace_cs (N, V, c) (N1, V1, c1) O1 W1 ->
 trace_cs (N, V, c) (N2, V2, c2) O2 W2 ->
 end_com c1 ->
 end_com c2 ->
 checkpoint \notin O1 ->
 checkpoint \notin O2 ->
-c1 = c2. Admitted.
-
+c1 = c2.
+  move => T1 T2 Hc1 Hc2 Ho1 Ho2.
+  move: N2 V2 c2 O2 W2 Ho2 Hc2 T2.
+  dependent induction T1; intros.
+  destruct (O2 == [::]) eqn: Hemp;move/ eqP: Hemp => Heq; subst.
+move/ empty_trace_cs1 : T2 => [one two]. by inversion one.
+destruct Hc1. subst.
+move: (trace_skip T2) => Hneq. exfalso. by apply Heq.
+apply single_step_alls_rev in T2.
+destruct T2 as [Cmid [W1 [Wrest [O1 [
+                                      Hcceval
+                                        [Hsub Hw]
+                                    ]
+                                 ]
+                          ]
+                      ]
+               ].
+destruct H as [crem [w Hrem] ]. subst.
+destruct Cmid as [ [nm vm] cm].
+apply observe_checkpt_s in Hcceval.
+exfalso. move/ negP : Ho2.
+apply. apply (in_subseq Hsub Hcceval). assumption.
+move/ empty_trace_cs1 : T2 => [one two]. by inversion one.
 
 
 Lemma adif_works {N1 N2 V c Nend Vend O1 W1 cend}:
