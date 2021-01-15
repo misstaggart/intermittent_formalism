@@ -97,11 +97,6 @@ exists O1 W1 Nmid Vmid (incheckpoint w;; crem). split; try split; try assumption
   Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
   Diff_in_FW: forall{N1 V1 c1 N2 V2 c2 N1c O W} (T: trace_cs (N1, V1, c1) (N2, V2, c2) O W),
     end_com c2 -> checkpoint \notin O -> (*c2 is nearest checkpoint or termination*)
-  (*  (getdomain N1) = (getdomain N1c) -> alternatively
-                                       could check N2 domain as well instead of this
- not even clear why i need the domains                                    
-   *)
-   (forall(el: el_loc), ((getmap N1) (inr el)) = ((getmap N1) (inr el))) ->
 ( forall(l: loc ), ((getmap N1) l <> (getmap N1c) l) -> (l \in getfstwt W))
 -> all_diff_in_fw N1 V1 c1 N1c.
 
@@ -228,18 +223,17 @@ Lemma adif_cceval {N1 N2 V c Nend Vend O1 W cend}:
   all_diff_in_fw N1 V c N2 ->
   cceval_w (N1, V, c) O1 (Nend, Vend, cend) W ->
   end_com cend ->
-   (forall(el: el_loc), ((getmap N1) (inr el)) = ((getmap N1) (inr el))) /\
-   ( forall(l: loc ), ((getmap N1) l <> (getmap N2) l) -> (l \in getfstwt W)).
-  intros. inversion H; subst.
+    forall(l: loc ), ((getmap N1) l <> (getmap N2) l) -> (l \in getfstwt W).
+  intros. move: l H2. inversion H; subst.
   destruct (O == [::]) eqn: Hbool; move/ eqP: Hbool => Hnil. subst.
-  apply empty_trace_cs1 in T. destruct T as [one two]. inversion one. subst. split; try assumption. intros l contra. apply (H5 l) in contra.
+  apply empty_trace_cs1 in T. destruct T as [one two]. inversion one. subst.
+  intros l contra. apply (H4 l) in contra.
   rewrite in_nil in contra. discriminate contra.
   move: (single_step_alls T Hnil H0). => [Wrest [Orest [ Trest [Hsub Hw] ] ] ].
-  split; try assumption.
   suffices: checkpoint \notin Orest. move => Hrest.
   move: (same_endcom_help Trest Hrest H1 H2) => one. subst.
   move/ empty_trace_cs: Trest => [one [two [three four] ] ]. subst.
- by rewrite append_write_empty in H5.
+ by rewrite append_write_empty in H4.
  apply/negP. intros contra.
 exfalso.
 apply (in_subseq Hsub) in contra. move/ negP : H3. by apply.
@@ -255,7 +249,7 @@ Lemma trace_converge {N V cend Nc} :
   move/ empty_trace_cs1 : T => [one [two three] ]. subst.
   apply/ eqP /negPn /negP. intros contra.
   move/ eqP : contra => contra.
-  apply (H2 three) in contra. rewrite in_nil in contra. discriminate contra.
+  apply (H1 three) in contra. rewrite in_nil in contra. discriminate contra.
   move: (same_endcom_help T H0 Hend H) => one. subst.
     by move/ empty_trace_cs : T => [one [two three] ].
     Qed.
@@ -302,8 +296,8 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
        intros contra. subst.
        move: (empty_trace_cs1 T) => [Eq1 Eq2].
        inversion Eq1. subst. inversion H2.
-       inversion H6.
-       move : H6 => [crem [w contra] ]. inversion contra.
+       inversion H5.
+       move : H5 => [crem [w contra] ]. inversion contra.
      + move: (two_bc H H12) => [Nc1 [Hsmall Hdone] ]. exists Nc1. repeat split; try assumption.
        apply Seq; try assumption.
        inversion H; subst.
@@ -315,10 +309,7 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
        apply/negP. intros contra.
        apply/negP / negPn: H2.
        apply (in_subseq Hsubseq contra).
-       intros. destruct ((inr el) \in (getwt W)) eqn: Hbool.
-         by apply Hdone in Hbool.
-         auto. (*change*)
-           intros l0 Hl0. remember Hl0 as Hneq.
+       intros l0 Hl0. remember Hl0 as Hneq.
            clear HeqHneq.
            suffices: getmap Ni1 l0 <> getmap Nc1 l0 -> l0 \notin getwt W.
            intros Hdonec. apply Hdonec in Hl0.
@@ -328,7 +319,7 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
            apply (in_subseq (fw_subst_wt_c H12)) in one.
            exfalso. move/ negP : Hl0. by apply.
              by move: two => [whatever done].
-             apply H4.
+             apply H3.
              move: (update_one_contra l0 H12 Hl0) => Heq1.
              move: (update_one_contra l0 Hsmall Hl0) => Heq2.
              by rewrite Heq1 Heq2.
@@ -337,8 +328,8 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
        intros contra. subst.
        move: (empty_trace_cs1 T) => [Eq1 Eq2].
        inversion Eq1. subst. inversion H1.
-       inversion H5.
-       move : H5 => [crem [w contra] ]. inversion contra.
+       inversion H4.
+       move : H4 => [crem [w contra] ]. inversion contra.
        by apply (H10 w).
      + inversion H0; subst; exists Nc; repeat split. apply If_T.
        move: (agreeonread H H0) => agr.
@@ -356,14 +347,14 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
          by apply.
          destruct W as [ [w1 w2 ] w3].
          destruct Wrest as [ [wr1 wr2] wr3]. inversion Hwrite.
-         rewrite cats0 in H9.
-         intros l Hneq. apply H5 in Hneq. subst. simpl in Hneq.
+         rewrite cats0 in H8.
+         intros l Hneq. apply H4 in Hneq. subst. simpl in Hneq.
          simpl. rewrite mem_filter in Hneq.
          by move/ andP : Hneq => [one two].
        intros contra. subst. move: (empty_trace_cs1 T) => [Eq1 Eq2].
        inversion Eq1. subst. inversion H2.
-       inversion H6.
-       move : H6 => [crem [w contra] ]. inversion contra.
+       inversion H5.
+       move : H5 => [crem [w contra] ]. inversion contra.
        apply If_F.
        move: (agreeonread H H0) => agr.
        apply (agr_imp_age H11); try assumption. move => l contra.
@@ -379,14 +370,14 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
          by apply.
          destruct W as [ [w1 w2 ] w3].
          destruct Wrest as [ [wr1 wr2] wr3]. inversion Hwrite.
-         rewrite cats0 in H9.
-         intros l Hneq. apply H5 in Hneq. subst. simpl in Hneq.
+         rewrite cats0 in H8.
+         intros l Hneq. apply H4 in Hneq. subst. simpl in Hneq.
          simpl. rewrite mem_filter in Hneq.
          by move/ andP : Hneq => [one two].
        intros contra. subst. move: (empty_trace_cs1 T) => [Eq1 Eq2].
        inversion Eq1. subst. inversion H2.
-       inversion H6.
-       move : H6 => [crem [w contra] ]. inversion contra.
+       inversion H5.
+       move : H5 => [crem [w contra] ]. inversion contra.
 Qed.
 Lemma two_p_five {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
                                              cceval_w (Ni, V, c) O (Ni1, V1, c1) W ->
@@ -583,15 +574,6 @@ Lemma wts_cped_sv: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O:
     exfalso. by move/ negP : H2. by right.
 Qed.
 
-Lemma wts_cped_arr: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
-                  {Wstart Rstart: warvars} {el: el_loc},
-    trace_cs (N, V, c) (Nend, Vend, cend) O W ->
-    WARok (getdomain N0) Wstart Rstart c ->
-    checkpoint \notin O ->
-    (inr el) \in (getrd W) ->
-  (inr el) \in (getdomain N0).
-Admitted. (*14*)
-
 Lemma war_works {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}:
     trace_cs (N, V, c) (Nend, Vend, cend) O W ->
   subset_nvm N0 N ->
@@ -691,21 +673,16 @@ intros. move: (two H H0) => [Nc1 [Hcceval Heq] ]. exists Nc1.
          move/ negP : H3. apply.
          apply (in_subseq Hsub contra).
         (* apply (update_domc H Hcceval); assumption.*)
-         move => el. apply/ eqP / negPn/ negP.
-       (*  move/ eqP => contra.
-         move: (update_onec H0 Hcceval (H4 el) contra) => Hwcontra.
-         apply Heq in Hwcontra. by apply contra.
          move => l Hl.
          destruct ((getmap Ni l) == (getmap Nc l)) eqn: Hcase;
            move/eqP: Hcase => Hcase.
          move: (update_onec H0 Hcceval Hcase Hl) => Hw1.
          apply Heq in Hw1. exfalso. by apply Hl.
-         apply H5 in Hcase. subst. move/fw_split : Hcase => [Hc1 | Hc2].
+         apply H4 in Hcase. subst. move/fw_split : Hcase => [Hc1 | Hc2].
          move : (in_subseq (fw_subst_wt_c H0) Hc1) => contra.
          apply Heq in contra.
-         exfalso. by apply Hl. by destruct Hc2.*)
-         Admitted.
-
+         exfalso. by apply Hl. by destruct Hc2.
+Qed.
 
 Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
                          {Omid O: obseq} {Wmid W: the_write_stuff} {l: loc},
@@ -828,7 +805,7 @@ Lemma adif_works {N1 N2 V c Nend Vend O1 W1 cend}:
   dependent induction H0; intros.
   + move: (trace_converge H H1) => Heq. subst.
     apply (CsTrace_Empty (N2, Vend, cend)).
-  + move: (adif_cceval H0 H H1) => [Hel Hl].
+  + move: (adif_cceval H0 H H1) => Hl.
     move: (two H0 H) => [Nend1 [Hcceval Hl2] ].
     suffices: Nend = Nend1.
     intros. subst. by apply CsTrace_Single.
@@ -887,8 +864,8 @@ Lemma adif_sym {N1 V1 c1 Nc1}:
   intros Hdiff. inversion Hdiff. subst.
   move: (adif_works Hdiff T H H0) => Tdone.
   econstructor; try apply Tdone; try assumption.
- intros el. auto. intros z Hz. 
- apply not_eq_sym in Hz. by apply H2.
+ intros z Hz. 
+ apply not_eq_sym in Hz. by apply H1.
 Qed.
 
 Lemma adif_trans {Nc0 V1 c1 Nc1 Nc2}:
@@ -897,14 +874,14 @@ Lemma adif_trans {Nc0 V1 c1 Nc1 Nc2}:
   all_diff_in_fw Nc0 V1 c1 Nc2.
   intros Hd1 Hd2. inversion Hd1. inversion Hd2. subst.
   move: (adif_works Hd1 T H H0) => Td1.
-  move: (same_endcom Td1 T0 H H7 H0 H8) => Heq. subst.
+  move: (same_endcom Td1 T0 H H6 H0 H7) => Heq. subst.
   move: (determinism Td1 T0) => [one two]. subst.
   econstructor; try apply T; try assumption. 
    (*apply (eq_trans (getmap Nc1 (inr el))).
   apply (H1 el). apply (H9 el).*)
   intros l Hneq.
-  destruct (getmap Nc0 l == getmap Nc1 l) eqn:Hbool; move/ eqP : Hbool => Heq. rewrite Heq in Hneq. by apply H10 in Hneq.
-  by apply H2 in Heq.
+  destruct (getmap Nc0 l == getmap Nc1 l) eqn:Hbool; move/ eqP : Hbool => Heq. rewrite Heq in Hneq. by apply H8 in Hneq.
+  by apply H1 in Heq.
 Qed.
 
         (*induct on length of 1st trace, rewrite nested filters into filtering
@@ -1200,7 +1177,6 @@ move: (exist_endcom H Hskip) => [Osmall
 move: (same_comi H1 H0 Tsmall Hcp) => [N2 [Osc [c2 [Tsc Hosc] ] ] ].
 econstructor; try apply Tsc; try assumption.
   by intros.
-  intros. exfalso. by apply H2.
  Qed.
 
 
