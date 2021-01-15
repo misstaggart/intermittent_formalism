@@ -756,7 +756,21 @@ Admitted.
 Lemma same_endcom_help {N V c N1 V1 c1 O1 W1}:
   trace_cs (N, V, c) (N1, V1, c1) O1 W1 ->
   checkpoint \notin O1 ->
-end_com c -> end_com c1 -> c1 = c. Admitted.
+  end_com c -> end_com c1 -> c1 = c.
+  intros. destruct H1. subst.
+  move: (trace_skip H) => Heq. subst.
+  move/empty_trace_cs1 :H => [one two]. by inversion one.
+  destruct H1 as [crem [w Hrem] ]. subst.
+  inversion H; subst; try by [].
+  apply observe_checkpt_s in H1. exfalso. move/negP : H0.
+    by apply.
+    destruct Cmid as [ [nm vm] cm].
+    apply observe_checkpt_s in H4. exfalso.
+    rewrite mem_cat in H0. move/norP: H0 => [one two].
+    move/negP : one. 
+  by apply. Qed.
+
+Lemma observe_checkpt_s: forall {N N': nvmem} {V V': vmem}
 
   Lemma same_endcom_bc {N V c N1 V1 c1 O1 O2 W1 N2 V2 c2 W2}:
 cceval_w (N, V, c) O1 (N1, V1, c1) W1 ->
