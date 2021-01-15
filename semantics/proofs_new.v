@@ -236,8 +236,15 @@ Lemma trace_converge {N V cend Nc} :
   end_com cend ->
   N = Nc.
   intros Hdiff Hend. apply nvmem_eq.
-  inversion Hdiff. subst. Admitted.
-
+  inversion Hdiff. subst.
+  suffices: O = [::]. move => Heq. subst.
+  move/ empty_trace_cs1 : T => [one [two three] ]. subst.
+  apply/ eqP /negPn /negP. intros contra.
+  move/ eqP : contra => contra.
+  apply (H2 three) in contra. rewrite in_nil in contra. discriminate contra.
+  move: (same_endcom_help T H0 Hend H) => one. subst.
+    by move/ empty_trace_cs : T => [one [two three] ].
+    Qed.
 
 Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
                               cceval_w (Ni, V, c) O (Ni1, V1, c1) W ->
