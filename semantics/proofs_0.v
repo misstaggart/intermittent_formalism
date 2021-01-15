@@ -23,6 +23,19 @@ ask arthur start here... each singular input/output is its OWN T->S?
  *)
 
 (*lemmas for the lemmas; not in paper*)
+Lemma stupid: forall (c: command) (l: instruction),
+    c <> (l ;; c).
+  move => c w contra.
+  induction c; inversion contra.
+    by apply IHc. Qed.
+
+Lemma cceval_steps1:forall{N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
+                   {O: obseq} {W: the_write_stuff},
+
+        cceval_w (N, V, c) O (Nmid, Vmid, cmid) W ->
+        cmid <> c.
+intros. inversion H; subst; try apply stupid. Admitted. 
+
 Lemma sub_disclude N0 N1 N2:  forall(l: loc),
                      subset_nvm N0 N1 ->
                      subset_nvm N0 N2 ->
@@ -217,8 +230,31 @@ Qed.
 Lemma determinism: forall{C1: context} {N1 N2: nvmem} {V1 V2: vmem} {cend: command} {O1 O2: obseq} {W1 W2: the_write_stuff},
     trace_cs C1 (N1, V1, cend) O1 W1 ->
     trace_cs C1 (N2, V2, cend) O2 W2 ->
-    O1 = O2 /\ W1 = W2. Admitted.
-
+    O1 = O2 /\ W1 = W2. intros.
+move: N2 V2 O2 W2 H0; dependent induction H; intros.
+3: {
+destruct Cmid as [ [nm vm ] cm].
+inversion H2; subst.
+move: (CsTrace_Cons H H0 H1) => Tc.
+move/empty_trace_cs : Tc => [contra1 [contra2 [contra3 contra4] ] ].
+split; assumption.
+move: (determinism_c H1 H3). => [contra1 [contra2 contra4] ] .
+inversion contra1. subst.
+move/empty_trace_cs : H => [contra11 [contra2 [contra3 contra4] ] ].
+exfalso. by apply H0.
+move: (determinism_c H1 H5) => [one [two three] ]. subst.
+suffices: (O2 = O4) /\ (W2 = W4).
+move=> [one two]. subst. split; by [].
+eapply IHtrace_cs; try reflexivity. apply H3.
+}
+move/empty_trace_cs : H0 => [one [two [three four] ] ]. by subst.
+inversion H0; subst. apply cceval_steps1 in H. exfalso. by apply H. 
+move: (determinism_c H H1) => [one [two three] ]. by subst.
+destruct Cmid as [ [nm vm ] cm].
+move: (determinism_c H H3). => [contra1 [contra2 contra4] ] .
+inversion contra1. subst.
+move/empty_trace_cs : H1 => [contra11 [contra2 [contra3 contra4] ] ].
+exfalso. by apply H2. Qed.
 
 (*concern: the theorem below is not true for programs with io
  but then again neither is lemma 10*)
@@ -392,11 +428,6 @@ Lemma sub_update: forall(N0 N1: nvmem),
   Qed.
 
 (*ask arthur how does inversion not cover this*)
-Lemma stupid: forall (c: command) (l: instruction),
-    c <> (l ;; c).
-  move => c w contra.
-  induction c; inversion contra.
-    by apply IHc. Qed.
 
   (*  Lemma dom_gets_bigger_rb: forall(N0 N1: nvmem),
     subseq (getdomain N1) (getdomain (N0 U! N1)).
@@ -626,6 +657,9 @@ Lemma cceval_steps: forall{N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
         cceval_w (N, V, l;;c) O (Nmid, Vmid, cmid) W ->
         c = cmid.
 intros. inversion H; subst; try reflexivity. Qed.
+
+
+
 
 Lemma extract_write_svnv: forall {N Nend: nvmem} {V Vend: vmem}
                       {e: exp} {x: smallvar} {O: obseq}

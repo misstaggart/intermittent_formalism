@@ -842,8 +842,15 @@ Lemma adif_trans {Nc0 V1 c1 Nc1 Nc2}:
   all_diff_in_fw Nc0 V1 c1 Nc2.
   intros Hd1 Hd2. inversion Hd1. inversion Hd2. subst.
   move: (adif_works Hd1 T H H0) => Td1.
-  move: (adif_works Hd2 Td1 H H0) => Td.
-
+  move: (same_endcom Td1 T0 H H7 H0 H8) => Heq. subst.
+  move: (determinism Td1 T0) => [one two]. subst.
+  econstructor; try apply T; try assumption. intros el.
+  apply (eq_trans (getmap Nc1 (inr el))).
+  apply (H1 el). apply (H9 el).
+  intros l Hneq.
+  destruct (getmap Nc0 l == getmap Nc1 l) eqn:Hbool; move/ eqP : Hbool => Heq. rewrite Heq in Hneq. by apply H10 in Hneq.
+  by apply H2 in Heq.
+Qed.
 
         (*induct on length of 1st trace, rewrite nested filters into filtering
          out the appended list*)
