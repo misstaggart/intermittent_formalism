@@ -762,73 +762,6 @@ checkpoint \notin O1 ->
 checkpoint \notin O2 ->
 c1 = c2. Admitted.
 
-   Lemma adif_refl {N V c c1 Nend Vend O W}:
-  trace_cs (N, V, c) (Nend, Vend, c1) O W ->
-  end_com c1 ->
-  checkpoint \notin O ->
-        all_diff_in_fw N V c N.
-Admitted.
-(*cant actually use ww for this*)
-Lemma adif_sym {N1 V1 c1 Nc1}: 
-  all_diff_in_fw N1 V1 c1 Nc1 ->
-  all_diff_in_fw Nc1 V1 c1 N1.
-  intros Hdiff. inversion Hdiff. subst. move: Nc1 H1 Hdiff H2. dependent induction T; intros.
- move: (trace_converge Hdiff H) => Heq. subst. eapply adif_refl; try apply CsTrace_Empty; try assumption. 
- move: (two Hdiff H). => [Nc2 [Hcceval2 [Hl Hdiff2] ] ].
- apply CsTrace_Single in Hcceval2. econstructor; try apply Hcceval2; try assumption.
- intros el. symmetry. by apply (H2 el). intros z Hz.
- apply not_eq_sym in Hz. by apply H3.
- destruct Cmid as [ [Nm Vm] cm].
- move: (two Hdiff H0). => [Nc2 [Hcceval2 [Hl Hdiff2] ] ].
- rewrite mem_cat in H2. move/ norP : H2 => [Ho1 Ho2].
- move: (Hdiff2 Ho1) => Hdiffend1. suffices: (all_diff_in_fw Nc2 Vm cm Nm).
- move => Hdiffend. inversion Hdiffend. subst.
- destruct (O == [::]) eqn: Hnil.
- move/ eqP: Hnil => Hn. subst.
- move: (empty_trace_cs1 T0) => [one two]. inversion one. subst.
- suffices: (W2 = emptysets). move => Hw. subst.
- rewrite append_write_empty in H4.
-econstructor; try apply (CsTrace_Single Hcceval2); try assumption.
- intros el. symmetry. by apply (H3 el). intros z Hz.
- apply not_eq_sym in Hz. by apply H4.
- move: (trace_converge Hdiffend H2) => Heq. subst.
- move: (same_endcom  T0 T H2 H1 H5 Ho2) => two. subst.
-   by move: (determinism T T0) => [two three].
-   move/ negbT /eqP : Hnil => Hnil.
-econstructor; try apply (CsTrace_Cons T0 Hnil Hcceval2); try assumption. rewrite mem_cat. apply/norP. split; assumption.
-intros el. symmetry. by apply (H3 el). intros z Hz.
-suffices: (z \notin getrd W1).
-move => Hw.
-destruct (z \in getwt W1) eqn: Hbool.
-unfold append_write. simpl.
-move: (negrandw_means_fw Hcceval2 Hw Hbool) => Hdone.
-rewrite mem_cat. apply/orP. by right.
-apply negbT in Hbool.
-move: (update_one_contra z H0 Hbool) => one.
-move: (update_one_contra z Hcceval2 Hbool) => two.
-rewrite one two in Hz. apply H7 in Hz.
-unfold append_write. simpl.
-rewrite mem_cat. apply/orP. left.
-rewrite mem_filter. apply/andP. split; by [].
-apply/negP. intros contra.  apply not_eq_sym in Hz.
-apply (H4 z) in Hz.
-unfold append_write in Hz. simpl in Hz.
-move: (r_means_negfw Hcceval2 contra).
-rewrite mem_cat in Hz. move/orP: Hz => [contra1 | contra2] con3.
-rewrite mem_filter in contra1. move/andP: contra1 => [one two].
-move/negP : one. by apply.
-move/negP : con3. by apply.
-inversion Hdiffend1. subst.
-eapply IHT; try reflexivity; try assumption.
- move: (same_endcom  T0 T H2 H1 H5 Ho2) => two. subst.
-   move: (determinism T T0) => [two three]. subst. assumption.
-Qed.
-
-Lemma adif_trans {Nc0 V1 c1 Nc1 Nc2}:
-  all_diff_in_fw Nc0 V1 c1 Nc1 ->
-  all_diff_in_fw Nc1 V1 c1 Nc2 ->
-  all_diff_in_fw Nc0 V1 c1 Nc2. Admitted.
-
 
 
 Lemma adif_works {N1 N2 V c Nend Vend O1 W1 cend}:
@@ -885,7 +818,31 @@ Qed.
 
 
 
-(*might be easier to just do appending in general*)
+
+   Lemma adif_refl {N V c c1 Nend Vend O W}:
+  trace_cs (N, V, c) (Nend, Vend, c1) O W ->
+  end_com c1 ->
+  checkpoint \notin O ->
+        all_diff_in_fw N V c N.
+Admitted.
+(*cant actually use ww for this*)
+Lemma adif_sym {N1 V1 c1 Nc1}: 
+  all_diff_in_fw N1 V1 c1 Nc1 ->
+  all_diff_in_fw Nc1 V1 c1 N1.
+  intros Hdiff. inversion Hdiff. subst.
+  move: (adif_works Hdiff T H H0) => Tdone.
+  econstructor; try apply Tdone; try assumption.
+ intros el. symmetry. by apply (H1 el). intros z Hz.
+ apply not_eq_sym in Hz. by apply H2.
+Qed.
+
+Lemma adif_trans {Nc0 V1 c1 Nc1 Nc2}:
+  all_diff_in_fw Nc0 V1 c1 Nc1 ->
+  all_diff_in_fw Nc1 V1 c1 Nc2 ->
+  all_diff_in_fw Nc0 V1 c1 Nc2.
+  intros Hd1 Hd2. inversion Hd1. inversion Hd2. subst.
+  move: (adif_works Hd1 T H H0) => Td1.
+  move: (adif_works Hd2 Td1 H H0) => Td.
 
 
         (*induct on length of 1st trace, rewrite nested filters into filtering
