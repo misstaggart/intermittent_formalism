@@ -14,7 +14,7 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
 ( forall(l: loc ), ((getmap N1) l <> (getmap N1c) l) -> (l \in getfstwt W))
 -> all_diff_in_fww N1 V1 c1 N1c.
 
-    Lemma agreeonread_ins_w: forall{N Nend N2: nvmem} {V Vend: vmem}
+    Lemma agreeonread_ins_w_r: forall{N Nend N2: nvmem} {V Vend: vmem}
                         {l: instruction} {crem c1: command}
                    {O : obseq} {W: the_write_stuff},
   all_diff_in_fww N V (l;;crem) N2 ->
@@ -50,7 +50,17 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
         move/negP : Hfw. by apply.
     Qed.
 
- Lemma agreeonread_w: forall{N Nend N2: nvmem} {V Vend: vmem}
+    Lemma agreeonread_ins_w_l: forall{N Nend N2: nvmem} {V Vend: vmem}
+                        {l: instruction} {crem c1: command}
+                   {O : obseq} {W: the_write_stuff},
+  all_diff_in_fww N V (l;;crem) N2 ->
+             cceval_w (N, V, Ins l) O (Nend, Vend, c1) W ->
+            ( forall(z: loc), z \in (getrd W) -> (*z was read immediately cuz trace is only 1
+                                thing long*)
+                   (getmap N) z = (getmap N2) z). (*since z isnt in FW of trace from Ins l to skip*)
+    Admitted.
+
+ Lemma agreeonread_w_r: forall{N Nend N2: nvmem} {V Vend: vmem}
                         {c c1: command}
                    {O : obseq} {W: the_write_stuff},
   all_diff_in_fww N V c N2 ->
@@ -60,12 +70,22 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
                    (getmap N2) z = (getmap N) z). (*since z isnt in FW of trace from Ins l to skip*)
  Admitted.
 
+ Lemma agreeonread_w_l: forall{N Nend N2: nvmem} {V Vend: vmem}
+                        {c c1: command}
+                   {O : obseq} {W: the_write_stuff},
+  all_diff_in_fww N V c N2 ->
+             cceval_w (N, V, c) O (Nend, Vend, c1) W ->
+            ( forall(z: loc), z \in (getrd W) -> (*z was read immediately cuz trace is only 1
+                                thing long*)
+                   (getmap N) z = (getmap N2) z). (*since z isnt in FW of trace from Ins l to skip*)
+ Admitted.
+
  Lemma same_com_hcbc {N N1 Nend1 V V1 l crem O W c1} : all_diff_in_fww N V (l;;crem) N1 ->
                               cceval_w (N1, V, Ins l) O (Nend1, V1, c1) W ->
                               exists(Nend: nvmem), (cceval_w (N, V, Ins l) O (Nend, V1, c1) W) /\
  forall(l: loc), l \in (getwt W) -> ((getmap Nend) l = (getmap Nend1) l).
    intros Hdiff Hcceval1.
-move: (agreeonread_ins_w Hdiff Hcceval1) => agr.
+move: (agreeonread_ins_w_r Hdiff Hcceval1) => agr.
       dependent induction Hcceval1; simpl in agr.
     (*  - exists Nc. split. apply CheckPoint. move => l contra.
         rewrite in_nil in contra. by exfalso.*)
@@ -290,7 +310,7 @@ move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
       move/ eqPn / (H0 l0) : contra.
       by rewrite in_nil. auto.
           - move/ negbT / eqP : Hbool => Hneq.
-            move: (agreeonread_w Hdiff Hcceval1) => agr.
+            move: (agreeonread_w_r Hdiff Hcceval1) => agr.
             move: (agr_imp_age H9 agr) => Heval.
             split.
            apply If_T; try assumption.
@@ -333,7 +353,7 @@ move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
       move/ eqPn / (H0 l0) : contra.
       by rewrite in_nil. auto.
           - move/ negbT / eqP : Hbool => Hneq.
-            move: (agreeonread_w Hdiff Hcceval1) => agr.
+            move: (agreeonread_w_r Hdiff Hcceval1) => agr.
             move: (agr_imp_age H9 agr) => Heval.
             split.
            apply If_F; try assumption.
@@ -544,3 +564,8 @@ Qed.
     subst; assumption.
 Qed.
 
+
+Lemma adif_sym {N1 V1 c1 Nc1}: 
+  all_diff_in_fww N1 V1 c1 Nc1 ->
+  all_diff_in_fww Nc1 V1 c1 N1.
+  intros Hdiff. Admitted.

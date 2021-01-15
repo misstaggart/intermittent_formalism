@@ -43,15 +43,8 @@ Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
     all_diff_in_fw N V c N1 ->
     all_diff_in_fww N V c N1. Admitted.
 
-    Lemma agreeonread_ins: forall{N Nend N2: nvmem} {V Vend: vmem}
-                        {l: instruction} {crem c1: command}
-                   {O : obseq} {W: the_write_stuff},
-  all_diff_in_fw N V (l;;crem) N2 ->
-             cceval_w (N, V, Ins l) O (Nend, Vend, c1) W ->
-            ( forall(z: loc), z \in (getrd W) -> (*z was read immediately cuz trace is only 1
-                                thing long*)
-                   (getmap N) z = (getmap N2) z). (*since z isnt in FW of trace from Ins l to skip*)
-    Admitted.
+
+
 
  Lemma agreeonread: forall{N Nend N2: nvmem} {V Vend: vmem}
                         {c c1: command}
@@ -61,7 +54,7 @@ Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
             ( forall(z: loc), z \in (getrd W) -> (*z was read immediately cuz trace is only 1
                                 thing long*)
                    (getmap N) z = (getmap N2) z). (*since z isnt in FW of trace from Ins l to skip*)
-    Admitted.
+ Admitted.
 
 
 
@@ -70,7 +63,7 @@ Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
                                  all_diff_in_fw N1 V (l;; skip) N2.
    Admitted.
 
-    Lemma two_bc {Ni Ni1 V V1 l c1 crem Nc O W} : all_diff_in_fw Ni V (l;;crem) Nc ->
+    Lemma two_bcw {Ni Ni1 V V1 l c1 crem Nc O W} : all_diff_in_fww Ni V (l;;crem) Nc ->
                               cceval_w (Ni, V, Ins l) O (Ni1, V1, c1) W ->
                               exists(Nc1: nvmem), (cceval_w (Nc, V, Ins l) O (Nc1, V1, c1) W /\
                               forall(l: loc), l \in (getwt W) -> ((getmap Ni1) l = (getmap Nc1) l)).
@@ -135,20 +128,6 @@ Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
         move/ eqP : Hbool => Heq. subst. inversion H1.
           by rewrite one two. 
        intros. split; by apply ifT.
-        (*unfold updatemap.
-        suffices: 
-          ((if inr el == inr element then v else Nimap (inr el)) =
-           Nimap (inr el) /\
-           (if inr el == inr element then v else Ncmap (inr el)) = Ncmap (inr el)).
-        move => annoying.
-        move: (annoying loc_eqtype loc_eqtype) => [one two]. rewrite one two.
-        inversion H; subst.
-        apply (H6 el).
-        intros. split; apply ifF;
-        move/eqP: (negbT Hbool) => Hneq;
-        apply negbTE;
-        apply/eqP; intros contra; inversion contra; subst;
-          by apply Hneq.*)
 Qed.
     
     -(* exists Nc. split. apply Skip. move => l contra.
@@ -164,6 +143,13 @@ Qed.
       eapply IHcceval_w; try reflexivity; try assumption.*)
 
 
+    Lemma two_bc {Ni Ni1 V V1 l c1 crem Nc O W} : all_diff_in_fw Ni V (l;;crem) Nc ->
+                              cceval_w (Ni, V, Ins l) O (Ni1, V1, c1) W ->
+                              exists(Nc1: nvmem), (cceval_w (Nc, V, Ins l) O (Nc1, V1, c1) W /\
+                                              forall(l: loc), l \in (getwt W) -> ((getmap Ni1) l = (getmap Nc1) l)).
+      intros.
+      apply adifw_adif in H.
+      eapply two_bcw; try apply H; try assumption. Qed.
 (*can't do this one till youve fixed your eq types*)
 Lemma trace_converge_minus1 {N V l N' Nmid Vmid Nmid'
                             O W}:
