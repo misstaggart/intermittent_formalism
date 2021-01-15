@@ -797,16 +797,32 @@ econstructor; try apply (CsTrace_Single Hcceval2); try assumption.
    move/ negbT /eqP : Hnil => Hnil.
 econstructor; try apply (CsTrace_Cons T0 Hnil Hcceval2); try assumption. rewrite mem_cat. apply/norP. split; assumption.
 intros el. symmetry. by apply (H3 el). intros z Hz.
-suffices: (z \notin getwt W1 \/ z \in getfstwt (W1)).
-move => [Hw | Hw].
-move: (update_one_contra z H0 Hw) => one.
-move: (update_one_contra z Hcceval2 Hw) => two.
+suffices: (z \notin getrd W1).
+move => Hw.
+destruct (z \in getwt W1) eqn: Hbool.
+unfold append_write. simpl.
+move: (negrandw_means_fw Hcceval2 Hw Hbool) => Hdone.
+rewrite mem_cat. apply/orP. by right.
+apply negbT in Hbool.
+move: (update_one_contra z H0 Hbool) => one.
+move: (update_one_contra z Hcceval2 Hbool) => two.
 rewrite one two in Hz. apply H7 in Hz.
 unfold append_write. simpl.
- apply not_eq_sym in Hz.
- destruct (getmap Nc2 z == getmap Nm z) eqn: Hbool.
- move/ eqP :Hbool => one. subst.
-   by apply H4.
+rewrite mem_cat. apply/orP. left.
+rewrite mem_filter. apply/andP. split; by [].
+apply/negP. intros contra.  apply not_eq_sym in Hz.
+apply (H4 z) in Hz.
+unfold append_write in Hz. simpl in Hz.
+move: (r_means_negfw Hcceval2 contra).
+rewrite mem_cat in Hz. move/orP: Hz => [contra1 | contra2] con3.
+rewrite mem_filter in contra1. move/andP: contra1 => [one two].
+move/negP : one. by apply.
+move/negP : con3. by apply.
+inversion Hdiffend1. subst.
+eapply IHT; try reflexivity; try assumption.
+ move: (same_endcom  T0 T H2 H1 H5 Ho2) => two. subst.
+   move: (determinism T T0) => [two three]. subst. assumption.
+Qed.
 
 Lemma adif_trans {Nc0 V1 c1 Nc1 Nc2}:
   all_diff_in_fw Nc0 V1 c1 Nc1 ->

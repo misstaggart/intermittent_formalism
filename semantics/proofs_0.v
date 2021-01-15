@@ -598,10 +598,25 @@ Admitted.
 (*this should be quick and fast
  cuz i could replace it with
  quick and fast on the spot simplification*)
+Lemma r_means_negfw:forall{C Cend: context}  {O: obseq} {W: the_write_stuff}
+  {l: loc},
+    cceval_w C O Cend W ->
+ l \in (getrd W) -> l \notin (getfstwt W).
+Admitted.
+
+
 Lemma negfwandw_means_r: forall{C Cend: context}  {O: obseq} {W: the_write_stuff}
   {l: loc},
     cceval_w C O Cend W ->
     l \notin (getfstwt W) -> l \in (getwt W) -> l \in (getrd W).
+Admitted.
+
+
+(*use above*)
+Lemma negrandw_means_fw: forall{C Cend: context}  {O: obseq} {W: the_write_stuff}
+  {l: loc},
+    cceval_w C O Cend W ->
+    l \notin (getrd W) -> l \in (getwt W) -> l \in (getfstwt W).
 Admitted.
 
 
