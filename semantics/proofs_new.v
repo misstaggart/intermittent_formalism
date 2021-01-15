@@ -754,7 +754,7 @@ Admitted.
    Admitted.
 
  Lemma same_endcom_bc {N V c N1 V1 c1 O1 O2 W1 N2 V2 c2 W2}:
-cceval_w (N, V, c) O2 (N1, V1, c1) W1 ->
+cceval_w (N, V, c) O1 (N1, V1, c1) W1 ->
 trace_cs (N, V, c) (N2, V2, c2) O2 W2 ->
 end_com c1 ->
 end_com c2 ->
@@ -763,20 +763,11 @@ checkpoint \notin O2 ->
 c1 = c2.
 Admitted.
 
-Lemma same_endcom {N V c N1 V1 c1 O1 O2 W1 N2 V2 c2 W2}:
-trace_cs (N, V, c) (N1, V1, c1) O1 W1 ->
-trace_cs (N, V, c) (N2, V2, c2) O2 W2 ->
-end_com c1 ->
-end_com c2 ->
-checkpoint \notin O1 ->
-checkpoint \notin O2 ->
-c1 = c2.
-  move => T1 T2 Hc1 Hc2 Ho1 Ho2.
-  move: N2 V2 c2 O2 W2 Ho2 Hc2 T2.
-  dependent induction T1; intros.
-  destruct (O2 == [::]) eqn: Hemp;move/ eqP: Hemp => Heq; subst.
-move/ empty_trace_cs1 : T2 => [one two]. by inversion one.
-destruct Hc1. subst.
+Lemma same_endcom_help {N V c N1 V1 c1 O1 W1}:
+  trace_cs (N, V, c) (N1, V1, c1) O1 W1 ->
+  checkpoint \notin O1 ->
+end_com c -> end_com c1 -> c1 = c.
+(*destruct Hc1. subst.
 move: (trace_skip T2) => Hneq. exfalso. by apply Heq.
 apply single_step_alls_rev in T2.
 destruct T2 as [Cmid [W1 [Wrest [O1 [
@@ -792,8 +783,36 @@ destruct Cmid as [ [nm vm] cm].
 apply observe_checkpt_s in Hcceval.
 exfalso. move/ negP : Ho2.
 apply. apply (in_subseq Hsub Hcceval). assumption.
-move/ empty_trace_cs1 : T2 => [one two]. by inversion one.
+move/ empty_trace_cs1 : T2 => [one two]. by inversion one.*)
+  Admitted.
 
+Lemma same_endcom {N V c N1 V1 c1 O1 O2 W1 N2 V2 c2 W2}:
+trace_cs (N, V, c) (N1, V1, c1) O1 W1 ->
+trace_cs (N, V, c) (N2, V2, c2) O2 W2 ->
+end_com c1 ->
+end_com c2 ->
+checkpoint \notin O1 ->
+checkpoint \notin O2 ->
+c1 = c2.
+  move => T1 T2 Hc1 Hc2 Ho1 Ho2.
+  destruct (O2 == [::]) eqn: Hemp;move/ eqP: Hemp => Heq; subst.
+move/ empty_trace_cs1 : T2 => [one two]. inversion one. subst.
+apply (same_endcom_help T1 Ho1 Hc2 Hc1).
+  move: N2 V2 c2 O2 W2 Ho2 Hc2 T2 Heq.
+  dependent induction T1; intros.
+  symmetry. apply (same_endcom_help T2 Ho2 Hc1 Hc2).
+apply (same_endcom_bc H T2 Hc1 Hc2 Ho1 Ho2).
+destruct Cmid as [ [nmid vmid] cmid].
+inversion T2; subst. exfalso. by apply Heq.
+move: (determinism_c H1 H0) => [one [two three] ]. inversion one. subst.
+rewrite mem_cat in Ho1. move/ norP: Ho1 => [Ho1 Ho22].
+apply (same_endcom_help T1 Ho22 Hc2 Hc1).
+destruct Cmid as [ [nmm vmm] cmm].
+rewrite mem_cat in Ho2. move/ norP: Ho2 => [Ho21 Ho22].
+rewrite mem_cat in Ho1. move/ norP: Ho1 => [Ho11 Ho12].
+move: (determinism_c H0 H3) => [one [two three] ]. inversion one. subst. 
+eapply IHT1; try reflexivity; try (apply H1); try assumption.
+Qed.
 
 Lemma adif_works {N1 N2 V c Nend Vend O1 W1 cend}:
   all_diff_in_fw N1 V c N2 ->
