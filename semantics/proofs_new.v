@@ -588,7 +588,15 @@ Lemma wts_cped_sv: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O:
     l \in (getwt W) -> (*l written to
                        IN THIS trace*)
     l \in (remove Rstart (getfstwt W)) (*l not in OVERALL FW for this trace*)
- \/ l \in Wstart. Admitted. (*14*)
+          \/ l \in Wstart.
+  intros.
+  move: (war_works_loc H H0 H1) => Hl.
+  destruct (l \in remove Rstart (getfstwt W)) eqn: Hin.
+    by left.
+    move/ negbT / (Hl l): Hin => Himp.
+    move: (Himp H3) => [one | two].
+    exfalso. by move/ negP : H2. by right.
+Qed.
 
 Lemma wts_cped_arr: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
                   {Wstart Rstart: warvars} {el: el_loc},
