@@ -15,6 +15,70 @@ Implicit Types x: smallvar.
 Definition end_com c := c = Ins skip \/ exists(crem: command)(w: warvars), c= (incheckpoint w);; crem.
 
 
+Lemma same_endcom_help {N V c N1 V1 c1 O1 W1}:
+  trace_cs (N, V, c) (N1, V1, c1) O1 W1 ->
+  checkpoint \notin O1 ->
+  end_com c -> end_com c1 -> c1 = c.
+  intros. destruct H1. subst.
+  move: (trace_skip H) => Heq. subst.
+  move/empty_trace_cs1 :H => [one two]. by inversion one.
+  destruct H1 as [crem [w Hrem] ]. subst.
+  inversion H; subst; try by [].
+  apply observe_checkpt_s in H1. exfalso. move/negP : H0.
+    by apply.
+    destruct Cmid as [ [nm vm] cm].
+    apply observe_checkpt_s in H4. exfalso.
+    rewrite mem_cat in H0. move/norP: H0 => [one two].
+    move/negP : one. 
+  by apply. Qed.
+
+
+  Lemma same_endcom_bc {N V c N1 V1 c1 O1 O2 W1 N2 V2 c2 W2}:
+cceval_w (N, V, c) O1 (N1, V1, c1) W1 ->
+trace_cs (N, V, c) (N2, V2, c2) O2 W2 ->
+end_com c1 ->
+end_com c2 ->
+checkpoint \notin O1 ->
+checkpoint \notin O2 ->
+c1 = c2.
+    move => Hcc T Hc1 Hc2 Ho1 Ho2.
+move: V1 N1 O1 W1 c1 Hcc Hc1 Ho1. dependent induction T; intros.
+apply (same_endcom_help (CsTrace_Single Hcc) Ho1 Hc2 Hc1).
+move: (determinism_c H Hcc) => [one [two three] ]. inversion one. by subst.
+destruct Cmid as [ [nm vm] cm].
+move: (determinism_c H0 Hcc) => [one [two three] ].
+inversion one. subst. rewrite mem_cat in Ho2. move/norP: Ho2 => [H11 H12].
+symmetry. eapply same_endcom_help; try apply T; try assumption.
+Qed.
+
+
+Lemma same_endcom {N V c N1 V1 c1 O1 O2 W1 N2 V2 c2 W2}:
+trace_cs (N, V, c) (N1, V1, c1) O1 W1 ->
+trace_cs (N, V, c) (N2, V2, c2) O2 W2 ->
+end_com c1 ->
+end_com c2 ->
+checkpoint \notin O1 ->
+checkpoint \notin O2 ->
+c1 = c2.
+  move => T1 T2 Hc1 Hc2 Ho1 Ho2.
+  destruct (O2 == [::]) eqn: Hemp;move/ eqP: Hemp => Heq; subst.
+move/ empty_trace_cs1 : T2 => [one two]. inversion one. subst.
+apply (same_endcom_help T1 Ho1 Hc2 Hc1).
+  move: N2 V2 c2 O2 W2 Ho2 Hc2 T2 Heq.
+  dependent induction T1; intros.
+  symmetry. apply (same_endcom_help T2 Ho2 Hc1 Hc2).
+apply (same_endcom_bc H T2 Hc1 Hc2 Ho1 Ho2).
+destruct Cmid as [ [nmid vmid] cmid].
+inversion T2; subst. exfalso. by apply Heq.
+move: (determinism_c H1 H0) => [one [two three] ]. inversion one. subst.
+rewrite mem_cat in Ho1. move/ norP: Ho1 => [Ho1 Ho22].
+apply (same_endcom_help T1 Ho22 Hc2 Hc1).
+destruct Cmid as [ [nmm vmm] cmm].
+rewrite mem_cat in Ho2. move/ norP: Ho2 => [Ho21 Ho22].
+rewrite mem_cat in Ho1. move/ norP: Ho1 => [Ho11 Ho12].
+move: (determinism_c H0 H3) => [one [two three] ]. inversion one. subst. 
+eapply IHT1; try reflexivity; try (apply H1); try assumption.
+Qed.
 
 Inductive all_diff_in_fw: nvmem -> vmem -> command -> nvmem -> Prop :=
   Diff_in_FW: forall{N1 V1 c1 N2 V2 c2 N1c O W} (T: trace_cs (N1, V1, c1) (N2, V2, c2) O W),
@@ -151,7 +215,21 @@ Lemma adif_cceval {N1 N2 V c Nend Vend O1 W cend}:
   cceval_w (N1, V, c) O1 (Nend, Vend, cend) W ->
   end_com cend ->
    (forall(el: el_loc), ((getmap N1) (inr el)) = ((getmap N2) (inr el))) /\
-   ( forall(l: loc ), ((getmap N1) l <> (getmap N2) l) -> (l \in getfstwt W)). Admitted.
+   ( forall(l: loc ), ((getmap N1) l <> (getmap N2) l) -> (l \in getfstwt W)).
+  intros. inversion H; subst.
+  destruct (O == [::]) eqn: Hbool; move/ eqP: Hbool => Hnil. subst.
+  apply empty_trace_cs1 in T. destruct T as [one two]. inversion one. subst. split; try assumption. intros l contra. apply (H5 l) in contra.
+  rewrite in_nil in contra. discriminate contra.
+  move: (single_step_alls T Hnil H0). => [Wrest [Orest [ Trest [Hsub Hw] ] ] ].
+  split; try assumption.
+  suffices: checkpoint \notin Orest. move => Hrest.
+  move: (same_endcom_help Trest Hrest H1 H2) => one. subst.
+  move/ empty_trace_cs: Trest => [one [two [three four] ] ]. subst.
+ by rewrite append_write_empty in H5.
+ apply/negP. intros contra.
+exfalso.
+apply (in_subseq Hsub) in contra. move/ negP : H3. by apply.
+Qed.
 
 Lemma trace_converge {N V cend Nc} :
   all_diff_in_fw N V cend Nc ->
@@ -208,7 +286,7 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
      + move: (two_bc H H12) => [Nc1 [Hsmall Hdone] ]. exists Nc1. repeat split; try assumption.
        apply Seq; try assumption.
        inversion H; subst.
-       suffices: O <> [::]. intros Ho.
+       suffices: O0 <> [::]. intros Ho.
        move: (single_step_alls T Ho H0). => [Wrest [Orest
                                                      [Trest
                                 [Hsubseq Hwrite] ] ] ].
@@ -577,11 +655,6 @@ checkpoint \notin Oc).
  
 
 
-Lemma observe_checkpt_s: forall {N N': nvmem} {V V': vmem}
-                     {c c' : command} {w: warvars}
-                    {O: obseq} {W: the_write_stuff},
-    cceval_w (N, V, (incheckpoint w ;; c)) O (N', V', c') W ->
-    checkpoint \in O. Admitted.
 
 
 
@@ -739,70 +812,6 @@ Admitted.
                                                                    (restrict N1 w Hf) N1.
    Admitted.
 
-Lemma same_endcom_help {N V c N1 V1 c1 O1 W1}:
-  trace_cs (N, V, c) (N1, V1, c1) O1 W1 ->
-  checkpoint \notin O1 ->
-  end_com c -> end_com c1 -> c1 = c.
-  intros. destruct H1. subst.
-  move: (trace_skip H) => Heq. subst.
-  move/empty_trace_cs1 :H => [one two]. by inversion one.
-  destruct H1 as [crem [w Hrem] ]. subst.
-  inversion H; subst; try by [].
-  apply observe_checkpt_s in H1. exfalso. move/negP : H0.
-    by apply.
-    destruct Cmid as [ [nm vm] cm].
-    apply observe_checkpt_s in H4. exfalso.
-    rewrite mem_cat in H0. move/norP: H0 => [one two].
-    move/negP : one. 
-  by apply. Qed.
-
-
-  Lemma same_endcom_bc {N V c N1 V1 c1 O1 O2 W1 N2 V2 c2 W2}:
-cceval_w (N, V, c) O1 (N1, V1, c1) W1 ->
-trace_cs (N, V, c) (N2, V2, c2) O2 W2 ->
-end_com c1 ->
-end_com c2 ->
-checkpoint \notin O1 ->
-checkpoint \notin O2 ->
-c1 = c2.
-    move => Hcc T Hc1 Hc2 Ho1 Ho2.
-move: V1 N1 O1 W1 c1 Hcc Hc1 Ho1. dependent induction T; intros.
-apply (same_endcom_help (CsTrace_Single Hcc) Ho1 Hc2 Hc1).
-move: (determinism_c H Hcc) => [one [two three] ]. inversion one. by subst.
-destruct Cmid as [ [nm vm] cm].
-move: (determinism_c H0 Hcc) => [one [two three] ].
-inversion one. subst. rewrite mem_cat in Ho2. move/norP: Ho2 => [H11 H12].
-symmetry. eapply same_endcom_help; try apply T; try assumption.
-Qed.
-
-
-Lemma same_endcom {N V c N1 V1 c1 O1 O2 W1 N2 V2 c2 W2}:
-trace_cs (N, V, c) (N1, V1, c1) O1 W1 ->
-trace_cs (N, V, c) (N2, V2, c2) O2 W2 ->
-end_com c1 ->
-end_com c2 ->
-checkpoint \notin O1 ->
-checkpoint \notin O2 ->
-c1 = c2.
-  move => T1 T2 Hc1 Hc2 Ho1 Ho2.
-  destruct (O2 == [::]) eqn: Hemp;move/ eqP: Hemp => Heq; subst.
-move/ empty_trace_cs1 : T2 => [one two]. inversion one. subst.
-apply (same_endcom_help T1 Ho1 Hc2 Hc1).
-  move: N2 V2 c2 O2 W2 Ho2 Hc2 T2 Heq.
-  dependent induction T1; intros.
-  symmetry. apply (same_endcom_help T2 Ho2 Hc1 Hc2).
-apply (same_endcom_bc H T2 Hc1 Hc2 Ho1 Ho2).
-destruct Cmid as [ [nmid vmid] cmid].
-inversion T2; subst. exfalso. by apply Heq.
-move: (determinism_c H1 H0) => [one [two three] ]. inversion one. subst.
-rewrite mem_cat in Ho1. move/ norP: Ho1 => [Ho1 Ho22].
-apply (same_endcom_help T1 Ho22 Hc2 Hc1).
-destruct Cmid as [ [nmm vmm] cmm].
-rewrite mem_cat in Ho2. move/ norP: Ho2 => [Ho21 Ho22].
-rewrite mem_cat in Ho1. move/ norP: Ho1 => [Ho11 Ho12].
-move: (determinism_c H0 H3) => [one [two three] ]. inversion one. subst. 
-eapply IHT1; try reflexivity; try (apply H1); try assumption.
-Qed.
 
 Lemma adif_works {N1 N2 V c Nend Vend O1 W1 cend}:
   all_diff_in_fw N1 V c N2 ->

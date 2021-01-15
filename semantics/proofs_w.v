@@ -323,7 +323,7 @@ Qed.
            exists Nend. split.
        apply Seq; try assumption.
        inversion Hdiff; subst.
-      destruct (O == [::]) eqn: Hbool.
+      destruct (O0 == [::]) eqn: Hbool.
        - move/ eqP : Hbool => Hbool. subst.
       apply empty_trace_cs1 in T. move: T =>
                                   [ [one two ] three four].
@@ -337,7 +337,7 @@ Qed.
       move/ eqPn / (H0 l0) : contra.
       by rewrite in_nil. auto.
        - move/ negbT / eqP : Hbool => Hneq.
-         suffices: cceval_w (N, V, l;;c1) [:: o] (Nend, V1, c1) W.
+         suffices: cceval_w (N, V, l;;c1) O (Nend, V1, c1) W.
          move => Hccevalbig.
 move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
                                                      [Trest

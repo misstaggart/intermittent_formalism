@@ -293,6 +293,12 @@ Qed.*)
 
 
 
+Lemma observe_checkpt_s: forall {N N': nvmem} {V V': vmem}
+                     {c c' : command} {w: warvars}
+                    {O: obseq} {W: the_write_stuff},
+    cceval_w (N, V, (incheckpoint w ;; c)) O (N', V', c') W ->
+    checkpoint \in O. Admitted.
+
  Lemma fw_split {W W1} {l: loc}:
            l \in getfstwt (append_write W1 W) ->
                  l \in (getfstwt W1) \/ (
