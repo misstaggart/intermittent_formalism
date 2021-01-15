@@ -418,50 +418,54 @@ Lemma war_works_loc_c {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
     checkpoint \notin O ->
     (*O <> [::] -> empty trace annoying and i dont think
                i have to deal w it*)
-  forall (l: loc),
+ ( forall (l: loc),
 (l \notin (remove Rstart (getfstwt W)) -> (*l not in OVERALL FW for this trace*)
     l \in (getwt W) -> (*l written to
                        IN THIS trace*)
-          l \in (getdomain N0) \/ l \in Wstart).
+          l \in (getdomain N0) \/ l \in Wstart) /\
+ forall (el: el_loc), (inr el) \notin (getdomain N0) ->
+(inr el) \notin (getwt W)
+   ).
   intros Hcceval Hwarok Ho.
   move: Rstart Wstart Hwarok Ho. remember Hcceval as Hcceval1.
   clear HeqHcceval1.
-  dependent induction Hcceval1; intros; simpl in H;
-    try discriminate H0; try discriminate H1.
-  -  remember H3 as Hwt.
-    clear HeqHwt.
-    simpl in H3. rewrite mem_seq1 in H3.
-    move/eqP : H3 => Heq. subst.
-   inversion Hwarok; subst; inversion H7;
-       subst. (*casing on warIns*)
-     (*vol case, x \notin getwt W*)
-       +  exfalso. apply (negNVandV x H0 H10).
+  dependent induction Hcceval1; intros.
+  - rewrite mem_seq1 in Ho; exfalso;
+    move/ negP: Ho; by apply.
+   - inversion Hwarok; inversion H6;
+       subst; split; intros; try (remember H3 as Hwt;
+    clear HeqHwt;
+    simpl in H3; rewrite mem_seq1 in H3;
+    move/eqP : H3 => Heq; subst).
+     +  exfalso. apply (negNVandV x H0 H13).
+        by [].
        + (*nord case*)
          (*showing l in rd W*)
-         rewrite mem_cat in H13.
-         move / negP / norP : H13 => [Hre Hrs].
+         rewrite mem_cat in H16.
+         move / negP / norP : H16 => [Hre Hrs].
          rewrite mem_filter in H2.
          move/nandP: H2. => [contra | H2].
-         rewrite Hrs in contra. discriminate contra.
+         move/ negPn : contra => contra.
+         exfalso. move/ negP : Hrs. by apply.
          pose proof (negfwandw_means_r Hcceval H2 Hwt) as Hrd.
-         
          simpl in Hrd.
        (*showing x notin RD(W)*)
-         move: (read_deterministic H10 (RD H)) => Heq. subst.
+         move: (read_deterministic H13 (RD H)) => Heq. subst.
          exfalso. move/negP : Hre. by apply.
+         by [].
      + (*CP case*)
-        by left.
+        by left. by [].
      + (*written case*)
-       by right.
-     - (*vol case*)
+         by right. by [].
+     - (*vol case*) split; intros.
        rewrite in_nil in H3.
-       discriminate H3.
+       discriminate H3. by [].
      - (*array case*)
-    (*showing x = l*)
-       remember H4 as Hwt. clear HeqHwt.
-       simpl in H4.
-       rewrite mem_seq1 in H4. move/ eqP : H4 => Heq. subst.
-       inversion Hwarok; subst; inversion H8;
+    (*showing x = l*) split; intros; try 
+      ( remember H4 as Hwt; clear HeqHwt;
+       simpl in H4;
+       rewrite mem_seq1 in H4; move/ eqP : H4 => Heq; subst);
+       inversion Hwarok; subst. inversion H8;
        subst. (*casing on warIns*)
        + (*nord arr*)
            remember (inr element) as l.
@@ -494,10 +498,15 @@ Lemma war_works_loc_c {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: ob
        rewrite <- readobs_app_wvs.
        rewrite mem_cat.
        apply/ orP. by left.
+       simpl in H3. simpl in Hwt.
+       left. destruct element as [el1 el2].
+       apply (in_subseq H16). apply (gen_locs_works H2).
+       simpl.
            + (*CP array*)
          destruct element.
              left. 
-         apply (in_subseq H16 (gen_locs_works H2)).
+             apply (in_subseq H16 (gen_locs_works H2)).
+             simpl.
 - (*seq case*)
            inversion Hwarok; subst. exfalso. by apply (H w).
            eapply IHHcceval1; try apply Hcceval1;
@@ -605,8 +614,6 @@ Lemma wts_cped_arr: forall{N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O
     checkpoint \notin O ->
     (*O <> [::] -> empty trace annoying and i dont think
                i have to deal w it*)
-    (inr el) \notin (getdomain N0) ->
-   (inr el) \notin (getwt W).
 Admitted. (*14*)
 
 Lemma war_works {N0 N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}:
