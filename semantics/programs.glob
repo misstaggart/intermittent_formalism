@@ -1,4 +1,4 @@
-DIGEST 5c1a265c8f27bb45762282271da04f94
+DIGEST 3e87d9196658a7dc1c7f934ab96a3d7d
 FSemantics.programs
 R70:78 Coq.Bool.Bool <> <> lib
 R80:87 Coq.Init.Nat <> <> lib
@@ -184,1052 +184,1000 @@ R2672:2673 Semantics.programs <> O2:26 var
 R2669:2670 Semantics.programs <> C2:24 var
 R2664:2667 Semantics.programs <> Cmid:23 var
 R3434:3444 Semantics.programs <> trace_c_ind scheme
-prf 4335:4345 <> empty_trace
-R4362:4368 Semantics.semantics <> context syndef
-binder 4355:4356 <> C1:29
-binder 4358:4359 <> C2:30
-R4375:4379 Semantics.semantics <> obseq syndef
-binder 4372:4372 <> O:31
-R4386:4400 Semantics.semantics <> the_write_stuff syndef
-binder 4383:4383 <> W:32
-R4425:4428 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R4437:4440 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R4448:4451 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
-R4443:4445 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R4441:4442 Semantics.programs <> C1:29 var
-R4446:4447 Semantics.programs <> C2:30 var
-R4453:4455 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R4452:4452 Semantics.programs <> W:32 var
-R4456:4464 Semantics.semantics <> emptysets syndef
-R4430:4432 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R4429:4429 Semantics.programs <> O:31 var
-R4433:4436 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_']' not
-R4408:4414 Semantics.programs <> trace_c ind
-R4424:4424 Semantics.programs <> W:32 var
-R4422:4422 Semantics.programs <> O:31 var
-R4419:4420 Semantics.programs <> C2:30 var
-R4416:4417 Semantics.programs <> C1:29 var
-R4590:4593 mathcomp.ssreflect.seq <> nilP thm
-R4623:4626 mathcomp.ssreflect.seq <> nilp def
-R4651:4655 Coq.ssr.ssrbool <> elimT thm
-R4657:4659 mathcomp.ssreflect.eqtype <> eqP thm
-R4651:4655 Coq.ssr.ssrbool <> elimT thm
-R4657:4659 mathcomp.ssreflect.eqtype <> eqP thm
-R4687:4694 mathcomp.ssreflect.seq <> size_cat thm
-R4687:4694 mathcomp.ssreflect.seq <> size_cat thm
-R4687:4694 mathcomp.ssreflect.seq <> size_cat thm
-R4726:4728 mathcomp.ssreflect.eqtype <> eqP thm
-R4753:4760 mathcomp.ssreflect.ssrnat <> addn_eq0 thm
-R4753:4760 mathcomp.ssreflect.ssrnat <> addn_eq0 thm
-R4753:4760 mathcomp.ssreflect.ssrnat <> addn_eq0 thm
-R4780:4792 Coq.Bool.Bool <> andb_true_iff thm
-R4780:4792 Coq.Bool.Bool <> andb_true_iff thm
-R4844:4847 mathcomp.ssreflect.seq <> nilP thm
-prf 4924:4937 <> empty_trace_sc
-R4956:4960 Semantics.semantics <> nvmem ind
-binder 4949:4950 <> N1:33
-binder 4952:4953 <> N2:34
-R4971:4974 Semantics.semantics <> vmem ind
-binder 4964:4965 <> V1:35
-binder 4967:4968 <> V2:36
-R4981:4987 Semantics.semantics <> command ind
-binder 4978:4978 <> c:37
-R4994:4998 Semantics.semantics <> obseq syndef
-binder 4991:4991 <> O:38
-R5005:5019 Semantics.semantics <> the_write_stuff syndef
-binder 5002:5002 <> W:39
-R5062:5065 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R5074:5077 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
-R5067:5069 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R5066:5066 Semantics.programs <> O:38 var
-R5070:5073 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_']' not
-R5085:5088 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
-R5080:5082 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R5078:5079 Semantics.programs <> N1:33 var
-R5083:5084 Semantics.programs <> N2:34 var
-R5096:5099 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
-R5091:5093 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R5089:5090 Semantics.programs <> V1:35 var
-R5094:5095 Semantics.programs <> V2:36 var
-R5101:5103 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R5100:5100 Semantics.programs <> W:39 var
-R5104:5112 Semantics.semantics <> emptysets syndef
-R5027:5033 Semantics.programs <> trace_c ind
-R5061:5061 Semantics.programs <> W:39 var
-R5059:5059 Semantics.programs <> O:38 var
-R5047:5047 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R5050:5051 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+prf 4928:4941 <> empty_trace_sc
+R4960:4964 Semantics.semantics <> nvmem ind
+binder 4953:4954 <> N1:29
+binder 4956:4957 <> N2:30
+R4975:4978 Semantics.semantics <> vmem ind
+binder 4968:4969 <> V1:31
+binder 4971:4972 <> V2:32
+R4985:4991 Semantics.semantics <> command ind
+binder 4982:4982 <> c:33
+R4998:5002 Semantics.semantics <> obseq syndef
+binder 4995:4995 <> O:34
+R5009:5023 Semantics.semantics <> the_write_stuff syndef
+binder 5006:5006 <> W:35
+R5066:5069 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5078:5081 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R5071:5073 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R5070:5070 Semantics.programs <> O:34 var
+R5074:5077 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_']' not
+R5089:5092 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R5084:5086 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R5082:5083 Semantics.programs <> N1:29 var
+R5087:5088 Semantics.programs <> N2:30 var
+R5100:5103 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R5095:5097 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R5093:5094 Semantics.programs <> V1:31 var
+R5098:5099 Semantics.programs <> V2:32 var
+R5105:5107 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R5104:5104 Semantics.programs <> W:35 var
+R5108:5116 Semantics.semantics <> emptysets syndef
+R5031:5037 Semantics.programs <> trace_c ind
+R5065:5065 Semantics.programs <> W:35 var
+R5063:5063 Semantics.programs <> O:34 var
+R5051:5051 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R5054:5055 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R5057:5057 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R5048:5049 Semantics.programs <> N2:34 var
-R5052:5053 Semantics.programs <> V2:36 var
-R5056:5056 Semantics.programs <> c:37 var
-R5035:5035 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R5038:5039 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5058:5059 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5061:5061 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5052:5053 Semantics.programs <> N2:30 var
+R5056:5057 Semantics.programs <> V2:32 var
+R5060:5060 Semantics.programs <> c:33 var
+R5039:5039 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R5042:5043 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R5045:5045 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R5036:5037 Semantics.programs <> N1:33 var
-R5040:5041 Semantics.programs <> V1:35 var
-R5044:5044 Semantics.programs <> c:37 var
-prf 5134:5147 <> empty_trace_cs
-R5166:5170 Semantics.semantics <> nvmem ind
-binder 5159:5160 <> N1:40
-binder 5162:5163 <> N2:41
-R5181:5184 Semantics.semantics <> vmem ind
-binder 5174:5175 <> V1:42
-binder 5177:5178 <> V2:43
-R5191:5197 Semantics.semantics <> command ind
-binder 5188:5188 <> c:44
-R5204:5208 Semantics.semantics <> obseq syndef
-binder 5201:5201 <> O:45
-R5215:5229 Semantics.semantics <> the_write_stuff syndef
-binder 5212:5212 <> W:46
-R5273:5276 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R5285:5288 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
-R5278:5280 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R5277:5277 Semantics.programs <> O:45 var
-R5281:5284 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_']' not
-R5296:5299 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
-R5291:5293 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R5289:5290 Semantics.programs <> N1:40 var
-R5294:5295 Semantics.programs <> N2:41 var
-R5307:5310 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
-R5302:5304 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R5300:5301 Semantics.programs <> V1:42 var
-R5305:5306 Semantics.programs <> V2:43 var
-R5312:5314 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R5311:5311 Semantics.programs <> W:46 var
-R5315:5323 Semantics.semantics <> emptysets syndef
-R5237:5244 Semantics.programs <> trace_cs ind
-R5272:5272 Semantics.programs <> W:46 var
-R5270:5270 Semantics.programs <> O:45 var
-R5258:5258 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R5261:5262 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5046:5047 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5049:5049 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5040:5041 Semantics.programs <> N1:29 var
+R5044:5045 Semantics.programs <> V1:31 var
+R5048:5048 Semantics.programs <> c:33 var
+prf 5138:5151 <> empty_trace_cs
+R5170:5174 Semantics.semantics <> nvmem ind
+binder 5163:5164 <> N1:36
+binder 5166:5167 <> N2:37
+R5185:5188 Semantics.semantics <> vmem ind
+binder 5178:5179 <> V1:38
+binder 5181:5182 <> V2:39
+R5195:5201 Semantics.semantics <> command ind
+binder 5192:5192 <> c:40
+R5208:5212 Semantics.semantics <> obseq syndef
+binder 5205:5205 <> O:41
+R5219:5233 Semantics.semantics <> the_write_stuff syndef
+binder 5216:5216 <> W:42
+R5277:5280 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5289:5292 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R5282:5284 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R5281:5281 Semantics.programs <> O:41 var
+R5285:5288 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_']' not
+R5300:5303 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R5295:5297 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R5293:5294 Semantics.programs <> N1:36 var
+R5298:5299 Semantics.programs <> N2:37 var
+R5311:5314 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R5306:5308 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R5304:5305 Semantics.programs <> V1:38 var
+R5309:5310 Semantics.programs <> V2:39 var
+R5316:5318 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R5315:5315 Semantics.programs <> W:42 var
+R5319:5327 Semantics.semantics <> emptysets syndef
+R5241:5248 Semantics.programs <> trace_cs ind
+R5276:5276 Semantics.programs <> W:42 var
+R5274:5274 Semantics.programs <> O:41 var
+R5262:5262 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R5265:5266 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R5268:5268 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R5259:5260 Semantics.programs <> N2:41 var
-R5263:5264 Semantics.programs <> V2:43 var
-R5267:5267 Semantics.programs <> c:44 var
-R5246:5246 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R5249:5250 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5269:5270 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5272:5272 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5263:5264 Semantics.programs <> N2:37 var
+R5267:5268 Semantics.programs <> V2:39 var
+R5271:5271 Semantics.programs <> c:40 var
+R5250:5250 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R5253:5254 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R5256:5256 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R5247:5248 Semantics.programs <> N1:40 var
-R5251:5252 Semantics.programs <> V1:42 var
-R5255:5255 Semantics.programs <> c:44 var
-prf 5345:5359 <> empty_trace_cs1
-R5376:5382 Semantics.semantics <> context syndef
-binder 5369:5370 <> C1:47
-binder 5372:5373 <> C2:48
-R5389:5403 Semantics.semantics <> the_write_stuff syndef
-binder 5386:5386 <> W:49
-R5432:5435 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R5443:5446 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
-R5438:5440 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R5436:5437 Semantics.programs <> C1:47 var
-R5441:5442 Semantics.programs <> C2:48 var
-R5448:5450 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R5447:5447 Semantics.programs <> W:49 var
-R5451:5459 Semantics.semantics <> emptysets syndef
-R5411:5418 Semantics.programs <> trace_cs ind
-R5431:5431 Semantics.programs <> W:49 var
-R5426:5429 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_']' not
-R5423:5424 Semantics.programs <> C2:48 var
-R5420:5421 Semantics.programs <> C1:47 var
-prf 5481:5498 <> append_write_empty
-R5511:5525 Semantics.semantics <> the_write_stuff syndef
-binder 5508:5508 <> W:50
-R5557:5559 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R5533:5544 Semantics.semantics <> append_write def
-R5548:5556 Semantics.semantics <> emptysets syndef
-R5546:5546 Semantics.programs <> W:50 var
-R5560:5560 Semantics.programs <> W:50 var
-R5592:5603 Semantics.semantics <> append_write def
-R5635:5639 mathcomp.ssreflect.seq <> cats0 thm
-R5635:5639 mathcomp.ssreflect.seq <> cats0 thm
-R5635:5639 mathcomp.ssreflect.seq <> cats0 thm
-R5655:5663 Semantics.lemmas_1 <> undo_gets thm
-R5655:5663 Semantics.lemmas_1 <> undo_gets thm
-prf 5679:5698 <> append_write_empty_l
-R5711:5725 Semantics.semantics <> the_write_stuff syndef
-binder 5708:5708 <> W:51
-R5757:5759 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R5733:5744 Semantics.semantics <> append_write def
-R5756:5756 Semantics.programs <> W:51 var
-R5746:5754 Semantics.semantics <> emptysets syndef
-R5760:5760 Semantics.programs <> W:51 var
-R5792:5803 Semantics.semantics <> append_write def
-R5827:5832 Semantics.semantics <> remove def
-R5857:5868 mathcomp.ssreflect.seq <> filter_predT thm
-R5857:5868 mathcomp.ssreflect.seq <> filter_predT thm
-R5857:5868 mathcomp.ssreflect.seq <> filter_predT thm
-R5886:5890 mathcomp.ssreflect.seq <> cats0 thm
-R5886:5890 mathcomp.ssreflect.seq <> cats0 thm
-R5886:5890 mathcomp.ssreflect.seq <> cats0 thm
-R5886:5890 mathcomp.ssreflect.seq <> cats0 thm
-R5886:5890 mathcomp.ssreflect.seq <> cats0 thm
-R5886:5890 mathcomp.ssreflect.seq <> cats0 thm
-R5886:5890 mathcomp.ssreflect.seq <> cats0 thm
-R5886:5890 mathcomp.ssreflect.seq <> cats0 thm
-R5886:5890 mathcomp.ssreflect.seq <> cats0 thm
-R5907:5915 Semantics.lemmas_1 <> undo_gets thm
-R5907:5915 Semantics.lemmas_1 <> undo_gets thm
-def 5943:5954 <> trace_append
-R5969:5975 Semantics.semantics <> context syndef
-binder 5957:5958 <> C1:52
-binder 5960:5963 <> Cmid:53
-binder 5965:5966 <> C2:54
-R6005:6009 Semantics.semantics <> obseq syndef
-binder 5998:5999 <> O1:55
-binder 6001:6002 <> O2:56
-R6038:6052 Semantics.semantics <> the_write_stuff syndef
-binder 6031:6032 <> W1:57
-binder 6034:6035 <> W2:58
-R6078:6084 Semantics.programs <> trace_c ind
-R6097:6098 Semantics.programs <> W1:57 var
-R6094:6095 Semantics.programs <> O1:55 var
-R6089:6092 Semantics.programs <> Cmid:53 var
-R6086:6087 Semantics.programs <> C1:52 var
-binder 6074:6075 <> T1:59
-R6124:6130 Semantics.programs <> trace_c ind
-R6143:6144 Semantics.programs <> W2:58 var
-R6140:6141 Semantics.programs <> O2:56 var
-R6137:6138 Semantics.programs <> C2:54 var
-R6132:6135 Semantics.programs <> Cmid:53 var
-binder 6120:6121 <> T2:60
-R6149:6155 Semantics.programs <> trace_c ind
-R6175:6186 Semantics.semantics <> append_write def
-R6191:6192 Semantics.programs <> W2:58 var
-R6188:6189 Semantics.programs <> W1:57 var
-R6166:6169 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R6164:6165 Semantics.programs <> O1:55 var
-R6170:6171 Semantics.programs <> O2:56 var
-R6160:6161 Semantics.programs <> C2:54 var
-R6157:6158 Semantics.programs <> C1:52 var
-R6212:6213 Semantics.programs <> O2:56 var
-R6208:6209 Semantics.programs <> O1:55 var
-R6224:6227 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_']' not
-R6230:6233 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_']' not
-R6238:6239 Semantics.programs <> T1:59 var
-R6264:6267 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_']' not
-R6275:6276 Semantics.programs <> T2:60 var
-R6299:6302 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_']' not
-R6307:6308 Semantics.programs <> T1:59 var
-R6321:6322 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R6330:6331 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
-R6339:6348 Semantics.programs <> CTrace_App constr
-R6357:6358 Semantics.programs <> T2:60 var
-R6350:6351 Semantics.programs <> T1:59 var
-R6411:6421 Semantics.programs <> empty_trace thm
-R6576:6586 Semantics.programs <> empty_trace thm
-R6660:6670 Semantics.programs <> empty_trace thm
-R6741:6758 Semantics.programs <> append_write_empty thm
-R6828:6838 Semantics.programs <> empty_trace thm
-R7115:7134 Semantics.programs <> append_write_empty_l thm
-R7115:7134 Semantics.programs <> append_write_empty_l thm
-R7115:7134 Semantics.programs <> append_write_empty_l thm
-R7216:7220 mathcomp.ssreflect.seq <> cats0 thm
-R7216:7220 mathcomp.ssreflect.seq <> cats0 thm
-R7216:7220 mathcomp.ssreflect.seq <> cats0 thm
-prf 7480:7494 <> singletc_cceval
-binder 7497:7497 <> N:63
-binder 7499:7499 <> V:64
-binder 7501:7501 <> c:65
-binder 7503:7504 <> N1:66
-binder 7506:7507 <> V1:67
-binder 7509:7510 <> c1:68
-binder 7512:7512 <> O:69
-binder 7514:7514 <> W:70
-R7554:7559 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R7573:7578 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R7579:7586 Semantics.semantics <> cceval_w ind
-R7619:7619 Semantics.programs <> W:70 var
-R7600:7600 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R7603:7604 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5257:5258 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5260:5260 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5251:5252 Semantics.programs <> N1:36 var
+R5255:5256 Semantics.programs <> V1:38 var
+R5259:5259 Semantics.programs <> c:40 var
+prf 5349:5363 <> empty_trace_cs1
+R5380:5386 Semantics.semantics <> context syndef
+binder 5373:5374 <> C1:43
+binder 5376:5377 <> C2:44
+R5393:5407 Semantics.semantics <> the_write_stuff syndef
+binder 5390:5390 <> W:45
+R5436:5439 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5447:5450 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R5442:5444 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R5440:5441 Semantics.programs <> C1:43 var
+R5445:5446 Semantics.programs <> C2:44 var
+R5452:5454 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R5451:5451 Semantics.programs <> W:45 var
+R5455:5463 Semantics.semantics <> emptysets syndef
+R5415:5422 Semantics.programs <> trace_cs ind
+R5435:5435 Semantics.programs <> W:45 var
+R5430:5433 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_']' not
+R5427:5428 Semantics.programs <> C2:44 var
+R5424:5425 Semantics.programs <> C1:43 var
+prf 5485:5502 <> append_write_empty
+R5515:5529 Semantics.semantics <> the_write_stuff syndef
+binder 5512:5512 <> W:46
+R5561:5563 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R5537:5548 Semantics.semantics <> append_write def
+R5552:5560 Semantics.semantics <> emptysets syndef
+R5550:5550 Semantics.programs <> W:46 var
+R5564:5564 Semantics.programs <> W:46 var
+R5596:5607 Semantics.semantics <> append_write def
+R5639:5643 mathcomp.ssreflect.seq <> cats0 thm
+R5639:5643 mathcomp.ssreflect.seq <> cats0 thm
+R5639:5643 mathcomp.ssreflect.seq <> cats0 thm
+R5659:5667 Semantics.lemmas_1 <> undo_gets thm
+R5659:5667 Semantics.lemmas_1 <> undo_gets thm
+prf 5683:5702 <> append_write_empty_l
+R5715:5729 Semantics.semantics <> the_write_stuff syndef
+binder 5712:5712 <> W:47
+R5761:5763 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R5737:5748 Semantics.semantics <> append_write def
+R5760:5760 Semantics.programs <> W:47 var
+R5750:5758 Semantics.semantics <> emptysets syndef
+R5764:5764 Semantics.programs <> W:47 var
+R5796:5807 Semantics.semantics <> append_write def
+R5831:5836 Semantics.semantics <> remove def
+R5861:5872 mathcomp.ssreflect.seq <> filter_predT thm
+R5861:5872 mathcomp.ssreflect.seq <> filter_predT thm
+R5861:5872 mathcomp.ssreflect.seq <> filter_predT thm
+R5890:5894 mathcomp.ssreflect.seq <> cats0 thm
+R5890:5894 mathcomp.ssreflect.seq <> cats0 thm
+R5890:5894 mathcomp.ssreflect.seq <> cats0 thm
+R5890:5894 mathcomp.ssreflect.seq <> cats0 thm
+R5890:5894 mathcomp.ssreflect.seq <> cats0 thm
+R5890:5894 mathcomp.ssreflect.seq <> cats0 thm
+R5890:5894 mathcomp.ssreflect.seq <> cats0 thm
+R5890:5894 mathcomp.ssreflect.seq <> cats0 thm
+R5890:5894 mathcomp.ssreflect.seq <> cats0 thm
+R5911:5919 Semantics.lemmas_1 <> undo_gets thm
+R5911:5919 Semantics.lemmas_1 <> undo_gets thm
+def 5947:5958 <> trace_append
+R5973:5979 Semantics.semantics <> context syndef
+binder 5961:5962 <> C1:48
+binder 5964:5967 <> Cmid:49
+binder 5969:5970 <> C2:50
+R6009:6013 Semantics.semantics <> obseq syndef
+binder 6002:6003 <> O1:51
+binder 6005:6006 <> O2:52
+R6042:6056 Semantics.semantics <> the_write_stuff syndef
+binder 6035:6036 <> W1:53
+binder 6038:6039 <> W2:54
+R6082:6088 Semantics.programs <> trace_c ind
+R6101:6102 Semantics.programs <> W1:53 var
+R6098:6099 Semantics.programs <> O1:51 var
+R6093:6096 Semantics.programs <> Cmid:49 var
+R6090:6091 Semantics.programs <> C1:48 var
+binder 6078:6079 <> T1:55
+R6128:6134 Semantics.programs <> trace_c ind
+R6147:6148 Semantics.programs <> W2:54 var
+R6144:6145 Semantics.programs <> O2:52 var
+R6141:6142 Semantics.programs <> C2:50 var
+R6136:6139 Semantics.programs <> Cmid:49 var
+binder 6124:6125 <> T2:56
+R6153:6159 Semantics.programs <> trace_c ind
+R6179:6190 Semantics.semantics <> append_write def
+R6195:6196 Semantics.programs <> W2:54 var
+R6192:6193 Semantics.programs <> W1:53 var
+R6170:6173 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R6168:6169 Semantics.programs <> O1:51 var
+R6174:6175 Semantics.programs <> O2:52 var
+R6164:6165 Semantics.programs <> C2:50 var
+R6161:6162 Semantics.programs <> C1:48 var
+R6216:6217 Semantics.programs <> O2:52 var
+R6212:6213 Semantics.programs <> O1:51 var
+R6228:6231 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_']' not
+R6234:6237 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_']' not
+R6242:6243 Semantics.programs <> T1:55 var
+R6268:6271 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_']' not
+R6279:6280 Semantics.programs <> T2:56 var
+R6303:6306 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_']' not
+R6311:6312 Semantics.programs <> T1:55 var
+R6325:6326 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R6334:6335 mathcomp.ssreflect.seq <> ::seq_scope:x_'::'_x not
+R6343:6352 Semantics.programs <> CTrace_App constr
+R6361:6362 Semantics.programs <> T2:56 var
+R6354:6355 Semantics.programs <> T1:55 var
+prf 7484:7498 <> singletc_cceval
+binder 7501:7501 <> N:59
+binder 7503:7503 <> V:60
+binder 7505:7505 <> c:61
+binder 7507:7508 <> N1:62
+binder 7510:7511 <> V1:63
+binder 7513:7514 <> c1:64
+binder 7516:7516 <> O:65
+binder 7518:7518 <> W:66
+R7558:7563 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7577:7582 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7583:7590 Semantics.semantics <> cceval_w ind
+R7623:7623 Semantics.programs <> W:66 var
+R7604:7604 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R7607:7608 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R7617:7617 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R7601:7602 Semantics.programs <> N1:66 var
-R7605:7606 Semantics.programs <> V1:67 var
-R7609:7611 Semantics.semantics <> Ins constr
-R7613:7616 Semantics.semantics <> skip constr
-R7598:7598 Semantics.programs <> O:69 var
-R7588:7588 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R7590:7591 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R7593:7594 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R7596:7596 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R7589:7589 Semantics.programs <> N:63 var
-R7592:7592 Semantics.programs <> V:64 var
-R7595:7595 Semantics.programs <> c:65 var
-R7560:7560 mathcomp.ssreflect.eqtype <> ::bool_scope:x_'=='_x not
-R7567:7571 mathcomp.ssreflect.eqtype <> ::bool_scope:x_'=='_x not
-R7561:7564 mathcomp.ssreflect.seq <> size def
-R7566:7566 Semantics.programs <> O:69 var
-R7520:7526 Semantics.programs <> trace_c ind
-R7553:7553 Semantics.programs <> W:70 var
-R7551:7551 Semantics.programs <> O:69 var
-R7538:7538 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R7541:7542 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7611:7612 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7621:7621 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7605:7606 Semantics.programs <> N1:62 var
+R7609:7610 Semantics.programs <> V1:63 var
+R7613:7615 Semantics.semantics <> Ins constr
+R7617:7620 Semantics.semantics <> skip constr
+R7602:7602 Semantics.programs <> O:65 var
+R7592:7592 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7594:7595 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7597:7598 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7600:7600 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7593:7593 Semantics.programs <> N:59 var
+R7596:7596 Semantics.programs <> V:60 var
+R7599:7599 Semantics.programs <> c:61 var
+R7564:7564 mathcomp.ssreflect.eqtype <> ::bool_scope:x_'=='_x not
+R7571:7575 mathcomp.ssreflect.eqtype <> ::bool_scope:x_'=='_x not
+R7565:7568 mathcomp.ssreflect.seq <> size def
+R7570:7570 Semantics.programs <> O:65 var
+R7524:7530 Semantics.programs <> trace_c ind
+R7557:7557 Semantics.programs <> W:66 var
+R7555:7555 Semantics.programs <> O:65 var
+R7542:7542 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R7545:7546 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R7549:7549 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R7539:7540 Semantics.programs <> N1:66 var
-R7543:7544 Semantics.programs <> V1:67 var
-R7547:7548 Semantics.programs <> c1:68 var
-R7528:7528 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R7530:7531 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R7533:7534 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R7536:7536 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R7529:7529 Semantics.programs <> N:63 var
-R7532:7532 Semantics.programs <> V:64 var
-R7535:7535 Semantics.programs <> c:65 var
-ind 9258:9265 <> trace_i1
-constr 9324:9334 <> iTrace_Cont
-constr 9618:9626 <> iTrace_RB
-constr 10247:10255 <> iTrace_CP
-R9273:9276 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R9282:9285 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R9291:9294 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R9310:9313 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R9295:9309 Semantics.semantics <> the_write_stuff syndef
-R9286:9290 Semantics.semantics <> obseq syndef
-R9277:9281 Semantics.semantics <> iconf syndef
-R9268:9272 Semantics.semantics <> iconf syndef
-R9348:9352 Semantics.semantics <> nvmem ind
-binder 9344:9345 <> N0:73
-R9360:9363 Semantics.semantics <> vmem ind
-binder 9356:9357 <> V0:74
-R9371:9377 Semantics.semantics <> command ind
-binder 9367:9368 <> c0:75
-R9391:9395 Semantics.semantics <> nvmem ind
-binder 9385:9385 <> N:76
-binder 9387:9388 <> N1:77
-R9405:9408 Semantics.semantics <> vmem ind
-binder 9399:9399 <> V:78
-binder 9401:9402 <> V1:79
-R9418:9424 Semantics.semantics <> command ind
-binder 9412:9412 <> c:80
-binder 9414:9415 <> c1:81
-R9448:9452 Semantics.semantics <> obseq syndef
-binder 9445:9445 <> O:82
-R9459:9473 Semantics.semantics <> the_write_stuff syndef
-binder 9456:9456 <> W:83
-R9516:9523 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R9543:9550 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R9551:9558 Semantics.programs <> trace_i1:71 ind
-R9613:9613 Semantics.programs <> W:83 var
-R9611:9611 Semantics.programs <> O:82 var
-R9584:9584 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9597:9598 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7549:7550 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7553:7553 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7543:7544 Semantics.programs <> N1:62 var
+R7547:7548 Semantics.programs <> V1:63 var
+R7551:7552 Semantics.programs <> c1:64 var
+R7532:7532 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7534:7535 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7537:7538 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7540:7540 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7533:7533 Semantics.programs <> N:59 var
+R7536:7536 Semantics.programs <> V:60 var
+R7539:7539 Semantics.programs <> c:61 var
+ind 9262:9269 <> trace_i1
+constr 9328:9338 <> iTrace_Cont
+constr 9622:9630 <> iTrace_RB
+constr 10251:10259 <> iTrace_CP
+R9277:9280 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9286:9289 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9295:9298 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9314:9317 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9299:9313 Semantics.semantics <> the_write_stuff syndef
+R9290:9294 Semantics.semantics <> obseq syndef
+R9281:9285 Semantics.semantics <> iconf syndef
+R9272:9276 Semantics.semantics <> iconf syndef
+R9352:9356 Semantics.semantics <> nvmem ind
+binder 9348:9349 <> N0:69
+R9364:9367 Semantics.semantics <> vmem ind
+binder 9360:9361 <> V0:70
+R9375:9381 Semantics.semantics <> command ind
+binder 9371:9372 <> c0:71
+R9395:9399 Semantics.semantics <> nvmem ind
+binder 9389:9389 <> N:72
+binder 9391:9392 <> N1:73
+R9409:9412 Semantics.semantics <> vmem ind
+binder 9403:9403 <> V:74
+binder 9405:9406 <> V1:75
+R9422:9428 Semantics.semantics <> command ind
+binder 9416:9416 <> c:76
+binder 9418:9419 <> c1:77
+R9452:9456 Semantics.semantics <> obseq syndef
+binder 9449:9449 <> O:78
+R9463:9477 Semantics.semantics <> the_write_stuff syndef
+binder 9460:9460 <> W:79
+R9520:9527 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9547:9554 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9555:9562 Semantics.programs <> trace_i1:67 ind
+R9617:9617 Semantics.programs <> W:79 var
+R9615:9615 Semantics.programs <> O:78 var
+R9588:9588 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R9601:9602 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R9605:9606 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9609:9609 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9585:9585 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9588:9589 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9609:9610 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9613:9613 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9589:9589 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R9592:9593 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9596:9596 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9586:9587 Semantics.programs <> N0:73 var
-R9590:9591 Semantics.programs <> V0:74 var
-R9594:9595 Semantics.programs <> c0:75 var
-R9599:9600 Semantics.programs <> N1:77 var
-R9603:9604 Semantics.programs <> V1:79 var
-R9607:9608 Semantics.programs <> c1:81 var
-R9560:9560 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9573:9574 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9576:9577 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9579:9580 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9582:9582 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9561:9561 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9564:9565 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9596:9597 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9600:9600 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9590:9591 Semantics.programs <> N0:69 var
+R9594:9595 Semantics.programs <> V0:70 var
+R9598:9599 Semantics.programs <> c0:71 var
+R9603:9604 Semantics.programs <> N1:73 var
+R9607:9608 Semantics.programs <> V1:75 var
+R9611:9612 Semantics.programs <> c1:77 var
+R9564:9564 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9577:9578 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9580:9581 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9583:9584 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9586:9586 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9565:9565 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R9568:9569 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9572:9572 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9562:9563 Semantics.programs <> N0:73 var
-R9566:9567 Semantics.programs <> V0:74 var
-R9570:9571 Semantics.programs <> c0:75 var
-R9575:9575 Semantics.programs <> N:76 var
-R9578:9578 Semantics.programs <> V:78 var
-R9581:9581 Semantics.programs <> c:80 var
-R9534:9541 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
-R9524:9533 Semantics.semantics <> checkpoint constr
-R9542:9542 Semantics.programs <> O:82 var
-R9481:9488 Semantics.programs <> trace_cs ind
-R9515:9515 Semantics.programs <> W:83 var
-R9513:9513 Semantics.programs <> O:82 var
-R9500:9500 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9503:9504 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9572:9573 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9576:9576 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9566:9567 Semantics.programs <> N0:69 var
+R9570:9571 Semantics.programs <> V0:70 var
+R9574:9575 Semantics.programs <> c0:71 var
+R9579:9579 Semantics.programs <> N:72 var
+R9582:9582 Semantics.programs <> V:74 var
+R9585:9585 Semantics.programs <> c:76 var
+R9538:9545 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
+R9528:9537 Semantics.semantics <> checkpoint constr
+R9546:9546 Semantics.programs <> O:78 var
+R9485:9492 Semantics.programs <> trace_cs ind
+R9519:9519 Semantics.programs <> W:79 var
+R9517:9517 Semantics.programs <> O:78 var
+R9504:9504 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R9507:9508 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9511:9511 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9501:9502 Semantics.programs <> N1:77 var
-R9505:9506 Semantics.programs <> V1:79 var
-R9509:9510 Semantics.programs <> c1:81 var
-R9490:9490 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9492:9493 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9495:9496 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9498:9498 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9491:9491 Semantics.programs <> N:76 var
-R9494:9494 Semantics.programs <> V:78 var
-R9497:9497 Semantics.programs <> c:80 var
-R9652:9656 Semantics.semantics <> nvmem ind
-binder 9636:9637 <> N0:84
-binder 9639:9639 <> N:85
-binder 9641:9644 <> Nmid:86
-binder 9646:9649 <> Nend:87
-R9673:9676 Semantics.semantics <> vmem ind
-binder 9660:9660 <> V:88
-binder 9662:9665 <> Vmid:89
-binder 9667:9670 <> Vend:90
-R9700:9706 Semantics.semantics <> command ind
-binder 9680:9680 <> c:91
-binder 9682:9687 <> cstart:92
-binder 9689:9692 <> cmid:93
-binder 9694:9697 <> cend:94
-R9734:9738 Semantics.semantics <> obseq syndef
-binder 9727:9728 <> O1:95
-binder 9730:9731 <> O2:96
-R9749:9763 Semantics.semantics <> the_write_stuff syndef
-binder 9742:9743 <> W1:97
-binder 9745:9746 <> W2:98
-R9819:9921 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R9998:10048 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R10069:10076 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R10097:10104 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R10105:10112 Semantics.programs <> trace_i1:71 ind
-R10224:10235 Semantics.semantics <> append_write def
-R10240:10241 Semantics.programs <> W2:98 var
-R10237:10238 Semantics.programs <> W1:97 var
-R10188:10191 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R10186:10187 Semantics.programs <> O1:95 var
-R10202:10205 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R10192:10194 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_x_']' not
-R10201:10201 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_x_']' not
-R10195:10200 Semantics.semantics <> reboot constr
-R10206:10207 Semantics.programs <> O2:96 var
-R10141:10141 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9511:9512 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9515:9515 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9505:9506 Semantics.programs <> N1:73 var
+R9509:9510 Semantics.programs <> V1:75 var
+R9513:9514 Semantics.programs <> c1:77 var
+R9494:9494 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9496:9497 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9499:9500 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9502:9502 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9495:9495 Semantics.programs <> N:72 var
+R9498:9498 Semantics.programs <> V:74 var
+R9501:9501 Semantics.programs <> c:76 var
+R9656:9660 Semantics.semantics <> nvmem ind
+binder 9640:9641 <> N0:80
+binder 9643:9643 <> N:81
+binder 9645:9648 <> Nmid:82
+binder 9650:9653 <> Nend:83
+R9677:9680 Semantics.semantics <> vmem ind
+binder 9664:9664 <> V:84
+binder 9666:9669 <> Vmid:85
+binder 9671:9674 <> Vend:86
+R9704:9710 Semantics.semantics <> command ind
+binder 9684:9684 <> c:87
+binder 9686:9691 <> cstart:88
+binder 9693:9696 <> cmid:89
+binder 9698:9701 <> cend:90
+R9738:9742 Semantics.semantics <> obseq syndef
+binder 9731:9732 <> O1:91
+binder 9734:9735 <> O2:92
+R9753:9767 Semantics.semantics <> the_write_stuff syndef
+binder 9746:9747 <> W1:93
+binder 9749:9750 <> W2:94
+R9823:9925 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10002:10052 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10073:10080 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10101:10108 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10109:10116 Semantics.programs <> trace_i1:67 ind
+R10228:10239 Semantics.semantics <> append_write def
+R10244:10245 Semantics.programs <> W2:94 var
+R10241:10242 Semantics.programs <> W1:93 var
+R10192:10195 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R10190:10191 Semantics.programs <> O1:91 var
+R10206:10209 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R10196:10198 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_x_']' not
+R10205:10205 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_x_']' not
+R10199:10204 Semantics.semantics <> reboot constr
+R10210:10211 Semantics.programs <> O2:92 var
+R10145:10145 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10156:10157 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10162:10163 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10168:10169 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10174:10174 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10146:10146 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10149:10150 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R10152:10153 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10158:10159 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10164:10165 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10170:10170 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10142:10142 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10145:10146 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10148:10149 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10151:10151 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10143:10144 Semantics.programs <> N0:84 var
-R10147:10147 Semantics.programs <> V:88 var
-R10150:10150 Semantics.programs <> c:91 var
-R10154:10157 Semantics.programs <> Nend:87 var
-R10160:10163 Semantics.programs <> Vend:90 var
-R10166:10169 Semantics.programs <> cend:94 var
-R10114:10114 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10155:10155 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10147:10148 Semantics.programs <> N0:80 var
+R10151:10151 Semantics.programs <> V:84 var
+R10154:10154 Semantics.programs <> c:87 var
+R10158:10161 Semantics.programs <> Nend:83 var
+R10164:10167 Semantics.programs <> Vend:86 var
+R10170:10173 Semantics.programs <> cend:90 var
+R10118:10118 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10129:10130 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10132:10133 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10135:10136 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10143:10143 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10119:10119 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10122:10123 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R10125:10126 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10128:10129 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10131:10132 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10139:10139 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10115:10115 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10118:10119 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10121:10122 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10124:10124 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10116:10117 Semantics.programs <> N0:84 var
-R10120:10120 Semantics.programs <> V:88 var
-R10123:10123 Semantics.programs <> c:91 var
-R10127:10127 Semantics.programs <> N:85 var
-R10130:10130 Semantics.programs <> V:88 var
-R10133:10138 Semantics.programs <> cstart:92 var
-R10087:10094 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
-R10077:10086 Semantics.semantics <> checkpoint constr
-R10095:10096 Semantics.programs <> O2:96 var
-R10059:10066 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
-R10049:10058 Semantics.semantics <> checkpoint constr
-R10067:10068 Semantics.programs <> O1:95 var
-R9922:9929 Semantics.programs <> trace_i1:71 ind
-R9996:9997 Semantics.programs <> W2:98 var
-R9993:9994 Semantics.programs <> O2:96 var
-R9962:9962 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10128:10128 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10120:10121 Semantics.programs <> N0:80 var
+R10124:10124 Semantics.programs <> V:84 var
+R10127:10127 Semantics.programs <> c:87 var
+R10131:10131 Semantics.programs <> N:81 var
+R10134:10134 Semantics.programs <> V:84 var
+R10137:10142 Semantics.programs <> cstart:88 var
+R10091:10098 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
+R10081:10090 Semantics.semantics <> checkpoint constr
+R10099:10100 Semantics.programs <> O2:92 var
+R10063:10070 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
+R10053:10062 Semantics.semantics <> checkpoint constr
+R10071:10072 Semantics.programs <> O1:91 var
+R9926:9933 Semantics.programs <> trace_i1:67 ind
+R10000:10001 Semantics.programs <> W2:94 var
+R9997:9998 Semantics.programs <> O2:92 var
+R9966:9966 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9977:9978 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9983:9984 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9989:9990 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9995:9995 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9967:9967 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9970:9971 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R9973:9974 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9979:9980 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9985:9986 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9991:9991 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9963:9963 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9966:9967 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9969:9970 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9972:9972 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9964:9965 Semantics.programs <> N0:84 var
-R9968:9968 Semantics.programs <> V:88 var
-R9971:9971 Semantics.programs <> c:91 var
-R9975:9978 Semantics.programs <> Nend:87 var
-R9981:9984 Semantics.programs <> Vend:90 var
-R9987:9990 Semantics.programs <> cend:94 var
-R9931:9931 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9976:9976 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9968:9969 Semantics.programs <> N0:80 var
+R9972:9972 Semantics.programs <> V:84 var
+R9975:9975 Semantics.programs <> c:87 var
+R9979:9982 Semantics.programs <> Nend:83 var
+R9985:9988 Semantics.programs <> Vend:86 var
+R9991:9994 Semantics.programs <> cend:90 var
+R9935:9935 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9946:9947 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9958:9959 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9961:9962 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9964:9964 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9936:9936 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9939:9940 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R9942:9943 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9954:9955 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9957:9958 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9960:9960 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9932:9932 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9935:9936 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9938:9939 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9941:9941 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9933:9934 Semantics.programs <> N0:84 var
-R9937:9937 Semantics.programs <> V:88 var
-R9940:9940 Semantics.programs <> c:91 var
-R9946:9949 Semantics.semantics <> :::x_'U!'_x not
-R9944:9945 Semantics.programs <> N0:84 var
-R9950:9953 Semantics.programs <> Nmid:86 var
-R9956:9956 Semantics.programs <> V:88 var
-R9959:9959 Semantics.programs <> c:91 var
-R9771:9778 Semantics.programs <> trace_cs ind
-R9817:9818 Semantics.programs <> W1:97 var
-R9814:9815 Semantics.programs <> O1:95 var
-R9795:9795 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9800:9801 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9806:9807 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9812:9812 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9796:9799 Semantics.programs <> Nmid:86 var
-R9802:9805 Semantics.programs <> Vmid:89 var
-R9808:9811 Semantics.programs <> cmid:93 var
-R9780:9780 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9782:9783 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9785:9786 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9793:9793 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R9781:9781 Semantics.programs <> N:85 var
-R9784:9784 Semantics.programs <> V:88 var
-R9787:9792 Semantics.programs <> cstart:92 var
-R10287:10291 Semantics.semantics <> nvmem ind
-binder 10265:10267 <> Nc0:99
-binder 10269:10270 <> N0:100
-binder 10272:10275 <> Nmid:101
-binder 10277:10279 <> Nc1:102
-binder 10281:10284 <> Nend:103
-R10317:10320 Semantics.semantics <> vmem ind
-binder 10295:10297 <> Vc0:104
-binder 10299:10300 <> V0:105
-binder 10302:10305 <> Vmid:106
-binder 10307:10309 <> Vc1:107
-binder 10311:10314 <> Vend:108
-R10371:10377 Semantics.semantics <> command ind
-binder 10349:10351 <> cc0:109
-binder 10353:10354 <> c0:110
-binder 10356:10359 <> crem:111
-binder 10361:10363 <> cc1:112
-binder 10365:10368 <> cend:113
-R10413:10417 Semantics.semantics <> obseq syndef
-binder 10406:10407 <> O1:114
-binder 10409:10410 <> O2:115
-R10428:10442 Semantics.semantics <> the_write_stuff syndef
-binder 10421:10422 <> W1:116
-binder 10424:10425 <> W2:117
-R10455:10461 Semantics.semantics <> warvars syndef
-binder 10452:10452 <> w:118
-R10469:10474 Semantics.semantics <> wf_dom def
-R10479:10484 Semantics.semantics <> getmap def
-R10486:10489 Semantics.programs <> Nmid:101 var
-R10476:10476 Semantics.programs <> w:118 var
-binder 10465:10466 <> Hw:119
-R10661:10812 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R10833:10860 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R11001:11028 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R11029:11036 Semantics.programs <> trace_i1:71 ind
-R11239:11250 Semantics.semantics <> append_write def
-R11255:11256 Semantics.programs <> W2:117 var
-R11252:11253 Semantics.programs <> W1:116 var
-R11177:11180 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R11175:11176 Semantics.programs <> O1:114 var
-R11195:11198 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
-R11181:11183 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_x_']' not
-R11194:11194 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_x_']' not
-R11184:11193 Semantics.semantics <> checkpoint constr
-R11199:11200 Semantics.programs <> O2:115 var
-R11103:11103 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R11119:11120 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R11125:11126 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R11131:11132 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R11137:11137 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R11104:11104 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R11108:11109 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R11113:11114 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R11118:11118 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R11105:11107 Semantics.programs <> Nc1:102 var
-R11110:11112 Semantics.programs <> Vc1:107 var
-R11115:11117 Semantics.programs <> cc1:112 var
-R11121:11124 Semantics.programs <> Nend:103 var
-R11127:11130 Semantics.programs <> Vend:108 var
-R11133:11136 Semantics.programs <> cend:113 var
-R11038:11038 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R11054:11055 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9945:9945 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9937:9938 Semantics.programs <> N0:80 var
+R9941:9941 Semantics.programs <> V:84 var
+R9944:9944 Semantics.programs <> c:87 var
+R9950:9953 Semantics.semantics <> :::x_'U!'_x not
+R9948:9949 Semantics.programs <> N0:80 var
+R9954:9957 Semantics.programs <> Nmid:82 var
+R9960:9960 Semantics.programs <> V:84 var
+R9963:9963 Semantics.programs <> c:87 var
+R9775:9782 Semantics.programs <> trace_cs ind
+R9821:9822 Semantics.programs <> W1:93 var
+R9818:9819 Semantics.programs <> O1:91 var
+R9799:9799 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9804:9805 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9810:9811 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9816:9816 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9800:9803 Semantics.programs <> Nmid:82 var
+R9806:9809 Semantics.programs <> Vmid:85 var
+R9812:9815 Semantics.programs <> cmid:89 var
+R9784:9784 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9786:9787 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9789:9790 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9797:9797 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R9785:9785 Semantics.programs <> N:81 var
+R9788:9788 Semantics.programs <> V:84 var
+R9791:9796 Semantics.programs <> cstart:88 var
+R10291:10295 Semantics.semantics <> nvmem ind
+binder 10269:10271 <> Nc0:95
+binder 10273:10274 <> N0:96
+binder 10276:10279 <> Nmid:97
+binder 10281:10283 <> Nc1:98
+binder 10285:10288 <> Nend:99
+R10321:10324 Semantics.semantics <> vmem ind
+binder 10299:10301 <> Vc0:100
+binder 10303:10304 <> V0:101
+binder 10306:10309 <> Vmid:102
+binder 10311:10313 <> Vc1:103
+binder 10315:10318 <> Vend:104
+R10375:10381 Semantics.semantics <> command ind
+binder 10353:10355 <> cc0:105
+binder 10357:10358 <> c0:106
+binder 10360:10363 <> crem:107
+binder 10365:10367 <> cc1:108
+binder 10369:10372 <> cend:109
+R10417:10421 Semantics.semantics <> obseq syndef
+binder 10410:10411 <> O1:110
+binder 10413:10414 <> O2:111
+R10432:10446 Semantics.semantics <> the_write_stuff syndef
+binder 10425:10426 <> W1:112
+binder 10428:10429 <> W2:113
+R10459:10465 Semantics.semantics <> warvars syndef
+binder 10456:10456 <> w:114
+R10473:10478 Semantics.semantics <> wf_dom def
+R10483:10488 Semantics.semantics <> getmap def
+R10490:10493 Semantics.programs <> Nmid:97 var
+R10480:10480 Semantics.programs <> w:114 var
+binder 10469:10470 <> Hw:115
+R10665:10816 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10837:10864 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R11005:11032 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R11033:11040 Semantics.programs <> trace_i1:67 ind
+R11243:11254 Semantics.semantics <> append_write def
+R11259:11260 Semantics.programs <> W2:113 var
+R11256:11257 Semantics.programs <> W1:112 var
+R11181:11184 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R11179:11180 Semantics.programs <> O1:110 var
+R11199:11202 mathcomp.ssreflect.seq <> ::seq_scope:x_'++'_x not
+R11185:11187 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_x_']' not
+R11198:11198 mathcomp.ssreflect.seq <> ::seq_scope:'['_'::'_x_']' not
+R11188:11197 Semantics.semantics <> checkpoint constr
+R11203:11204 Semantics.programs <> O2:111 var
+R11107:11107 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R11123:11124 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R11129:11130 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R11135:11136 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R11141:11141 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R11108:11108 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R11112:11113 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R11117:11118 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R11122:11122 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R11109:11111 Semantics.programs <> Nc1:98 var
+R11114:11116 Semantics.programs <> Vc1:103 var
+R11119:11121 Semantics.programs <> cc1:108 var
+R11125:11128 Semantics.programs <> Nend:99 var
+R11131:11134 Semantics.programs <> Vend:104 var
+R11137:11140 Semantics.programs <> cend:109 var
+R11042:11042 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R11058:11059 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R11062:11063 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R11066:11066 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R11039:11039 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R11043:11044 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R11048:11049 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R11053:11053 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R11040:11042 Semantics.programs <> Nc0:99 var
-R11045:11047 Semantics.programs <> Vc0:104 var
-R11050:11052 Semantics.programs <> cc0:109 var
-R11056:11057 Semantics.programs <> N0:100 var
-R11060:11061 Semantics.programs <> V0:105 var
-R11064:11065 Semantics.programs <> c0:110 var
-R10861:10868 Semantics.programs <> trace_i1:71 ind
-R10999:11000 Semantics.programs <> W2:117 var
-R10996:10997 Semantics.programs <> O2:115 var
-R10960:10960 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10976:10977 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10982:10983 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10988:10989 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10994:10994 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10961:10961 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10965:10966 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10970:10971 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10975:10975 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10962:10964 Semantics.programs <> Nc1:102 var
-R10967:10969 Semantics.programs <> Vc1:107 var
-R10972:10974 Semantics.programs <> cc1:112 var
-R10978:10981 Semantics.programs <> Nend:103 var
-R10984:10987 Semantics.programs <> Vend:108 var
-R10990:10993 Semantics.programs <> cend:113 var
-R10870:10870 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10905:10906 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10911:10912 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10917:10918 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10923:10923 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10871:10872 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10891:10893 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10898:10899 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10904:10904 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10873:10880 Semantics.semantics <> restrict def
-R10889:10890 Semantics.programs <> Hw:119 var
-R10887:10887 Semantics.programs <> w:118 var
-R10882:10885 Semantics.programs <> Nmid:101 var
-R10894:10897 Semantics.programs <> Vmid:106 var
-R10900:10903 Semantics.programs <> crem:111 var
-R10907:10910 Semantics.programs <> Nmid:101 var
-R10913:10916 Semantics.programs <> Vmid:106 var
-R10919:10922 Semantics.programs <> crem:111 var
-R10823:10830 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
-R10813:10822 Semantics.semantics <> checkpoint constr
-R10831:10832 Semantics.programs <> O1:114 var
-R10500:10507 Semantics.programs <> trace_i1:71 ind
-R10659:10660 Semantics.programs <> W1:116 var
-R10656:10657 Semantics.programs <> O1:114 var
-R10539:10539 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10555:10556 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10561:10562 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10567:10631 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10654:10654 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10540:10540 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10544:10545 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10549:10550 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10554:10554 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10541:10543 Semantics.programs <> Nc0:99 var
-R10546:10548 Semantics.programs <> Vc0:104 var
-R10551:10553 Semantics.programs <> cc0:109 var
-R10557:10560 Semantics.programs <> Nmid:101 var
-R10563:10566 Semantics.programs <> Vmid:106 var
-R10632:10632 Semantics.semantics <> :::x_';;'_x not
-R10647:10649 Semantics.semantics <> :::x_';;'_x not
-R10633:10644 Semantics.semantics <> incheckpoint constr
-R10646:10646 Semantics.programs <> w:118 var
-R10650:10653 Semantics.programs <> crem:111 var
-R10509:10509 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10525:10526 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R11066:11067 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R11070:11070 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R11043:11043 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R11047:11048 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R11052:11053 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R11057:11057 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R11044:11046 Semantics.programs <> Nc0:95 var
+R11049:11051 Semantics.programs <> Vc0:100 var
+R11054:11056 Semantics.programs <> cc0:105 var
+R11060:11061 Semantics.programs <> N0:96 var
+R11064:11065 Semantics.programs <> V0:101 var
+R11068:11069 Semantics.programs <> c0:106 var
+R10865:10872 Semantics.programs <> trace_i1:67 ind
+R11003:11004 Semantics.programs <> W2:113 var
+R11000:11001 Semantics.programs <> O2:111 var
+R10964:10964 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10980:10981 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10986:10987 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10992:10993 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10998:10998 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10965:10965 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10969:10970 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10974:10975 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10979:10979 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10966:10968 Semantics.programs <> Nc1:98 var
+R10971:10973 Semantics.programs <> Vc1:103 var
+R10976:10978 Semantics.programs <> cc1:108 var
+R10982:10985 Semantics.programs <> Nend:99 var
+R10988:10991 Semantics.programs <> Vend:104 var
+R10994:10997 Semantics.programs <> cend:109 var
+R10874:10874 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10909:10910 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10915:10916 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10921:10922 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10927:10927 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10875:10876 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10895:10897 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10902:10903 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10908:10908 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10877:10884 Semantics.semantics <> restrict def
+R10893:10894 Semantics.programs <> Hw:115 var
+R10891:10891 Semantics.programs <> w:114 var
+R10886:10889 Semantics.programs <> Nmid:97 var
+R10898:10901 Semantics.programs <> Vmid:102 var
+R10904:10907 Semantics.programs <> crem:107 var
+R10911:10914 Semantics.programs <> Nmid:97 var
+R10917:10920 Semantics.programs <> Vmid:102 var
+R10923:10926 Semantics.programs <> crem:107 var
+R10827:10834 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
+R10817:10826 Semantics.semantics <> checkpoint constr
+R10835:10836 Semantics.programs <> O1:110 var
+R10504:10511 Semantics.programs <> trace_i1:67 ind
+R10663:10664 Semantics.programs <> W1:112 var
+R10660:10661 Semantics.programs <> O1:110 var
+R10543:10543 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10559:10560 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10565:10566 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10571:10635 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10658:10658 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10544:10544 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10548:10549 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10553:10554 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10558:10558 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10545:10547 Semantics.programs <> Nc0:95 var
+R10550:10552 Semantics.programs <> Vc0:100 var
+R10555:10557 Semantics.programs <> cc0:105 var
+R10561:10564 Semantics.programs <> Nmid:97 var
+R10567:10570 Semantics.programs <> Vmid:102 var
+R10636:10636 Semantics.semantics <> :::x_';;'_x not
+R10651:10653 Semantics.semantics <> :::x_';;'_x not
+R10637:10648 Semantics.semantics <> incheckpoint constr
+R10650:10650 Semantics.programs <> w:114 var
+R10654:10657 Semantics.programs <> crem:107 var
+R10513:10513 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R10529:10530 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R10533:10534 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10537:10537 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10510:10510 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10514:10515 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10519:10520 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10524:10524 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R10511:10513 Semantics.programs <> Nc0:99 var
-R10516:10518 Semantics.programs <> Vc0:104 var
-R10521:10523 Semantics.programs <> cc0:109 var
-R10527:10528 Semantics.programs <> N0:100 var
-R10531:10532 Semantics.programs <> V0:105 var
-R10535:10536 Semantics.programs <> c0:110 var
-def 11559:11562 <> crbs
-R11568:11572 Semantics.semantics <> obseq syndef
-binder 11565:11565 <> O:120
-R11580:11588 mathcomp.ssreflect.seq <> count_mem syndef
-R11590:11595 Semantics.semantics <> reboot constr
-R11597:11597 Semantics.programs <> O:120 var
-def 12547:12558 <> multi_step_c
-R12568:12574 Semantics.semantics <> context syndef
-binder 12561:12562 <> C1:121
-binder 12564:12565 <> C2:122
-R12581:12585 Semantics.semantics <> obseq syndef
-binder 12578:12578 <> O:123
-R12595:12601 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
-R12620:12621 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
-R12605:12619 Semantics.semantics <> the_write_stuff syndef
-binder 12602:12602 <> W:124
-R12622:12628 Semantics.programs <> trace_c ind
-R12638:12638 Semantics.programs <> W:124 var
-R12636:12636 Semantics.programs <> O:123 var
-R12633:12634 Semantics.programs <> C2:122 var
-R12630:12631 Semantics.programs <> C1:121 var
-def 12795:12796 <> Wt
-R12806:12812 Semantics.semantics <> context syndef
-binder 12799:12800 <> C1:125
-binder 12802:12803 <> C2:126
-R12819:12823 Semantics.semantics <> obseq syndef
-binder 12816:12816 <> O:127
-R12830:12844 Semantics.semantics <> the_write_stuff syndef
-binder 12827:12827 <> W:128
-R12853:12859 Semantics.programs <> trace_c ind
-R12869:12869 Semantics.programs <> W:128 var
-R12867:12867 Semantics.programs <> O:127 var
-R12864:12865 Semantics.programs <> C2:126 var
-R12861:12862 Semantics.programs <> C1:125 var
-binder 12850:12850 <> T:129
-R12875:12879 Semantics.semantics <> getwt def
-R12881:12881 Semantics.programs <> W:128 var
-def 12896:12897 <> Rd
-R12907:12913 Semantics.semantics <> context syndef
-binder 12900:12901 <> C1:130
-binder 12903:12904 <> C2:131
-R12920:12924 Semantics.semantics <> obseq syndef
-binder 12917:12917 <> O:132
-R12931:12945 Semantics.semantics <> the_write_stuff syndef
-binder 12928:12928 <> W:133
-R12963:12969 Semantics.programs <> trace_c ind
-R12979:12979 Semantics.programs <> W:133 var
-R12977:12977 Semantics.programs <> O:132 var
-R12974:12975 Semantics.programs <> C2:131 var
-R12971:12972 Semantics.programs <> C1:130 var
-binder 12960:12960 <> T:134
-R12985:12989 Semantics.semantics <> getrd def
-R12991:12991 Semantics.programs <> W:133 var
-def 13006:13010 <> FstWt
-R13020:13026 Semantics.semantics <> context syndef
-binder 13013:13014 <> C1:135
-binder 13016:13017 <> C2:136
-R13033:13037 Semantics.semantics <> obseq syndef
-binder 13030:13030 <> O:137
-R13044:13058 Semantics.semantics <> the_write_stuff syndef
-binder 13041:13041 <> W:138
-R13067:13073 Semantics.programs <> trace_c ind
-R13083:13083 Semantics.programs <> W:138 var
-R13081:13081 Semantics.programs <> O:137 var
-R13078:13079 Semantics.programs <> C2:136 var
-R13075:13076 Semantics.programs <> C1:135 var
-binder 13064:13064 <> T:139
-R13089:13096 Semantics.semantics <> getfstwt def
-R13098:13098 Semantics.programs <> W:138 var
-ind 14076:14082 <> same_pt
-constr 14150:14157 <> same_mem
-R14090:14093 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R14098:14101 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R14109:14112 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R14120:14123 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R14129:14132 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R14138:14141 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R14133:14137 Semantics.semantics <> nvmem ind
-R14124:14128 Semantics.semantics <> nvmem ind
-R14113:14119 Semantics.semantics <> command ind
-R14102:14108 Semantics.semantics <> command ind
-R14094:14097 Semantics.semantics <> vmem ind
-R14085:14089 Semantics.semantics <> nvmem ind
-R14184:14188 Semantics.semantics <> nvmem ind
-binder 14168:14169 <> N0:142
-binder 14171:14172 <> N1:143
-binder 14174:14178 <> Ncomp:144
-binder 14180:14181 <> N2:145
-R14220:14223 Semantics.semantics <> vmem ind
-binder 14210:14211 <> V0:146
-binder 14213:14214 <> V1:147
-binder 14216:14217 <> V2:148
-R14257:14263 Semantics.semantics <> command ind
-binder 14245:14246 <> c0:149
-binder 14248:14249 <> c1:150
-binder 14251:14254 <> crem:151
-R14292:14306 Semantics.semantics <> the_write_stuff syndef
-binder 14285:14286 <> W1:152
-binder 14288:14289 <> W2:153
-R14335:14339 Semantics.semantics <> obseq syndef
-binder 14328:14329 <> O1:154
-binder 14331:14332 <> O2:155
-R14365:14371 Semantics.programs <> trace_c ind
-R14402:14403 Semantics.programs <> W1:152 var
-R14399:14400 Semantics.programs <> O1:154 var
-R14386:14386 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R14389:14390 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10537:10538 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10541:10541 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10514:10514 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10518:10519 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10523:10524 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10528:10528 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R10515:10517 Semantics.programs <> Nc0:95 var
+R10520:10522 Semantics.programs <> Vc0:100 var
+R10525:10527 Semantics.programs <> cc0:105 var
+R10531:10532 Semantics.programs <> N0:96 var
+R10535:10536 Semantics.programs <> V0:101 var
+R10539:10540 Semantics.programs <> c0:106 var
+def 11563:11566 <> crbs
+R11572:11576 Semantics.semantics <> obseq syndef
+binder 11569:11569 <> O:116
+R11584:11592 mathcomp.ssreflect.seq <> count_mem syndef
+R11594:11599 Semantics.semantics <> reboot constr
+R11601:11601 Semantics.programs <> O:116 var
+def 12551:12562 <> multi_step_c
+R12572:12578 Semantics.semantics <> context syndef
+binder 12565:12566 <> C1:117
+binder 12568:12569 <> C2:118
+R12585:12589 Semantics.semantics <> obseq syndef
+binder 12582:12582 <> O:119
+R12599:12605 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R12624:12625 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R12609:12623 Semantics.semantics <> the_write_stuff syndef
+binder 12606:12606 <> W:120
+R12626:12632 Semantics.programs <> trace_c ind
+R12642:12642 Semantics.programs <> W:120 var
+R12640:12640 Semantics.programs <> O:119 var
+R12637:12638 Semantics.programs <> C2:118 var
+R12634:12635 Semantics.programs <> C1:117 var
+def 12799:12800 <> Wt
+R12810:12816 Semantics.semantics <> context syndef
+binder 12803:12804 <> C1:121
+binder 12806:12807 <> C2:122
+R12823:12827 Semantics.semantics <> obseq syndef
+binder 12820:12820 <> O:123
+R12834:12848 Semantics.semantics <> the_write_stuff syndef
+binder 12831:12831 <> W:124
+R12857:12863 Semantics.programs <> trace_c ind
+R12873:12873 Semantics.programs <> W:124 var
+R12871:12871 Semantics.programs <> O:123 var
+R12868:12869 Semantics.programs <> C2:122 var
+R12865:12866 Semantics.programs <> C1:121 var
+binder 12854:12854 <> T:125
+R12879:12883 Semantics.semantics <> getwt def
+R12885:12885 Semantics.programs <> W:124 var
+def 12900:12901 <> Rd
+R12911:12917 Semantics.semantics <> context syndef
+binder 12904:12905 <> C1:126
+binder 12907:12908 <> C2:127
+R12924:12928 Semantics.semantics <> obseq syndef
+binder 12921:12921 <> O:128
+R12935:12949 Semantics.semantics <> the_write_stuff syndef
+binder 12932:12932 <> W:129
+R12967:12973 Semantics.programs <> trace_c ind
+R12983:12983 Semantics.programs <> W:129 var
+R12981:12981 Semantics.programs <> O:128 var
+R12978:12979 Semantics.programs <> C2:127 var
+R12975:12976 Semantics.programs <> C1:126 var
+binder 12964:12964 <> T:130
+R12989:12993 Semantics.semantics <> getrd def
+R12995:12995 Semantics.programs <> W:129 var
+def 13010:13014 <> FstWt
+R13024:13030 Semantics.semantics <> context syndef
+binder 13017:13018 <> C1:131
+binder 13020:13021 <> C2:132
+R13037:13041 Semantics.semantics <> obseq syndef
+binder 13034:13034 <> O:133
+R13048:13062 Semantics.semantics <> the_write_stuff syndef
+binder 13045:13045 <> W:134
+R13071:13077 Semantics.programs <> trace_c ind
+R13087:13087 Semantics.programs <> W:134 var
+R13085:13085 Semantics.programs <> O:133 var
+R13082:13083 Semantics.programs <> C2:132 var
+R13079:13080 Semantics.programs <> C1:131 var
+binder 13068:13068 <> T:135
+R13093:13100 Semantics.semantics <> getfstwt def
+R13102:13102 Semantics.programs <> W:134 var
+ind 14080:14086 <> same_pt
+constr 14154:14161 <> same_mem
+R14094:14097 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R14102:14105 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R14113:14116 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R14124:14127 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R14133:14136 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R14142:14145 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R14137:14141 Semantics.semantics <> nvmem ind
+R14128:14132 Semantics.semantics <> nvmem ind
+R14117:14123 Semantics.semantics <> command ind
+R14106:14112 Semantics.semantics <> command ind
+R14098:14101 Semantics.semantics <> vmem ind
+R14089:14093 Semantics.semantics <> nvmem ind
+R14188:14192 Semantics.semantics <> nvmem ind
+binder 14172:14173 <> N0:138
+binder 14175:14176 <> N1:139
+binder 14178:14182 <> Ncomp:140
+binder 14184:14185 <> N2:141
+R14224:14227 Semantics.semantics <> vmem ind
+binder 14214:14215 <> V0:142
+binder 14217:14218 <> V1:143
+binder 14220:14221 <> V2:144
+R14261:14267 Semantics.semantics <> command ind
+binder 14249:14250 <> c0:145
+binder 14252:14253 <> c1:146
+binder 14255:14258 <> crem:147
+R14296:14310 Semantics.semantics <> the_write_stuff syndef
+binder 14289:14290 <> W1:148
+binder 14292:14293 <> W2:149
+R14339:14343 Semantics.semantics <> obseq syndef
+binder 14332:14333 <> O1:150
+binder 14335:14336 <> O2:151
+R14369:14375 Semantics.programs <> trace_c ind
+R14406:14407 Semantics.programs <> W1:148 var
+R14403:14404 Semantics.programs <> O1:150 var
+R14390:14390 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R14393:14394 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R14397:14397 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R14387:14388 Semantics.programs <> N1:143 var
-R14391:14392 Semantics.programs <> V1:147 var
-R14395:14396 Semantics.programs <> c1:150 var
-R14373:14373 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R14376:14377 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14397:14398 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14401:14401 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14391:14392 Semantics.programs <> N1:139 var
+R14395:14396 Semantics.programs <> V1:143 var
+R14399:14400 Semantics.programs <> c1:146 var
+R14377:14377 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R14380:14381 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R14384:14384 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R14374:14375 Semantics.programs <> N0:142 var
-R14378:14379 Semantics.programs <> V0:146 var
-R14382:14383 Semantics.programs <> c0:149 var
-binder 14361:14362 <> T1:156
-R14429:14435 Semantics.programs <> trace_c ind
-R14468:14469 Semantics.programs <> W2:153 var
-R14465:14466 Semantics.programs <> O2:155 var
-R14450:14450 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R14453:14454 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14384:14385 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14388:14388 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14378:14379 Semantics.programs <> N0:138 var
+R14382:14383 Semantics.programs <> V0:142 var
+R14386:14387 Semantics.programs <> c0:145 var
+binder 14365:14366 <> T1:152
+R14433:14439 Semantics.programs <> trace_c ind
+R14472:14473 Semantics.programs <> W2:149 var
+R14469:14470 Semantics.programs <> O2:151 var
+R14454:14454 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R14457:14458 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R14463:14463 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R14451:14452 Semantics.programs <> N2:145 var
-R14455:14456 Semantics.programs <> V2:148 var
-R14459:14462 Semantics.programs <> crem:151 var
-R14437:14437 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R14440:14441 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14461:14462 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14467:14467 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14455:14456 Semantics.programs <> N2:141 var
+R14459:14460 Semantics.programs <> V2:144 var
+R14463:14466 Semantics.programs <> crem:147 var
+R14441:14441 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R14444:14445 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R14448:14448 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R14438:14439 Semantics.programs <> N1:143 var
-R14442:14443 Semantics.programs <> V1:147 var
-R14446:14447 Semantics.programs <> c1:150 var
-binder 14425:14426 <> T2:157
-R14563:14584 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R14627:14673 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R14674:14674 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R14695:14717 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R14718:14718 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R14739:14815 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R14816:14816 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R15007:15029 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R15030:15036 Semantics.programs <> same_pt:140 ind
-R15059:15063 Semantics.programs <> Ncomp:144 var
-R15050:15051 Semantics.programs <> N1:143 var
-R15047:15048 Semantics.programs <> c1:150 var
-R15044:15045 Semantics.programs <> c0:149 var
-R15041:15042 Semantics.programs <> V0:146 var
-R15038:15039 Semantics.programs <> N0:142 var
-R14827:14829 Semantics.semantics <> loc def
-binder 14824:14824 <> l:158
-R14892:14918 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R15006:15006 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R14919:14919 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
-R14936:14940 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
-R14921:14926 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R14935:14935 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R14920:14920 Semantics.programs <> l:158 var
-R14927:14931 Semantics.semantics <> getwt def
-R14933:14934 Semantics.programs <> W2:153 var
-R14941:14941 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
-R14979:14983 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
-R14943:14948 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R14978:14978 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R14942:14942 Semantics.programs <> l:158 var
-R14949:14956 Semantics.semantics <> getfstwt def
-R14959:14970 Semantics.semantics <> append_write def
-R14975:14976 Semantics.programs <> W2:153 var
-R14972:14973 Semantics.programs <> W1:152 var
-R14984:14986 Coq.Init.Logic <> not def
-R14990:14995 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R15004:15004 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R14989:14989 Semantics.programs <> l:158 var
-R14996:15000 Semantics.semantics <> getwt def
-R15002:15003 Semantics.programs <> W1:152 var
-R14855:14857 Coq.Init.Logic <> not def
-R14872:14874 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R14860:14865 Semantics.semantics <> getmap def
-R14867:14868 Semantics.programs <> N1:143 var
-R14871:14871 Semantics.programs <> l:158 var
-R14876:14881 Semantics.semantics <> getmap def
-R14883:14887 Semantics.programs <> Ncomp:144 var
-R14890:14890 Semantics.programs <> l:158 var
-R14729:14736 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
-R14719:14728 Semantics.semantics <> checkpoint constr
-R14737:14738 Semantics.programs <> O2:155 var
-R14685:14692 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
-R14675:14684 Semantics.semantics <> checkpoint constr
-R14693:14694 Semantics.programs <> O1:154 var
-R14585:14590 mathcomp.ssreflect.seq <> subseq def
-R14611:14619 Semantics.semantics <> getdomain def
-R14621:14625 Semantics.programs <> Ncomp:144 var
-R14593:14601 Semantics.semantics <> getdomain def
-R14603:14607 Semantics.programs <> Ncomp:144 var
-R14488:14492 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
-R14562:14562 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
-R14481:14483 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R14477:14480 Semantics.programs <> crem:151 var
-R14484:14487 Semantics.semantics <> skip constr
-R14493:14499 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
-R14527:14529 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
-R14503:14509 Semantics.semantics <> warvars syndef
-binder 14500:14500 <> w:159
-R14520:14526 Semantics.semantics <> command ind
-binder 14513:14517 <> crem2:160
-R14534:14537 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R14561:14561 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R14530:14533 Semantics.programs <> crem:151 var
-R14538:14538 Semantics.semantics <> :::x_';;'_x not
-R14553:14555 Semantics.semantics <> :::x_';;'_x not
-R14539:14550 Semantics.semantics <> incheckpoint constr
-R14552:14552 Semantics.programs <> w:159 var
-R14556:14560 Semantics.programs <> crem2:160 var
-ind 15475:15489 <> current_init_pt
-constr 15556:15564 <> valid_mem
-R15497:15500 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R15505:15508 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R15516:15519 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R15525:15528 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R15534:15537 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R15543:15546 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R15538:15542 Semantics.semantics <> nvmem ind
-R15529:15533 Semantics.semantics <> nvmem ind
-R15520:15524 Semantics.semantics <> nvmem ind
-R15509:15515 Semantics.semantics <> command ind
-R15501:15504 Semantics.semantics <> vmem ind
-R15492:15496 Semantics.semantics <> nvmem ind
-R15594:15598 Semantics.semantics <> nvmem ind
-binder 15575:15575 <> N:163
-binder 15577:15579 <> Ni0:164
-binder 15581:15582 <> N1:165
-binder 15584:15586 <> Nc0:166
-binder 15588:15591 <> Nend:167
-R15631:15634 Semantics.semantics <> vmem ind
-binder 15620:15620 <> V:168
-binder 15622:15623 <> V1:169
-binder 15625:15628 <> Vend:170
-R15664:15670 Semantics.semantics <> command ind
-binder 15656:15656 <> c:171
-binder 15658:15661 <> crem:172
-R15696:15710 Semantics.semantics <> the_write_stuff syndef
-binder 15692:15692 <> W:173
-R15735:15739 Semantics.semantics <> obseq syndef
-binder 15732:15732 <> O:174
-R15764:15770 Semantics.semantics <> warvars syndef
-binder 15761:15761 <> w:175
-R15795:15801 Semantics.programs <> trace_c ind
-R15836:15836 Semantics.programs <> W:173 var
-R15834:15834 Semantics.programs <> O:174 var
-R15815:15815 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R15820:15821 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R15826:15827 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R15832:15832 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R15816:15819 Semantics.programs <> Nend:167 var
-R15822:15825 Semantics.programs <> Vend:170 var
-R15828:15831 Semantics.programs <> crem:172 var
-R15803:15803 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R15807:15808 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R15810:15811 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R15813:15813 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R15804:15806 Semantics.programs <> Ni0:164 var
-R15809:15809 Semantics.programs <> V:168 var
-R15812:15812 Semantics.programs <> c:171 var
-binder 15792:15792 <> T:176
-R15930:15950 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R15988:16089 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R16106:16127 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R16128:16128 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R16148:16223 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R16224:16224 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R16369:16390 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R16391:16405 Semantics.programs <> current_init_pt:161 ind
-R16427:16429 Semantics.programs <> Nc0:166 var
-R16417:16418 Semantics.programs <> N1:165 var
-R16413:16415 Semantics.programs <> Ni0:164 var
-R16411:16411 Semantics.programs <> c:171 var
-R16409:16409 Semantics.programs <> V:168 var
-R16407:16407 Semantics.programs <> N:163 var
-R16235:16237 Semantics.semantics <> loc def
-binder 16232:16232 <> l:177
-R16298:16323 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R16324:16324 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
-R16343:16348 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
-R16368:16368 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
-R16326:16331 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R16342:16342 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R16325:16325 Semantics.programs <> l:177 var
-R16332:16339 Semantics.semantics <> getfstwt def
-R16341:16341 Semantics.programs <> W:173 var
-R16350:16355 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R16367:16367 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
-R16349:16349 Semantics.programs <> l:177 var
-R16356:16364 Semantics.semantics <> getdomain def
-R16366:16366 Semantics.programs <> N:163 var
-R16263:16265 Coq.Init.Logic <> not def
-R16280:16282 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R16268:16273 Semantics.semantics <> getmap def
-R16275:16276 Semantics.programs <> N1:165 var
-R16279:16279 Semantics.programs <> l:177 var
-R16284:16289 Semantics.semantics <> getmap def
-R16291:16293 Semantics.programs <> Nc0:166 var
-R16296:16296 Semantics.programs <> l:177 var
-R16139:16146 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
-R16129:16138 Semantics.semantics <> checkpoint constr
-R16147:16147 Semantics.programs <> O:174 var
-R16090:16099 Semantics.semantics <> subset_nvm def
-R16103:16105 Semantics.programs <> Nc0:166 var
-R16101:16101 Semantics.programs <> N:163 var
-R15951:15956 mathcomp.ssreflect.seq <> subseq def
-R15975:15983 Semantics.semantics <> getdomain def
-R15985:15986 Semantics.programs <> N1:165 var
-R15959:15967 Semantics.semantics <> getdomain def
-R15969:15971 Semantics.programs <> Nc0:166 var
-R15855:15859 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
-R15929:15929 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
-R15848:15850 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R15844:15847 Semantics.programs <> crem:172 var
-R15851:15854 Semantics.semantics <> skip constr
-R15860:15866 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
-R15894:15896 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
-R15870:15876 Semantics.semantics <> warvars syndef
-binder 15867:15867 <> w:178
-R15887:15893 Semantics.semantics <> command ind
-binder 15880:15884 <> crem2:179
-R15901:15904 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R15928:15928 Coq.Init.Logic <> ::type_scope:x_'='_x not
-R15897:15900 Semantics.programs <> crem:172 var
-R15905:15905 Semantics.semantics <> :::x_';;'_x not
-R15920:15922 Semantics.semantics <> :::x_';;'_x not
-R15906:15917 Semantics.semantics <> incheckpoint constr
-R15919:15919 Semantics.programs <> w:178 var
-R15923:15927 Semantics.programs <> crem2:179 var
-R16771:16777 Semantics.programs <> same_pt ind
-ind 16790:16800 <> same_config
-constr 16842:16851 <> SameConfig
-R16808:16811 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R16817:16820 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R16828:16831 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R16821:16827 Semantics.semantics <> context syndef
-R16812:16816 Semantics.semantics <> iconf syndef
-R16803:16807 Semantics.semantics <> nvmem ind
-R16878:16882 Semantics.semantics <> nvmem ind
-binder 16861:16866 <> Nstart:182
-binder 16868:16869 <> N0:183
-binder 16871:16872 <> N1:184
-binder 16874:16875 <> N2:185
-R16908:16911 Semantics.semantics <> vmem ind
-binder 16902:16903 <> V0:186
-binder 16905:16905 <> V:187
-R16937:16943 Semantics.semantics <> command ind
-binder 16931:16932 <> c0:188
-binder 16934:16934 <> c:189
-R16971:16990 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R17025:17180 Coq.Init.Logic <> ::type_scope:x_'->'_x not
-R17181:17191 Semantics.programs <> same_config:180 ind
-R17225:17225 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R17228:17229 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R17231:17232 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R17234:17234 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R17226:17227 Semantics.programs <> N2:185 var
-R17230:17230 Semantics.programs <> V:187 var
-R17233:17233 Semantics.programs <> c:189 var
-R17200:17200 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R17213:17214 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14448:14449 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14452:14452 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14442:14443 Semantics.programs <> N1:139 var
+R14446:14447 Semantics.programs <> V1:143 var
+R14450:14451 Semantics.programs <> c1:146 var
+binder 14429:14430 <> T2:153
+R14567:14588 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R14631:14677 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R14678:14678 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R14699:14721 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R14722:14722 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R14743:14819 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R14820:14820 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R15011:15033 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R15034:15040 Semantics.programs <> same_pt:136 ind
+R15063:15067 Semantics.programs <> Ncomp:140 var
+R15054:15055 Semantics.programs <> N1:139 var
+R15051:15052 Semantics.programs <> c1:146 var
+R15048:15049 Semantics.programs <> c0:145 var
+R15045:15046 Semantics.programs <> V0:142 var
+R15042:15043 Semantics.programs <> N0:138 var
+R14831:14833 Semantics.semantics <> loc def
+binder 14828:14828 <> l:154
+R14896:14922 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R15010:15010 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R14923:14923 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R14940:14944 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R14925:14930 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R14939:14939 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R14924:14924 Semantics.programs <> l:154 var
+R14931:14935 Semantics.semantics <> getwt def
+R14937:14938 Semantics.programs <> W2:149 var
+R14945:14945 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R14983:14987 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R14947:14952 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R14982:14982 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R14946:14946 Semantics.programs <> l:154 var
+R14953:14960 Semantics.semantics <> getfstwt def
+R14963:14974 Semantics.semantics <> append_write def
+R14979:14980 Semantics.programs <> W2:149 var
+R14976:14977 Semantics.programs <> W1:148 var
+R14988:14990 Coq.Init.Logic <> not def
+R14994:14999 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R15008:15008 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R14993:14993 Semantics.programs <> l:154 var
+R15000:15004 Semantics.semantics <> getwt def
+R15006:15007 Semantics.programs <> W1:148 var
+R14859:14861 Coq.Init.Logic <> not def
+R14876:14878 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R14864:14869 Semantics.semantics <> getmap def
+R14871:14872 Semantics.programs <> N1:139 var
+R14875:14875 Semantics.programs <> l:154 var
+R14880:14885 Semantics.semantics <> getmap def
+R14887:14891 Semantics.programs <> Ncomp:140 var
+R14894:14894 Semantics.programs <> l:154 var
+R14733:14740 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
+R14723:14732 Semantics.semantics <> checkpoint constr
+R14741:14742 Semantics.programs <> O2:151 var
+R14689:14696 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
+R14679:14688 Semantics.semantics <> checkpoint constr
+R14697:14698 Semantics.programs <> O1:150 var
+R14589:14594 mathcomp.ssreflect.seq <> subseq def
+R14615:14623 Semantics.semantics <> getdomain def
+R14625:14629 Semantics.programs <> Ncomp:140 var
+R14597:14605 Semantics.semantics <> getdomain def
+R14607:14611 Semantics.programs <> Ncomp:140 var
+R14492:14496 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R14566:14566 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R14485:14487 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R14481:14484 Semantics.programs <> crem:147 var
+R14488:14491 Semantics.semantics <> skip constr
+R14497:14503 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R14531:14533 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R14507:14513 Semantics.semantics <> warvars syndef
+binder 14504:14504 <> w:155
+R14524:14530 Semantics.semantics <> command ind
+binder 14517:14521 <> crem2:156
+R14538:14541 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R14565:14565 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R14534:14537 Semantics.programs <> crem:147 var
+R14542:14542 Semantics.semantics <> :::x_';;'_x not
+R14557:14559 Semantics.semantics <> :::x_';;'_x not
+R14543:14554 Semantics.semantics <> incheckpoint constr
+R14556:14556 Semantics.programs <> w:155 var
+R14560:14564 Semantics.programs <> crem2:156 var
+ind 15479:15493 <> current_init_pt
+constr 15560:15568 <> valid_mem
+R15501:15504 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R15509:15512 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R15520:15523 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R15529:15532 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R15538:15541 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R15547:15550 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R15542:15546 Semantics.semantics <> nvmem ind
+R15533:15537 Semantics.semantics <> nvmem ind
+R15524:15528 Semantics.semantics <> nvmem ind
+R15513:15519 Semantics.semantics <> command ind
+R15505:15508 Semantics.semantics <> vmem ind
+R15496:15500 Semantics.semantics <> nvmem ind
+R15598:15602 Semantics.semantics <> nvmem ind
+binder 15579:15579 <> N:159
+binder 15581:15583 <> Ni0:160
+binder 15585:15586 <> N1:161
+binder 15588:15590 <> Nc0:162
+binder 15592:15595 <> Nend:163
+R15635:15638 Semantics.semantics <> vmem ind
+binder 15624:15624 <> V:164
+binder 15626:15627 <> V1:165
+binder 15629:15632 <> Vend:166
+R15668:15674 Semantics.semantics <> command ind
+binder 15660:15660 <> c:167
+binder 15662:15665 <> crem:168
+R15700:15714 Semantics.semantics <> the_write_stuff syndef
+binder 15696:15696 <> W:169
+R15739:15743 Semantics.semantics <> obseq syndef
+binder 15736:15736 <> O:170
+R15768:15774 Semantics.semantics <> warvars syndef
+binder 15765:15765 <> w:171
+R15799:15805 Semantics.programs <> trace_c ind
+R15840:15840 Semantics.programs <> W:169 var
+R15838:15838 Semantics.programs <> O:170 var
+R15819:15819 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R15824:15825 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R15830:15831 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R15836:15836 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R15820:15823 Semantics.programs <> Nend:163 var
+R15826:15829 Semantics.programs <> Vend:166 var
+R15832:15835 Semantics.programs <> crem:168 var
+R15807:15807 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R15811:15812 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R15814:15815 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R15817:15817 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R15808:15810 Semantics.programs <> Ni0:160 var
+R15813:15813 Semantics.programs <> V:164 var
+R15816:15816 Semantics.programs <> c:167 var
+binder 15796:15796 <> T:172
+R15934:15954 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R15992:16093 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R16110:16131 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R16132:16132 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R16152:16227 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R16228:16228 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R16373:16394 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R16395:16409 Semantics.programs <> current_init_pt:157 ind
+R16431:16433 Semantics.programs <> Nc0:162 var
+R16421:16422 Semantics.programs <> N1:161 var
+R16417:16419 Semantics.programs <> Ni0:160 var
+R16415:16415 Semantics.programs <> c:167 var
+R16413:16413 Semantics.programs <> V:164 var
+R16411:16411 Semantics.programs <> N:159 var
+R16239:16241 Semantics.semantics <> loc def
+binder 16236:16236 <> l:173
+R16302:16327 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R16328:16328 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R16347:16352 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R16372:16372 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R16330:16335 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R16346:16346 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R16329:16329 Semantics.programs <> l:173 var
+R16336:16343 Semantics.semantics <> getfstwt def
+R16345:16345 Semantics.programs <> W:169 var
+R16354:16359 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R16371:16371 Coq.ssr.ssrbool <> ::bool_scope:x_'\in'_x not
+R16353:16353 Semantics.programs <> l:173 var
+R16360:16368 Semantics.semantics <> getdomain def
+R16370:16370 Semantics.programs <> N:159 var
+R16267:16269 Coq.Init.Logic <> not def
+R16284:16286 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R16272:16277 Semantics.semantics <> getmap def
+R16279:16280 Semantics.programs <> N1:161 var
+R16283:16283 Semantics.programs <> l:173 var
+R16288:16293 Semantics.semantics <> getmap def
+R16295:16297 Semantics.programs <> Nc0:162 var
+R16300:16300 Semantics.programs <> l:173 var
+R16143:16150 Coq.ssr.ssrbool <> ::bool_scope:x_'\notin'_x not
+R16133:16142 Semantics.semantics <> checkpoint constr
+R16151:16151 Semantics.programs <> O:170 var
+R16094:16103 Semantics.semantics <> subset_nvm def
+R16107:16109 Semantics.programs <> Nc0:162 var
+R16105:16105 Semantics.programs <> N:159 var
+R15955:15960 mathcomp.ssreflect.seq <> subseq def
+R15979:15987 Semantics.semantics <> getdomain def
+R15989:15990 Semantics.programs <> N1:161 var
+R15963:15971 Semantics.semantics <> getdomain def
+R15973:15975 Semantics.programs <> Nc0:162 var
+R15859:15863 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R15933:15933 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R15852:15854 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R15848:15851 Semantics.programs <> crem:168 var
+R15855:15858 Semantics.semantics <> skip constr
+R15864:15870 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R15898:15900 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R15874:15880 Semantics.semantics <> warvars syndef
+binder 15871:15871 <> w:174
+R15891:15897 Semantics.semantics <> command ind
+binder 15884:15888 <> crem2:175
+R15905:15908 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R15932:15932 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R15901:15904 Semantics.programs <> crem:168 var
+R15909:15909 Semantics.semantics <> :::x_';;'_x not
+R15924:15926 Semantics.semantics <> :::x_';;'_x not
+R15910:15921 Semantics.semantics <> incheckpoint constr
+R15923:15923 Semantics.programs <> w:174 var
+R15927:15931 Semantics.programs <> crem2:175 var
+R16775:16781 Semantics.programs <> same_pt ind
+ind 16794:16804 <> same_config
+constr 16846:16855 <> SameConfig
+R16812:16815 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R16821:16824 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R16832:16835 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R16825:16831 Semantics.semantics <> context syndef
+R16816:16820 Semantics.semantics <> iconf syndef
+R16807:16811 Semantics.semantics <> nvmem ind
+R16882:16886 Semantics.semantics <> nvmem ind
+binder 16865:16870 <> Nstart:178
+binder 16872:16873 <> N0:179
+binder 16875:16876 <> N1:180
+binder 16878:16879 <> N2:181
+R16912:16915 Semantics.semantics <> vmem ind
+binder 16906:16907 <> V0:182
+binder 16909:16909 <> V:183
+R16941:16947 Semantics.semantics <> command ind
+binder 16935:16936 <> c0:184
+binder 16938:16938 <> c:185
+R16975:16994 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R17029:17184 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R17185:17195 Semantics.programs <> same_config:176 ind
+R17229:17229 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R17232:17233 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R17235:17236 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R17238:17238 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R17230:17231 Semantics.programs <> N2:181 var
+R17234:17234 Semantics.programs <> V:183 var
+R17237:17237 Semantics.programs <> c:185 var
+R17204:17204 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R17217:17218 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R17220:17221 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R17223:17223 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R17201:17201 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R17204:17205 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R17221:17222 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R17224:17225 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R17227:17227 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R17205:17205 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
 R17208:17209 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R17212:17212 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
-R17202:17203 Semantics.programs <> N0:183 var
-R17206:17207 Semantics.programs <> V0:186 var
-R17210:17211 Semantics.programs <> c0:188 var
-R17215:17216 Semantics.programs <> N1:184 var
-R17219:17219 Semantics.programs <> V:187 var
-R17222:17222 Semantics.programs <> c:189 var
-R17193:17198 Semantics.programs <> Nstart:182 var
-R16991:16997 Semantics.programs <> same_pt ind
-R17023:17024 Semantics.programs <> N2:185 var
-R17014:17015 Semantics.programs <> N1:184 var
-R17012:17012 Semantics.programs <> c:189 var
-R17009:17010 Semantics.programs <> c0:188 var
-R17006:17007 Semantics.programs <> V0:186 var
-R16999:17004 Semantics.programs <> Nstart:182 var
-R16951:16960 Semantics.semantics <> subset_nvm def
-R16965:16970 Semantics.programs <> Nstart:182 var
-R16962:16963 Semantics.programs <> N0:183 var
+R17212:17213 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R17216:17216 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R17206:17207 Semantics.programs <> N0:179 var
+R17210:17211 Semantics.programs <> V0:182 var
+R17214:17215 Semantics.programs <> c0:184 var
+R17219:17220 Semantics.programs <> N1:180 var
+R17223:17223 Semantics.programs <> V:183 var
+R17226:17226 Semantics.programs <> c:185 var
+R17197:17202 Semantics.programs <> Nstart:178 var
+R16995:17001 Semantics.programs <> same_pt ind
+R17027:17028 Semantics.programs <> N2:181 var
+R17018:17019 Semantics.programs <> N1:180 var
+R17016:17016 Semantics.programs <> c:185 var
+R17013:17014 Semantics.programs <> c0:184 var
+R17010:17011 Semantics.programs <> V0:182 var
+R17003:17008 Semantics.programs <> Nstart:178 var
+R16955:16964 Semantics.semantics <> subset_nvm def
+R16969:16974 Semantics.programs <> Nstart:178 var
+R16966:16967 Semantics.programs <> N0:179 var

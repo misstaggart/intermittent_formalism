@@ -62,7 +62,7 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
              cceval_w (N, V, Ins l) O (Nend, Vend, c1) W ->
             ( forall(z: loc), z \in (getrd W) -> (*z was read immediately cuz trace is only 1
                                 thing long*)
-                   (getmap N) z = (getmap N2) z). (*since z isnt in FW of trace from Ins l to skip
+                               (getmap N) z = (getmap N2) z).
       intros. inversion H; subst. apply/ eqP /negPn /negP.
         rename H1 into Hread.
       intros contra.
@@ -73,22 +73,27 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
         move: (empty_trace_cs1 T) => [ [one two] three four].
         subst. discriminate contra.
       - move/ negbT /eqP : Hbool => Hneq.
-        move: (single_step_alls T Hneq). =>
+        assert (cceval_w (N, V, l;; crem) O (Nend, Vend, crem) W) as Hcceval.
+        move: (single_step_alls_rev T Hneq). =>
         [Cmid [W1 [Wrest [O1 [Hcceval [Hsubseq Hw] ] ] ] ] ].
-        subst.
-        simpl in contra.
         inversion Hcceval; subst.
-        rewrite sub1seq in Hsubseq. move/negP : H2. by apply.
+        rewrite sub1seq in Hsubseq. exfalso. move/negP : H2. by apply.
         inversion H0; subst.
-        move: (cceval_agr H0 H12) => Heqrd.
-        rewrite Heqrd in Hread.
-        move: (fw_nin_r_c z H12 Hread) => Hfw.
+        move: (determinism_c H0 H12) => [one [two three] ].
+        inversion one. subst.
+        assumption.
+        move: (single_step_alls T Hneq Hcceval). =>
+        [W1 [O1 [Trem [Hsub Heq] ] ] ].
+        rewrite Heq in contra. unfold append_write in contra.
+        simpl in contra.
+        move: (fw_nin_r_c z Hcceval Hread) => Hfw.
         rewrite mem_cat in contra.
         move/orP : contra => [contra1 | contra2].
         rewrite mem_filter in contra1.
         move/ andP : contra1  => [one two].
         move/negP : one. by apply.
-        move/negP : Hfw. by apply.*) Admitted.
+        move/negP : Hfw. by apply.
+        Qed.
 
     (*needed below*)
  Lemma agreeonread_w_r: forall{N Nend N2: nvmem} {V Vend: vmem}

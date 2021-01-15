@@ -257,7 +257,7 @@ move/empty_trace_cs : H1 => [contra11 [contra2 [contra3 contra4] ] ].
 exfalso. by apply H2. Qed.
 
 (*concern: the theorem below is not true for programs with io
- but then again neither is lemma 10*)
+ but then again neither is lemma 10
 Lemma single_step_all: forall{C1 Cmid C3: context} 
                     {Obig: obseq} {Wbig: the_write_stuff},
     trace_c C1 C3 Obig Wbig ->
@@ -289,7 +289,7 @@ Lemma single_step_all: forall{C1 Cmid C3: context}
     - eapply CTrace_App. apply T0mid. intros contra. inversion contra.
       assumption. assumption.
     - eapply cat_subseq. assumption. apply subseq_refl.
-Qed.
+Qed.*)
 
 
 

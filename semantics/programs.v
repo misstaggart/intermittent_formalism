@@ -116,7 +116,7 @@ Print trace_c_ind.
 
 
 (*if you need the empty cat thing come back here*)
-Lemma empty_trace: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
+(*Lemma empty_trace: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
     trace_c C1 C2 O W -> O = [::] -> C1 = C2 /\ W = emptysets.
 Proof. intros. inversion H; subst.
        + split; reflexivity.
@@ -132,7 +132,7 @@ Proof. intros. inversion H; subst.
          apply / andb_true_iff => H10.
          destruct H10.
          by move / nilP / H2 : H0.
-Qed.
+Qed.*)
 
 (*use trace_steps, cceval_steps, cceval_steps ins*)
 Lemma empty_trace_sc:
@@ -177,7 +177,7 @@ Program Definition trace_append {C1 Cmid C2: context }
   | _, [::] => T1 (**)
   | (x::xs), (y::ys) => CTrace_App T1 _ _ T2 end.
 
-(*clean up this ltac*)
+(*clean up this ltac
 Ltac empty T2 :=apply empty_trace in T2; [destruct T2 as [f g ]; inversion f; subst; try reflexivity |
                                            reflexivity].
 Ltac empty2 T1 T2 := apply empty_trace in T1; [destruct T1 as [f g]; inversion g;                 subst; apply empty_trace in T2; [ destruct T2 as [h i]; inversion i;
@@ -196,7 +196,7 @@ Next Obligation. emptyl T2. Qed.
                  (*rewrite append_write_empty. reflexivity.*) 
 Next Obligation. split. intros wildcard contra. destruct contra. inversion H1.
                  intros contra. destruct contra. inversion H1. Qed.
-
+*)
 
 
 Lemma singletc_cceval {N V c N1 V1 c1 O W} :

@@ -1472,12 +1472,12 @@ CheckPoint: forall(N: nvmem)
          (V V': vmem)
          (l: instruction)
          (c: command)
-         (o: obs)
+         (O: obseq)
          (W: the_write_stuff),
     (forall(w: warvars), l <> (incheckpoint w)) ->
     l <> skip ->
-    cceval_w (N, V, Ins l) (o::nil) (N', V', Ins skip) W ->
-    cceval_w (N, V, (l;;c)) (o::nil) (N', V', c) W
+    cceval_w (N, V, Ins l) O (N', V', Ins skip) W ->
+    cceval_w (N, V, (l;;c)) O (N', V', c) W
    (*IP becomes obnoxious if you let checkpoint into the Seq case so I'm outlawing it
     same with skip*)
    (*ask arthur why sometimes it finds errors at the end before errors at the front*)
