@@ -638,7 +638,10 @@ Lemma loctotal: total leqloc.
     by move/ eqP: Hneq => Hneq.
 Qed.
 
-Lemma transvol: transitive leqvol. Admitted.
+Lemma transvol: transitive leqvol.
+  intros x y z.
+  destruct x; destruct y; destruct z; try by [].
+  Qed.
 
 Lemma asyloc: antisymmetric leqloc.
 intros x y. move/ andP => [Hxy Hyx].
@@ -1097,10 +1100,10 @@ exists el11. rewrite ifT; try by []. apply Hsub.
 Notation "m1 'U!' m2" := (updatemaps m1 m2) (at level 100).
 (*start here should really change the above ordering to be more intuitive*)
 
-Lemma emptymap_wf : valid_nvm (emptymap loc_eqtype) nil. Admitted.
+(*Lemma emptymap_wf : valid_nvm (emptymap loc_eqtype) nil. Admitted.
 
 Notation emptyNV := (NonVol (emptymap loc_eqtype) nil emptymap_wf).
-Definition reset (V: vmem) := Vol (emptymap loc_eqtype).
+Definition reset (V: vmem) := Vol (emptymap loc_eqtype).*)
 
 (*restricts memory map m to domain w*)
 (*doesn't actually clean the unnecessary variables out of m*)
