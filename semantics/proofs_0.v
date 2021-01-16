@@ -505,7 +505,12 @@ Lemma single_step_alls_rev: forall{C1 C3: context}
     exists(Cmid: context) (W1 Wrest: the_write_stuff) (O1: obseq),
       cceval_w C1 O1 Cmid W1
 /\ (exists(Orest: obseq), Obig = O1 ++ Orest) /\ Wbig = (append_write W1 Wrest).
-Admitted.
+  intros. inversion H; subst.
+  exfalso. by apply H0.
+  exists C3 Wbig emptysets Obig. repeat split; try by []. exists ([::]: obseq).
+    by rewrite cats0. by rewrite append_write_empty.
+    exists Cmid W1 W2 O1. repeat split; try by []. by exists O2.
+Qed.
 
 
 (*use singlestepalls for this probably*)
