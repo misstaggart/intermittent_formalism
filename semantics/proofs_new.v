@@ -887,9 +887,9 @@ Qed.
         (*induct on length of 1st trace, rewrite nested filters into filtering
          out the appended list*)
 
-Lemma warok_cp {N1 N2 V1 V2 c crem O W}
+Lemma warok_cp {N1 N2 V1 V2 c crem O W Wstart Rstart}
       {w0 w1: warvars}:
-  WARok w0 [::] [::] c ->
+  WARok w0 Wstart Rstart c ->
   trace_cs (N1, V1, c) (N2, V2, incheckpoint w1;; crem) O W ->
   WARok w1 [::] [::] crem. intros Hwar T.
    move: N1 V1 N2 V2 O W T.
@@ -913,6 +913,46 @@ Lemma warok_cp {N1 N2 V1 V2 c crem O W}
      move: (single_step_alls T Hbool Hcceval). =>
                                                [Wrest0 [Orest [Trest [Hsubr Hwr] ] ] ].
      eapply IHHwar; try by []. apply Trest.
+   }
+   2: {
+     destruct (O == [::]) eqn: Hbool; move/ eqP: Hbool => Hbool. subst.
+     move/empty_trace_cs1: T => [one two]. inversion one.
+     subst. inversion H. 
+     move: (single_step_alls_rev T Hbool). =>
+ [ [ [nm vm] cm]
+     [W1
+        [Wrest
+           [ O1
+               [Hcceval
+                  [Hsub Hw]
+               ]
+           ]
+        ]
+ ] ].
+     move: (cceval_steps Hcceval) => one. subst.
+     move: (single_step_alls T Hbool Hcceval). =>
+                                               [Wrest0 [Orest [Trest [Hsubr Hwr] ] ] ].
+     eapply IHHwar; try by []. apply Trest.
+   }
+   2: {
+suffices: O <> [::]. move => Hneq.
+     move: (single_step_alls_rev T Hneq). =>
+ [ [ [nm vm] cm]
+     [W1
+        [Wrest
+           [ O1
+               [Hcceval
+                  [Hsub Hw]
+               ]
+           ]
+        ]
+ ] ].
+     move: (single_step_alls T Hneq Hcceval). =>
+                                              [Wrest0 [Orest [Trest [Hsubr Hwr] ] ] ].
+     inversion Hcceval; subst;
+       [eapply IHHwar1 | eapply IHHwar2]; try by []; apply Trest.
+     intros contra. subst.
+     move/ empty_trace_cs1: T => [one two]. inversion one.
    }
 
                          - inversion T; subst.
