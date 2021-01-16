@@ -977,14 +977,40 @@ Lemma no_CP_in_seq: forall{O1 O2: obseq},
     (O1 <=m O2) -> checkpoint \notin O1 /\ checkpoint \notin O2.
   Admitted.
 
-Lemma fw_gets_bigger_bc:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
+Lemma neg_pass_end_com {N V c Omid Nmid
+                       Vmid cmid Wmid Nend Vend cend
+                    O W} :
+cceval_w (N, V, c) Omid (Nmid, Vmid, cmid) Wmid ->
+trace_cs (N, V, c) (Nend, Vend, cend) O W ->
+end_com cend ->
+checkpoint \notin Omid ->
+O <> [::].
+    intros. intros contra. subst.
+    move/ empty_trace_cs1: H0 => [H11 H12]. inversion H11. subst.
+    destruct H1 as [Hskip | Hcp].
+    subst. inversion H.
+    destruct Hcp as [crem [w contra] ]. subst.
+    apply observe_checkpt_s in H. exfalso.
+    move/ negP: H2. by apply. Qed.
+
+    Lemma fw_gets_bigger_bc:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
                          {Omid O: obseq} {Wmid W: the_write_stuff} {l: loc},
     cceval_w (N, V, c) Omid (Nmid, Vmid, cmid) Wmid ->
     checkpoint \notin Omid ->
     trace_cs (N, V, c) (Nend, Vend, cend) O W ->
     end_com cend ->
     l \in (getfstwt Wmid) -> l \in (getfstwt W).
-  Admitted.
+  intros. move: H H0 H1 H2 H3 => Hcc Hos Tbig Hend Hfw.
+  suffices: (O <> [::]). intros Hneq.
+    move: (single_step_alls_rev Tbig Hneq). =>
+  [ [ [nm vm] cm] [W3 [Wrest [O3 [Hcceval [Hsub Hww] ] ] ] ] ].          move: (single_step_alls Tbig Hneq Hcceval).                  => [Wrest0 [Orest [Trest [Hsub1 Hw] ] ] ].
+    move: (determinism_c Hcc Hcceval). => [four [five six] ].
+    subst.
+    unfold append_write. simpl.
+    rewrite mem_cat. apply/ orP. by right.
+    eapply neg_pass_end_com; try apply Hcc;
+    try apply Tbig; try assumption. Qed.
+
 
 Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
                          {Omid O: obseq} {Wmid W: the_write_stuff} {l: loc},
@@ -1014,14 +1040,8 @@ Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cen
     rewrite mem_filter. apply/andP. split; try by [].
     eapply IHTsmall; try reflexivity; try assumption.
     apply Trest. assumption.
-    (*get lemma from here*)
-    intros contra. subst.
-    move/ empty_trace_cs1: Tbig => [H11 H12]. inversion H11. subst.
-    destruct Hend as [Hskip | Hcp].
-    subst. inversion H0.
-    destruct Hcp as [crem [w contra] ]. subst.
-    apply observe_checkpt_s in H0. exfalso.
-    move/ negP: Ho1. by apply.
+    eapply neg_pass_end_com; try apply H0;
+    try apply Tbig; try assumption.
   }
   rewrite in_nil in Hfw. discriminate Hfw.
   eapply fw_gets_bigger_bc; try apply H; try assumption. apply Tbig. assumption.
@@ -1031,7 +1051,6 @@ Qed.
  from starting command that doesnt pass endcom
  (no cp in obs)
  make lemma out of bottom part*)
-
 Lemma threeIS1 {N0 Ni Ni1 Nend V V1 Vend c c1 Nc O W Oend Wend cend}:
   all_diff_in_fw Ni V c Nc -> (*ensures well formed up till nearest endcom*)
   trace_i1 ((N0, V, c), Ni, V, c) ((N0, V, c), Ni1, V1, c1) O W ->
