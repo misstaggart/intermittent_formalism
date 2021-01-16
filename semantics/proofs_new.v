@@ -1199,7 +1199,7 @@ by repeat rewrite - catA in ass3.
         (*why not just do an empty trace here
          up till nearest cp*)
        Check trace_append_ic.
-       move: (trace_append_ic H0_0 H3 H5) => [Nc1endi [Vc1endi [cmend Tendi] ] ].
+       move: (trace_append_ic H0_0 H3 H5) => Tendi.
        Check threeIS1.
               assert ( checkpoint \notin [::]) as Hcp.
               by rewrite in_nil.

@@ -389,14 +389,20 @@ Lemma update_one_c: forall{N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: o
     cceval_w (N, V, c) O (Nend, Vend, cend) W ->
     ~~((getmap N) l == (getmap Nend) l) ->
     l \in (getwt W).
-Admitted.
+  intros. move: l H0. dependent induction H; intros z Hz;
+                        try (exfalso; move/ negP : Hz; by apply); simpl; try (rewrite mem_seq1; apply/ eqP).
+eapply updateone_sv. apply not_eq_sym. move/ eqP : Hz. apply.
+eapply updateone_arr. apply not_eq_sym. move/ eqP : Hz. apply.
+eapply IHcceval_w; try reflexivity; try assumption.
+Qed.
 
 Lemma update_one_contra: forall{N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
   (l: loc),
     cceval_w (N, V, c) O (Nend, Vend, cend) W ->
     l \notin (getwt W) -> 
     (getmap N) l = (getmap Nend) l.
-Admitted.
+  intros. apply/ eqP /negPn. move : H0. apply contra.
+  apply (update_one_c l H). Qed.
 
 Lemma update_onec {N11 N12 V11 V12 N21 N22 V21 V22
                        c c1 c2 O1 O2 W} {l: loc} :
@@ -404,7 +410,17 @@ Lemma update_onec {N11 N12 V11 V12 N21 N22 V21 V22
   cceval_w (N21, V21, c) O2 (N22, V22, c2) W ->
     (getmap N11) l = (getmap N21) l ->
     (getmap N12) l <> (getmap N22) l ->
-    l \in (getwt W). Admitted.
+    l \in (getwt W).
+  intros.
+  suffices: ~~((getmap N11 l) == (getmap N12 l)) \/
+            ~~((getmap N21 l) == (getmap N22 l)).
+  move => [case | case]; try (eapply update_one_c in case; try apply case
+                            ; try apply H; try apply H0).
+  apply/nandP / negP. intros contra.
+  move/ andP : contra => [con1 con2].
+  move/ eqP: con1 => eq1. move/ eqP: con2 => eq2.
+  apply H2. rewrite - eq1. by rewrite - eq2. Qed.
+
 Lemma cceval_skip: forall {N N': nvmem} {V V': vmem}
                     {l: instruction} {c: command}
   {O: obseq} {W: the_write_stuff},
