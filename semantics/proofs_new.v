@@ -720,39 +720,6 @@ Qed.
                   
 
 Check prefix_seq. 
-  Lemma ctrace_det_obs_skip {N V c Nmid Vmid cmid
-                          Nend Vend Omid Wmid Oend Wend}:
-    trace_cs (N, V, c)
-             (Nmid, Vmid, cmid) Omid Wmid ->
-    checkpoint \notin Omid ->
- trace_cs (N, V, c)
- (Nend, Vend, Ins skip) Oend Wend ->
-    checkpoint \notin Oend ->
- Omid <=p Oend. Admitted. (*induct over 1, then 2 nested*)
-
-  Lemma ctrace_det_obs_CP {N V c Nmid Vmid cmid
-                          Nend Vend Omid Wmid Oend Wend w crem}:
-    trace_cs (N, V, c)
-             (Nmid, Vmid, cmid) Omid Wmid ->
-    checkpoint \notin Omid ->
- trace_cs (N, V, c)
- (Nend, Vend, (incheckpoint w);; crem) Oend Wend ->
-    checkpoint \notin Oend ->
- Omid <=p Oend. Admitted. (*induct over 1, then 2 nested*)
-
-
-  (*need the CPs so i know which command is bigger
-   might be easier to just have a stpe index lol*)
-  Lemma ctrace_det_obs {N V c Nmid Vmid cmid
-                          Nend Vend Omid Wmid Oend Wend cend}:
-    trace_cs (N, V, c)
-             (Nmid, Vmid, cmid) Omid Wmid ->
-    checkpoint \notin Omid ->
- trace_cs (N, V, c)
- (Nend, Vend, cend) Oend Wend ->
- checkpoint \notin Oend ->
- end_com cend ->
- Omid <=p Oend. Admitted. 
 
   Lemma append_c {N1 V1 c1 N2 V2 crem O1 W1 N3 V3 c3 O2 W2}
         :
@@ -1005,7 +972,7 @@ O <> [::].
     apply observe_checkpt_s in H. exfalso.
     move/ negP: H2. by apply. Qed.
 
-    Lemma fw_gets_bigger_bc:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
+    Lemma two_traces_bc:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
                          {Omid O: obseq} {Wmid W: the_write_stuff},
     cceval_w (N, V, c) Omid (Nmid, Vmid, cmid) Wmid ->
     checkpoint \notin Omid ->
@@ -1029,7 +996,7 @@ O <> [::].
     try apply Tbig; try assumption. Qed.
 
 
-Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
+Lemma two_traces:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
                          {Omid O: obseq} {Wmid W: the_write_stuff},
     trace_cs (N, V, c) (Nmid, Vmid, cmid) Omid Wmid ->
     checkpoint \notin Omid ->
@@ -1043,7 +1010,7 @@ Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cen
   3: {
     destruct Cmid as [ [nms vms] cms].
     rewrite mem_cat in Hos. move/ norP: Hos => [Ho1 Ho2].
-    move: (fw_gets_bigger_bc H0 Ho1 Tbig Hend) => [bc1 bc2].
+    move: (two_traces_bc H0 Ho1 Tbig Hend) => [bc1 bc2].
     suffices: (O <> [::]). intros Hneq.
     move: (single_step_alls_rev Tbig Hneq). =>
   [ [ [nm vm] cm] [W3 [Wrest [O3 [Hcceval [Hsub Hww] ] ] ] ] ].          move: (single_step_alls Tbig Hneq Hcceval).                  => [Wrest0 [Orest [Trest [Hsub1 Hw] ] ] ].
@@ -1073,8 +1040,32 @@ Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cen
   split. intros l Hfw. rewrite in_nil in Hfw. discriminate Hfw.
   intros. rewrite - (cat0s O).
   eapply P_Ind; try assumption. apply P_Base; try by rewrite in_nil. apply (neg_observe_rb Tbig).
-  eapply fw_gets_bigger_bc; try apply H; try assumption. apply Tbig. assumption.
+  eapply two_traces_bc; try apply H; try assumption. apply Tbig. assumption.
 Qed.
+
+Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
+                         {Omid O: obseq} {Wmid W: the_write_stuff} {l: loc},
+    trace_cs (N, V, c) (Nmid, Vmid, cmid) Omid Wmid ->
+    checkpoint \notin Omid ->
+    trace_cs (N, V, c) (Nend, Vend, cend) O W ->
+    end_com cend ->
+    l \in (getfstwt Wmid) -> l \in (getfstwt W).
+  intros. move: (two_traces H H0 H1 H2) => [one two].
+  by apply (one l). Qed.
+
+Lemma ctrace_det_obs {N V c Nmid Vmid cmid
+                          Nend Vend Omid Wmid Oend Wend cend}:
+    trace_cs (N, V, c)
+             (Nmid, Vmid, cmid) Omid Wmid ->
+    checkpoint \notin Omid ->
+ trace_cs (N, V, c)
+ (Nend, Vend, cend) Oend Wend ->
+ checkpoint \notin Oend ->
+ end_com cend ->
+ Omid <=p Oend. 
+  intros. move: (two_traces H H0 H1 H3) => [one two].
+  by apply two. Qed.
+
 
 Lemma threeIS1 {N0 Ni Ni1 Nend V V1 Vend c c1 Nc O W Oend Wend cend}:
   all_diff_in_fw Ni V c Nc -> (*ensures well formed up till nearest endcom*)
