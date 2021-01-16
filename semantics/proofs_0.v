@@ -647,45 +647,31 @@ Lemma trace_append_ic {N0 V0 c0 N01 V01 c01 N1 V1 c1 N2 V2 c2
                   trace_i1 ((N0, V0, c0), N1, V1, c1) ((N01, V01, c01), N2, V2, c2) O1 W1 ->
                   trace_cs (N2, V2, c2) (N3, V3, c3) O2 W2  ->
                   checkpoint \notin O2 ->
-      exists(N02: nvmem) (V02: vmem) (c02: command), trace_i1 ((N0, V0, c0), N1, V1, c1)
-                                                         ((N02, V02, c02), N3, V3, c3) (O1 ++ O2) (append_write W1 W2).
+       trace_i1 ((N0, V0, c0), N1, V1, c1) ((N01, V01, c01), N3, V3, c3) (O1 ++ O2) (append_write W1 W2).
   intros Ti Tc Hcp. move: N3 V3 c3 O2 W2 Tc Hcp. dependent induction Ti; intros.
   - move: (append_c H Tc) => Tdone.
-    exists N01 V01 c01.
-    Admitted.
-  (*  apply (trace_append_ic_bc N01 V01 c01 Tdone).
+    apply iTrace_Cont. apply Tdone. rewrite mem_cat. apply/norP.
+    by split.
 - suffices: 
-         exists N03 V03 c03,
          trace_i1 (N01, V01, c01, N01 U! Nmid, V01, c01)
-           (N03, V03, c03, N3, V3, c3) 
+           (N01, V01, c01, N3, V3, c3) 
            (O2 ++ O0) (append_write W2 W0).
-  move=> [N0end [V0end [c0end
-                      Tend]
-               ]
-        ]. exists N0end V0end c0end. 
+        move => Tend. 
   rewrite append_writeA.
   repeat rewrite - catA.
-  eapply iTrace_RB.
-
-
-  move: N1 V1 c1 O W H.
-  dependent induction Tc; intros.
-  3: {
-    move: (iTrace_Cont N01 V01 c01 H2 H1) => Tih2.
-    destruct Cmid as [ [nm vm] cm].
-    move: (trace_append_ic_bc Tih2 H0).
-    => [ Ncpm [Vcpm
-                [cpm Tmid]
-             ]
-    ].
-    rewrite catA. rewrite - append_writeA.
-    eapply IHTc; try reflexivity.
-  }
-  
-  (*  intros. inversion H; subst; try assumption.
-    repeat rewrite mem_cat in H0.
-    move/norP : H0 => [Hb H0]. move/norP: H0 => [contra Hb2].
-    exfalso. move/negP: contra. by apply. Qed.*)*)
-
+  eapply iTrace_RB; try apply H; try assumption.rewrite mem_cat. apply/norP.
+    by split.
+eapply IHTi; try reflexivity; try assumption.
+- suffices: 
+         trace_i1 (restrict Nmid w Hw, Vmid, crem, Nmid, Vmid, crem)
+           (N01, V01, c01, N3, V3, c3) 
+           (O2 ++ O0) (append_write W2 W0).
+        move => Tend. 
+  rewrite append_writeA.
+  repeat rewrite - catA.
+  eapply iTrace_CP; try apply Ti1; try assumption.
+  apply Tend.
+  eapply IHTi2; try reflexivity; try assumption.
+Qed.
 
 
