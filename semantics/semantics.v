@@ -1307,6 +1307,18 @@ Inductive prefix: obseq -> obseq -> Prop :=
 Notation "S <=p T" := (prefix S T) (at level 100).
 (*some sort of spec start here?*)
 
+Lemma prefix_app {O1 O2 O3: obseq} :
+  (O2 <=p O3) -> reboot \notin O1 -> checkpoint \notin O1 ->
+  O1 ++ O2 <=p O1 ++ O3.
+  intros. induction H.
+  2:{
+rewrite catA. apply P_Ind; try assumption.
+  }
+  apply P_Base. Admitted.
+
+
+
+
 Inductive prefix_seq: obseq -> obseq -> Prop :=
   RB_Base: forall(O: obseq),
     reboot \notin O -> checkpoint \notin O ->

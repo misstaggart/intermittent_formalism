@@ -1062,16 +1062,20 @@ Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cen
     rewrite mem_cat. apply/ orP. left.
     rewrite mem_filter. apply/andP. split; try by [].
       by apply (IH1 l).
-      intros Hnin.
-    (*  (*start here*)
-    apply Trest. assumption.
+      intros Hnin. rewrite mem_cat in Hnin.
+      move/norP: Hnin => [one two]. 
+      apply prefix_app; try apply IH2; try assumption.
+      apply (neg_observe_rb (CsTrace_Single H0)).
+   eapply IHTsmall; try reflexivity; try apply Trest; try assumption.
     eapply neg_pass_end_com; try apply H0;
     try apply Tbig; try assumption.
   }
-  rewrite in_nil in Hfw. discriminate Hfw.
+  split. intros l Hfw. rewrite in_nil in Hfw. discriminate Hfw.
+  intros. rewrite - (cat0s O).
+  eapply P_Ind; try assumption. apply P_Base; try by rewrite in_nil. apply (neg_observe_rb Tbig).
   eapply fw_gets_bigger_bc; try apply H; try assumption. apply Tbig. assumption.
-Qed.*)
-      Admitted.
+Qed.
+
 Lemma threeIS1 {N0 Ni Ni1 Nend V V1 Vend c c1 Nc O W Oend Wend cend}:
   all_diff_in_fw Ni V c Nc -> (*ensures well formed up till nearest endcom*)
   trace_i1 ((N0, V, c), Ni, V, c) ((N0, V, c), Ni1, V1, c1) O W ->
