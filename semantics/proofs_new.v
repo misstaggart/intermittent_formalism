@@ -119,8 +119,29 @@ exists O1 W1 Nmid Vmid (incheckpoint w;; crem). split; try split; try assumption
 
  Lemma add_skip_ins {N1 V l N2}: all_diff_in_fw N1 V (Ins l) N2 ->
                                  all_diff_in_fw N1 V (l;; skip) N2.
-Admitted.
-
+   intros Hdiff. inversion Hdiff; subst.
+   inversion T; subst.
+   - destruct H as [one | two]. inversion one. subst.
+     econstructor.
+     eapply CsTrace_Single. eapply Skip. by left. by []. assumption. destruct two as [crem [w contra] ]. discriminate contra.
+     move: (cceval_skip H2) => one. subst.
+     econstructor. eapply CsTrace_Single.
+     eapply Seq. intros w contra. subst. inversion H2.
+     intros contra. subst. inversion H2. apply H2. by left.
+     assumption. assumption.
+     destruct Cmid as [ [nm vm] cm].
+     move: (cceval_skip H4) => eq. subst.
+     econstructor. eapply CsTrace_Single.
+     eapply Seq. intros w contra. subst. inversion H4.
+     intros contra. subst. inversion H4.
+     apply H4. by left.
+     rewrite mem_cat in H0. move/ norP: H0 => [Ho1 Ho2].
+     assumption.
+     suffices: W2 = emptysets. move => eq. subst.
+     rewrite append_write_empty in H1.
+     assumption.
+     move: (trace_skip H2) => Heq. subst. by move/empty_trace_cs1: H2 => [one two].
+     Qed.
     Lemma two_bcw {Ni Ni1 V V1 l c1 crem Nc O W} : all_diff_in_fww Ni V (l;;crem) Nc ->
                               cceval_w (Ni, V, Ins l) O (Ni1, V1, c1) W ->
                               exists(Nc1: nvmem), (cceval_w (Nc, V, Ins l) O (Nc1, V1, c1) W /\
@@ -887,7 +908,8 @@ Qed.
         (*induct on length of 1st trace, rewrite nested filters into filtering
          out the appended list*)
 
-Lemma warok_cp {N1 N2 V1 V2 c crem O W Wstart Rstart}
+
+   Lemma warok_cp {N1 N2 V1 V2 c crem O W Wstart Rstart}
       {w0 w1: warvars}:
   WARok w0 Wstart Rstart c ->
   trace_cs (N1, V1, c) (N2, V2, incheckpoint w1;; crem) O W ->
@@ -954,12 +976,9 @@ suffices: O <> [::]. move => Hneq.
      intros contra. subst.
      move/ empty_trace_cs1: T => [one two]. inversion one.
    }
-inversion T; subst.
-   apply cceval_skip in H0. inversion H0.
-   destruct Cmid as [ [nm vm] cm].
-   apply cceval_skip in H2. subst.
-   apply trace_skip in H0. exfalso. by apply H1.
-Qed.
+   move/ trace_skip1: T => [one | one]; inversion one.
+   Qed.
+
 
 Lemma no_CP_in_seq: forall{O1 O2: obseq},
     (O1 <=m O2) -> checkpoint \notin O1 /\ checkpoint \notin O2.

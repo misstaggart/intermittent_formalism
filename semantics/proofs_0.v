@@ -617,7 +617,18 @@ Lemma trace_skip: forall {N N': nvmem} {V V': vmem}
  O = [::]. Admitted.
 
 
-Lemma agr_imp_age:
+   Lemma trace_skip1 {N1 V1 N2 V2 c O W} {l: instruction}:
+trace_cs (N1, V1, Ins l)
+        (N2, V2, c) O W -> c = Ins l \/ c = Ins skip.
+intros.
+inversion H; subst. by left.
+   right. by apply cceval_skip in H0. 
+   destruct Cmid as [ [nm vm] cm].
+   apply cceval_skip in H2. subst.
+   apply trace_skip in H0. exfalso. by apply H1.
+Qed.
+
+   Lemma agr_imp_age:
 forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
   eeval N0 V0 e r0 v0 ->
   (forall(z: loc), z \in (readobs_wvs r0 ) -> (getmap N0) z = (getmap N1) z) -> (*they concur

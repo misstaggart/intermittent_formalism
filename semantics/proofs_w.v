@@ -16,8 +16,8 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
 
  Lemma add_skip_ins_w {N1 V l N2}: all_diff_in_fww N1 V (Ins l) N2 ->
                                  all_diff_in_fww N1 V (l;; skip) N2.
-   Admitted.
-    Lemma agreeonread_ins_w_r: forall{N Nend N2: nvmem} {V Vend: vmem}
+Admitted.
+   Lemma agreeonread_ins_w_r: forall{N Nend N2: nvmem} {V Vend: vmem}
                         {l: instruction} {crem c1: command}
                    {O : obseq} {W: the_write_stuff},
   all_diff_in_fww N V (l;;crem) N2 ->
