@@ -419,7 +419,33 @@ forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
                                                                           values read
                                                                           from*)
               eeval N1 V0 e r0 v0.
-  intros. Admitted.
+     intros. move: N1 H0. dependent induction H; intros.
+     - by apply VAL.
+     -
+       assert ((forall z : loc, z \in readobs_wvs r1 -> getmap N z = getmap N1 z) /\
+       (forall z : loc, z \in readobs_wvs r2 -> getmap N z = getmap N1 z)) as Hz.
+      rewrite readobs_app_wvs in H2. split; intros z Hin.
+       apply (in_subseq (prefix_subseq (readobs_wvs r1) (readobs_wvs r2))) in Hin.
+       by apply H2.
+       apply (in_subseq (suffix_subseq (readobs_wvs r1) (readobs_wvs r2))) in Hin.
+         by apply H2.
+         move : Hz => [Hz1 Hz2].
+         apply IHeeval1 in Hz1. apply IHeeval2 in Hz2.
+         apply BINOP; try assumption.
+     - apply RD_VAR_NV; try assumption. suffices: (getmap N (inl x)) = (getmap N1 (inl x)).
+       move => Heq. unfold getvalue. rewrite - Heq. by apply H. apply H2.
+       simpl. apply mem_head.
+     - apply RD_VAR_V; try assumption.
+     - rewrite readobs_app_wvs in H3. eapply RD_ARR; try assumption. 
+       assert (forall z : loc, z \in readobs_wvs rindex -> getmap N z = getmap N1 z) as Hz.
+       intros z Hin. 
+       apply (in_subseq (prefix_subseq (readobs_wvs rindex) (readobs_wvs [::(inr element, v)]))) in Hin.
+         by apply H3. by apply IHeeval.
+suffices: (getmap N (inr element)) = (getmap N1 (inr element)).
+move => Heq. unfold getvalue. rewrite - Heq. by apply H0. apply H3.
+rewrite mem_cat. apply/orP. right. destruct element as [a0 i]. simpl. rewrite cats0.
+rewrite genloc_getarr. by []. assumption.
+Qed.
 
 Lemma if_ctx {N V e N1 V1 c1 c2 c3 O W}:
   cceval_w (N, V, TEST e THEN c1 ELSE c2) O (N1, V1, c3) W ->
