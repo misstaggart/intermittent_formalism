@@ -755,3 +755,62 @@ getmap Nmid z = getmap Nmid' z.
 symmetry in Hbool.
   by move: (trans_eq (trans_eq Hbool Heq) Hbool2).
   Qed.
+
+Lemma no_CP_in_seq: forall{O1 O2: obseq},
+    (O1 <=m O2) -> checkpoint \notin O1 /\ checkpoint \notin O2.
+  Admitted.
+Lemma sub_restrict: forall(N1: nvmem) (w: warvars) (Hf: wf_dom w (getmap N1)), subset_nvm
+                                                                   (restrict N1 w Hf) N1.
+   Admitted.
+
+Lemma update_diff N0 N1 N2: forall(l: loc), ((getmap N1) l !=
+                                                       (getmap (N0 U! N2)) l) ->
+                                          ((getmap N0) l <> (getmap N1) l /\ l \in (getdomain N0)) \/
+                                          ( (getmap N2) l <> (getmap N1) l /\
+                                            l \notin (getdomain N0)
+                                          ). Admitted.
+
+Lemma neg_observe_rb: forall {N N': nvmem} {V V': vmem}
+                     {c c': command} 
+                    {O: obseq} {W: the_write_stuff},
+    trace_cs (N, V, c) (N', V', c') O W ->
+    reboot \notin O.
+Admitted.
+  Lemma append_c {N1 V1 c1 N2 V2 crem O1 W1 N3 V3 c3 O2 W2}
+        :
+        trace_cs (N1, V1, c1) (N2, V2, crem) O1 W1 ->
+        trace_cs (N2, V2, crem) (N3, V3, c3) O2 W2 ->
+        trace_cs (N1, V1, c1) (N3, V3, c3) (O1 ++ O2) (append_write W1 W2).
+Admitted.
+
+  Lemma append_cps {N1 V1 c1 N2 V2 crem O1 W1 N3 V3 c3 O2 W2}
+        {w: warvars}:
+        trace_cs (N1, V1, c1) (N2, V2, incheckpoint w;; crem) O1 W1 ->
+        trace_cs (N2, V2, crem) (N3, V3, c3) O2 W2 ->
+        trace_cs (N1, V1, c1) (N3, V3, c3) (O1 ++ [::checkpoint] ++ O2) (append_write W1 W2).
+Admitted.
+
+  (*wouldnt need this guy if i took in an intermittent trace in 3?*)
+Lemma trace_append_ic {N0 V0 c0 N01 V01 c01 N1 V1 c1 N2 V2 c2
+                                      N3 V3 c3}
+                  {O1 O2: obseq}
+                  {W1 W2: the_write_stuff}:
+                  trace_i1 ((N0, V0, c0), N1, V1, c1) ((N01, V01, c01), N2, V2, c2) O1 W1 ->
+      trace_cs (N2, V2, c2) (N3, V3, c3) O2 W2  ->
+      exists(N02: nvmem) (V02: vmem) (c02: command), trace_i1 ((N0, V0, c0), N1, V1, c1)
+                                                         ((N02, V02, c02), N3, V3, c3) (O1 ++ O2) (append_write W1 W2).
+  Admitted.
+
+  Lemma both_cp {O1 O2} :
+    (O1 <=f O2) -> checkpoint \notin O1 ->
+    (O1 <=m O2) /\ checkpoint \notin O2.
+    Admitted.
+  (*  intros. inversion H; subst; try assumption.
+    repeat rewrite mem_cat in H0.
+    move/norP : H0 => [Hb H0]. move/norP: H0 => [contra Hb2].
+    exfalso. move/negP: contra. by apply. Qed.*)
+
+
+
+Lemma notin (o: obs) : o \notin [::].
+Admitted.

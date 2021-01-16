@@ -524,10 +524,6 @@ Definition get_smallvars (w: warvars) :=
           | (inr _) => false
           end) w.
 
-  (*Lemma get_sv_works: forall (w1: warvars) (x: smallvar),
-    (inl x \in w1) <->
-    (inl x \in (get_smallvars w1)). Admitted.*)
-
         Lemma agsv_war_h : forall(w1 w2: warvars) (x: smallvar),
             get_smallvars w2 = get_smallvars w1 ->
             inl x \notin w1 -> inl x \notin w2.

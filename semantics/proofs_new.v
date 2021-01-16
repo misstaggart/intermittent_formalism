@@ -721,19 +721,6 @@ Qed.
 
 Check prefix_seq. 
 
-  Lemma append_c {N1 V1 c1 N2 V2 crem O1 W1 N3 V3 c3 O2 W2}
-        :
-        trace_cs (N1, V1, c1) (N2, V2, crem) O1 W1 ->
-        trace_cs (N2, V2, crem) (N3, V3, c3) O2 W2 ->
-        trace_cs (N1, V1, c1) (N3, V3, c3) (O1 ++ O2) (append_write W1 W2).
-Admitted.
-
-  Lemma append_cps {N1 V1 c1 N2 V2 crem O1 W1 N3 V3 c3 O2 W2}
-        {w: warvars}:
-        trace_cs (N1, V1, c1) (N2, V2, incheckpoint w;; crem) O1 W1 ->
-        trace_cs (N2, V2, crem) (N3, V3, c3) O2 W2 ->
-        trace_cs (N1, V1, c1) (N3, V3, c3) (O1 ++ [::checkpoint] ++ O2) (append_write W1 W2).
-Admitted.
 
   Lemma three_bc  {Ni Ni1 V V1 c c1 Nc O W} :
   all_diff_in_fw Ni V c Nc ->
@@ -760,33 +747,6 @@ Proof. intros. move: Nc H. dependent induction H0; intros.
     eapply IHtrace_cs; try reflexivity; try assumption.
  Qed.
 
-
-Lemma neg_observe_rb: forall {N N': nvmem} {V V': vmem}
-                     {c c': command} 
-                    {O: obseq} {W: the_write_stuff},
-    trace_cs (N, V, c) (N', V', c') O W ->
-    reboot \notin O.
-Admitted.
-
-   Lemma update_diff N0 N1 N2: forall(l: loc), ((getmap N1) l !=
-                                                       (getmap (N0 U! N2)) l) ->
-                                          ((getmap N0) l <> (getmap N1) l /\ l \in (getdomain N0)) \/
-                                          ( (getmap N2) l <> (getmap N1) l /\
-                                            l \notin (getdomain N0)
-                                          ). Admitted.
-
-  (* Lemma sub_update: forall(N0 N1: nvmem),
-    subset_nvm N0 (N0 U! N1).
-  intros.
-  destruct N0, N1.
-  unfold subset_nvm. split.
-  simpl. apply prefix_subseq.
-  intros. simpl. by rewrite H.
-  Qed.*)
-
-   Lemma sub_restrict: forall(N1: nvmem) (w: warvars) (Hf: wf_dom w (getmap N1)), subset_nvm
-                                                                   (restrict N1 w Hf) N1.
-   Admitted.
 
 
 Lemma adif_works {N1 N2 V c Nend Vend O1 W1 cend}:
@@ -844,14 +804,15 @@ Qed.
 
 
 
-   Lemma adif_refl {N V c c1 Nend Vend O W}:
+Lemma adif_refl {N V c c1 Nend Vend O W}:
   trace_cs (N, V, c) (Nend, Vend, c1) O W ->
   end_com c1 ->
   checkpoint \notin O ->
         all_diff_in_fw N V c N.
-Admitted.
-(*cant actually use ww for this*)
-Lemma adif_sym {N1 V1 c1 Nc1}: 
+  intros. econstructor; try apply H; try assumption; try by [].
+  Qed.
+
+   Lemma adif_sym {N1 V1 c1 Nc1}:
   all_diff_in_fw N1 V1 c1 Nc1 ->
   all_diff_in_fw Nc1 V1 c1 N1.
   intros Hdiff. inversion Hdiff. subst.
@@ -952,9 +913,6 @@ suffices: O <> [::]. move => Hneq.
    Qed.
 
 
-Lemma no_CP_in_seq: forall{O1 O2: obseq},
-    (O1 <=m O2) -> checkpoint \notin O1 /\ checkpoint \notin O2.
-  Admitted.
 
 Lemma neg_pass_end_com {N V c Omid Nmid
                        Vmid cmid Wmid Nend Vend cend
@@ -1140,16 +1098,6 @@ dependent induction H0; intros.
         move/norP: H3 => [contra Hb1]. by case/negP : contra. 
 Qed.
 
-(*wouldnt need this guy if i took in an intermittent trace in 3?*)
-Lemma trace_append_ic {N0 V0 c0 N01 V01 c01 N1 V1 c1 N2 V2 c2
-                                      N3 V3 c3}
-                  {O1 O2: obseq}
-                  {W1 W2: the_write_stuff}:
-                  trace_i1 ((N0, V0, c0), N1, V1, c1) ((N01, V01, c01), N2, V2, c2) O1 W1 ->
-      trace_cs (N2, V2, c2) (N3, V3, c3) O2 W2  ->
-      exists(N02: nvmem) (V02: vmem) (c02: command), trace_i1 ((N0, V0, c0), N1, V1, c1)
-                                                         ((N02, V02, c02), N3, V3, c3) (O1 ++ O2) (append_write W1 W2).
-  Admitted.
 
 
 
@@ -1286,19 +1234,6 @@ by repeat rewrite - catA in ass3.
        by repeat rewrite cats0 in Hm. assumption.
 Qed.
 
-  Lemma both_cp {O1 O2} :
-    (O1 <=f O2) -> checkpoint \notin O1 ->
-    (O1 <=m O2) /\ checkpoint \notin O2.
-    Admitted.
-  (*  intros. inversion H; subst; try assumption.
-    repeat rewrite mem_cat in H0.
-    move/norP : H0 => [Hb H0]. move/norP: H0 => [contra Hb2].
-    exfalso. move/negP: contra. by apply. Qed.*)
-
-
-
-Lemma notin (o: obs) : o \notin [::].
-Admitted.
 
 Theorem One {N0 V c N01 V01 c01 N Oi Nendi Vend Wi
            }:
