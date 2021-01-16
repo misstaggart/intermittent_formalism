@@ -954,14 +954,12 @@ suffices: O <> [::]. move => Hneq.
      intros contra. subst.
      move/ empty_trace_cs1: T => [one two]. inversion one.
    }
-
-                         - inversion T; subst.
-
-                           inversion Hwar; subst; try assumption. inversion H4.
- -  
+inversion T; subst.
    apply cceval_skip in H0. inversion H0.
-   inversion H. apply cceval_steps in H. subst.
-
+   destruct Cmid as [ [nm vm] cm].
+   apply cceval_skip in H2. subst.
+   apply trace_skip in H0. exfalso. by apply H1.
+Qed.
 
 Lemma no_CP_in_seq: forall{O1 O2: obseq},
     (O1 <=m O2) -> checkpoint \notin O1 /\ checkpoint \notin O2.
