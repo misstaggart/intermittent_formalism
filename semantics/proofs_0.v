@@ -524,7 +524,7 @@ Lemma update: forall{N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} 
   destruct Cmid as [ [nm vm] cm].
   destruct W1 as [ [w1 r1] fw1].
   destruct W2 as [ [w2 r2] fw2].
-  simpl.rewrite mem_cat. apply/orP.
+  simpl. rewrite mem_cat. apply/orP.
   destruct (l \in w1) eqn: Hcase.
    by right.
   apply negbT in Hcase.
@@ -557,12 +557,29 @@ Lemma neg_observe_rb: forall {N N': nvmem} {V V': vmem}
     trace_cs (N, V, c) (N', V', c') O W ->
     reboot \notin O.
 Admitted.
-  Lemma append_c {N1 V1 c1 N2 V2 crem O1 W1 N3 V3 c3 O2 W2}
+
+Lemma append_c {N1 V1 c1 N2 V2 crem O1 W1 N3 V3 c3 O2 W2}
         :
         trace_cs (N1, V1, c1) (N2, V2, crem) O1 W1 ->
         trace_cs (N2, V2, crem) (N3, V3, c3) O2 W2 ->
         trace_cs (N1, V1, c1) (N3, V3, c3) (O1 ++ O2) (append_write W1 W2).
-Admitted.
+  move => T1. move: N3 V3 c3 O2 W2. dependent induction T1; intros.
+  3: {
+    destruct Cmid as [ [nm vm] cm].
+    suffices:
+         trace_cs (nm, vm, cm) (N3, V3, c3) 
+                  (O2 ++ O0) (append_write W2 W0).
+    move => Trest.
+    rewrite - catA.
+    rewrite append_writeA.
+    eapply CsTrace_Cons; try apply Trest; try apply H0; try assumption. apply/ nilP /eqP. rewrite size_cat.
+    intros contra.
+    move/ nilP/ negP : H. apply.
+    move/ eqP: contra => contra.
+    rewrite addn_eq0 in contra.
+    move/ andP: contra => [one two]. by apply one.
+    eapply IHT1; try reflexivity; try assumption.
+  }
 
   Lemma append_cps {N1 V1 c1 N2 V2 crem O1 W1 N3 V3 c3 O2 W2}
         {w: warvars}:

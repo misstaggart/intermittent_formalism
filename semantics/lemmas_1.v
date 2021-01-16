@@ -164,3 +164,19 @@ Lemma in_app_r: forall{A: Type} {a: A} {L1 L2: list A},
 
 Lemma notin (o: obs) : o \notin [::].
 Admitted.
+
+Lemma append_writeA {W1 W2 W3}:
+  append_write (append_write W1 W2) W3 =
+  append_write W1 (append_write W2 W3).
+destruct W1 as [ [w1 r1] fw1].
+destruct W2 as [ [w2 r2] fw2].
+destruct W3 as [ [w3 r3] fw3].
+unfold append_write. simpl.
+assert ((remove (r2 ++ r1) fw3 ++ remove r1 fw2) =
+        (remove r1 (remove r2 fw3 ++ fw2))) as Heq1.
+Admitted.
+(*suffices: (1 = 1).
+
+
+suffices: (fw3 = fw3). ++ remove r1 fw2 =
+        remove r1 (remove r2 fw3 ++ fw2).*)
