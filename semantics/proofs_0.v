@@ -627,18 +627,6 @@ Qed.
     rewrite append_write_empty in Tdone. by rewrite - catA in Tdone.
     apply CsTrace_Single; apply CheckPoint; try assumption.
 Qed.
-  (*wouldnt need this guy if i took in an intermittent trace in 3?*)
-
-Lemma trace_append_ic_bc{N1 V1 c1 N2 V2 c2}
-                  {O1: obseq}
-                  {W1: the_write_stuff} (N0: nvmem)
-  (V0: vmem) (c0: command):
-  trace_cs (N1, V1, c1) (N2, V2, c2) O1 W1 ->
-  checkpoint \notin O1 ->
-      exists(N02: nvmem) (V02: vmem) (c02: command), trace_i1 ((N0, V0, c0), N1, V1, c1)
-                                                         ((N02, V02, c02), N2, V2, c2) O1 W1.
-Admitted.
-
 
 Lemma trace_append_ic {N0 V0 c0 N01 V01 c01 N1 V1 c1 N2 V2 c2
                                       N3 V3 c3}
@@ -659,7 +647,7 @@ Lemma trace_append_ic {N0 V0 c0 N01 V01 c01 N1 V1 c1 N2 V2 c2
         move => Tend. 
   rewrite append_writeA.
   repeat rewrite - catA.
-  eapply iTrace_RB; try apply H; try assumption.rewrite mem_cat. apply/norP.
+  eapply iTrace_RB; try apply H; try assumption. rewrite mem_cat. apply/norP.
     by split.
 eapply IHTi; try reflexivity; try assumption.
 - suffices: 
