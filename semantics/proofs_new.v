@@ -705,13 +705,6 @@ intros. move: (two H H0) => [Nc1 [Hcceval Heq] ]. exists Nc1.
          exfalso. by apply Hl. by destruct Hc2.
 Qed.
 
-Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
-                         {Omid O: obseq} {Wmid W: the_write_stuff} {l: loc},
-    trace_cs (N, V, c) (Nmid, Vmid, cmid) Omid Wmid ->
-    checkpoint \notin Omid ->
-    trace_cs (N, V, c) (Nend, Vend, cend) O W ->
-    end_com cend ->
-    l \in (getfstwt Wmid) -> l \in (getfstwt W). Admitted.
                   
 
 Check prefix_seq. 
@@ -983,6 +976,61 @@ suffices: O <> [::]. move => Hneq.
 Lemma no_CP_in_seq: forall{O1 O2: obseq},
     (O1 <=m O2) -> checkpoint \notin O1 /\ checkpoint \notin O2.
   Admitted.
+
+Lemma fw_gets_bigger_bc:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
+                         {Omid O: obseq} {Wmid W: the_write_stuff} {l: loc},
+    cceval_w (N, V, c) Omid (Nmid, Vmid, cmid) Wmid ->
+    checkpoint \notin Omid ->
+    trace_cs (N, V, c) (Nend, Vend, cend) O W ->
+    end_com cend ->
+    l \in (getfstwt Wmid) -> l \in (getfstwt W).
+  Admitted.
+
+Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
+                         {Omid O: obseq} {Wmid W: the_write_stuff} {l: loc},
+    trace_cs (N, V, c) (Nmid, Vmid, cmid) Omid Wmid ->
+    checkpoint \notin Omid ->
+    trace_cs (N, V, c) (Nend, Vend, cend) O W ->
+    end_com cend ->
+    l \in (getfstwt Wmid) -> l \in (getfstwt W).
+  intros. move: H H0 H1 H2 H3 => Tsmall Hos Tbig Hend Hfw.
+  move: Nend Vend cend O W Tbig Hend Hfw.
+  dependent induction Tsmall; intros.
+  3: {
+    destruct Cmid as [ [nms vms] cms].
+    rewrite mem_cat in Hos. move/ norP: Hos => [Ho1 Ho2].
+    move/fw_split: Hfw => [one | [two three] ].
+    eapply fw_gets_bigger_bc; try apply H0; try assumption.
+    apply Tbig. assumption.
+    (*need to split Tbig up*)
+    suffices: (O <> [::]). intros Hneq.
+    move: (single_step_alls_rev Tbig Hneq). =>
+  [ [ [nm vm] cm] [W3 [Wrest [O3 [Hcceval [Hsub Hww] ] ] ] ] ].          move: (single_step_alls Tbig Hneq Hcceval).                  => [Wrest0 [Orest [Trest [Hsub1 Hw] ] ] ].
+    move: (determinism_c Hcceval H0). => [four [five six] ].
+    inversion four. subst. rewrite Hw.
+    suffices: l \in getfstwt Wrest0.
+    move => Hin. unfold append_write. simpl.
+    rewrite mem_cat. apply/ orP. left.
+    rewrite mem_filter. apply/andP. split; try by [].
+    eapply IHTsmall; try reflexivity; try assumption.
+    apply Trest. assumption.
+    (*get lemma from here*)
+    intros contra. subst.
+    move/ empty_trace_cs1: Tbig => [H11 H12]. inversion H11. subst.
+    destruct Hend as [Hskip | Hcp].
+    subst. inversion H0.
+    destruct Hcp as [crem [w contra] ]. subst.
+    apply observe_checkpt_s in H0. exfalso.
+    move/ negP: Ho1. by apply.
+  }
+  rewrite in_nil in Hfw. discriminate Hfw.
+  eapply fw_gets_bigger_bc; try apply H; try assumption. apply Tbig. assumption.
+Qed.
+  (*if you run into trace to end_com where you know it
+ cant be empty cuz of a cceval
+ from starting command that doesnt pass endcom
+ (no cp in obs)
+ make lemma out of bottom part*)
 
 Lemma threeIS1 {N0 Ni Ni1 Nend V V1 Vend c c1 Nc O W Oend Wend cend}:
   all_diff_in_fw Ni V c Nc -> (*ensures well formed up till nearest endcom*)
