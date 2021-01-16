@@ -73,25 +73,6 @@ Lemma sub_restrict: forall(N1: nvmem) (w: warvars) (Hf: wf_dom w (getmap N1)), s
   unfold restrict. simpl. simpl in Hl.
   rewrite ifT; try by []. Qed.
 
-Lemma update_diff N0 N1 N2: forall(l: loc),
-    ((getmap N1) l != (getmap (N0 U! N2)) l) ->
-  ((getmap N0) l <> (getmap N1) l /\ l \in (getdomain N0)) \/
-  ( (getmap N2) l <> (getmap N1) l /\ l \notin (getdomain N0)
-  ).
-  intros.
-  destruct N0 as [ m0 d0 h0].
-  destruct N1 as [ m1 d1 h1].
-  destruct N2 as [ m2 d2 h2].
-  simpl. simpl in H.
-  destruct (l \in d0) eqn: Hbool; try (move/ negbT : Hbool => Hbool). 
-    rewrite ifT in H; try by [].
-  left. split. apply not_eq_sym. move/ eqP: H. by apply.
-    by apply Hbool.
-rewrite ifF in H; try by []. right. split. apply not_eq_sym. move/ eqP: H. by apply. by [].
-by apply negbTE.
-Qed.
-
-
 Lemma sub_disclude N0 N1 N2:  forall(l: loc),
                      subset_nvm N0 N1 ->
                      subset_nvm N0 N2 ->
@@ -111,6 +92,26 @@ Proof. unfold isNV. unfold isV.
        unfold isNV_b. unfold isV_b.
        move => [s v]. destruct v; auto. (*ask arthur do both destructs at once?*)
 Qed.
+
+
+Lemma update_diff N0 N1 N2: forall(l: loc),
+    ((getmap N1) l != (getmap (N0 U! N2)) l) ->
+  ((getmap N0) l <> (getmap N1) l /\ l \in (getdomain N0)) \/
+  ( (getmap N2) l <> (getmap N1) l /\ l \notin (getdomain N0)
+  ).
+  intros.
+  destruct N0 as [ m0 d0 h0].
+  destruct N1 as [ m1 d1 h1].
+  destruct N2 as [ m2 d2 h2].
+  simpl. simpl in H.
+  destruct (l \in d0) eqn: Hbool; try (move/ negbT : Hbool => Hbool). 
+    rewrite ifT in H; try by [].
+  left. split. apply not_eq_sym. move/ eqP: H. by apply.
+    by apply Hbool.
+rewrite ifF in H; try by []. right. split. apply not_eq_sym. move/ eqP: H. by apply. by [].
+by apply negbTE.
+Qed.
+
 
 Lemma sub_update: forall(N0 N1: nvmem),
     subset_nvm N0 (N0 U! N1).
@@ -479,6 +480,23 @@ inversion contra1. subst.
 move/empty_trace_cs : H1 => [contra11 [contra2 [contra3 contra4] ] ].
 exfalso. by apply H2. Qed.
 
+Lemma single_step_alls: forall{C1 Cmid C3: context}
+                    {Obig O1 : obseq} {W1 Wbig: the_write_stuff},
+    trace_cs C1 C3 Obig Wbig ->
+    Obig <> [::] ->
+     cceval_w C1 O1 Cmid W1 ->
+    exists(Wrest: the_write_stuff) (Orest: obseq), trace_cs Cmid C3 Orest Wrest
+/\ (Obig = O1 ++ Orest) /\ Wbig = (append_write W1 Wrest).
+  intros. move: H H0 H1 => T Hob Hcc.
+  move: Cmid O1 W1 Hcc. dependent induction T; intros.
+  3: {
+   move: (determinism_c H0 Hcc) => [one [two three] ]. subst. 
+   exists W2 O2. repeat split; try by [].
+  }
+  exfalso. by apply Hob.
+   move: (determinism_c H Hcc) => [one [two three] ]. subst. 
+   exists emptysets ([::]: obseq). repeat split; try (apply CsTrace_Empty); try by []. by rewrite cats0. by rewrite append_write_empty. Qed.
+
  (*dont prove these till ur sure ur done w them*)
 Lemma single_step_alls_rev: forall{C1 C3: context}
                     {Obig : obseq} {Wbig: the_write_stuff},
@@ -489,14 +507,6 @@ Lemma single_step_alls_rev: forall{C1 C3: context}
 /\ (exists(Orest: obseq), Obig = O1 ++ Orest) /\ Wbig = (append_write W1 Wrest).
 Admitted.
 
-Lemma single_step_alls: forall{C1 Cmid C3: context}
-                    {Obig O1 : obseq} {W1 Wbig: the_write_stuff},
-    trace_cs C1 C3 Obig Wbig ->
-    Obig <> [::] ->
-     cceval_w C1 O1 Cmid W1 ->
-    exists(Wrest: the_write_stuff) (Orest: obseq), trace_cs Cmid C3 Orest Wrest
-/\ (Obig = O1 ++ Orest) /\ Wbig = (append_write W1 Wrest).
-Admitted.
 
 (*use singlestepalls for this probably*)
 Lemma same_single_step: forall{C1 Cmid C3: context}
