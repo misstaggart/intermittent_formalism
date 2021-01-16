@@ -1030,32 +1030,40 @@ O <> [::].
 
 
 Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
-                         {Omid O: obseq} {Wmid W: the_write_stuff} {l: loc},
+                         {Omid O: obseq} {Wmid W: the_write_stuff},
     trace_cs (N, V, c) (Nmid, Vmid, cmid) Omid Wmid ->
     checkpoint \notin Omid ->
     trace_cs (N, V, c) (Nend, Vend, cend) O W ->
     end_com cend ->
-    l \in (getfstwt Wmid) -> l \in (getfstwt W).
-  intros. move: H H0 H1 H2 H3 => Tsmall Hos Tbig Hend Hfw.
-  move: Nend Vend cend O W Tbig Hend Hfw.
+    (forall(l: loc), l \in (getfstwt Wmid) -> l \in (getfstwt W)) /\ (checkpoint \notin O
+                                                              -> Omid <=p O).
+  intros. move: H H0 H1 H2 => Tsmall Hos Tbig Hend.
+  move: Nend Vend cend O W Tbig Hend.
   dependent induction Tsmall; intros.
   3: {
     destruct Cmid as [ [nms vms] cms].
     rewrite mem_cat in Hos. move/ norP: Hos => [Ho1 Ho2].
-    move/fw_split: Hfw => [one | [two three] ].
-    eapply fw_gets_bigger_bc; try apply H0; try assumption.
-    apply Tbig. assumption.
-    (*need to split Tbig up*)
+    move: (fw_gets_bigger_bc H0 Ho1 Tbig Hend) => [bc1 bc2].
     suffices: (O <> [::]). intros Hneq.
     move: (single_step_alls_rev Tbig Hneq). =>
   [ [ [nm vm] cm] [W3 [Wrest [O3 [Hcceval [Hsub Hww] ] ] ] ] ].          move: (single_step_alls Tbig Hneq Hcceval).                  => [Wrest0 [Orest [Trest [Hsub1 Hw] ] ] ].
     move: (determinism_c Hcceval H0). => [four [five six] ].
     inversion four. subst. rewrite Hw.
+    suffices: 
+             (forall l : loc,
+              l \in getfstwt W2 -> l \in getfstwt Wrest0) /\
+             (checkpoint \notin Orest -> O2 <=p Orest).
+    move => [IH1 IH2].
+    split. intros l Hfw.
+    move/fw_split: Hfw => [one | [two three] ].
+    rewrite Hw in bc1. by apply (bc1 l).
     suffices: l \in getfstwt Wrest0.
     move => Hin. unfold append_write. simpl.
     rewrite mem_cat. apply/ orP. left.
     rewrite mem_filter. apply/andP. split; try by [].
-    eapply IHTsmall; try reflexivity; try assumption.
+      by apply (IH1 l).
+      intros Hnin.
+      (*start here*)
     apply Trest. assumption.
     eapply neg_pass_end_com; try apply H0;
     try apply Tbig; try assumption.
