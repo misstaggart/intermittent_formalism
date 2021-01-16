@@ -580,6 +580,11 @@ Lemma append_c {N1 V1 c1 N2 V2 crem O1 W1 N3 V3 c3 O2 W2}
     move/ andP: contra => [one two]. by apply one.
     eapply IHT1; try reflexivity; try assumption.
   }
+  by rewrite append_write_empty_l cat0s.
+    destruct (O2 == [::]) eqn: Hnil; move/ eqP: Hnil => Hnil. subst. move/ empty_trace_cs1 :H0 => [one two]. inversion one. subst.
+  rewrite append_write_empty cats0. by apply CsTrace_Single.
+  eapply CsTrace_Cons; try apply H; try apply H0; try assumption.
+Qed.
 
   Lemma append_cps {N1 V1 c1 N2 V2 crem O1 W1 N3 V3 c3 O2 W2}
         {w: warvars}:

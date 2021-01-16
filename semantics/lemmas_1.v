@@ -115,6 +115,7 @@ Lemma remove_app_r: forall {L1 L2 L3: warvars} {l : loc},
     by right.
     Qed.
 
+
 Lemma remove_to_app: forall (L1 L2 L3: warvars),
 
     filter (fun x => x \notin L2 ++ L3) L1 = filter (fun x => x \notin L3)
@@ -165,6 +166,9 @@ Lemma in_app_r: forall{A: Type} {a: A} {L1 L2: list A},
 Lemma notin (o: obs) : o \notin [::].
 Admitted.
 
+
+  (*use =1 with filter and mem_cat*)
+
 Lemma append_writeA {W1 W2 W3}:
   append_write (append_write W1 W2) W3 =
   append_write W1 (append_write W2 W3).
@@ -172,11 +176,11 @@ destruct W1 as [ [w1 r1] fw1].
 destruct W2 as [ [w2 r2] fw2].
 destruct W3 as [ [w3 r3] fw3].
 unfold append_write. simpl.
-assert ((remove (r2 ++ r1) fw3 ++ remove r1 fw2) =
-        (remove r1 (remove r2 fw3 ++ fw2))) as Heq1.
-Admitted.
-(*suffices: (1 = 1).
-
-
-suffices: (fw3 = fw3). ++ remove r1 fw2 =
-        remove r1 (remove r2 fw3 ++ fw2).*)
+assert (remove (r2 ++ r1) fw3 ++ remove r1 fw2 ++ fw1 =
+        remove r1 (remove r2 fw3 ++ fw2) ++ fw1) as Heq1.
+unfold remove. rewrite remove_to_app.
+rewrite filter_cat.
+by rewrite catA.
+rewrite Heq1.
+by repeat rewrite catA.
+Qed.
