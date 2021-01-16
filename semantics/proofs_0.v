@@ -29,12 +29,28 @@ Lemma stupid: forall (c: command) (l: instruction),
   induction c; inversion contra.
     by apply IHc. Qed.
 
+Lemma stupid1 {c1 c2 e}: 
+    c1 <> TEST e THEN c1 ELSE c2.
+  move => contra.
+  induction c1; inversion contra.
+    subst. by apply IHc1_1. Qed.
+
+Lemma stupid2 {c1 c2 e}:
+    c1 <> TEST e THEN c2 ELSE c1.
+  move => contra.
+  induction c1; inversion contra.
+    subst. by apply IHc1_1. Qed.
+
+
 Lemma cceval_steps1:forall{N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
                    {O: obseq} {W: the_write_stuff},
 
         cceval_w (N, V, c) O (Nmid, Vmid, cmid) W ->
         cmid <> c.
-intros. inversion H; subst; try apply stupid. Admitted. 
+  intros. inversion H; subst; try apply stupid; try (intros contra;
+                                                     discriminate contra).
+by apply stupid1. by apply stupid2.
+Qed.
 
 Lemma sub_disclude N0 N1 N2:  forall(l: loc),
                      subset_nvm N0 N1 ->
@@ -297,7 +313,9 @@ Lemma observe_checkpt_s: forall {N N': nvmem} {V V': vmem}
                      {c c' : command} {w: warvars}
                     {O: obseq} {W: the_write_stuff},
     cceval_w (N, V, (incheckpoint w ;; c)) O (N', V', c') W ->
-    checkpoint \in O. Admitted.
+    checkpoint \in O.
+  intros. inversion H; subst; try by [].
+  exfalso. by apply (H9 w). Qed.
 
  Lemma fw_split {W W1} {l: loc}:
            l \in getfstwt (append_write W1 W) ->
@@ -397,7 +415,18 @@ Lemma cceval_agr: forall{N1 N2 :nvmem} {V1 V2: vmem} {c: command}
   {C1 C2: context},
     cceval_w (N1, V1, c) O1 C1 W1 ->
     cceval_w (N2, V2, c) O2 C2 W2 ->
-    (getrd W1) = (getrd W2). Admitted.
+    (getrd W1) = (getrd W2).
+  intros.
+  (*move stuff
+  dependent induction H; subst. inversion H0; subst; try by []; try apply (read_deterministic (RD H4) (RD H11)).
+  exfalso. by apply (H2 w). simpl.
+ move: (read_deterministic (RD H4) (RD H13)) => Heq1.
+ move: (read_deterministic (RD H5) (RD H14)) => Heq2.
+ repeat rewrite readobs_app_wvs. by rewrite Heq1 Heq2.
+  exfalso. by apply (H4 w). simpl.*)
+  Admitted.
+
+
 
 Lemma trace_steps: forall{C1 C3: context} 
                     {Obig: obseq} {Wbig: the_write_stuff},

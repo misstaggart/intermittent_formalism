@@ -537,7 +537,12 @@ Fixpoint get_smallvars (w: warvars) :=
         Lemma sv_add_sv: forall(w1 w2 :warvars) (x: smallvar),
             (get_smallvars w1) = (get_smallvars w2) ->
             (get_smallvars ((inl x) :: w1) = get_smallvars ((inl x) :: w2)).
-        Admitted.
+          intros.
+          simpl.
+          induction w1.
+          destruct w1; destruct w2; try by [].
+          simpl in H.
+            in H. rewrite H.
 
         Lemma sv_add_el:forall(w1 w2 :warvars) (el: el_loc),
             (get_smallvars w1) = (get_smallvars w2) ->
