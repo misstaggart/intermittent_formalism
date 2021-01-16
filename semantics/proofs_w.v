@@ -517,44 +517,67 @@ Qed.
       eapply IHtrace_cs; try reflexivity; try assumption.
 Qed.
 
-Fixpoint get_smallvars (w: warvars) :=
+Definition get_smallvars (w: warvars) :=
   filter (fun v =>
           match v with
             (inl _) => true
           | (inr _) => false
           end) w.
 
-  Lemma get_sv_works: forall (w1: warvars) (x: smallvar),
+  (*Lemma get_sv_works: forall (w1: warvars) (x: smallvar),
     (inl x \in w1) <->
-    (inl x \in (get_smallvars w1)). Admitted.
+    (inl x \in (get_smallvars w1)). Admitted.*)
 
         Lemma agsv_war_h : forall(w1 w2: warvars) (x: smallvar),
             get_smallvars w2 = get_smallvars w1 ->
             inl x \notin w1 -> inl x \notin w2.
-          Admitted.
+          intros. apply/ negP. intros contra. suffices: (inl x) \in (get_smallvars w2).
+          intros contra1. rewrite H in contra1.
+          rewrite mem_filter in contra1. move/ negP: H0.
+          apply. by move/ andP : contra1 => [one two].
+          rewrite mem_filter. by []. Qed. 
 
-        (*should follow from a filter lemma*)
         Lemma sv_add_sv: forall(w1 w2 :warvars) (x: smallvar),
             (get_smallvars w1) = (get_smallvars w2) ->
             (get_smallvars ((inl x) :: w1) = get_smallvars ((inl x) :: w2)).
           intros.
-          simpl.
-          induction w1.
-          destruct w1; destruct w2; try by [].
-          simpl in H.
-            in H. rewrite H.
+          rewrite - cat1s.
+          rewrite - (cat1s (inl x) w2).
+          unfold get_smallvars. 
+          repeat rewrite filter_cat.
+          unfold get_smallvars in H. rewrite H.
+          by [].
+Qed.
 
         Lemma sv_add_el:forall(w1 w2 :warvars) (el: el_loc),
             (get_smallvars w1) = (get_smallvars w2) ->
             (get_smallvars ((inr el) :: w1) =
              get_smallvars w2).
-Admitted.
+          intros. rewrite - cat1s. unfold get_smallvars. rewrite filter_cat.
+          unfold get_smallvars in H. by apply H. Qed.
 
         Lemma sv_add_arr: forall(w1 w2 :warvars) (a: array),
             (get_smallvars w1) = (get_smallvars w2) ->
             (get_smallvars ((generate_locs a) ++ w1) =
              (get_smallvars w2)).
-          Admitted.
+          intros. suffices: get_smallvars (generate_locs a) = [::].
+          intros Hnil. unfold get_smallvars.
+          unfold get_smallvars in Hnil.
+          unfold get_smallvars in H.
+          rewrite filter_cat Hnil H. by [].
+          unfold get_smallvars. unfold generate_locs.
+          rewrite filter_map.
+          suffices: (preim
+                       (index_loc a)
+                       (fun v : smallvar + el_loc =>
+          match v with
+          | inl _ => true
+          | inr _ => false
+          end)
+                    ) =1 pred0. intros contra.
+          rewrite (eq_filter contra). rewrite filter_pred0. by [].
+          intros l.
+          by []. Qed. 
 
         Lemma war_cceval: forall{N0 N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
                    {l: instruction}
