@@ -62,7 +62,10 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
         subst.
         simpl in contra.
         inversion Hcceval; subst.
-        rewrite sub1seq in Hsubseq. move/negP : H2. by apply.
+        destruct Hsubseq as [Orest Hsub].
+        rewrite Hsub mem_cat in H2.
+        move/norP : H2 => [contra1 H111].
+        move/ negP: contra1. by apply.
         inversion H0; subst.
         move: (cceval_agr H0 H12) => Heqrd.
         rewrite Heqrd in Hread.
@@ -99,7 +102,10 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
         move: (single_step_alls_rev T Hneq). =>
         [Cmid [W1 [Wrest [O1 [Hcceval [Hsubseq Hw] ] ] ] ] ].
         inversion Hcceval; subst.
-        rewrite sub1seq in Hsubseq. exfalso. move/negP : H2. by apply.
+        destruct Hsubseq as [Orest Hsub].
+        rewrite Hsub mem_cat in H2.
+        move/norP : H2 => [contra1 H111]. exfalso.
+        move/ negP: contra1. by apply.
         inversion H0; subst.
         move: (determinism_c H0 H12) => [one [two three] ].
         inversion one. subst.
@@ -337,9 +343,9 @@ Qed.
          rewrite append_write_empty_l in H0.
          repeat rewrite append_write_empty_l in Hwrite. subst.
          econstructor; try apply Trest; try assumption.
-       apply/negP. intros contra.
+     (*  apply/negP. intros contra.
        apply/negP / negPn: H.
-       apply (in_subseq Hsubseq contra).
+       apply (in_subseq Hsubseq contra).*)
        exfalso. by apply H9.
          + move: (same_com_hcbc Hdiff H10). => [Nend [ Hcceval Hloc] ].
            exists Nend. split.
@@ -367,7 +373,7 @@ move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
        econstructor; try apply Trest; try assumption.
        apply/negP. intros contra.
        apply/negP / negPn: H.
-       apply (in_subseq Hsubseq contra).
+       rewrite Hsubseq. rewrite/ orP mem_cat. apply/orP. by right.
        (*intros. destruct ((inr el) \in (getwt W)) eqn: Hbool.
          by apply Hloc in Hbool.
        move : (update_one_contra (inr el) Hcceval) => Ho2ni.
@@ -426,9 +432,9 @@ move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
        destruct Cmid as [ [Nmid Vmid] cmid].
        inversion Hcceval; subst.
        econstructor; try apply Trest; try assumption.
-       apply/negP.
+      (* apply/negP.
        move/(in_subseq Hsubseq) => contra. move/negP: H.
-         by apply.
+         by apply.*)
          destruct Wrest1 as [ [w1 w2 ] w3].
          destruct Wrest as [ [wr1 wr2] wr3]. inversion Hwrite.
         
@@ -471,9 +477,9 @@ move: (single_step_alls T Hneq Hccevalbig). => [Wrest [Orest
            move: (determinism_e H12 Heval) => [one two].
            inversion two.
        econstructor; try apply Trest; try assumption.
-       apply/negP.
+      (* apply/negP.
        move/(in_subseq Hsubseq) => contra. move/negP: H.
-         by apply.
+         by apply.*)
          destruct Wrest1 as [ [w1 w2 ] w3].
          destruct Wrest as [ [wr1 wr2] wr3]. inversion Hwrite.
         

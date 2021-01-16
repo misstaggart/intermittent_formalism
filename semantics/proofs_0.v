@@ -319,13 +319,14 @@ Lemma observe_checkpt_s: forall {N N': nvmem} {V V': vmem}
               by left.
 Qed.
 
+ (*dont prove these till ur sure ur done w them*)
 Lemma single_step_alls_rev: forall{C1 C3: context}
                     {Obig : obseq} {Wbig: the_write_stuff},
     trace_cs C1 C3 Obig Wbig ->
     Obig <> [::] ->
     exists(Cmid: context) (W1 Wrest: the_write_stuff) (O1: obseq),
       cceval_w C1 O1 Cmid W1
-/\ subseq O1 Obig /\ Wbig = (append_write W1 Wrest).
+/\ (exists(Orest: obseq), Obig = O1 ++ Orest) /\ Wbig = (append_write W1 Wrest).
 Admitted.
 
 Lemma single_step_alls: forall{C1 Cmid C3: context}
@@ -334,7 +335,7 @@ Lemma single_step_alls: forall{C1 Cmid C3: context}
     Obig <> [::] ->
      cceval_w C1 O1 Cmid W1 ->
     exists(Wrest: the_write_stuff) (Orest: obseq), trace_cs Cmid C3 Orest Wrest
-/\ subseq Orest Obig /\ Wbig = (append_write W1 Wrest).
+/\ (Obig = O1 ++ Orest) /\ Wbig = (append_write W1 Wrest).
 Admitted.
 
 (*use singlestepalls for this probably*)

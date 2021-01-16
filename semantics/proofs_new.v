@@ -256,8 +256,10 @@ Lemma adif_cceval {N1 N2 V c Nend Vend O1 W cend}:
   move/ empty_trace_cs: Trest => [one [two [three four] ] ]. subst.
  by rewrite append_write_empty in H4.
  apply/negP. intros contra.
-exfalso.
-apply (in_subseq Hsub) in contra. move/ negP : H3. by apply.
+ exfalso.
+ rewrite Hsub in H3.
+ move/ negP : H3. apply. rewrite mem_cat. apply/orP.
+by right.
 Qed.
 
 Lemma trace_converge {N V cend Nc} :
@@ -312,7 +314,9 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
        econstructor; try apply Trest; try assumption.
        apply/negP. intros contra.
        apply/negP / negPn: H3.
-       apply (in_subseq Hsubseq contra).
+ rewrite Hsubseq.
+rewrite mem_cat. apply/orP.
+by right.
        rewrite append_write_empty_l in Hwrite. by rewrite - Hwrite.
        intros contra. subst.
        move: (empty_trace_cs1 T) => [Eq1 Eq2].
@@ -329,7 +333,9 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
        econstructor; try apply Trest; try assumption.
        apply/negP. intros contra.
        apply/negP / negPn: H2.
-       apply (in_subseq Hsubseq contra).
+ rewrite Hsubseq.
+rewrite mem_cat. apply/orP.
+by right.
        intros l0 Hl0. remember Hl0 as Hneq.
            clear HeqHneq.
            suffices: getmap Ni1 l0 <> getmap Nc1 l0 -> l0 \notin getwt W.
@@ -364,7 +370,9 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
                                 [Hsubseq Hwrite] ] ] ].
        econstructor; try apply Trest; try assumption.
        apply/negP.
-       move/(in_subseq Hsubseq) => contra. move/negP: H3.
+       move => contra. rewrite Hsubseq mem_cat in H3.
+       move/ norP : H3 => [one two].
+       move/negP: two.
          by apply.
          destruct W as [ [w1 w2 ] w3].
          destruct Wrest as [ [wr1 wr2] wr3]. inversion Hwrite.
@@ -387,7 +395,9 @@ Lemma two {Ni Ni1 V V1 c c1 Nc O W} : all_diff_in_fw Ni V c Nc ->
                                 [Hsubseq Hwrite] ] ] ].
        econstructor; try apply Trest; try assumption.
        apply/negP.
-       move/(in_subseq Hsubseq) => contra. move/negP: H3.
+       move => contra. rewrite Hsubseq mem_cat in H3.
+       move/ norP : H3 => [one two].
+       move/negP: two.
          by apply.
          destruct W as [ [w1 w2 ] w3].
          destruct Wrest as [ [wr1 wr2] wr3]. inversion Hwrite.
@@ -692,7 +702,9 @@ intros. move: (two H H0) => [Nc1 [Hcceval Heq] ]. exists Nc1.
          econstructor; try apply T1; try assumption.
          apply/ negP => contra.
          move/ negP : H3. apply.
-         apply (in_subseq Hsub contra).
+ rewrite Hsub.
+rewrite mem_cat. apply/orP.
+by right.
         (* apply (update_domc H Hcceval); assumption.*)
          move => l Hl.
          destruct ((getmap Ni l) == (getmap Nc l)) eqn: Hcase;
@@ -994,20 +1006,25 @@ O <> [::].
     move/ negP: H2. by apply. Qed.
 
     Lemma fw_gets_bigger_bc:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
-                         {Omid O: obseq} {Wmid W: the_write_stuff} {l: loc},
+                         {Omid O: obseq} {Wmid W: the_write_stuff},
     cceval_w (N, V, c) Omid (Nmid, Vmid, cmid) Wmid ->
     checkpoint \notin Omid ->
     trace_cs (N, V, c) (Nend, Vend, cend) O W ->
     end_com cend ->
-    l \in (getfstwt Wmid) -> l \in (getfstwt W).
-  intros. move: H H0 H1 H2 H3 => Hcc Hos Tbig Hend Hfw.
+    ( forall(l: loc), l \in (getfstwt Wmid) -> l \in (getfstwt W))
+      /\ (checkpoint \notin O -> (Omid <=p O)).
+  intros. move: H H0 H1 H2 => Hcc Hos Tbig Hend.
   suffices: (O <> [::]). intros Hneq.
     move: (single_step_alls_rev Tbig Hneq). =>
   [ [ [nm vm] cm] [W3 [Wrest [O3 [Hcceval [Hsub Hww] ] ] ] ] ].          move: (single_step_alls Tbig Hneq Hcceval).                  => [Wrest0 [Orest [Trest [Hsub1 Hw] ] ] ].
     move: (determinism_c Hcc Hcceval). => [four [five six] ].
     subst.
-    unfold append_write. simpl.
-    rewrite mem_cat. apply/ orP. by right.
+    unfold append_write. simpl. split.
+    intros l Hfw. rewrite mem_cat. apply/ orP. by right.
+    rewrite mem_cat. move/ norP => [one two].
+    repeat constructor; try assumption.
+    apply (neg_observe_rb (CsTrace_Single Hcc) ).
+    apply (neg_observe_rb Trest).
     eapply neg_pass_end_com; try apply Hcc;
     try apply Tbig; try assumption. Qed.
 
