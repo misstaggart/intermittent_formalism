@@ -21,7 +21,8 @@ Open Scope type_scope.
 Lemma no_CP_in_seq: forall{O1 O2: obseq},
     (O1 <=m O2) -> checkpoint \notin O1 /\ checkpoint \notin O2.
   Admitted.
-  Lemma both_cp {O1 O2} :
+
+Lemma both_cp {O1 O2} :
     (O1 <=f O2) -> checkpoint \notin O1 ->
     (O1 <=m O2) /\ checkpoint \notin O2.
     Admitted.
@@ -66,14 +67,31 @@ Qed.
 (*mems*)
 Lemma sub_restrict: forall(N1: nvmem) (w: warvars) (Hf: wf_dom w (getmap N1)), subset_nvm
                                                                    (restrict N1 w Hf) N1.
-   Admitted.
+  intros.
+  unfold subset_nvm.
+  intros l Hl. destruct N1 as [ nm nd nh].
+  unfold restrict. simpl. simpl in Hl.
+  rewrite ifT; try by []. Qed.
 
-Lemma update_diff N0 N1 N2: forall(l: loc), ((getmap N1) l !=
-                                                       (getmap (N0 U! N2)) l) ->
-                                          ((getmap N0) l <> (getmap N1) l /\ l \in (getdomain N0)) \/
-                                          ( (getmap N2) l <> (getmap N1) l /\
-                                            l \notin (getdomain N0)
-                                          ). Admitted.
+Lemma update_diff N0 N1 N2: forall(l: loc),
+    ((getmap N1) l != (getmap (N0 U! N2)) l) ->
+  ((getmap N0) l <> (getmap N1) l /\ l \in (getdomain N0)) \/
+  ( (getmap N2) l <> (getmap N1) l /\ l \notin (getdomain N0)
+  ).
+  intros.
+  destruct N0 as [ m0 d0 h0].
+  destruct N1 as [ m1 d1 h1].
+  destruct N2 as [ m2 d2 h2].
+  simpl. simpl in H.
+  destruct (l \in d0) eqn: Hbool; try (move/ negbT : Hbool => Hbool). 
+    rewrite ifT in H; try by [].
+  left. split. apply not_eq_sym. move/ eqP: H. by apply.
+    by apply Hbool.
+rewrite ifF in H; try by []. right. split. apply not_eq_sym. move/ eqP: H. by apply. by [].
+by apply negbTE.
+Qed.
+
+
 Lemma sub_disclude N0 N1 N2:  forall(l: loc),
                      subset_nvm N0 N1 ->
                      subset_nvm N0 N2 ->
@@ -332,8 +350,7 @@ try by move: (read_deterministic (RD H) (RD H9)).
                  (read_deterministic (RD H0) (RD H12)) => one two.
   repeat rewrite readobs_app_wvs. by rewrite one two. 
 Qed.
-(*W1 = W2. NOT true as arrays written to can depend on memory state
-     arrays read you keep the generality though*)
+
 
 Lemma cceval_agr: forall{N1 N2 :nvmem} {V1 V2: vmem} {c: command}
                    {O1 O2 : obseq} {W1 W2: the_write_stuff}
@@ -341,15 +358,15 @@ Lemma cceval_agr: forall{N1 N2 :nvmem} {V1 V2: vmem} {c: command}
     cceval_w (N1, V1, c) O1 C1 W1 ->
     cceval_w (N2, V2, c) O2 C2 W2 ->
     (getrd W1) = (getrd W2).
-  intros.
-  (*move stuff
-  dependent induction H; subst. inversion H0; subst; try by []; try apply (read_deterministic (RD H4) (RD H11)).
-  exfalso. by apply (H2 w). simpl.
- move: (read_deterministic (RD H4) (RD H13)) => Heq1.
- move: (read_deterministic (RD H5) (RD H14)) => Heq2.
- repeat rewrite readobs_app_wvs. by rewrite Heq1 Heq2.
-  exfalso. by apply (H4 w). simpl.*)
-  Admitted.
+  intros. move: H0 => Hcc2.
+  move: N2 V2 O2 C2 W2 Hcc2.
+  induction c; intros.
+  apply (cceval_agr_bc H Hcc2).
+  inversion H; subst; inversion Hcc2; subst; try by [];
+  try (exfalso; by apply (H8 w)); try (exfalso; by apply (H7 w)).
+  apply (cceval_agr_bc H9 H12).
+  inversion H; subst; inversion Hcc2; subst; try (move: (read_deterministic (RD H8) (RD H9)) => Heq; by subst).
+Qed.
 
 Lemma seq_step: forall{N: nvmem} {V: vmem} {l: instruction} {c: command}
     {C2: context} {O: obseq} {W: the_write_stuff},

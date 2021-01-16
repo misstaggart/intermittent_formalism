@@ -22,6 +22,23 @@ Lemma readobs_app_wvs: forall(r1 r2: readobs),
   + simpl. rewrite IHr1. by rewrite catA.
   Qed.
 
+Lemma stupid: forall (c: command) (l: instruction),
+    c <> (l ;; c).
+  move => c w contra.
+  induction c; inversion contra.
+    by apply IHc. Qed.
+
+Lemma stupid1 {c1 c2 e}: 
+    c1 <> TEST e THEN c1 ELSE c2.
+  move => contra.
+  induction c1; inversion contra.
+    subst. by apply IHc1_1. Qed.
+
+Lemma stupid2 {c1 c2 e}:
+    c1 <> TEST e THEN c2 ELSE c1.
+  move => contra.
+  induction c1; inversion contra.
+    subst. by apply IHc1_1. Qed.
 (*lists*)
 
 Lemma subseq_app_l: forall{A: eqType} {L1 L2 L3: seq A},
@@ -144,3 +161,6 @@ Lemma in_app_r: forall{A: Type} {a: A} {L1 L2: list A},
 
 
 
+
+Lemma notin (o: obs) : o \notin [::].
+Admitted.
