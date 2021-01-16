@@ -16,8 +16,30 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
 
  Lemma add_skip_ins_w {N1 V l N2}: all_diff_in_fww N1 V (Ins l) N2 ->
                                  all_diff_in_fww N1 V (l;; skip) N2.
-Admitted.
-   Lemma agreeonread_ins_w_r: forall{N Nend N2: nvmem} {V Vend: vmem}
+   intros Hdiff. inversion Hdiff; subst.
+   inversion T; subst.
+   - 
+     econstructor; try eapply CsTrace_Empty; try by [].
+     econstructor. eapply CsTrace_Single.
+     move: (cceval_skip H1) => eq. subst.
+     eapply Seq; try apply H1; try by []; try assumption. intros w contra. subst. inversion H1.
+     intros contra. subst. inversion H1. assumption.
+     assumption.
+     destruct Cmid as [ [nm vm] cm].
+     move: (cceval_skip H3) => eq. subst.
+     econstructor. eapply CsTrace_Single.
+     eapply Seq; try apply H3; try by []; try assumption. intros w contra. subst. inversion H3.
+     intros contra. subst. inversion H3.
+     rewrite mem_cat in H. move/ norP: H => [Ho1 Ho2].
+     assumption.
+     suffices: W2 = emptysets. move => eq. subst.
+     rewrite append_write_empty in H0.
+     assumption.
+     move: (trace_skip H1) => Heq. subst.
+       by move/empty_trace_cs1: H1 => [one two].
+     Qed.
+
+ Lemma agreeonread_ins_w_r: forall{N Nend N2: nvmem} {V Vend: vmem}
                         {l: instruction} {crem c1: command}
                    {O : obseq} {W: the_write_stuff},
   all_diff_in_fww N V (l;;crem) N2 ->
