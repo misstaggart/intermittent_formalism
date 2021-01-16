@@ -590,10 +590,18 @@ Qed.
         {w: warvars}:
         trace_cs (N1, V1, c1) (N2, V2, incheckpoint w;; crem) O1 W1 ->
         trace_cs (N2, V2, crem) (N3, V3, c3) O2 W2 ->
+        wf_dom w (getmap N2) ->
         trace_cs (N1, V1, c1) (N3, V3, c3) (O1 ++ [::checkpoint] ++ O2) (append_write W1 W2).
-Admitted.
-
-  (*wouldnt need this guy if i took in an intermittent trace in 3?*)
+    intros T T2 Hdom.
+    suffices: trace_cs (N2, V2, incheckpoint w;; crem) (N2, V2, crem)
+                       [::checkpoint] emptysets.
+    intros T1.
+    move: (append_c T T1) => Tstart. 
+    move: (append_c Tstart T2) => Tdone.
+    rewrite append_write_empty in Tdone. by rewrite - catA in Tdone.
+    apply CsTrace_Single; apply CheckPoint; try assumption.
+Qed.
+    (*wouldnt need this guy if i took in an intermittent trace in 3?*)
 Lemma trace_append_ic {N0 V0 c0 N01 V01 c01 N1 V1 c1 N2 V2 c2
                                       N3 V3 c3}
                   {O1 O2: obseq}

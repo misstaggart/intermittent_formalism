@@ -1186,7 +1186,7 @@ by repeat rewrite - catA in ass3.
       move => [Oc2 [Oendc2 [Nc2 [Wc2 [Wendc2 [H21 [H22 [Ho2 H23] ] ] ] ] ] ] ].
       (*consider: maybe your type should just split by reboots
        rather than checkpoints*)
-     - subst. move: (append_cps H11 H21) => T1.
+     - subst. move: (append_cps H11 H21 Hw) => T1.
       exists (Oc1 ++ [::checkpoint] ++ Oc2) Oendc2 Nc2 (append_write Wc1 Wc2) Wendc2.
       repeat split; try assumption.
       repeat rewrite - catA. apply CP_IND; try assumption.
