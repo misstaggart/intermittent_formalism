@@ -891,7 +891,36 @@ Lemma warok_cp {N1 N2 V1 V2 c crem O W}
       {w0 w1: warvars}:
   WARok w0 [::] [::] c ->
   trace_cs (N1, V1, c) (N2, V2, incheckpoint w1;; crem) O W ->
-  WARok w1 [::] [::] crem. Admitted.
+  WARok w1 [::] [::] crem. intros Hwar T.
+   move: N1 V1 N2 V2 O W T.
+   dependent induction Hwar; subst; intros.
+   2: {
+     destruct (O == [::]) eqn: Hbool; move/ eqP: Hbool => Hbool. subst.
+     move/empty_trace_cs1: T => [one two]. inversion one.
+     subst. assumption.
+     move: (single_step_alls_rev T Hbool). =>
+ [ [ [nm vm] cm]
+     [W1
+        [Wrest
+           [ O1
+               [Hcceval
+                  [Hsub Hw]
+               ]
+           ]
+        ]
+ ] ].
+     move: (cceval_steps Hcceval) => one. subst.
+     move: (single_step_alls T Hbool Hcceval). =>
+                                               [Wrest0 [Orest [Trest [Hsubr Hwr] ] ] ].
+     eapply IHHwar; try by []. apply Trest.
+   }
+
+                         - inversion T; subst.
+
+                           inversion Hwar; subst; try assumption. inversion H4.
+ -  
+   apply cceval_skip in H0. inversion H0.
+   inversion H. apply cceval_steps in H. subst.
 
 
 Lemma no_CP_in_seq: forall{O1 O2: obseq},
@@ -924,11 +953,6 @@ dependent induction H0; intros.
       apply (adif_works Hdone H4); try assumption.
   + assert (all_diff_in_fw Ni V c (N0 U! Nmid)) as Hdiffrb.
     - inversion H8. subst.  econstructor; try apply T; try assumption.
-    (*move => el. apply/ eqP / negPn/ negP => contra.
-   apply update_diff in contra. destruct contra as [ [con11 con12] | [con21 con22] ].
-   apply con11. apply (H4 (inr el) con12).
-   move: (update H (not_eq_sym con21)) => Hdiff.
-   move/negP :(wts_cped_arr H H3 H1 con22). by apply.*)
    move => l. move/eqP/update_diff => [ [diff11 diff12] | [diff21 diff22] ]. case diff11. apply (H4 l diff12).
    move: (update H (not_eq_sym diff21)) => Hdiff.
    (*start here clean up repeated work in above*)
