@@ -513,22 +513,25 @@ Lemma single_step_alls_rev: forall{C1 C3: context}
 Qed.
 
 
-(*use singlestepalls for this probably*)
-Lemma same_single_step: forall{C1 Cmid C3: context}
-                    {Obig O1 : obseq} {W1 Wbig: the_write_stuff},
-    trace_cs C1 C3 Obig Wbig ->
-    Obig <> [::] ->
-    cceval_w C1 O1 Cmid W1 ->
-    subseq (getrd W1) (getrd Wbig) /\ subseq (getwt W1) (getwt Wbig).
-Admitted.
-
 Lemma update: forall{N Nend: nvmem} {V Vend: vmem} {c cend: command} {O: obseq} {W: the_write_stuff}
   {l: loc},
     trace_cs (N, V, c) (Nend, Vend, cend) O W ->
     (getmap N) l <> (getmap Nend) l ->
     l \in (getwt W).
-  Admitted.
-
+  intros. move: l H0. dependent induction H; intros.
+  exfalso. by apply H0.
+  eapply update_one_c; try apply H. move/ eqP: H0. by apply.
+  destruct Cmid as [ [nm vm] cm].
+  destruct W1 as [ [w1 r1] fw1].
+  destruct W2 as [ [w2 r2] fw2].
+  simpl.rewrite mem_cat. apply/orP.
+  destruct (l \in w1) eqn: Hcase.
+   by right.
+  apply negbT in Hcase.
+  move: (update_one_contra l H1 Hcase) => Heq.
+  rewrite Heq in H2.
+  left. eapply IHtrace_cs; try reflexivity; try assumption.
+  Qed.
 
 Lemma trace_skip: forall {N N': nvmem} {V V': vmem}
                     {c: command}
