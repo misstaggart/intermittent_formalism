@@ -181,22 +181,43 @@ Lemma fw_subst_wt_c: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
               by left.
 Qed.
 
-(*this should be quick and fast
- cuz i could replace it with
- quick and fast on the spot simplification*)
-Lemma r_means_negfw:forall{C Cend: context}  {O: obseq} {W: the_write_stuff}
-  {l: loc},
-    cceval_w C O Cend W ->
- l \in (getrd W) -> l \notin (getfstwt W).
-Admitted.
 
+  Lemma fw_nin_r_bc {N V} {i: instruction}: forall{C2: context} {O: obseq} {W: the_write_stuff} (l: loc),
+    cceval_w (N, V, Ins i) O C2 W ->
+    l \in (getrd W) ->
+          l \notin  (getfstwt W).
+  intros. inversion H; subst; try by [];
+  simpl; simpl in H0.
+  destruct (inl x \notin readobs_wvs r) eqn: Hbool.
+  rewrite ifT; try by [].
+  rewrite mem_seq1.
+  apply/ eqP. intros contra. subst.
+  rewrite H0 in Hbool. discriminate Hbool.
+  rewrite ifF; try by [].
+
+  destruct (inr element \notin readobs_wvs (r ++ ri)) eqn: Hbool.
+  rewrite ifT; try by [].
+  rewrite mem_seq1.
+  apply/ eqP. intros contra. subst.
+  rewrite H0 in Hbool. discriminate Hbool.
+  rewrite ifF; try by []. Qed.
+
+Lemma fw_nin_r_c: forall{C1 C2: context} {O: obseq} {W: the_write_stuff} (l: loc),
+    cceval_w C1 O C2 W ->
+    l \in (getrd W) ->
+          l \notin  (getfstwt W).
+  intros. destruct C1 as [ [nm vm] cm].
+  dependent induction cm.
+  eapply fw_nin_r_bc; try apply H; try assumption.
+  inversion H; subst; try by [].
+  eapply fw_nin_r_bc; try apply H10; try assumption.
+  inversion H; try by []. Qed.
 
 Lemma negfwandw_means_r: forall{C Cend: context}  {O: obseq} {W: the_write_stuff}
   {l: loc},
     cceval_w C O Cend W ->
     l \notin (getfstwt W) -> l \in (getwt W) -> l \in (getrd W).
 Admitted.
-
 
 
 Lemma extract_write_svnv: forall {N Nend: nvmem} {V Vend: vmem}

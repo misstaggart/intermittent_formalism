@@ -150,7 +150,7 @@ Inductive all_diff_in_fww: nvmem -> vmem -> command -> nvmem -> Prop :=
         move: (cceval_agr Hcceval Hcc) => Hww.
         rewrite Hw in contra.
         unfold append_write in contra. simpl in contra. rewrite Hww in contra. rewrite - Hww in Hr.
-        move: (r_means_negfw Hcceval Hr) => Hfw.
+        move: (fw_nin_r_c z Hcceval Hr) => Hfw.
         rewrite mem_cat in contra.
         move/ orP : contra. => [con1 | con2].
         rewrite mem_filter in con1. move/andP: con1 => [con11 con12]. move/ negP: con11. apply. by rewrite - Hww.
