@@ -20,12 +20,17 @@ Open Scope type_scope.
 
 Lemma no_CP_in_seq: forall{O1 O2: obseq},
     (O1 <=m O2) -> checkpoint \notin O1 /\ checkpoint \notin O2.
-  Admitted.
+  intros. inversion H; subst; try by []. split; try by [].
+  rewrite mem_cat. apply/ norP. split; try by []. Qed.
 
 Lemma both_cp {O1 O2} :
     (O1 <=f O2) -> checkpoint \notin O1 ->
     (O1 <=m O2) /\ checkpoint \notin O2.
-    Admitted.
+  intros. inversion H; subst; try by [].
+  split; try by []. by move/no_CP_in_seq : H1 => [one two].
+  rewrite mem_cat in H0. exfalso. move/ norP: H0 => [one two].
+  rewrite mem_cat in two. move/ norP: two => [three four].
+  move/ negP : three. by apply. Qed.
 
   Lemma equal_index_works: forall{e0 e1: el_loc} {a: array} {v: value},
     equal_index e0 a v -> equal_index e1 a v ->
@@ -153,13 +158,24 @@ Lemma updateone_arr: forall{N: nvmem} {a: array} {v: value}
   destruct (v == error) eqn: Hbool. exfalso. by apply H.
   rewrite beq in H.
   exfalso. by apply H. 
-  Qed.
+Qed.
+
 (*the write stuff*)
 
+Lemma fw_subst_wt_bc {N1 V1 l}: forall{C2: context} {O: obseq} {W: the_write_stuff},
+  cceval_w (N1, V1, Ins l) O C2 W ->
+  subseq (getfstwt W) (getwt W).
+  intros. inversion H; subst; try by []; try by rewrite filter_subseq. Qed.
+
 Lemma fw_subst_wt_c: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
-      (* pose proof (cceval_to_rd_sv H H5). *)
   cceval_w C1 O C2 W ->
-  subseq (getfstwt W) (getwt W). Admitted.
+  subseq (getfstwt W) (getwt W).
+  intros.
+  destruct C1 as [ [nm vm] cm]. dependent induction cm.
+  eapply fw_subst_wt_bc; try apply H; try assumption.
+  inversion H; subst; try by [].
+  eapply fw_subst_wt_bc; try apply H9; try assumption.
+  inversion H; try by []. Qed.
 
  Lemma fw_split {W W1} {l: loc}:
            l \in getfstwt (append_write W1 W) ->
@@ -449,7 +465,8 @@ Lemma cceval_skip: forall {N N': nvmem} {V V': vmem}
                     {l: instruction} {c: command}
   {O: obseq} {W: the_write_stuff},
     cceval_w (N, V, Ins l) O (N', V', c) W ->
-    (c = skip). Admitted.
+    (c = skip).
+  intros. inversion H; by []. Qed.
 
    Lemma agr_imp_age:
 forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
@@ -490,7 +507,7 @@ Qed.
 Lemma if_ctx {N V e N1 V1 c1 c2 c3 O W}:
   cceval_w (N, V, TEST e THEN c1 ELSE c2) O (N1, V1, c3) W ->
   N = N1 /\ V = V1.
-Admitted.
+  intros. inversion H; by []. Qed.
 
 Lemma cceval_steps: forall{N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
                    {O: obseq} {W: the_write_stuff} {l: instruction},
@@ -662,7 +679,8 @@ Lemma trace_skip: forall {N N': nvmem} {V V': vmem}
                     {c: command}
   {O: obseq} {W: the_write_stuff},
    trace_cs (N, V, Ins skip) (N', V', c) O W ->
- O = [::]. Admitted.
+   O = [::].
+  intros. inversion H; subst; try by []. inversion H0. inversion H2. Qed.
 
 
    Lemma trace_skip1 {N1 V1 N2 V2 c O W} {l: instruction}:
@@ -679,9 +697,12 @@ Qed.
 Lemma neg_observe_rb: forall {N N': nvmem} {V V': vmem}
                      {c c': command} 
                     {O: obseq} {W: the_write_stuff},
-    trace_cs (N, V, c) (N', V', c') O W ->
-    reboot \notin O.
-Admitted.
+       cceval_w (N, V, c) O (N', V', c') W ->
+       reboot \notin O.
+  intros. inversion H; subst; try by []. inversion H10; subst; try by [].
+  Qed.
+
+
 
 Lemma append_c {N1 V1 c1 N2 V2 crem O1 W1 N3 V3 c3 O2 W2}
         :
