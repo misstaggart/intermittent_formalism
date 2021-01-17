@@ -104,24 +104,35 @@ rewrite H1 in Hin. discriminate Hin.
 
 Lemma subw_sort {A: eqType} {L1 L2: seq A} {R: rel A}:
   subseq_w L1 L2 = subseq_w L1 (sort R L2).
-Admitted.
+  apply propositional_extensionality. split; intros Hsub i Hin; apply Hsub in Hin.
+    by rewrite mem_sort.
+    by rewrite mem_sort in Hin.
+Qed.
 
 Lemma subw_cons {A: eqType} {L1 L2: seq A} {x: A}:
-subseq_w L1 L2 -> subseq_w L1 (x:: L2). Admitted.
+  subseq_w L1 L2 -> subseq_w L1 (x:: L2).
+ move => H i Hi. apply H in Hi. rewrite in_cons. apply/orP. by right. Qed.
 
 Lemma intersect_sort {A: eqType} {R: rel A}: forall {L1 L2: seq A},
     intersect L1 (sort R L2) = intersect L1 L2.
-Admitted.
+  intros. apply propositional_extensionality. split; move => [i [H1 H2] ]; exists i; split; try by []. by rewrite mem_sort in H2. by rewrite mem_sort. Qed. 
 
 Lemma subw_prefix {A: eqType} {L1 L2 L3: seq A}:
-  subseq_w L1 L2 -> subseq_w L1 (L2 ++ L3). Admitted.
+  subseq_w L1 L2 -> subseq_w L1 (L2 ++ L3).
+  move => Hsub i Hi. apply Hsub in Hi. rewrite mem_cat. apply/orP. by left. Qed.
 
 Lemma subw_suffix {A: eqType} {L1 L2 L3: seq A}:
-  subseq_w L1 L3 -> subseq_w L1 (L2 ++ L3). Admitted.
+  subseq_w L1 L3 -> subseq_w L1 (L2 ++ L3). 
+  move => Hsub i Hi. apply Hsub in Hi. rewrite mem_cat. apply/orP. by right. Qed.
+
 
 Lemma subw_refl {A: eqType} {L1: seq A}:
-  subseq_w L1 L1. Admitted.
+  subseq_w L1 L1. move => i Hi. by []. Qed.
 
 Lemma intersect_cat {A: eqType} : forall {L1 L2 L3: seq A},
-  intersect L1 (L2 ++ L3) = (intersect L1 L2 \/ intersect L1 L3). Admitted.
-
+    intersect L1 (L2 ++ L3) = (intersect L1 L2 \/ intersect L1 L3).
+  intros.
+  apply propositional_extensionality. split.
+  move => [i [one two] ]. rewrite mem_cat in two. move/ orP : two => [two1 | two2]; [left | right]; by exists i.
+                                                                                 move => [ [i [one two] ] | [i [one two] ] ]; exists i; split; try by [];
+try (rewrite mem_cat; apply/ orP). by left. by right. Qed.
