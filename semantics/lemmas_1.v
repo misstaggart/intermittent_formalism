@@ -179,7 +179,7 @@ Lemma in_app_r: forall{A: Type} {a: A} {L1 L2: list A},
 
 
 Lemma notin (o: obs) : o \notin [::].
-Admitted.
+by rewrite in_nil. Qed.
 
 
   (*use =1 with filter and mem_cat*)
