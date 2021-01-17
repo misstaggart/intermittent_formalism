@@ -811,8 +811,10 @@ Inductive command :=
 
 Open Scope nat_scope.
 Fixpoint size_com (c : command) :=
-match c with
-  Ins l => 0
+  match c with
+    Ins l => match l with
+              skip => 0
+             | _ => 1 end
 | Seqcom _ c1 => 1 + (size_com c1)
 | ITE _ c1 c2 => 1 + (size_com c1) + (size_com c2) end.
 Close Scope nat_scope.
