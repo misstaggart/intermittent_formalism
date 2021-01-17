@@ -1108,16 +1108,7 @@ exists el11. rewrite ifT; try by []. apply Hsub.
   (locsort (undup (D ++ D'))) (updatemaps_wf H H') (*inclusion of duplicates...can't allow this*)
   end.
 Notation "m1 'U!' m2" := (updatemaps m1 m2) (at level 100).
-(*start here should really change the above ordering to be more intuitive*)
 
-(*Lemma emptymap_wf : valid_nvm (emptymap loc_eqtype) nil. Admitted.
-
-Notation emptyNV := (NonVol (emptymap loc_eqtype) nil emptymap_wf).
-Definition reset (V: vmem) := Vol (emptymap loc_eqtype).*)
-
-(*restricts memory map m to domain w*)
-(*doesn't actually clean the unnecessary variables out of m*)
-(*need a decidable In here*)
 Lemma decidable_loc: forall(x y: loc), {x = y} + {x <> y}.
   intros. destruct (x == y) eqn: beq.
   apply left. apply: eqP beq.
@@ -1324,8 +1315,8 @@ Lemma prefix_app {O1 O2 O3: obseq} :
   2:{
 rewrite catA. apply P_Ind; try assumption.
   }
-  apply P_Base. Admitted.
-
+  apply P_Base; try (rewrite mem_cat; apply/norP; split; by []).
+Qed.
 
 
 
