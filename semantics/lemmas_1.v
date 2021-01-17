@@ -22,6 +22,21 @@ Lemma readobs_app_wvs: forall(r1 r2: readobs),
   + simpl. rewrite IHr1. by rewrite catA.
   Qed.
 
+  Lemma append_write_empty: forall{W: the_write_stuff},
+    append_write W emptysets = W.
+Proof. intros. simpl. unfold append_write. simpl.
+       repeat rewrite cats0.
+       apply undo_gets.
+Qed.
+
+
+Lemma append_write_empty_l: forall{W: the_write_stuff},
+    append_write emptysets W = W.
+Proof. intros. simpl. unfold append_write. simpl.
+       unfold remove. simpl.
+       rewrite filter_predT. repeat rewrite cats0. 
+       apply undo_gets.
+Qed.
 Lemma stupid: forall (c: command) (l: instruction),
     c <> (l ;; c).
   move => c w contra.

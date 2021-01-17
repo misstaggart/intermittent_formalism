@@ -156,12 +156,6 @@ Lemma updateone_arr: forall{N: nvmem} {a: array} {v: value}
   Qed.
 (*the write stuff*)
 
-Lemma fw_nin_r_c: forall{C1 C2: context} {O: obseq} {W: the_write_stuff} (l: loc),
-    (* pose proof (cceval_to_rd_sv H H5). *)
-    cceval_w C1 O C2 W ->
-    l \in (getrd W) ->
-    l \notin  (getfstwt W). Admitted.
-
 Lemma fw_subst_wt_c: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
       (* pose proof (cceval_to_rd_sv H H5). *)
   cceval_w C1 O C2 W ->
@@ -204,12 +198,6 @@ Lemma negfwandw_means_r: forall{C Cend: context}  {O: obseq} {W: the_write_stuff
 Admitted.
 
 
-(*use above*)
-Lemma negrandw_means_fw: forall{C Cend: context}  {O: obseq} {W: the_write_stuff}
-  {l: loc},
-    cceval_w C O Cend W ->
-    l \notin (getrd W) -> l \in (getwt W) -> l \in (getfstwt W).
-Admitted.
 
 Lemma extract_write_svnv: forall {N Nend: nvmem} {V Vend: vmem}
                       {e: exp} {x: smallvar} {O: obseq}
@@ -493,6 +481,59 @@ symmetry in Hbool.
   Qed.
 
 (*traces*)
+Lemma empty_trace_cs1: forall{C1 C2: context} {W: the_write_stuff},
+    trace_cs C1 C2 [::] W -> C1 = C2 /\ W = emptysets.
+  intros. dependent induction H.
+  split; by  [].
+  inversion H; subst.
+  inversion H2; subst.
+  exfalso. apply H0.
+  apply/ nilP.
+  move/ nilP /eqP : x. rewrite size_cat => contra.
+    move/ eqP: contra => contra.
+    rewrite addn_eq0 in contra.
+    move/ andP: contra => [one two]. by apply two.
+    Qed.
+
+Lemma size_dec_c:
+  forall{N1 N2: nvmem} {V1 V2: vmem} {c c1: command} {O: obseq} {W: the_write_stuff},
+    cceval_w (N1, V1, c) O (N2, V2, c1) W -> leq (size_com c1) (size_com c).
+  intros.
+    inversion H; subst; simpl; try by [].
+    rewrite (addnC 1%nat (size_com c1)).
+    rewrite - addnA.
+    apply leq_addr.
+    apply leq_addl.
+Qed.
+
+Lemma size_dec:
+  forall{N1 N2: nvmem} {V1 V2: vmem} {c c1: command} {O: obseq} {W: the_write_stuff},
+    trace_cs (N1, V1, c) (N2, V2, c1) O W -> leq (size_com c1) (size_com c).
+  intros. dependent induction H.
+    by [].
+    eapply size_dec_c. apply H.
+    destruct Cmid as [ [nm vm] cm].
+    suffices: (leq (size_com c1) (size_com cm)).
+    intros one.
+    move: (size_dec_c H1) => two.
+    apply (leq_trans one two).
+    eapply IHtrace_cs; try reflexivity.
+Qed.
+
+Lemma empty_trace_cs:
+  forall{N1 N2: nvmem} {V1 V2: vmem} {c: command} {O: obseq} {W: the_write_stuff},
+    trace_cs (N1, V1, c) (N2, V2, c) O W -> O = [::] /\ N1 = N2 /\ V1 = V2 /\ W = emptysets.
+  intros. dependent induction H.
+  repeat split; by [].
+  apply cceval_steps1 in H.
+  exfalso. by apply H.
+  destruct Cmid as [ [nm vm] cm].
+  exfalso. apply H0.
+  move: (IHtrace_cs nm N2 V1 V2 c). =>
+                                    [one [two three] ].
+
+
+
 Lemma determinism: forall{C1: context} {N1 N2: nvmem} {V1 V2: vmem} {cend: command} {O1 O2: obseq} {W1 W2: the_write_stuff},
     trace_cs C1 (N1, V1, cend) O1 W1 ->
     trace_cs C1 (N2, V2, cend) O2 W2 ->

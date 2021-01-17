@@ -809,6 +809,14 @@ Inductive command :=
                                          constructor*)
 | ITE (e: exp) (c1: command) (c2: command).
 
+Open Scope nat_scope.
+Fixpoint size_com (c : command) :=
+match c with
+  Ins l => 0
+| Seqcom _ c1 => 1 + (size_com c1)
+| ITE _ c1 c2 => 1 + (size_com c1) + (size_com c2) end.
+Close Scope nat_scope.
+
 Notation "l ';;' c" := (Seqcom l c)
   (at level 41, right associativity).
 

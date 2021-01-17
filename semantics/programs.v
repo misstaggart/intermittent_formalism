@@ -86,32 +86,6 @@ Inductive trace_cs: context -> context -> obseq -> the_write_stuff -> Prop :=
 
 Print trace_c_ind.
 
-(*Theorem trace_c_ind_flex: forall
-         P : context ->
-             context ->
-             obseq ->
-             the_write_stuff -> Prop,
-       (forall C : context,
-        P C C [::] ([::], [::], [::])) ->
-       (forall (C1 C2 : context)
-          (O : obseq)
-          (W : the_write_stuff),
-        cceval_w C1 O C2 W -> P C1 C2 O W) ->
-       (forall (C1 C2 : context)
-          (O1 O2 : obseq)
-          (W1 W2 : the_write_stuff),
-      (exists(Cmid: context), trace_c C1 Cmid O1 W1 /\
-        P C1 Cmid O1 W1 /\ trace_c Cmid C2 O2 W2 /\
-        P Cmid C2 O2 W2) ->
-        O1 <> [::] ->
-        O2 <> [::] ->
-        P C1 C2 (O1 ++ O2)
-          (append_write W1 W2)) ->
-       forall (p p0 : context) 
-         (l : obseq)
-         (p1 : the_write_stuff),
-         trace_c p p0 l p1 -> P p p0 l p1.
-  Admitted.*)
 
 
 
@@ -131,39 +105,10 @@ Proof. intros. inversion H; subst.
          rewrite addn_eq0.
          apply / andb_true_iff => H10.
          destruct H10.
-         by move / nilP / H2 : H0.
-Qed.*)
+         by move / nilP / H2 : H0.*)
 
 (*use trace_steps, cceval_steps, cceval_steps ins*)
-Lemma empty_trace_sc:
-  forall{N1 N2: nvmem} {V1 V2: vmem} {c: command} {O: obseq} {W: the_write_stuff},
-    trace_c (N1, V1, c) (N2, V2, c) O W -> O = [::] /\ N1 = N2 /\ V1 = V2 /\ W = emptysets.
-  Admitted.
 
-Lemma empty_trace_cs:
-  forall{N1 N2: nvmem} {V1 V2: vmem} {c: command} {O: obseq} {W: the_write_stuff},
-    trace_cs (N1, V1, c) (N2, V2, c) O W -> O = [::] /\ N1 = N2 /\ V1 = V2 /\ W = emptysets.
-  Admitted.
-
-Lemma empty_trace_cs1: forall{C1 C2: context} {W: the_write_stuff},
-    trace_cs C1 C2 [::] W -> C1 = C2 /\ W = emptysets.
-Admitted.
-
-  Lemma append_write_empty: forall{W: the_write_stuff},
-    append_write W emptysets = W.
-Proof. intros. simpl. unfold append_write. simpl.
-       repeat rewrite cats0.
-       apply undo_gets.
-Qed.
-
-
-Lemma append_write_empty_l: forall{W: the_write_stuff},
-    append_write emptysets W = W.
-Proof. intros. simpl. unfold append_write. simpl.
-       unfold remove. simpl.
-       rewrite filter_predT. repeat rewrite cats0. 
-       apply undo_gets.
-Qed.
 
 Program Definition trace_append {C1 Cmid C2: context }
                   {O1 O2: obseq}
@@ -177,33 +122,8 @@ Program Definition trace_append {C1 Cmid C2: context }
   | _, [::] => T1 (**)
   | (x::xs), (y::ys) => CTrace_App T1 _ _ T2 end.
 
-(*clean up this ltac
-Ltac empty T2 :=apply empty_trace in T2; [destruct T2 as [f g ]; inversion f; subst; try reflexivity |
-                                           reflexivity].
-Ltac empty2 T1 T2 := apply empty_trace in T1; [destruct T1 as [f g]; inversion g;                 subst; apply empty_trace in T2; [ destruct T2 as [h i]; inversion i;
-                 rewrite append_write_empty; reflexivity | reflexivity] | reflexivity].
-
-Ltac emptyl T2 :=apply empty_trace in T2; [destruct T2 as [f g ]; inversion g; subst; try reflexivity |
-                                           reflexivity].
-
-Next Obligation. empty T2. Qed. 
-Next Obligation. empty2 T1 T2. Qed.           
-Next Obligation. empty T1. Qed.
-Next Obligation. emptyl T1. rewrite append_write_empty_l. reflexivity. Qed. 
-Next Obligation. empty T2. Qed.
-Next Obligation. by rewrite cats0. Qed.
-Next Obligation. emptyl T2. Qed.
-                 (*rewrite append_write_empty. reflexivity.*) 
-Next Obligation. split. intros wildcard contra. destruct contra. inversion H1.
-                 intros contra. destruct contra. inversion H1. Qed.
-*)
 
 
-Lemma singletc_cceval {N V c N1 V1 c1 O W} :
- trace_c (N, V, c) (N1, V1, c1) O W ->
-  (size O) == 1 ->
-  cceval_w (N, V, c) O (N1, V1, Ins skip) W.
-Admitted.
 (*intermittent traces*)
  (*the same as trace_c bar types as differences between
   intermittent and continuous execution have been implemented in evals
@@ -268,80 +188,6 @@ Inductive trace_i1: iconf -> iconf -> obseq -> the_write_stuff -> Prop :=
                                    ((Nc1, Vc1, cc1), Nend, Vend, cend)
                                    (O1 ++ [::checkpoint] ++ O2)
                                    (append_write W1 W2).
-
-
-(*cant define it in terms of continuous (actually you can if you
-prove it equivalent to other def)
- *)
-(*Theorem trace_convert: forall{C1 C2: iconf} {O: obseq} {W: the_write_stuff},
-    trace_i C1 C2 O W <-> trace_i1 C1 C2 O W.
-Admitted.*)
-
-
-
-Open Scope nat_scope.
-
-(*count function*)
-
-Definition crbs (O: obseq) :=
-  count_mem reboot O.
-
-(*Definition count_reboots {C1 C2: iconf} {O: obseq} {W: the_write_stuff}
-           (T: trace_i C1 C2 O W) :=
-  crbs O.
-
-Lemma reboot_ind:
-  forall(C1: iconf) (C2: iconf) (O: obseq) (W: the_write_stuff)
-  (P: (trace_i C1 C2 O W) -> Prop),
-  (forall x: trace_i C1 C2 O W, (forall y: trace_i C1 C2 O W,
-                               (count_reboots y) <
-                               (count_reboots x) -> P y) -> P x) -> forall x: trace_i C1 C2 O W, P x.
-Proof. intros.
-       suffices: (forall n: nat, count_reboots x <= n -> P x).
-       intros H1.
-       apply (H1 (count_reboots x)). auto.
-       intros n.
-       move: x.
-         induction n as [ | n' IHn]; intros.
-       + eapply H. intros y H2.
-         rewrite leqn0 in H0.
-         move/ eqP : H0 => H0. rewrite H0 in H2.
-         discriminate H2.
-         eapply H. intros y Hy.
-         apply IHn.
-         apply: leq_trans Hy H0.
-         Qed.
-
-Close Scope nat_scope.*)
-
-Definition multi_step_c (C1 C2: context) (O: obseq) :=
-    exists W: the_write_stuff, trace_c C1 C2 O W.
-          
-
-(*Definition multi_step_i (C1 C2: iconf) (O: obseq) :=
-    exists W: the_write_stuff, trace_i C1 C2 O W.*)
-(*more trace helpers*)
-
-Definition Wt {C1 C2: context} {O: obseq} {W: the_write_stuff}
-  (T: trace_c C1 C2 O W) := getwt W.
-
-Definition Rd {C1 C2: context} {O: obseq} {W: the_write_stuff}
-           (T: trace_c C1 C2 O W) := getrd W.
-
-Definition FstWt {C1 C2: context} {O: obseq} {W: the_write_stuff}
-  (T: trace_c C1 C2 O W) := getfstwt W.
-
-(*trying some function to extract nvm from trace to enforce that they are the same*)
-
-(**********************************************************************************)
-
-(*
-: (
-Program Definition update_cmap {N0 N1 N2 N3 V0 V1 V2 V3 c O W} {l: instruction} (H: iceval_w (N0, V0, c, N1, V1, l) O
-                                                                                             (N0, V0, c, N3, V3, skip) W) := *)
-
-
-
 
 
 (*relations between continuous and intermittent memory*)
