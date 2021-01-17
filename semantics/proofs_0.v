@@ -694,7 +694,7 @@ inversion H; subst. by left.
    apply trace_skip in H0. exfalso. by apply H1.
 Qed.
 
-Lemma neg_observe_rb: forall {N N': nvmem} {V V': vmem}
+Lemma neg_observe_rb_bc: forall {N N': nvmem} {V V': vmem}
                      {c c': command} 
                     {O: obseq} {W: the_write_stuff},
        cceval_w (N, V, c) O (N', V', c') W ->
@@ -702,6 +702,18 @@ Lemma neg_observe_rb: forall {N N': nvmem} {V V': vmem}
   intros. inversion H; subst; try by []. inversion H10; subst; try by [].
   Qed.
 
+Lemma neg_observe_rb: forall {N N': nvmem} {V V': vmem}
+                     {c c': command} 
+                    {O: obseq} {W: the_write_stuff},
+       trace_cs (N, V, c) (N', V', c') O W ->
+       reboot \notin O.
+  intros. dependent induction H; try by [].
+  eapply neg_observe_rb_bc; apply H.
+  rewrite mem_cat. apply/norP.
+  destruct Cmid as [ [nm vm] cm].
+  split. eapply neg_observe_rb_bc; apply H1.
+  eapply IHtrace_cs; try reflexivity.
+  Qed.
 
 
 Lemma append_c {N1 V1 c1 N2 V2 crem O1 W1 N3 V3 c3 O2 W2}
