@@ -26,6 +26,8 @@ Ltac appldis applier appliee := apply applier in appliee; destruct appliee.
 
 Definition subseq_w {A: eqType} (L1: seq A) (L2: seq A) := forall(l: A), l \in L1 ->
                                                                           l \in L2.
+Definition intersect {A: eqType} (O1: seq A) (O2: seq A) :=
+  exists(l: A), l \in O1 /\ l \in O2.
 Lemma reflect_conj: forall{b0 b1: bool} {P0 P1: Prop},
                       reflect P0 b0 ->
                       reflect P1 b1 ->
@@ -41,7 +43,10 @@ Qed.
 Check eqP.
 Lemma eqPn {T: eqType} {x: Equality.sort T}
       {y: Equality.sort T}: reflect (x <> y) (x != y).
-  Admitted.
+  case (x != y) eqn: beq; constructor.
+  by move/ eqP: beq. intros H.
+  move/ negbT /negP : beq. apply.
+  move/ eqP: H. by apply. Qed.
 
 
 Lemma in_app_r: forall{A: eqType} {a: A} {L1 L2: seq A},
@@ -79,19 +84,23 @@ Qed.
 
 Lemma subw_undup {A: eqType} {L1 L2: seq A}:
   subseq_w L1 (undup L2) = subseq_w L1 L2.
-Admitted.
+  apply propositional_extensionality. split; intros Hsub i Hin; apply Hsub in Hin.
+    by rewrite - mem_undup.
+    by rewrite mem_undup.
+Qed.
 
-Definition intersect {A: eqType} (O1: seq A) (O2: seq A) :=
-  exists(l: A), l \in O1 /\ l \in O2.
 
 Lemma intersect_undup {A: eqType}: forall (L1 L2: seq A),
     intersect L1 (undup L2) = intersect L1 L2.
-  intros. apply propositional_extensionality.
-Admitted.
+  intros. apply propositional_extensionality. split; move => [i [H1 H2] ]; exists i; split; try by []. by rewrite - mem_undup. by rewrite mem_undup. 
+Qed.
 
 Lemma intersect_cons{A: eqType} {L1 L2: seq A} {x: A}:
   intersect L1 (x::L2) -> x \notin L1 ->
-  intersect L1 L2. Admitted.
+  intersect L1 L2. move => [i [H1 H2] ] Hin. rewrite in_cons in H2.
+ move/ orP : H2 => [contra | Hdone]. move/ eqP: contra => eq. subst.
+rewrite H1 in Hin. discriminate Hin.
+  exists i; split; try by []. Qed. 
 
 Lemma subw_sort {A: eqType} {L1 L2: seq A} {R: rel A}:
   subseq_w L1 L2 = subseq_w L1 (sort R L2).
