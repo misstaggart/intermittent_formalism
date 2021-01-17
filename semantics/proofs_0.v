@@ -495,10 +495,9 @@ Lemma empty_trace_cs1: forall{C1 C2: context} {W: the_write_stuff},
     move/ andP: contra => [one two]. by apply two.
     Qed.
 
-Open Scope coq_nat.
 Lemma size_dec_c:
   forall{N1 N2: nvmem} {V1 V2: vmem} {c c1: command} {O: obseq} {W: the_write_stuff},
-    cceval_w (N1, V1, c) O (N2, V2, c1) W -> ltn (size_com c1) (size_com c).
+    cceval_w (N1, V1, c) O (N2, V2, c1) W -> ltn%N (size_com c1) (size_com c).
   intros.
   inversion H; subst; simpl; try by [].
   rewrite ltn_addr; try by [].
@@ -514,14 +513,18 @@ Lemma size_dec:
   intros. dependent induction H.
     by [].
     move: (size_dec_c H) => done.
-    Admitted. (*by []. apply H.
+    rewrite leq_eqVlt.
+    apply/orP. by right.
     destruct Cmid as [ [nm vm] cm].
     suffices: (leq (size_com c1) (size_com cm)).
     intros one.
     move: (size_dec_c H1) => two.
-    apply (leq_trans one two).
+    move/ ltP / ltP : two => two.
+    rewrite (ltn_neqAle (size_com cm) (size_com c)) in two.
+    move/ andP : two => [three four].
+    apply (leq_trans one four).
     eapply IHtrace_cs; try reflexivity.
-Qed.*)
+Qed.
 
 Lemma empty_trace_cs:
   forall{N1 N2: nvmem} {V1 V2: vmem} {c: command} {O: obseq} {W: the_write_stuff},
