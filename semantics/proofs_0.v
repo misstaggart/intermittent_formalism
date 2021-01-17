@@ -213,6 +213,16 @@ Lemma fw_nin_r_c: forall{C1 C2: context} {O: obseq} {W: the_write_stuff} (l: loc
   eapply fw_nin_r_bc; try apply H10; try assumption.
   inversion H; try by []. Qed.
 
+  Lemma negfw_bc {N V} {i: instruction}: forall{C2: context} {O: obseq} {W: the_write_stuff} (l: loc),
+    cceval_w (N, V, Ins i) O C2 W ->
+    l \notin (getfstwt W) -> l \in (getwt W) -> l \in (getrd W).
+  intros. inversion H; subst; try by [];
+            simpl; simpl in H0; simpl in H1; try (rewrite mem_seq1 in H1; move/ eqP: H1 => eq; subst;
+  apply/negPn / negP; intros contra;
+  (rewrite ifT in H0; try by []);
+  rewrite mem_seq1 in H0; move/ eqP: H0); by apply.
+Qed.
+
 Lemma negfwandw_means_r: forall{C Cend: context}  {O: obseq} {W: the_write_stuff}
   {l: loc},
     cceval_w C O Cend W ->
