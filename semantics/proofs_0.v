@@ -227,7 +227,12 @@ Lemma negfwandw_means_r: forall{C Cend: context}  {O: obseq} {W: the_write_stuff
   {l: loc},
     cceval_w C O Cend W ->
     l \notin (getfstwt W) -> l \in (getwt W) -> l \in (getrd W).
-Admitted.
+  intros. destruct C as [ [nm vm] cm].
+  dependent induction cm.
+  eapply negfw_bc; try apply H; try assumption.
+  inversion H; subst; try by [].
+  eapply negfw_bc; try apply H11; try assumption.
+  inversion H; subst; try by []. Qed.
 
 
 Lemma extract_write_svnv: forall {N Nend: nvmem} {V Vend: vmem}
