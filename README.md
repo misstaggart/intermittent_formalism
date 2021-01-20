@@ -23,7 +23,7 @@ proofs_d.v: lemmas proving correspondence between the DINO algorithm definition 
 
 proofs_n.v: proof of functional extensionality of nonvolatile memory maps
 
-proofs_0.v: helper lemmas referring to program traces and associated data invariants
+proofs_0.v: helper lemmas referring to program traces and associated data invariants, the most notable being determinism of continuous execution
 
 
 Trivial:
