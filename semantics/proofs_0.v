@@ -5,14 +5,13 @@ Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq fintype ssrnat ssrfun.
 From TLC Require Import LibTactics LibLogic.
 From Semantics Require Export programs semantics algorithms lemmas_1
-lemmas_0. (*shouldn't have to import both of these*)
+lemmas_0. 
 
 Implicit Types N: nvmem. Implicit Types V: vmem.
 Implicit Types O: obseq.
 Implicit Types c: command.
 Implicit Types W: the_write_stuff.
 Implicit Types x: smallvar.
-(*start here should be a way to stack these*)
 
 Open Scope type_scope.
 
@@ -69,7 +68,7 @@ Lemma gen_locs_works: forall{a a0: array} {i: 'I_(get_length a0)}
   by rewrite mem_enum.
 Qed.
 
-(*mems*)
+(*memories*)
 Lemma sub_restrict: forall(N1: nvmem) (w: warvars) (Hf: wf_dom w (getmap N1)), subset_nvm
                                                                    (restrict N1 w Hf) N1.
   intros.
@@ -83,10 +82,10 @@ Lemma sub_disclude N0 N1 N2:  forall(l: loc),
                      subset_nvm N0 N2 ->
                      not ((getmap N1) l = (getmap N2) l)
                      -> not (l \in (getdomain N0)).
-Proof. intros. intros contra. unfold subset_nvm in H. (*destruct H.*)
+Proof. intros. intros contra. unfold subset_nvm in H. 
        remember contra as contra1. clear Heqcontra1.
        apply H in contra.
-       unfold subset_nvm in H0. (*destruct H0.*) apply H0 in contra1.
+       unfold subset_nvm in H0.  apply H0 in contra1.
        symmetry in contra.
        apply (eq_trans _ _ _ contra) in contra1.
        apply H1. assumption.
@@ -95,7 +94,7 @@ Qed.
 Lemma negNVandV: forall(x : smallvar), isNV x -> not (isV x).
 Proof. unfold isNV. unfold isV.
        unfold isNV_b. unfold isV_b.
-       move => [s v]. destruct v; auto. (*ask arthur do both destructs at once?*)
+       move => [s v]. destruct v; auto. 
 Qed.
 
 
@@ -122,8 +121,7 @@ Lemma sub_update: forall(N0 N1: nvmem),
     subset_nvm N0 (N0 U! N1).
   intros.
   destruct N0, N1.
-  unfold subset_nvm. (*split.
-  simpl. apply prefix_subseq.*)
+  unfold subset_nvm.
   intros. simpl. by rewrite H.
   Qed.
 
@@ -184,7 +182,6 @@ Lemma fw_subst_wt_c: forall{C1 C2: context} {O: obseq} {W: the_write_stuff},
                            /\ l \in (getfstwt W)
                        ).
   intros.
-           (*intros Hdoneb. apply Hdoneb in Hl0.*)
            destruct W as [ [wW rW] fwW].
            destruct W1 as [ [wW1 rW1] fwW1].
            simpl in H.
@@ -276,16 +273,16 @@ Lemma extract_write_svv: forall {N Nend: nvmem} {V Vend: vmem}
   inversion H; subst; try reflexivity.
   exfalso. apply (negNVandV x H11 H0).
 Qed.
-(*single step evaluation*)
 
+(*single step evaluation*)
 Lemma cceval_steps1:forall{N Nmid: nvmem} {V Vmid: vmem} {c cmid: command}
                    {O: obseq} {W: the_write_stuff},
 
         cceval_w (N, V, c) O (Nmid, Vmid, cmid) W ->
         cmid <> c.
-  intros. inversion H; subst; try apply stupid; try (intros contra;
+  intros. inversion H; subst; try apply cinds; try (intros contra;
                                                      discriminate contra).
-by apply stupid1. by apply stupid2.
+by apply cindi1. by apply cindi2.
 Qed.
 
 Lemma read_deterministic: forall{e: exp} {w1 w2: warvars},
@@ -297,7 +294,6 @@ Lemma read_deterministic: forall{e: exp} {w1 w2: warvars},
   move: H0 H4. move: N0 V0 rs0 v0. dependent induction H1; intros.
   + by inversion H4.
   + inversion H4; subst. apply IHeeval1 in H8;
-                           
                            apply IHeeval2 in H11;
                         try(   rewrite (readobs_app_wvs r1 r2);
     rewrite (readobs_app_wvs r0 r3);
@@ -471,11 +467,8 @@ Lemma cceval_skip: forall {N N': nvmem} {V V': vmem}
    Lemma agr_imp_age:
 forall{N0 N1: nvmem} {V0: vmem} {e: exp} {r0: readobs} {v0: value},
   eeval N0 V0 e r0 v0 ->
-  (forall(z: loc), z \in (readobs_wvs r0 ) -> (getmap N0) z = (getmap N1) z) -> (*they concur
-                                                                          on all
-                                                                          values read
-                                                                          from*)
-              eeval N1 V0 e r0 v0.
+  (forall(z: loc), z \in (readobs_wvs r0 ) -> (getmap N0) z = (getmap N1) z) ->
+  eeval N1 V0 e r0 v0.
      intros. move: N1 H0. dependent induction H; intros.
      - by apply VAL.
      -
@@ -639,7 +632,6 @@ Lemma single_step_alls: forall{C1 Cmid C3: context}
    move: (determinism_c H Hcc) => [one [two three] ]. subst. 
    exists emptysets ([::]: obseq). repeat split; try (apply CsTrace_Empty); try by []. by rewrite cats0. by rewrite append_write_empty. Qed.
 
- (*dont prove these till ur sure ur done w them*)
 Lemma single_step_alls_rev: forall{C1 C3: context}
                     {Obig : obseq} {Wbig: the_write_stuff},
     trace_cs C1 C3 Obig Wbig ->
@@ -795,3 +787,192 @@ eapply IHTi; try reflexivity; try assumption.
 Qed.
 
 
+(*manipulating the earliest checkpoint command*)
+
+Lemma same_endcom_help {N V c N1 V1 c1 O1 W1}:
+  trace_cs (N, V, c) (N1, V1, c1) O1 W1 ->
+  checkpoint \notin O1 ->
+  end_com c -> end_com c1 -> c1 = c.
+  intros. destruct H1. subst.
+  move: (trace_skip H) => Heq. subst.
+  move/empty_trace_cs1 :H => [one two]. by inversion one.
+  destruct H1 as [crem [w Hrem] ]. subst.
+  inversion H; subst; try by [].
+  apply observe_checkpt_s in H1. exfalso. move/negP : H0.
+    by apply.
+    destruct Cmid as [ [nm vm] cm].
+    apply observe_checkpt_s in H4. exfalso.
+    rewrite mem_cat in H0. move/norP: H0 => [one two].
+    move/negP : one. 
+  by apply. Qed.
+
+
+  Lemma same_endcom_bc {N V c N1 V1 c1 O1 O2 W1 N2 V2 c2 W2}:
+cceval_w (N, V, c) O1 (N1, V1, c1) W1 ->
+trace_cs (N, V, c) (N2, V2, c2) O2 W2 ->
+end_com c1 ->
+end_com c2 ->
+checkpoint \notin O1 ->
+checkpoint \notin O2 ->
+c1 = c2.
+    move => Hcc T Hc1 Hc2 Ho1 Ho2.
+move: V1 N1 O1 W1 c1 Hcc Hc1 Ho1. dependent induction T; intros.
+apply (same_endcom_help (CsTrace_Single Hcc) Ho1 Hc2 Hc1).
+move: (determinism_c H Hcc) => [one [two three] ]. inversion one. by subst.
+destruct Cmid as [ [nm vm] cm].
+move: (determinism_c H0 Hcc) => [one [two three] ].
+inversion one. subst. rewrite mem_cat in Ho2. move/norP: Ho2 => [H11 H12].
+symmetry. eapply same_endcom_help; try apply T; try assumption.
+Qed.
+
+
+Lemma same_endcom {N V c N1 V1 c1 O1 O2 W1 N2 V2 c2 W2}:
+trace_cs (N, V, c) (N1, V1, c1) O1 W1 ->
+trace_cs (N, V, c) (N2, V2, c2) O2 W2 ->
+end_com c1 ->
+end_com c2 ->
+checkpoint \notin O1 ->
+checkpoint \notin O2 ->
+c1 = c2.
+  move => T1 T2 Hc1 Hc2 Ho1 Ho2.
+  destruct (O2 == [::]) eqn: Hemp;move/ eqP: Hemp => Heq; subst.
+move/ empty_trace_cs1 : T2 => [one two]. inversion one. subst.
+apply (same_endcom_help T1 Ho1 Hc2 Hc1).
+  move: N2 V2 c2 O2 W2 Ho2 Hc2 T2 Heq.
+  dependent induction T1; intros.
+  symmetry. apply (same_endcom_help T2 Ho2 Hc1 Hc2).
+apply (same_endcom_bc H T2 Hc1 Hc2 Ho1 Ho2).
+destruct Cmid as [ [nmid vmid] cmid].
+inversion T2; subst. exfalso. by apply Heq.
+move: (determinism_c H1 H0) => [one [two three] ]. inversion one. subst.
+rewrite mem_cat in Ho1. move/ norP: Ho1 => [Ho1 Ho22].
+apply (same_endcom_help T1 Ho22 Hc2 Hc1).
+destruct Cmid as [ [nmm vmm] cmm].
+rewrite mem_cat in Ho2. move/ norP: Ho2 => [Ho21 Ho22].
+rewrite mem_cat in Ho1. move/ norP: Ho1 => [Ho11 Ho12].
+move: (determinism_c H0 H3) => [one [two three] ]. inversion one. subst. 
+eapply IHT1; try reflexivity; try (apply H1); try assumption.
+Qed.
+
+  Lemma exist_endcom {N0 V0 c0 N01 V01 c01 N V c N1 V1 O W cend}:
+  trace_i1 ((N0, V0, c0), N, V, c) ((N01, V01, c01), N1, V1, cend) O W ->
+  end_com cend ->
+  (exists(Osmall: obseq) (Wsmall: the_write_stuff) (N2: nvmem) (V2: vmem) (c2: command),
+    trace_i1 ((N0, V0, c0), N, V, c) ((N0, V0, c0), N2, V2, c2) Osmall Wsmall /\
+    end_com c2 /\ checkpoint \notin Osmall).
+    intros T Hend.
+    inversion T; subst; try (exists O W N1 V1 cend; repeat split; try assumption).
+    exists (O1 ++ [::reboot] ++ O2) (append_write W1 W2) N1 V1 cend.
+    repeat split; try assumption.
+    rewrite/ eqP mem_cat. rewrite/ norP mem_cat.
+    apply/ norP. split; try assumption; apply/ norP.
+exists O1 W1 Nmid Vmid (incheckpoint w;; crem). split; try split; try assumption. right. by exists crem w. Qed.
+
+Lemma neg_pass_end_com {N V c Omid Nmid
+                       Vmid cmid Wmid Nend Vend cend
+                    O W} :
+cceval_w (N, V, c) Omid (Nmid, Vmid, cmid) Wmid ->
+trace_cs (N, V, c) (Nend, Vend, cend) O W ->
+end_com cend ->
+checkpoint \notin Omid ->
+O <> [::].
+    intros. intros contra. subst.
+    move/ empty_trace_cs1: H0 => [H11 H12]. inversion H11. subst.
+    destruct H1 as [Hskip | Hcp].
+    subst. inversion H.
+    destruct Hcp as [crem [w contra] ]. subst.
+    apply observe_checkpt_s in H. exfalso.
+    move/ negP: H2. by apply. Qed.
+
+Lemma two_traces_bc:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
+                         {Omid O: obseq} {Wmid W: the_write_stuff},
+    cceval_w (N, V, c) Omid (Nmid, Vmid, cmid) Wmid ->
+    checkpoint \notin Omid ->
+    trace_cs (N, V, c) (Nend, Vend, cend) O W ->
+    end_com cend ->
+    ( forall(l: loc), l \in (getfstwt Wmid) -> l \in (getfstwt W))
+      /\ (checkpoint \notin O -> (Omid <=p O)).
+  intros. move: H H0 H1 H2 => Hcc Hos Tbig Hend.
+  suffices: (O <> [::]). intros Hneq.
+    move: (single_step_alls_rev Tbig Hneq). =>
+  [ [ [nm vm] cm] [W3 [Wrest [O3 [Hcceval [Hsub Hww] ] ] ] ] ].          move: (single_step_alls Tbig Hneq Hcceval).                  => [Wrest0 [Orest [Trest [Hsub1 Hw] ] ] ].
+    move: (determinism_c Hcc Hcceval). => [four [five six] ].
+    subst.
+    unfold append_write. simpl. split.
+    intros l Hfw. rewrite mem_cat. apply/ orP. by right.
+    rewrite mem_cat. move/ norP => [one two].
+    repeat constructor; try assumption.
+    apply (neg_observe_rb (CsTrace_Single Hcc) ).
+    apply (neg_observe_rb Trest).
+    eapply neg_pass_end_com; try apply Hcc;
+    try apply Tbig; try assumption. Qed.
+
+Lemma two_traces:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
+                         {Omid O: obseq} {Wmid W: the_write_stuff},
+    trace_cs (N, V, c) (Nmid, Vmid, cmid) Omid Wmid ->
+    checkpoint \notin Omid ->
+    trace_cs (N, V, c) (Nend, Vend, cend) O W ->
+    end_com cend ->
+    (forall(l: loc), l \in (getfstwt Wmid) -> l \in (getfstwt W)) /\ (checkpoint \notin O
+                                                              -> Omid <=p O).
+  intros. move: H H0 H1 H2 => Tsmall Hos Tbig Hend.
+  move: Nend Vend cend O W Tbig Hend.
+  dependent induction Tsmall; intros.
+  3: {
+    destruct Cmid as [ [nms vms] cms].
+    rewrite mem_cat in Hos. move/ norP: Hos => [Ho1 Ho2].
+    move: (two_traces_bc H0 Ho1 Tbig Hend) => [bc1 bc2].
+    suffices: (O <> [::]). intros Hneq.
+    move: (single_step_alls_rev Tbig Hneq). =>
+  [ [ [nm vm] cm] [W3 [Wrest [O3 [Hcceval [Hsub Hww] ] ] ] ] ].          move: (single_step_alls Tbig Hneq Hcceval).                  => [Wrest0 [Orest [Trest [Hsub1 Hw] ] ] ].
+    move: (determinism_c Hcceval H0). => [four [five six] ].
+    inversion four. subst. rewrite Hw.
+    suffices: 
+             (forall l : loc,
+              l \in getfstwt W2 -> l \in getfstwt Wrest0) /\
+             (checkpoint \notin Orest -> O2 <=p Orest).
+    move => [IH1 IH2].
+    split. intros l Hfw.
+    move/fw_split: Hfw => [one | [two three] ].
+    rewrite Hw in bc1. by apply (bc1 l).
+    suffices: l \in getfstwt Wrest0.
+    move => Hin. unfold append_write. simpl.
+    rewrite mem_cat. apply/ orP. left.
+    rewrite mem_filter. apply/andP. split; try by [].
+      by apply (IH1 l).
+      intros Hnin. rewrite mem_cat in Hnin.
+      move/norP: Hnin => [one two]. 
+      apply prefix_app; try apply IH2; try assumption.
+      apply (neg_observe_rb (CsTrace_Single H0)).
+   eapply IHTsmall; try reflexivity; try apply Trest; try assumption.
+    eapply neg_pass_end_com; try apply H0;
+    try apply Tbig; try assumption.
+  }
+  split. intros l Hfw. rewrite in_nil in Hfw. discriminate Hfw.
+  intros. rewrite - (cat0s O).
+  eapply P_Ind; try assumption. apply P_Base; try by rewrite in_nil. apply (neg_observe_rb Tbig).
+  eapply two_traces_bc; try apply H; try assumption. apply Tbig. assumption.
+Qed.
+
+Lemma fw_gets_bigger:forall{ N Nmid Nend: nvmem} {V Vmid Vend: vmem} {c cmid cend: command}
+                         {Omid O: obseq} {Wmid W: the_write_stuff} {l: loc},
+    trace_cs (N, V, c) (Nmid, Vmid, cmid) Omid Wmid ->
+    checkpoint \notin Omid ->
+    trace_cs (N, V, c) (Nend, Vend, cend) O W ->
+    end_com cend ->
+    l \in (getfstwt Wmid) -> l \in (getfstwt W).
+  intros. move: (two_traces H H0 H1 H2) => [one two].
+  by apply (one l). Qed.
+
+Lemma ctrace_det_obs {N V c Nmid Vmid cmid
+                          Nend Vend Omid Wmid Oend Wend cend}:
+    trace_cs (N, V, c)
+             (Nmid, Vmid, cmid) Omid Wmid ->
+    checkpoint \notin Omid ->
+ trace_cs (N, V, c)
+ (Nend, Vend, cend) Oend Wend ->
+ checkpoint \notin Oend ->
+ end_com cend ->
+ Omid <=p Oend. 
+  intros. move: (two_traces H H0 H1 H3) => [one two].
+  by apply two. Qed.

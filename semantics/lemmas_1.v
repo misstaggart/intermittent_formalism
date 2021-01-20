@@ -1,10 +1,68 @@
 Set Warnings "-notation-overridden,-parsing".
+
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq fintype ssrnat ssrfun.
 From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Strings.String Program Logic.FunctionalExtensionality.
 Require Export Coq.Strings.String.
-From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq.
 From TLC Require Import LibTactics.
 From Semantics Require Import semantics algorithms lemmas_0.
+
+
+(*invariants*)
+
+(*no interpretation for thing error means scopiing problem sometimes*)
+Lemma agsv_war_h : forall(w1 w2: warvars) (x: smallvar),
+            get_smallvars w2 = get_smallvars w1 ->
+            inl x \notin w1 -> inl x \notin w2.
+          intros. apply/ negP. intros contra. suffices: (inl x) \in (get_smallvars w2).
+          intros contra1. rewrite H in contra1.
+          rewrite mem_filter in contra1. move/ negP: H0.
+          apply. by move/ andP : contra1 => [one two].
+          rewrite mem_filter. by []. Qed. 
+
+Lemma sv_add_sv: forall(w1 w2 :warvars) (x: smallvar),
+            (get_smallvars w1) = (get_smallvars w2) ->
+            (get_smallvars ((inl x) :: w1) = get_smallvars ((inl x) :: w2)).
+          intros.
+          rewrite - cat1s.
+          rewrite - (cat1s (inl x) w2).
+          unfold get_smallvars. 
+          repeat rewrite filter_cat.
+          unfold get_smallvars in H. rewrite H.
+          by [].
+Qed.
+
+
+Lemma sv_add_el:forall(w1 w2 :warvars) (el: el_loc),
+            (get_smallvars w1) = (get_smallvars w2) ->
+            (get_smallvars ((inr el) :: w1) =
+             get_smallvars w2).
+          intros. rewrite - cat1s. unfold get_smallvars. rewrite filter_cat.
+          unfold get_smallvars in H. by apply H. Qed.
+
+Lemma sv_add_arr: forall(w1 w2 :warvars) (a: array),
+            (get_smallvars w1) = (get_smallvars w2) ->
+            (get_smallvars ((generate_locs a) ++ w1) =
+             (get_smallvars w2)).
+          intros. suffices: (get_smallvars (generate_locs a) = [::]).
+          intros Hnil. unfold get_smallvars.
+          unfold get_smallvars in Hnil.
+          unfold get_smallvars in H.
+          rewrite filter_cat Hnil H. by [].
+          unfold get_smallvars. unfold generate_locs.
+          rewrite filter_map.
+          suffices: (preim
+                       (index_loc a)
+                       (fun v : smallvar + el_loc =>
+          match v with
+          | inl _ => true
+          | inr _ => false
+          end)
+                    ) =1 pred0. intros contra.
+          rewrite (eq_filter contra). rewrite filter_pred0. by [].
+          intros l.
+          by []. Qed. 
+
 
 (*semantics*)
 Lemma undo_gets: forall(W: the_write_stuff),
@@ -37,23 +95,37 @@ Proof. intros. simpl. unfold append_write. simpl.
        rewrite filter_predT. repeat rewrite cats0. 
        apply undo_gets.
 Qed.
-Lemma stupid: forall (c: command) (l: instruction),
+
+Lemma prefix_app {O1 O2 O3: obseq} :
+  (O2 <=p O3) -> reboot \notin O1 -> checkpoint \notin O1 ->
+  O1 ++ O2 <=p O1 ++ O3.
+  intros. induction H.
+  2:{
+rewrite catA. apply P_Ind; try assumption.
+  }
+  apply P_Base; try (rewrite mem_cat; apply/norP; split; by []).
+Qed.
+
+Lemma cinds: forall (c: command) (l: instruction),
     c <> (l ;; c).
   move => c w contra.
   induction c; inversion contra.
     by apply IHc. Qed.
 
-Lemma stupid1 {c1 c2 e}: 
+Lemma cindi1 {c1 c2 e}: 
     c1 <> TEST e THEN c1 ELSE c2.
   move => contra.
   induction c1; inversion contra.
     subst. by apply IHc1_1. Qed.
 
-Lemma stupid2 {c1 c2 e}:
+Lemma cindi2 {c1 c2 e}:
     c1 <> TEST e THEN c2 ELSE c1.
   move => contra.
   induction c1; inversion contra.
     subst. by apply IHc1_1. Qed.
+
+
+
 (*lists*)
 
 Lemma subseq_app_l: forall{A: eqType} {L1 L2 L3: seq A},
@@ -148,41 +220,6 @@ Qed.
 Lemma remove_empty: forall(L1: warvars),
     remove [::] L1 = L1.
   intros. apply filter_predT. Qed.
-(*Lemma remove_subst: forall(L1 L2: warvars),
-    subseq (remove L1 L2) L2.
-Proof. intros. apply filter_subseq.
-
-Lemma filter_false: forall{A: Type} (L1: seq A),
-    filter (fun x => negb false) L1 = L1.
-  intros. apply filter_predT.*)
-
-(*just use mem_cat
-Lemma in_app_l: forall{A: Type} {a: A} {L1 L2: list A},
-    In a L1 -> In a (L1 ++ L2).
-  Proof. intros. eapply or_introl in H.
-         apply in_or_app in H. apply H.
-  Qed.
-
-Lemma in_app_r: forall{A: Type} {a: A} {L1 L2: list A},
-    In a L2 -> In a (L1 ++ L2).
-  Proof. intros. eapply or_intror in H.
-         apply in_or_app in H. apply H.
-  Qed.*)
-
-(*use subseq0
- Lemma empty_sub: forall{A: Type} {L: list A},
-      incl nil L.
-  Proof. intros. unfold incl. intros. apply List.in_nil in H. contradiction. Qed.*)
-
-
-
-
-
-Lemma notin (o: obs) : o \notin [::].
-by rewrite in_nil. Qed.
-
-
-  (*use =1 with filter and mem_cat*)
 
 Lemma append_writeA {W1 W2 W3}:
   append_write (append_write W1 W2) W3 =
@@ -199,3 +236,6 @@ by rewrite catA.
 rewrite Heq1.
 by repeat rewrite catA.
 Qed.
+
+Lemma notin (o: obs) : o \notin [::].
+by rewrite in_nil. Qed.

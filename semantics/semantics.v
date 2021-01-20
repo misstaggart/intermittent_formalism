@@ -4,92 +4,12 @@ From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Ascii String Logic.ProofIrrelevance.
 From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype fintype seq
      choice bigop finset generic_quotient tuple path.
-(*From extructures Require Import ord fset fmap. *)
-(*From deriving Require Import deriving.*)
 From Semantics Require Import lemmas_0.
 
 From deriving Require Import deriving.
 
-Check [eqType of string].
-(*Check prod_ordMixin.*)
-(*basic seq functions that I couldn't find in a library*)
-Fixpoint eq_seqs {A: Type} (L1: seq A) (L2: seq A) (eq: A -> A -> Prop) :=
-        match L1, L2 with
-          nil, nil => True
-        | (w::ws), (d::ds) => (eq w d) /\ (eq_seqs ws ds eq) (*considers order*)
-        | _ , _ => False end.
 
-Fixpoint member {A: Type} (eq: A -> A -> bool) (a: A)  (L: seq A) :=
-  match L with
-    [::] => false
-  | x::xs => orb (eq a x) (member eq a xs)
-  end.
-
-Definition bar := forall n: nat, n= 0.
-Definition foo := fun n: nat => n = 0.
-
-
-Fixpoint loop (n: nat) : unit := let _ := (loop n) in tt.
-
-Compute (loop 0).
-
-(*Eval cbv in (loop 0).*)
-
-Print loop.
-
-(*Goal forall n : nat, (fix loop (n: nat) := n) n = n.
-  intros n.
-  destruct n.
-  reflexivity. Qed.*)
-
-(*Goal forall n : nat, (fun x=> x) n = n.
-  reflexivity.
-
-Goal (fun x => x) 42 = 42.
-  reflexivity.
-
-Goal bar = forall n: nat, foo n.
-  reflexivity.
-  unfold foo. reflexivity.*)
-
-
-
-Open Scope string_scope.
-(*---*)
-
-
-(*setting up strings equality type*)
-(* eqb_string and
-eqb_string_true_iff taken from software foundations*)
-Definition eqb_string (x y : string) : bool :=
-  if string_dec x y then true else false.
-
-Lemma eqb_string_true_iff : forall x y : string,
-    eqb_string x y = true <-> x = y.
-Proof.
-   intros x y.
-   unfold eqb_string.
-   destruct (string_dec x y) as [H |Hs].
-   - subst. split. reflexivity. reflexivity.
-   - split.
-     + intros contra. discriminate contra.
-     + intros H. rewrite H in Hs *. destruct Hs. reflexivity.
-Qed.
-(*what is the star*)
-Lemma eqstring: Equality.axiom eqb_string.
-Proof.
-  unfold Equality.axiom. intros.
-  destruct (eqb_string x y) eqn:beq.
-  - constructor. apply eqb_string_true_iff in beq. assumption.
-  -  constructor. intros contra. apply eqb_string_true_iff in contra.
-     rewrite contra in beq. discriminate beq.
-Qed.
-Canonical string_eqMixin := EqMixin eqstring.
-Canonical string_eqtype := Eval hnf in EqType string string_eqMixin.
-(***)
-
-
-(*Now, to business! Below is syntax*)
+(*To business! Below is the DSL embedding and ssreflect infrastructure*)
 Open Scope type_scope.
 
 Inductive boptype :=
@@ -101,7 +21,6 @@ Inductive boptype :=
 | Or
 | And.
 
-(*shortcut!*)
 Inductive value :=
     Nat (n: nat)
   | Bool (b: bool)
@@ -124,19 +43,6 @@ Proof.
             try (move/eqP ->); try (intros H; inversion H); auto.
 Qed.
 
-(*look in here!*)
-(*Lemma eqb_value_true_iff1 : forall x y : value,
-    is_true(eqb_value x y) <-> x = y.
-Proof.
-  intros. destruct x, y; split; simpl; try (intros H; discriminate H).
-  - move/eqP ->. reflexivity.
-  - by move => [->].
-  - move/eqP ->. reflexivity.
-  - intros H. inversion H. apply eq_refl.
-  - auto.
-  - auto.*)
-
-    (*move => []*)
 
 Lemma eqvalue: Equality.axiom eqb_value.
 Proof.
@@ -148,8 +54,6 @@ Proof.
 Qed.
 Canonical value_eqMixin := EqMixin eqvalue.
 Canonical value_eqtype := Eval hnf in EqType value value_eqMixin.
-
-(*evaluation rules for binary operations*)
 
 Fixpoint bopeval (bop: boptype) (v1 v2 :value): (value) :=
   match bop with
@@ -208,7 +112,6 @@ Fixpoint bopeval (bop: boptype) (v1 v2 :value): (value) :=
   )
   end.
 
-(*value helper functions*)
 Definition isvaluable (v: value) :=
   match v with
     error => False
@@ -221,41 +124,8 @@ Definition isvalidbop (bop: boptype) (v1 v2 : value) :=
   | _ => True
   end.
 
-
-(*memory maps...used for both memories and checkpoints*)
-Definition map_t (A: eqType) := A -> value.
-
-(*memory helpers*)
-Definition emptymap A :(map_t A) := (fun _ => error).
-Definition updatemap {A} (m: map_t A) (i: A) (v: value) : map_t A :=
-  if v == error then m else (fun j =>
-                                                               if (j ==i) then v
-                                                               else (m j)).
-Notation "i '|->' v ';' m" := (updatemap m i v)
-  (at level 100, v at next level, right associativity).
-(*in (m1 U! m2), m1 is checked first, then m2*)
-
-Definition indomain {A} (m: map_t A) (x: A) :=
-  match m x with
-    error => False
-  | _ => True
-  end.
-(*this function is NOT used to check the domain of checkpoint maps.
- In particular, because an entire array can be checkpointed even if only
- one element has been assigned to (while the other elements may, in theory, still be unassigned),
-(in particular, I refer to D-WAR-CP-Arr)
-this function would return that assigned array elements are in the domain of N, while the unassigned array
-elements are not, even though both have been checkpointed.
- I resolved this problem by defining indomain_nvm, used for checkpoint maps in algorithms.v, which
-checks if a warvar is in the domain, rather than checking a location.
- *)
-(******************************************************************************************)
-
-(*******************************more syntax**********************************************)
-
 Inductive array :=
   Array (n: nat) (l: nat).
-
 
 Definition array_indMixin := Eval simpl in [indMixin for array_rect].
 
@@ -269,7 +139,6 @@ Definition array_choiceMixin := Eval simpl in [derive choiceMixin for array].
 
 Canonical array_choiceType := ChoiceType array array_choiceMixin.
 
-
 Definition get_length (a: array) :=
   match a with
     Array _ length => length end.
@@ -280,9 +149,6 @@ Inductive volatility :=
 
 Inductive smallvar :=
   SV (s: nat) (q: volatility).
-
-Check CanCountMixin.
-
 
 Inductive el_loc :=
   El (a: array) (i: ('I_(get_length a))).
@@ -297,29 +163,15 @@ Definition el_loc_of_tagged  (x: {a: array & 'I_(get_length a)}): el_loc :=
 Lemma tagged_of_el_locK: cancel tagged_of_el_loc el_loc_of_tagged.
     by case. Qed.
 
-Check tagged.
-
 Definition el_loc_eqMixin := CanEqMixin tagged_of_el_locK.
 
 Inductive myOrdinal (n: nat) :=
-  MyOrdinal {f1: nat; _: f1 < n}. (*curly brackets are for record*)
+  MyOrdinal {f1: nat; _: f1 < n}. 
 
-Check f1. (*
-inside the record f1 is a natural but outside of the record f1 is reused as
-a
-field is a function that gets out one of the arguments of
-           an inductive type*)
-
-(*@ turns off implicit args*)
-Canonical myOrdinal_subType n := [subType for @f1 n]. (*injective function going into the naturals makes for equality
-same technique works for choice, count, ord
-                                                       *)
+Canonical myOrdinal_subType n := [subType for @f1 n]. 
 
 Definition myOrdinal_eqMixin n := [eqMixin of myOrdinal n by <:].
 
-
-(*uses left inverse to project into the sigma type and then compares each component
- of the sigma type with the previously defined equality*)
 
 Definition equal_index (e: el_loc) (a2: array) (v: value) :=
   match e with
@@ -329,51 +181,13 @@ Definition equal_index (e: el_loc) (a2: array) (v: value) :=
   | _ => False end
   end.
 
-(*'I_5 the type of all naturals < 5*)
-
-Check (enum _).
-
-Check enum [pred x: 'I_5 | true].
-
-Check enum 'I_5.
-
-
-(*want:
- do I even have to work with the nats?*)
-
-Compute enum [pred x : 'I_5 | true].
-
-Check [pred x: 'I_5 | x < 3 ].
-
-Check simpl_pred.
-
-Check 'I_4.
-
-Definition test (n: nat) :=
-  'I_n.
-
-
-
-(*used subtypes to enforce the fact that only some expressions are
- memory locations
-Definition elpred  := (fun x=> match x with
-                                        El (Array _ length) (Nat i) => (i <? length)
-                            | _ => false                                            
-                            end).
-(*elpred checks if index is a natural in bounds*)
-
-Notation el_old := {x: el_loc | elpred x}.
-
-Check SubType el.*)
-
 Inductive exp :=
   Var (x: smallvar) 
 | Val (v: value)
 | Bop (bop: boptype) (e1: exp) (e2: exp) 
 | El_loc (e: el_loc)
-| Element (a: array) (e: exp). (*good that you let in out of bounds arrays here because it means that
-                           war bugs of that kind can still get in at the type level,
-                           need the CP system*)
+| Element (a: array) (e: exp).
+
 Coercion Val : value >-> exp.
 Coercion Var : smallvar >-> exp.
 Notation "a '[[' e ']]'" := (Element (a) (e))
@@ -390,7 +204,6 @@ Definition generate_locs (a: array): seq loc :=
   map (index_loc a) (enum ('I_(get_length a))).
 Notation warvars := (seq loc).
 
-(*nonvol <= vol *)
 Definition leqvol (q: volatility) :=
   (fun r =>
      match q, r with
@@ -399,7 +212,6 @@ Definition leqvol (q: volatility) :=
                 end
   ).
 
-(*inl <= inr*)
 Definition leqloc (w: loc) :=
   (fun v: loc =>
      match w, v with
@@ -421,17 +233,6 @@ Definition leqloc (w: loc) :=
      end ).
 
 
-
-(*Coercion (inl smallvar el): smallvar >-> loc.*)
-(*Coercion inl: smallvar >-> loc.*)
-
-(**location and warvar helper functions*)
-(**no need to work directly with the subtypes or sumtypes, just use these**)
-(**Note: some of these are currently unused due to implementation changes, but I left them
- as they might be useful later*)
-
-(*array and el functions*)
-
 (*equality type for arrays*)
 
 
@@ -447,12 +248,7 @@ Proof.
   intros. destruct x, y; split; simpl.
   - move/(reflect_conj eqP eqP).
     case => H0 H1. subst. reflexivity.
-  - intros H. inversion H.
-    apply (introT (reflect_conj eqP eqP)). (*ask arthur is there a
-                                            way to do this using ssreflect
-                                            rather than the introT
-                                            lemma*)
-    split; reflexivity.
+  - intros H. inversion H. apply/andP; by split.
 Qed.
 
 Lemma eqarray: Equality.axiom eqb_array.
@@ -463,22 +259,12 @@ Proof.
   -  constructor. intros contra. apply eqb_array_true_iff in contra.
      rewrite contra in beq. discriminate beq.
 Qed.
-(*Canonical array_eqMixin := EqMixin eqarray.
-Canonical array_eqtype := Eval hnf in EqType array array_eqMixin.*)
-(*****)
 
-(*equality type for elements*)
-
-
-Check cast_ord.
-
-
+(*equality type for elements of arrays*)
 
 Definition eqb_el_d (x y:el_loc) :=
   match x, y with
     El ax ix, El ay iy => (ax==ay) && ((nat_of_ord ix) == (nat_of_ord iy)) end.
-
-(*if I remove annoying does subst in the proof below behave differently?*)
 
 Lemma annoying: forall(a1 a2: array),
     a1 == a2 -> 'I_(get_length a1) = 'I_(get_length a2).
@@ -486,7 +272,6 @@ by move => a1 a2 / eqP ->. Qed.
 
 
 Set Printing All.
-(*tidy this up*)
 Lemma eqb_eld_iff : forall x y : el_loc,
     is_true(eqb_el_d x y) <-> x = y.
 Proof.
@@ -499,10 +284,9 @@ Proof.
  move => [H1 H2].
  apply andb_true_iff. split.
    by move / eqP : H1.
-  inversion H2. (*why does this inversion cause a loop?*)
+  inversion H2. 
   by apply (introT eqP).
 Qed.
-
 
 
 
@@ -514,31 +298,28 @@ Proof.
   -  constructor. intros contra. apply eqb_eld_iff in contra.
      rewrite contra in beq. discriminate beq.
 Qed.
-Check SubEqMixin.
-Check EqMixin.
-Check Equality.mixin_of.
 Canonical eld_eqMixin := EqMixin eq_eld_iff.
 Canonical eld_eqtype := Eval hnf in EqType el_loc eld_eqMixin.
-(*suggests it wants an equality relation for the big type before it lets
- you have it for the subtype...that's annoying...ask arthur*)
 
 
-(*smallvar functions*)
-Definition isNV_b (x: smallvar) := (*checks if x is stored in nonvolatile memory*)
+(*non-array variable helpers*)
+Definition isNV_b (x: smallvar) := 
   match x with
     SV _ nonvol => true
   | _ => false
   end.
 
-Definition isV_b (x: smallvar) :=(*checks if x is stored in volatile memory*)
+Definition isV_b (x: smallvar) :=
   match x with
     SV _ vol => true
   | _ => false
   end.
 
-Definition isNV x := is_true(isNV_b x). (*prop version of isNV_b*)
+Definition isNV x := is_true(isNV_b x). 
 
-Definition isV x := is_true(isV_b x). (*prop version of isV_b*)
+Definition isV x := is_true(isV_b x).
+
+(*equality type*)
 
 Definition eqb_smallvar (x y: smallvar): bool :=
   match x, y with
@@ -567,7 +348,7 @@ Qed.
 Canonical smallvar_eqMixin := EqMixin eqsmallvar.
 Canonical smallvar_eqtype := Eval hnf in EqType smallvar smallvar_eqMixin.
 
-(*loc and warvar functions*)
+(*memory location helpers*)
 
 Definition eqb_loc (l1: loc) (l2: loc) :=
   match l1, l2 with
@@ -601,16 +382,8 @@ Definition getstring_sv (x1: smallvar) :=
     SV s _ => s end.
 
 Definition loc_choiceMixin := choiceMixin loc.
-Check oddb. (*bool -> prop*)
-Check bool_of_unitK.
-Check bool_choiceMixin.
-(*Check Choice.axioms.
-Check loc_choiceMixin.
 
-Canonical loc_choiceType := Eval hnf in ChoiceType loc loc_choiceMixin.*)
-(*ask arthur*)
-
-Print choiceMixin.
+(*ordering for locations*)
 
 Lemma loctotal: total leqloc.
   intros x y.
@@ -736,25 +509,17 @@ Lemma loctrans: transitive leqloc.
 Qed.
 Definition leqlocP := perm_sortP loctotal loctrans asyloc.
 
-(*Definition loc_leq (l1 l2: loc) :=
-  match l1, l2 with
-inl x, inl y => (getstring_sv x) <= (getstring_sv y)
-| _, _ => true end.*)
+Definition remove (L1 L2 : seq loc) :=
+  filter (fun x =>  negb (x \in L1)) L2.
 
-(*Check Ord.axioms.
-Open Scope ord_scope.
-Definition ord_loc: Ord.axioms loc_leq.
+Definition get_smallvars (w: warvars) :=
+  filter (fun v =>
+          match v with
+            (inl _) => true
+          | (inr _) => false
+          end) w.
 
-Check ord_loc.
-Definition loc_ordMixin := OrdMixin ord_loc.
-Check loc_ordMixin.
-Check nat_ordMixin.
-i think the problem with the line below is that you havent defined any choice garbage
-Canonical loc_ordtype := Eval hnf in OrdType loc loc_ordMixin.
-
-
- *)
-
+(*locations in arrays*)
  Lemma genloc_contents: forall(l: loc) (a: array),
               l \in generate_locs a ->
                     exists (el: el_loc), inr el = l.
@@ -791,24 +556,21 @@ Qed.
    unfold index_loc in Hj2. inversion Hj2.
    by [].
 Qed.
-   (*******************************************************************)
 
-(*more syntax*)
+(*further DSL constructs*)
 Inductive instruction :=
   skip
-| asgn_sv (x: smallvar) (e: exp) (*could distinguish between NV and V assignments as well here*)
+| asgn_sv (x: smallvar) (e: exp)
 | asgn_arr (a: array) (i: exp) (e: exp) (*i is index, e is new value of a[i]*)
 | incheckpoint (w: warvars)
 | inreboot.
-(*added the in prefixes to distinguish from the observation reboots
- and checkpoints*)
 
 Inductive command :=
   Ins (l: instruction)
-| Seqcom (l: instruction) (c: command) (*added suffix to distinguish from Seq ceval
-                                         constructor*)
+| Seqcom (l: instruction) (c: command)
 | ITE (e: exp) (c1: command) (c2: command).
 
+(*useful when considering traces and subtraces*)
 Open Scope nat_scope.
 Fixpoint size_com (c : command) :=
   match c with
@@ -826,20 +588,29 @@ Notation "'TEST' e 'THEN' c1 'ELSE' c2 " := (ITE e c1 c2)
                                               (at level 100).
 Coercion Ins : instruction >-> command.
 
-(*******************************************************************)
 
-(******setting up location equality relation for memory maps******************)
-(****************************************************************)
+(*memory*)
+(*the nonvolatile memory*)
 
-(****************************memory*************************************)
+Definition map_t (A: eqType) := A -> value.
 
-(*memory locations defined above warvars*)
-Notation mem := (map_t loc_eqtype). (*memory mapping*)
+Definition emptymap A :(map_t A) := (fun _ => error).
+Definition updatemap {A} (m: map_t A) (i: A) (v: value) : map_t A :=
+  if v == error then m else (fun j =>
+                                                               if (j ==i) then v
+                                                               else (m j)).
+Notation "i '|->' v ';' m" := (updatemap m i v)
+  (at level 100, v at next level, right associativity).
+
+Notation mem := (map_t loc_eqtype). 
 
 
 Definition locsort := sort leqloc.
 
-
+(*Invariant that keeps domains of NV mems equal for equal maps, ie, that maintains
+ functional extentionality.
+ A subtlety to be worked around is that, due to assumptions made in the
+ paper, array locations may be added uninitialized to the domain.*)
 Definition valid_nvm (m: mem) (d: warvars) := (forall(x: smallvar), (m (inl x) != error) <-> (inl x) \in d)
                                                                               /\
        (forall(a: array),
@@ -857,16 +628,8 @@ Inductive nvmem := (*nonvolatile memory*)
 Inductive vmem := (*volatile memory*)
   Vol (m : mem).
 
-(*I could change nvmem and vmem to enforce that they only take in smallvars
- of the correct type but it's already checked in my evaluation rules*)
-
-(**************************helpers for the memory maps*********************************************)
-
-(*note: a lot of these aren't being used right now because, after I changed the types
- of DINO and WAR, they aren't necessary.
- I won't delete them because having the domain of the checkpoint easily accessible and
- manipulable could be handy in the future*)
-
+(*interface allowing reading, writing, and other memory operations
+ while maintaining the valid_nvm invariant*)
 Definition getmap (N: nvmem) :=
   match N with NonVol m _ _ => m end.
 
@@ -878,15 +641,8 @@ Definition getvalue (N: nvmem) (i: loc) :=
   Notation "v '<-' N" := (getvalue N v)
                            (at level 40).
 
-  (*updates domain and mapping function*)
-  (*start here consider defining the two below in terms of updatemaps
-   for more generality in proofs
-   actually dont do this cuz domain weirdness in updatemaps makes it so that
-   you'd have a nested if in update_arr which you'll need to use
-   in all the eval proofs*)
-  Definition wf_dom (w: warvars) (m: mem) :=
+Definition wf_dom (w: warvars) (m: mem) :=
     valid_nvm (fun input => if (input \in w) then m input else error) w.
-
 
 Lemma restrict_wf {N: nvmem} {w: warvars}:
   wf_dom w (getmap N)->
@@ -901,8 +657,7 @@ Definition update_dom_sv (i: smallvar) (v: value) (d: warvars) :=
     if (v == error) then d else locsort (undup ((inl i) :: d)).
 
 
-
-  Lemma updatemap_sv {m: mem} {d: warvars} {i: smallvar} {v: value}:
+Lemma updatemap_sv {m: mem} {d: warvars} {i: smallvar} {v: value}:
     valid_nvm m d ->
     valid_nvm (updatemap m (inl i) v) (update_dom_sv i v d).
     unfold valid_nvm. move => [Hsv [Ha [Hsort Huniq] ] ].
@@ -963,12 +718,10 @@ Definition update_dom_sv (i: smallvar) (v: value) (d: warvars) :=
      apply (undup_uniq (inl i :: d)).
 Qed.
 
-
-
  Definition update_dom_arr (i: el_loc) (v: value) (d: warvars) :=
     if (v == error) then d else locsort (undup (generate_locs (get_array i) ++ d)).
 
-  Lemma updatemap_arr {m: mem} {d: warvars} {i: el_loc} {v: value} 
+Lemma updatemap_arr {m: mem} {d: warvars} {i: el_loc} {v: value} 
     :
     valid_nvm m d ->
     valid_nvm (updatemap m (inr i) v) (update_dom_arr i v d). 
@@ -977,8 +730,6 @@ Qed.
                                                                                                 (move/ eqP : Hbool => Heq; subst); try apply (Hsv x); try assumption.
      intros.
      assert (inl x != inr i). by [].
-     (*start here ask arthur why ifF doesnt work here but this does
-      this might no longer work since you added prop_extentionality to lemmas0*)
      move/ eqP /eqP : H => Hneq.
      apply (Hsv x) in Hneq.
      rewrite mem_sort. rewrite mem_undup.
@@ -1025,8 +776,6 @@ Definition updateNV_sv (N: nvmem) (i: smallvar) (v: value) :=
                NonVol (updatemap m (inl i) v) (update_dom_sv i v D) (updatemap_sv H) end.
 
 
-(*this one should only be called within in eval*)
-(*adds ENTIRE array to domain for checkpoint utility*)
 Definition updateNV_arr (N: nvmem) (i: el_loc) (a: array) (v: value)
   :=
     match N with NonVol m D H =>
@@ -1034,8 +783,6 @@ Definition updateNV_arr (N: nvmem) (i: el_loc) (a: array) (v: value)
                       (updatemap_arr H)
   end.
 
-(*used to update NV memory with checkpoint*)
-(*checks N first, then N'*)
   Lemma updatemaps_wf {m m': mem} {d d': warvars}
     :
     valid_nvm m d ->
@@ -1104,80 +851,23 @@ exists el11. rewrite ifT; try by []. apply Hsub.
    (fun j =>
       if (j \in D)
           then (m j)
-          else (m' j))
-  (locsort (undup (D ++ D'))) (updatemaps_wf H H') (*inclusion of duplicates...can't allow this*)
+          else (m' j)) (locsort (undup (D ++ D'))) (updatemaps_wf H H')
   end.
 Notation "m1 'U!' m2" := (updatemaps m1 m2) (at level 100).
 
-Lemma decidable_loc: forall(x y: loc), {x = y} + {x <> y}.
-  intros. destruct (x == y) eqn: beq.
-  apply left. apply: eqP beq.
-  apply right. apply (elimF eqP beq).
-Qed.
-(*start here how to use the reflect/move stuff when things
- are false*)
-
-(*Lemma decidable_in: forall(x: loc) (w: warvars),
-    {In x w} + {not (In x w)}.
-apply (in_dec decidable_loc). Qed.*)
-
-
-(*removes L1 from L2 *)
-Definition remove (L1 L2 : seq loc) :=
-  filter (fun x =>  negb (x \in L1)) L2.
-
-(*Definition interseqt (L1 L2 : seq loc) :=
-  filter (fun x =>  (x \in L1)) L2.*)
-
-
-
-(*prop determining if every location in array a is in the domain of m*)
-Definition indomain_nvm (N: nvmem) (w: loc) :=
-  w \in (getdomain N).
-
-(*equality type for seq loc
-
-Fixpoint eqb_warvars (w1: warvars) (w2: warvars) :=
-  match w1, w2 with
-    [::], [::] => true
-  | (x::xs), (y::ys) => (x == y) && (eqb_warvars xs ys)
-  | _, _ => false 
-  end.
-
-Lemma eqb_wv_refl: forall y: warvars, is_true (eqb_warvars y y).
-
-Lemma eqb_wv_true_iff : forall x y : warvars,
-    is_true(eqb_warvars x y) <-> x = y.
-Proof.
-  intros. induction x.
-  + split. destruct y. simpl. auto.
-    unfold eqb_warvars. simpl. intros contra. discriminate contra.
-
-Lemma eqwv: Equality.axiom eqb_warvars.
-Proof.
-
-Canonical wv_eqMixin := EqMixin eqwv.
-Canonical wv_eqtype := Eval hnf in EqType warvars wv_eqMixin.*)
-
-
-
 Definition isdomain_nvm (N: nvmem) (w: warvars) :=
   (getdomain N) == w.
-Definition subset_nvm (N1 N2: nvmem) :=
-  (*start here take out the domain requirement*)
-  (*(subseq (getdomain N1) (getdomain N2))*) (forall(l: loc),
+Definition subset_nvm (N1 N2: nvmem) := (forall(l: loc),
                                     l \in (getdomain N1) ->
                                     (getmap N1) l = (getmap N2) l
                                   ).
-(********************************************)
+
+(*observation and write set infrastructure for single step evaluation
+ and program traces*)
 Inductive cconf := (*continuous configuration*)
   ContinuousConf (triple: nvmem * vmem * command).
 
 Notation context := (nvmem * vmem * command).
-
-(*A coercion for cconf doesn't work because it's the same essential type as context.
- So, in practice, to avoid writing the constructor everywhere, I've been using contexts foralleverything, when conceptually a cconf would make more sense.
- It would be nice to just have one type for this.*)
 
 Notation iconf := (context * nvmem * vmem * command).
 
@@ -1190,13 +880,13 @@ Definition readobs := seq ro.
 
 Notation NoRdObs := (nil : readobs).
 
-Inductive obs := (*observation*)
+Inductive obs := 
   RdObs (r: readobs)
 | reboot
 | checkpoint.
 Coercion RdObs : readobs >-> obs.
 
-(*equality type for obs*)
+(*equality type for observations*)
 Definition eqb_ro (ro1: ro) (ro2: ro) :=
   match ro1, ro2 with
     (l1, v1), (l2, v2) => (l1 == l2) && (v1 == v2)
@@ -1226,8 +916,7 @@ Definition eqb_obs (o1: obs) (o2: obs) :=
   match o1, o2 with
     reboot, reboot => true
   | checkpoint, checkpoint => true
-  | RdObs R1, RdObs R2 => R1 == R2 (*start here find replace doesnt work
-with second occurence?*)
+  | RdObs R1, RdObs R2 => R1 == R2
   | _, _ => false end.
 
 Lemma eqb_obs_true_iff : forall x y : obs,
@@ -1250,32 +939,12 @@ Qed.
 Canonical obs_eqMixin := EqMixin eqobs.
 Canonical obs_eqtype := Eval hnf in EqType obs obs_eqMixin.
 
-Notation obseq := (seq obs). (*observation sequence*)
-
-
-(*helpers for configs*)
-Inductive single_com: context -> Prop :=
-  SingleCom: forall(N: nvmem) (V: vmem) (l: instruction),
-               single_com (N, V, Ins l).
-
-Definition single_com_i (C: iconf) :=
-  match C with (_, _, c) =>
-  (match c with
-    Ins _ => True
-  | _ => False end) end.
+Notation obseq := (seq obs). 
 
 (*helpers for observations and warvars*)
 
-(*converts from seq of read locations to list of
-WAR variables
- *)
-
-(*Fixpoint readobs_wvs (R: readobs): (seq loc) := 
-  match R with
-    nil => nil
-  | (r::rs) => (fst r) :: (readobs_wvs rs)
-  end.*)
-
+(*converts from location to set of locations checkpointed by DINO
+if that location is written to after being read from*)
 Definition getwvs (l: loc) :=
   match l with
     inl x => [::l]
@@ -1285,19 +954,10 @@ Fixpoint readobs_wvs (R: readobs): (seq loc) :=
   match R with
     nil => nil
   | (r::rs) => getwvs(fst r) ++ (readobs_wvs rs)
-  end. (*i think it's fine to be overconservative about what you've read*) 
+  end. 
 
 
-(*relations between continuous and intermittent observations*)
-(*Definition reduces (O1 O2: readobs) :=
-  (prefix O1 O2*)
-
-(*Where
-O1 is a sequence of read observation seqs,
-where each continguous read observation seq is separated from those adjacent to it by a reboot,
-and O2 is a read observation seq,
-prefix_seq determines if each ro seq in O1 is a valid
-prefix of O2*)
+(*relations between continuous and intermittent observations.*)
 
 Inductive prefix: obseq -> obseq -> Prop :=
   P_Base: forall(O: obseq), checkpoint \notin O ->
@@ -1306,20 +966,14 @@ Inductive prefix: obseq -> obseq -> Prop :=
                               reboot \notin O3 -> checkpoint \notin O3 ->
                                                 prefix O1 (O2 ++ O3).
 Notation "S <=p T" := (prefix S T) (at level 100).
-(*some sort of spec start here?*)
-
-Lemma prefix_app {O1 O2 O3: obseq} :
-  (O2 <=p O3) -> reboot \notin O1 -> checkpoint \notin O1 ->
-  O1 ++ O2 <=p O1 ++ O3.
-  intros. induction H.
-  2:{
-rewrite catA. apply P_Ind; try assumption.
-  }
-  apply P_Base; try (rewrite mem_cat; apply/norP; split; by []).
-Qed.
 
 
-
+(*Where
+O1 is a sequence of read observation seqs,
+where each continguous read observation seq is separated from those adjacent to it by a reboot,
+and O2 is a read observation seq,
+prefix_seq determines if each ro seq in O1 is a valid
+prefix of O2*)
 Inductive prefix_seq: obseq -> obseq -> Prop :=
   RB_Base: forall(O: obseq),
     reboot \notin O -> checkpoint \notin O ->
@@ -1333,10 +987,6 @@ Inductive prefix_seq: obseq -> obseq -> Prop :=
 
 Notation "S <=m T" := (prefix_seq S T) (at level 100).
 
-(* For when I change the types
-Theorem ps_correct: forall(O1 O2: obseq),
-    prefix_seq O1 O2 ->
-    checkpoint \notin O1 /\ reboot \notin O2 /\ checkpoint \notin O2.*)
 
 (* Where
 O1 is a sequence of ((read observation seq sequences), where
@@ -1345,8 +995,8 @@ by a reboot), where each sequence is separated from those adjacent to it by a ch
 ie, each read observation seq in a given read observation sequence
 occurs within the same checkpointed region as all the other read observation seqs in that sequence,
 O2 is a read observation seq,
-prefix_frag determines if each ro seq in O1 is a prefix of some FRAGMENT of O2
-(where the fragments are separated by the positioning of the checkpoints in O1)
+prefix_frag determines if each ro seq in O1 is a prefix of the corresponding fragment of O2
+(where the fragments are separated by the positioning of the checkpoints in O1 and O2)
  *)
 Inductive prefix_fragment: obseq -> obseq -> Prop :=
   CP_Base: forall(O1: obseq) (O2: obseq), prefix_seq O1 O2 -> prefix_fragment O1 O2 
@@ -1354,12 +1004,11 @@ Inductive prefix_fragment: obseq -> obseq -> Prop :=
     prefix_seq O1 O2 -> prefix_fragment O1' O2' ->
    prefix_fragment (O1 ++ [:: checkpoint] ++ O1') (O2 ++ [::checkpoint] ++ O2'). 
 Notation "S <=f T" := (prefix_fragment S T) (at level 100).
-(***************************************************************)
 
 
-(****************continuous operational semantics***********************)
+(*operational semantics*)
+
 (*evaluation relation for expressions*)
-
 Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
   VAL: forall(N: nvmem) (V: vmem) (v: value),
     (isvaluable v) -> (*extra premise to check if v is valuable*)
@@ -1370,17 +1019,17 @@ Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
           (v1: value) (v2: value) (bop: boptype),
     eeval N V e1 r1 v1 ->
     eeval N V e2 r2 v2 -> 
-    (isvalidbop bop v1 v2) -> (*extra premise to check if v1, v2, bop v1 v2 valuable*)
+    (isvalidbop bop v1 v2) ->
     eeval N V (Bop bop e1 e2) (r1++ r2) (bopeval bop v1 v2)
 | RD_VAR_NV: forall(N: nvmem) (mapV: vmem) (x: smallvar) (v: value),
     ((inl x) <-N) = v ->
-    isNV(x) -> (*extra premise to make sure x is correct type for NV memory*)
-    (isvaluable v) -> (*extra premise to check if v is valuable*)
+    isNV(x) -> 
+    (isvaluable v) -> 
     eeval N mapV x [:: ((inl x), v)] v
 | RD_VAR_V: forall(N: nvmem) (mapV: mem) (x: smallvar) (v: value),
     (mapV (inl x)) = v ->
-    isV(x) -> (*extra premise to make sure x is correct type for V memory*)
-    (isvaluable v) -> (*extra premise to check if v is valuable*)
+    isV(x) -> 
+    (isvaluable v) -> 
     eeval N (Vol mapV) x [:: ((inl x), v)] v
 | RD_ARR: forall(N: nvmem) (V: vmem)
            (a: array)
@@ -1391,26 +1040,14 @@ Inductive eeval: nvmem -> vmem -> exp -> readobs -> value -> Prop :=
            (v: value),
     eeval N V (index) rindex vindex ->
     ((inr element) <-N) = v ->
-    equal_index element a vindex -> (*extra premise to check that inr element
-                                        is actually a[vindex] *)
-(*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
-    (isvaluable v) -> (*extra premise to check if v is valuable*)
+    equal_index element a vindex ->
+    (isvaluable v) -> 
     eeval N V (a[[index]]) (rindex++[:: ((inr element), v)]) v
 .
 
-(****************************************************************************)
+(*record of variables written to, read from, and first written to*)
+Notation the_write_stuff := ((seq loc) * (seq loc) * (seq loc)).
 
-(**********continuous execution semantics*************************)
-
-
-(*evaluation relation for commands*)
-
-
-
-(*written, read, written before reading*)
-Notation the_write_stuff := ((seq loc) * (list loc) * (list loc)).
-
-(*consider using a record type so I don't need so many of these*)
 
 Definition getwt (W: the_write_stuff) := match W with (out, _, _ )=> out end.
 
@@ -1418,20 +1055,12 @@ Definition getrd (W: the_write_stuff) := match W with (_, out , _ )=> out end.
 
 Definition getfstwt (W: the_write_stuff) := match W with (_, _, out )=> out end.
 
-Notation emptysets := ((nil : (seq loc)), (nil: (list loc)), (nil: (list loc))).
+Notation emptysets := ((nil : (seq loc)), (nil: (seq loc)), (nil: (seq loc))).
 
 
 
-(***Below, I define an evaluation relation for continuous programs which accumulates
- read/write data as the program evaluates. This makes the trace type more elegant, while
- also containing the same data as the cceval above.
-However, the write data does not influence the evaluation of the program, so, if it were not
-for the trace type, it wouldn't be clear I would include this here.
-It not included in the evaluation relation in the paper.
- **)
-(*Single steps, accumulates write data*)
-(*Note: program consisting of just a checkpoint is illegal...huh*)
-
+(*single step evaluation relation which accumulates which variables are written/read from
+ as well as what values are read from which locations*)
 
 Inductive cceval_w: context -> obseq -> context -> the_write_stuff -> Prop :=
 CheckPoint: forall(N: nvmem)
@@ -1445,16 +1074,16 @@ CheckPoint: forall(N: nvmem)
              (nil, nil, nil)
 | NV_Assign: forall{x: smallvar} {N: nvmem} {V: vmem} {e: exp} {r: readobs} {v: value},
     eeval N V e r v ->
-    isNV(x) -> (*checks x is correct type for NV memory*)
-    (isvaluable v) -> (*extra premise to check if v is valuable*)
+    isNV(x) -> 
+    (isvaluable v) -> 
     cceval_w (N, V, Ins (asgn_sv x e))
              (RdObs r :: nil)
              ((updateNV_sv N x v), V, Ins skip)
              ([:: inl x],  (readobs_wvs r), (remove (readobs_wvs r) [:: inl x]))
 | V_Assign: forall{x: smallvar} {N: nvmem} {mapV: mem} {e: exp} {r: readobs} {v: value},
     eeval N (Vol mapV) e r v ->
-    isV(x) -> (*checks x is correct type for V memory*)
-    (isvaluable v) -> (*extra premise to check if v is valuable*)
+    isV(x) -> 
+    (isvaluable v) -> 
     cceval_w (N, (Vol mapV), Ins (asgn_sv x e)) 
              (RdObs r :: nil)
              (N, (Vol ((inl x) |-> v ; mapV)), Ins skip)
@@ -1470,16 +1099,12 @@ CheckPoint: forall(N: nvmem)
                {element: el_loc},
     eeval N V ei ri vi ->
     eeval N V e r v ->
-    (*start here its kind of annoying that ri comies in first but down there
-     its appended second*)
-(*well-typedness, valuability, inboundedness of vindex are checked in elpred*)
-    (isvaluable v) -> (*extra premise to check if v is valuable*)
+    (isvaluable v) -> 
   (equal_index element a v) ->
     cceval_w (N, V, Ins (asgn_arr a ei e))
            ((RdObs (cat ri r)) :: nil)
            ((updateNV_arr N element a v), V, Ins skip)
            ([:: inr element], (readobs_wvs (cat r ri)), (remove (readobs_wvs (cat r ri)) [:: inr element]))
-(*valuability and inboundedness of vindex are checked in sameindex*)
 | Skip: forall(N: nvmem)
          (V: vmem)
          (c: command),
@@ -1494,15 +1119,12 @@ CheckPoint: forall(N: nvmem)
     l <> skip ->
     cceval_w (N, V, Ins l) O (N', V', Ins skip) W ->
     cceval_w (N, V, (l;;c)) O (N', V', c) W
-   (*IP becomes obnoxious if you let checkpoint into the Seq case so I'm outlawing it
-    same with skip*)
-   (*ask arthur why sometimes it finds errors at the end before errors at the front*)
 | If_T: forall(N: nvmem)
          (V: vmem)
          (e: exp)
          (r: readobs)
          (c1 c2: command),
-    eeval N V e r true -> (*yuh doy not writing anything in eeval*)
+    eeval N V e r true -> 
     cceval_w (N, V, (TEST e THEN c1 ELSE c2)) ((RdObs r)::nil) (N, V, c1) (nil, (readobs_wvs r), nil)
 | If_F: forall(N: nvmem)
          (V: vmem)
@@ -1515,99 +1137,4 @@ CheckPoint: forall(N: nvmem)
 Definition append_write (W1 W2: the_write_stuff) :=
   ((getwt W2) ++ (getwt W1) , (getrd W2) ++ (getrd W1),  (remove (getrd W1) (getfstwt W2))
                                          ++ (getfstwt W1)).
-(************************************************************)
-
-(**********intermittent execution semantics*************************)
-(*evaluation relation for commands*)
-(*accumlates write data as continuous relation does
-Inductive iceval_w: iconf -> obseq -> iconf -> the_write_stuff -> Prop :=
-  CP_PowerFail: forall(k: context) (N: nvmem) (V: vmem) (c: command),
-    c <> (Ins skip) -> (*can't have a power fail if you've terminated*)
-                 iceval_w (k, N, V, c)
-                        nil
-                        (k, N, (reset V), Ins inreboot) (nil, nil, nil)
- | CP_Reboot: forall(N N': nvmem) (*see below*) (*N is the checkpointed one*)
-               (V V': vmem) 
-               (c: command),
-     c <> Ins inreboot ->
-     iceval_w ((N, V, c), N', V', Ins inreboot)
-            [:: reboot]
-            ((N, V, c), (N U! N'), V, c) (nil, nil, nil)
- | CP_CheckPoint: forall(k: context) (N: nvmem) (V: vmem) (c: command) (w: warvars),
-                 iceval_w (k, N, V, ((incheckpoint w);;c))
-                        [:: checkpoint]
-                        (((N |! w), V, c), N, V, c) (nil, nil, nil) 
- | CP_NV_Assign: forall(k: context) (x: smallvar) (N: nvmem) (V: vmem) (e: exp) (r: readobs) (v: value),
-    eeval N V e r v ->
-    isNV(x) -> (*checks x is correct type for NV memory*)
-    (isvaluable v) -> (*extra premise to check if v is valuable*)
-    iceval_w (k, N, V, Ins (asgn_sv x e))
-           [:: RdObs r]
-           (k, (updateNV_sv N x v), V, Ins skip)
-           ([:: inl x],  (readobs_wvs r), (remove (readobs_wvs r) [:: inl x]))
-| CP_V_Assign: forall(k: context) (x: smallvar) (N: nvmem) (mapV: mem) (e: exp) (r: readobs) (v: value),
-    eeval N (Vol mapV) e r v ->
-    isV(x) -> (*checks x is correct type for V memory*)
-    (isvaluable v) -> (*extra premise to check if v is valuable*)
-    iceval_w (k, N, (Vol mapV), Ins (asgn_sv x e))
-           [:: RdObs r]
-           (k, N, (Vol ((inl x) |-> v ; mapV)), Ins skip)
-             (nil,  (readobs_wvs r), nil)
-| CP_Assign_Arr: forall (k: context) (N: nvmem) (V: vmem)
-               (a: array)
-               (ei: exp)
-               (ri: readobs)
-               (vi: value)
-               (e: exp)
-               (r: readobs)
-               (v: value)
-               (element: el_loc),
-    eeval N V ei ri vi ->
-    eeval N V e r v ->
-    equal_index element a vi ->
-    (isvaluable v) -> (*extra premise to check if v is valuable*)
-    iceval_w (k, N, V, Ins (asgn_arr a ei e))
-           [:: RdObs (ri++r)]
-           (k, (updateNV_arr N element a v), V, Ins skip)
-           ([::inr element], (readobs_wvs (cat r ri)), (remove  (readobs_wvs (cat r ri)) [::inr element]))
-| CP_Skip: forall(k: context) (N: nvmem)
-         (V: vmem)
-         (c: command),
-    iceval_w (k, N, V, (skip;;c)) ((RdObs [::])::nil) (k, N, V, c) (nil, nil, nil)
-|CP_Seq: forall (k: context)
-         (N: nvmem) (N': nvmem)
-         (V: vmem) (V': vmem)
-         (l: instruction)
-         (c: command)
-         (o: obs)
-         (W: the_write_stuff),
-    (forall(w: warvars), l <> (incheckpoint w)) ->
-    l <> skip ->
-    iceval_w (k, N, V, Ins l) (o::nil) (k, N', V', Ins skip) W ->
-    iceval_w (k, N, V, (l;;c)) (o::nil) (k, N', V', c) W (*ask arthur like with those two os just there*)
-|CP_If_T: forall(k: context) (N: nvmem) (V: vmem)
-         (e: exp)
-         (r: readobs)
-         (c1 c2: command),
-    eeval N V e r true -> 
-    iceval_w (k, N, V, (TEST e THEN c1 ELSE c2)) ((RdObs r)::nil) (k, N, V, c1) (nil, (readobs_wvs r), nil)
-|CP_If_F: forall(k: context) (N: nvmem) (V: vmem)
-         (e: exp)
-         (r: readobs)
-         (c1 c2: command),
-    eeval N V e r false ->
-    iceval_w (k, N, V, (TEST e THEN c1 ELSE c2)) ((RdObs r)::nil) (k, N, V, c2) (nil, (readobs_wvs r), nil).
-(*CP_Reboot: I took out the equals premise and instead built it
-into the types because I didn't wanit to define a context equality function*)
-
-(**************************************i******)
-(*helpers that use the evals
-Definition el_arrayexp_eq (e: el) (a: array) (eindex: exp) (N: nvmem) (V: vmem) := (*transitions from el type to a[exp] representation*)
-  (samearray e a) /\
-  exists(r: readobs) (vindex: value), eeval N V eindex r vindex /\
-                                 (eq_value (getindexel e) vindex).*)
-(******)
-*)
-(*ask arthur how to check in*)
-Close Scope type_scope.
 

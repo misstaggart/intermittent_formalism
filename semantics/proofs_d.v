@@ -5,7 +5,7 @@ Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq fintype ssrnat ssrfun path.
 From TLC Require Import LibTactics LibLogic.
 From Semantics Require Export programs semantics algorithms lemmas_1
-     lemmas_0 proofs_0. (*shouldn't have to import both of these*)
+     lemmas_0 proofs_0. 
 
 Lemma onePointone: forall(N N' W W' R R': warvars) (l: instruction),
     DINO_ins N W R l N' W' R' -> subseq N N'.
