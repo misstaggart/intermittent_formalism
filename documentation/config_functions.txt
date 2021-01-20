@@ -1,6 +1,0 @@
-Checks if the program in context is a sequence of commands or just one
-single_com: context -> prop
-
-Same as single_com but for intermittent configuration
-single_com_i
-

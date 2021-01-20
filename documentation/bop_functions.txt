@@ -1,4 +1,0 @@
-bopeval: boptype -> value -> value -> value
-
-(*checks if v1 bop v2 is valuable according to bopeval*)
-isvalidbop: boptype -> value -> value -> prop
