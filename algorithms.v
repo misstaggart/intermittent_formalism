@@ -3,7 +3,7 @@ From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Strings.String Program.
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq.
-From Semantics Require Export semantics lemmas_0.
+From Coq_intermittent Require Export semantics lemmas_0.
 
 (*relation determining what variables are read from when evaluating exp e
  *)

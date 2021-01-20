@@ -4,14 +4,10 @@ From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq fintype ssrnat ssrfun.
 From TLC Require Import LibTactics LibLogic.
-From Semantics Require Export programs semantics algorithms lemmas_1
+From Coq_intermittent Require Export programs semantics algorithms lemmas_1
 lemmas_0. 
 
-Implicit Types N: nvmem. Implicit Types V: vmem.
-Implicit Types O: obseq.
-Implicit Types c: command.
-Implicit Types W: the_write_stuff.
-Implicit Types x: smallvar.
+Implicit Types (N: nvmem) (V: vmem) (O: obseq) (c: command) (W: the_write_stuff) (x: smallvar).
 
 Open Scope type_scope.
 

@@ -4,7 +4,7 @@ From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq fintype ssrnat ssrfun.
 From TLC Require Import LibTactics LibLogic.
-From Semantics Require Export programs semantics algorithms lemmas_1
+From Coq_intermittent Require Export programs semantics algorithms lemmas_1
      lemmas_0 proofs_0 proofs_n proofs_d. 
 
 

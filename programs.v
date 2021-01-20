@@ -3,7 +3,7 @@ From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Strings.String Program Init.Logic.
 Require Export Coq.Strings.String.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype seq ssrnat.
-From Semantics Require Import algorithms lemmas_1.
+From Coq_intermittent Require Import algorithms lemmas_1.
 
 Implicit Types N: nvmem. Implicit Types V: vmem.
 Implicit Types O: obseq.

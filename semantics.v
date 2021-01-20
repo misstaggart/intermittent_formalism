@@ -4,7 +4,7 @@ From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Ascii String Logic.ProofIrrelevance.
 From mathcomp Require Import ssrnat ssreflect ssrfun ssrbool eqtype fintype seq
      choice bigop finset generic_quotient tuple path.
-From Semantics Require Import lemmas_0.
+From Coq_intermittent Require Import lemmas_0.
 
 From deriving Require Import deriving.
 

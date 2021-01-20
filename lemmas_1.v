@@ -5,7 +5,7 @@ From Coq Require Import Bool.Bool Init.Nat Arith.Arith Arith.EqNat
      Init.Datatypes Strings.String Program Logic.FunctionalExtensionality.
 Require Export Coq.Strings.String.
 From TLC Require Import LibTactics.
-From Semantics Require Import semantics algorithms lemmas_0.
+From Coq_intermittent Require Import semantics algorithms lemmas_0.
 
 
 (*invariants*)
