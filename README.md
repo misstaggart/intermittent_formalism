@@ -9,7 +9,8 @@ Important:
 
 proofs.v: essential proofs and invariants culminating in the proof of correctness for an arbitrary intermittently executed program, provided that the DINO checkpointing scheme is followed. notably, my novel memory invariant (all_diff_in_fw) is defined and used here. for reference, my encodings of the memory invariants used in (the paper proofs as written during my employment) are included here also, even though they are not used in any of my proofs.
 
-semantics.v: embedding of the DSL and various evaluation relations. my novel implementation of NV memory makes determining the domain of these finite maps (over an infinite type) decidable while also maintaining functional extensionality. much of the ssreflect employment is in this file.
+semantics.v: embedding of the DSL and various evaluation relations. much of the ssreflect employment is in this file.
+
 programs.v: types defining continuous and intermittent program traces. 
 
 algorithms.v: types defining the DINO algorithm and the checkpointed variables it collects
